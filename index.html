@@ -3,102 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de OS - Comunicação Visual</title>
+    <title>Gerador de OS - Comunicação Visual</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Estilo para a tela do computador */
-        body { font-family: sans-serif; display: flex; margin: 0; background: #f0f0f0; }
+        :root {
+            --black: #1a1a1a;
+            --red: #ff3131;
+            --blue: #00aeef;
+            --green: #00a651;
+        }
+
+        body { font-family: 'Montserrat', sans-serif; display: flex; margin: 0; background: #f0f0f0; }
         
+        /* Painel Lateral */
         #painel-controle { 
-            width: 350px; padding: 20px; background: #2c3e50; color: white;
-            height: 100vh; overflow-y: auto; position: fixed;
+            width: 380px; padding: 20px; background: #2c3e50; color: white;
+            height: 100vh; overflow-y: auto; position: fixed; box-sizing: border-box;
         }
+        .grupo-input { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; margin-bottom: 5px; color: #bdc3c7; }
+        input, textarea, select { width: 100%; padding: 8px; border-radius: 4px; border: none; box-sizing: border-box; }
 
-        #area-impressao {
-            margin-left: 370px; padding: 40px;
-            display: flex; justify-content: center; width: 100%;
-        }
-
-        /* A "Folha A4" na tela */
+        /* Área da Folha */
+        #area-impressao { margin-left: 380px; padding: 20px; display: flex; justify-content: center; width: calc(100% - 380px); }
         .folha-a4 {
-            width: 210mm; height: 297mm;
-            padding: 10mm; /* Margem de 1cm pedida */
+            width: 210mm; height: 297mm; padding: 10mm;
             background: white; box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            border: 1px dashed #ccc; box-sizing: border-box;
-            position: relative;
+            box-sizing: border-box; position: relative;
         }
 
-        /* Estilo para o Botão de Imprimir */
-        .btn-imprimir {
-            background: #27ae60; color: white; border: none;
-            padding: 10px 20px; cursor: pointer; border-radius: 5px;
-            width: 100%; margin-top: 20px;
-        }
+        /* Estrutura da OS (Tabela Visual) */
+        .tabela-os { border: 2px solid var(--black); width: 100%; border-collapse: collapse; }
+        .row { display: flex; border-bottom: 1px solid var(--black); }
+        .cell { padding: 4px 8px; border-right: 1px solid var(--black); font-size: 12px; }
+        .cell:last-child { border-right: none; }
+        
+        .header-black { background: var(--black); color: white; font-weight: 900; font-size: 24px; text-transform: uppercase; padding: 10px; }
+        
+        /* Badges de Status (E, F, P) */
+        .badge-container { display: flex; gap: 10px; padding: 5px; }
+        .badge { border: 2px solid; padding: 2px 8px; font-weight: 900; font-size: 20px; display: flex; align-items: center; }
+        .badge.red { color: var(--red); border-color: var(--red); }
+        .badge.blue { color: var(--blue); border-color: var(--blue); }
+        .badge.green { color: var(--green); border-color: var(--green); }
+        .badge-label { font-size: 8px; text-orientation: sideways; writing-mode: vertical-lr; text-transform: uppercase; margin-right: 2px; }
 
-        /* Configuração para gerar o PDF/Imprimir corretamente */
+        /* Áreas de Imagem e Notas */
+        .area-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 15px 0; text-transform: uppercase; }
+        .area-fotos { height: 450px; border: 1px dashed #ccc; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .area-fotos img { max-width: 100%; max-height: 100%; }
+        .area-anotacoes { border: 1px dashed #000; height: 200px; padding: 10px; position: relative; }
+        .label-fixo { font-weight: bold; font-size: 12px; }
+
         @media print {
-            body { background: none; }
-            #painel-controle { display: none; } /* Esconde o painel ao imprimir */
-            #area-impressao { margin: 0; padding: 0; }
-            .folha-a4 { box-shadow: none; border: none; margin: 0; }
+            #painel-controle { display: none; }
+            #area-impressao { margin: 0; padding: 0; width: 100%; }
+            .folha-a4 { box-shadow: none; border: none; }
         }
-
-        /* Layout da OS conforme sua imagem */
-        .cabecalho-os { border: 2px solid #000; width: 100%; }
-        .linha { display: flex; border-bottom: 1px solid #000; }
-        .campo { padding: 5px; border-right: 1px solid #000; flex-grow: 1; }
     </style>
 </head>
 <body>
 
     <div id="painel-controle">
-        <h2>Dados da OS</h2>
-        <label>Nome da Empresa:</label><br>
-        <input type="text" id="in-empresa" oninput="atualizar()"><br><br>
+        <h2 style="font-weight: 900;">CONFIGURAÇÃO OS</h2>
         
-        <label>Cliente:</label><br>
-        <input type="text" id="in-cliente" oninput="atualizar()"><br><br>
+        <div class="grupo-input">
+            <label>NOME DA EMPRESA</label>
+            <input type="text" id="in-empresa" oninput="up()" placeholder="Sua Empresa">
+        </div>
 
-        <label>Imagens (Central):</label><br>
-        <input type="file" id="in-img" accept="image/*" onchange="carregarImagem(event)"><br><br>
+        <div style="display: flex; gap: 10px;">
+            <div class="grupo-input">
+                <label>Nº OS</label>
+                <input type="text" id="in-os" oninput="up()" placeholder="0001">
+            </div>
+            <div class="grupo-input">
+                <label>VALOR RESTANTE</label>
+                <input type="text" id="in-pag" oninput="up()" placeholder="R$ 0,00">
+            </div>
+        </div>
 
-        <button class="btn-imprimir" onclick="window.print()">Gerar PDF / Imprimir</button>
+        <div class="grupo-input">
+            <label>CLIENTE / TELEFONE</label>
+            <input type="text" id="in-cliente" oninput="up()" style="margin-bottom: 5px;">
+            <input type="text" id="in-tel" oninput="up()" placeholder="(41) 99999-9999">
+        </div>
+
+        <div class="grupo-input">
+            <label>ENDEREÇO</label>
+            <input type="text" id="in-end" oninput="up()">
+        </div>
+
+        <div class="grupo-input">
+            <label>NOME DO SERVIÇO</label>
+            <input type="text" id="in-servico" oninput="up()">
+        </div>
+
+        <div class="grupo-input">
+            <label>FOTOS (ÁREA CENTRAL)</label>
+            <input type="file" accept="image/*" onchange="previewImg(event)">
+        </div>
+
+        <button onclick="window.print()" style="width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px;">GERAR PDF PARA IMPRESSÃO</button>
     </div>
 
     <div id="area-impressao">
-        <div class="folha-a4" id="folha">
-            <div class="cabecalho-os">
-                <div class="linha" style="background: #000; color: #fff; font-weight: bold;">
-                    <div class="campo" id="out-empresa">NOME DA EMPRESA</div>
+        <div class="folha-a4">
+            <div class="tabela-os">
+                <div class="header-black" id="out-empresa">NOME DA EMPRESA</div>
+                <div class="row">
+                    <div class="cell" style="flex: 2;"><b>Cliente</b> <span id="out-cliente">...</span></div>
+                    <div class="cell" style="flex: 1;"><b>Telefone</b> <span id="out-tel">...</span></div>
+                    <div class="cell" style="flex: 0.5; background: #eee;"><b>OS</b> <br><span id="out-os" style="font-size: 18px; font-weight: 900;">0000</span></div>
                 </div>
-                <div class="linha">
-                    <div class="campo">Cliente: <span id="out-cliente">...</span></div>
-                    <div class="campo">OS: <span id="out-os">0000</span></div>
+                <div class="row">
+                    <div class="cell" style="flex: 2;"><b>Endereço</b> <span id="out-end">...</span></div>
+                    <div class="cell" style="flex: 1; font-weight: 900; font-size: 14px; display:flex; align-items:center;">
+                        Pagamento Restante: <span id="out-pag" style="margin-left: 5px;">R$ 00,00</span>
+                    </div>
                 </div>
             </div>
 
-            <div id="container-imagens" style="margin-top: 20px; text-align: center;">
-                <p style="color: #ccc; margin-top: 100px;">ÁREA DE IMAGENS</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 5px;">
+                <div class="badge-container">
+                    <div class="badge red"><span class="badge-label">Entrada</span> E X</div>
+                    <div class="badge blue"><span class="badge-label">Faturado</span> F X</div>
+                    <div class="badge green"><span class="badge-label">Pago</span> P X</div>
+                </div>
+                
+                <div style="border: 2px solid #000; font-size: 10px; display: flex;">
+                    <div style="padding: 5px; border-right: 1px solid #000;">APROVAÇÃO LAYOUT<br><b>00/00/25</b></div>
+                    <div style="padding: 5px; color: red;">DATA LIMITE<br><b>00/00/25</b></div>
+                </div>
+
+                <div style="border: 2px solid #000; padding: 5px; font-weight: 900; text-align: center;">
+                    LOGÍSTICA <br>
+                    <span style="font-size: 10px; font-weight: normal;">[X] INSTALAÇÃO [ ] ENTREGA</span>
+                </div>
+            </div>
+
+            <div class="area-servico" id="out-servico">NOME DO SERVIÇO</div>
+
+            <div class="area-fotos" id="container-fotos">
+                <span style="color: #ddd; font-size: 40px; font-weight: 900;">ÁREA DE IMAGENS</span>
+            </div>
+
+            <div class="area-anotacoes">
+                <div class="label-fixo">Descrição do serviço:</div>
+                <div style="color: #ddd; font-size: 40px; font-weight: 900; text-align: center; margin-top: 40px; opacity: 0.3;">ÁREA DE ANOTAÇÕES</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Função para atualizar o texto em tempo real
-        function atualizar() {
+        function up() {
             document.getElementById('out-empresa').innerText = document.getElementById('in-empresa').value || "NOME DA EMPRESA";
-            document.getElementById('out-cliente').innerText = document.getElementById('in-cliente').value || "...";
+            document.getElementById('out-os').innerText = document.getElementById('in-os').value || "0000";
+            document.getElementById('out-cliente').innerText = document.getElementById('in-cliente').value;
+            document.getElementById('out-tel').innerText = document.getElementById('in-tel').value;
+            document.getElementById('out-end').innerText = document.getElementById('in-end').value;
+            document.getElementById('out-pag').innerText = document.getElementById('in-pag').value || "R$ 0,00";
+            document.getElementById('out-servico').innerText = document.getElementById('in-servico').value || "NOME DO SERVIÇO";
         }
 
-        // Função básica para colocar a imagem na tela
-        function carregarImagem(event) {
-            const container = document.getElementById('container-imagens');
-            const url = URL.createObjectURL(event.target.files[0]);
-            const img = document.createElement('img');
-            img.src = url;
-            img.style.width = "200px"; // Tamanho inicial
-            img.style.cursor = "move";
-            container.innerHTML = ""; // Limpa o texto "Área de Imagens"
-            container.appendChild(img);
+        function previewImg(event) {
+            const container = document.getElementById('container-fotos');
+            const reader = new FileReader();
+            reader.onload = function(){
+                const img = document.createElement('img');
+                img.src = reader.result;
+                container.innerHTML = "";
+                container.appendChild(img);
+            }
+            reader.readAsDataURL(event.target.files[0]);
         }
     </script>
 </body>
