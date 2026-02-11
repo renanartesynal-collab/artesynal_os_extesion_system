@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de OS - Comunicação Visual</title>
+    <title>Sistema OS - Comunicação Visual</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,115 +20,172 @@
         #painel-controle { 
             width: 380px; padding: 25px; background: #2c3e50; color: white;
             height: 100vh; overflow-y: auto; box-sizing: border-box; position: fixed;
-            border-right: 5px solid #1a252f;
+            border-right: 5px solid #1a252f; z-index: 10;
         }
+        
+        /* Barra de rolagem estilizada */
+        #painel-controle::-webkit-scrollbar { width: 8px; }
+        #painel-controle::-webkit-scrollbar-track { background: #1a252f; }
+        #painel-controle::-webkit-scrollbar-thumb { background: #f1c40f; border-radius: 4px; }
+
         .grupo-input { margin-bottom: 15px; }
         .titulo-secao { color: #f1c40f; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 10px;}
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #bdc3c7; }
-        input[type="text"], input[type="date"], textarea { width: 100%; padding: 8px; border-radius: 4px; border: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;}
         
+        input[type="text"], input[type="date"], input[type="number"], select { 
+            width: 100%; padding: 8px; border-radius: 4px; border: none; 
+            box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-weight: bold;
+        }
+
+        textarea {
+            width: 100%; padding: 8px; border-radius: 4px; border: none; 
+            box-sizing: border-box; font-family: 'Montserrat', sans-serif; 
+            height: 80px; resize: none;
+        }
+        
+        /* Sliders de Imagem */
+        .range-control { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        input[type="range"] { flex: 1; cursor: pointer; }
+
         /* Checkboxes customizados do painel */
         .check-group { display: flex; flex-direction: column; gap: 8px; }
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); }
 
         /* --- ÁREA DE IMPRESSÃO (DIREITA) --- */
-        #area-impressao { margin-left: 380px; padding: 40px; display: flex; justify-content: center; width: calc(100% - 380px); background: #555; min-height: 100vh; }
+        #area-impressao { 
+            margin-left: 380px; padding: 40px; display: flex; 
+            justify-content: center; width: calc(100% - 380px); 
+            background: #555; min-height: 100vh; 
+        }
         
         .folha-a4 {
-            width: 210mm; height: 297mm; padding: 10mm;
-            background: white; position: relative; box-sizing: border-box;
+            width: 210mm; height: 296mm; /* A4 Padrão */
+            padding: 10mm; background: white; 
+            position: relative; box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
         }
 
         /* --- ESTRUTURA DO MODELO --- */
-        /* Header Principal */
-        .header-top { background: var(--black); color: white; padding: 8px 10px; font-weight: 900; font-size: 24px; text-transform: uppercase; }
+        .header-top { 
+            background: var(--black); color: white; padding: 8px 10px; 
+            font-weight: 900; font-size: 24px; text-transform: uppercase; 
+            -webkit-print-color-adjust: exact; /* Força impressão da cor de fundo */
+            print-color-adjust: exact;
+        }
         
-        /* Linhas da Tabela */
         .linha-dados { display: flex; border: 1px solid var(--black); border-top: none; }
         .col { padding: 5px 8px; border-right: 1px solid var(--black); font-size: 13px; display: flex; align-items: center; }
         .col:last-child { border-right: none; }
-        .label-bold { font-weight: 900; margin-right: 5px; background: #444; color: white; padding: 2px 5px; font-size: 11px; border-radius: 2px;} 
-        /* Ajuste visual para ficar igual a referencia (fundo cinza nos labels) pode ser removido se preferir clean */
+        
         .label-simple { font-weight: 900; margin-right: 5px; }
 
-        /* Área de Pagamento e Datas */
+        /* Área Intermediária (Pagamento e Datas) */
         .area-intermediaria { display: flex; border: 1px solid var(--black); border-top: none; height: 45px; }
         
         .box-pagamento { 
             flex: 1.8; display: flex; align-items: center; padding-left: 10px; 
             font-weight: 900; font-size: 16px; background: #eee;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
 
         .box-datas { flex: 1.2; display: flex; }
         .data-item { flex: 1; border-left: 1px solid var(--black); display: flex; flex-direction: column; }
-        .data-header { background: #555; color: white; font-size: 9px; text-align: center; padding: 2px; font-weight: bold; }
-        .data-valor { text-align: center; font-weight: 900; color: var(--red); font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; }
+        .data-header { 
+            background: #555; color: white; font-size: 9px; text-align: center; 
+            padding: 2px; font-weight: bold; 
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        .data-valor { 
+            text-align: center; font-weight: 900; color: var(--red); 
+            font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; 
+        }
 
-        /* Área de Status e Logística */
+        /* Status e Logística */
         .area-inferior { display: flex; justify-content: space-between; margin-top: 5px; border-bottom: 2px dotted #ccc; padding-bottom: 10px;}
         
-        /* Badges E, F, P */
         .badges-wrapper { display: flex; gap: 5px; align-items: flex-start; }
         .badge-box { display: flex; width: 60px; height: 25px; border: 1px solid #ccc; }
-        .badge-letra { width: 20px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 16px; }
+        .badge-letra { 
+            width: 20px; display: flex; align-items: center; justify-content: center; 
+            color: white; font-weight: 900; font-size: 16px; 
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
         .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: var(--black); background: white; border-left: 1px solid #ccc; }
         
-        /* Cores dos Badges */
         .bg-red { background: var(--red); border-color: var(--red); }
         .bg-blue { background: var(--blue); border-color: var(--blue); }
         .bg-green { background: var(--green); border-color: var(--green); }
-        .text-red { color: var(--red); }
 
-        /* Maquina Cartao */
         .maq-cartao { 
             margin-left: 10px; background: var(--red); color: white; 
-            font-weight: 900; font-size: 11px; padding: 2px 5px; display: flex; align-items: center; gap: 5px;
+            font-weight: 900; font-size: 11px; padding: 2px 5px; 
+            display: flex; align-items: center; gap: 5px;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .box-check-maq { width: 15px; height: 15px; background: white; border: 1px solid #ccc; color: black; text-align: center; line-height: 14px;}
+        .box-check-maq { width: 15px; height: 15px; background: white; border: 1px solid #ccc; color: black; text-align: center; line-height: 14px; font-size: 14px; font-weight: 900;}
 
-        /* Logística (Direita) */
+        /* Logística */
         .logistica-wrapper { width: 140px; font-size: 11px; font-weight: 900; }
-        .logistica-header { background: #555; color: white; text-align: center; padding: 2px; margin-bottom: 2px; }
+        .logistica-header { 
+            background: #555; color: white; text-align: center; padding: 2px; margin-bottom: 2px; 
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
         .log-item { display: flex; align-items: center; margin-bottom: 2px; }
-        .box-check-log { width: 12px; height: 12px; border: 1px solid var(--black); margin-right: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .box-check-log { width: 12px; height: 12px; border: 1px solid var(--black); margin-right: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--red);}
 
-        /* Nome do Serviço e Imagens */
-        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 24px; margin: 20px 0; text-transform: uppercase; }
+        /* Imagens e Corpo */
+        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 24px; margin: 10px 0; text-transform: uppercase; }
+        
         .area-imagens { 
-            height: 480px; border: 2px dotted #ccc; display: flex; 
-            align-items: center; justify-content: center; position: relative; overflow: hidden;
+            flex: 1; /* Ocupa o espaço restante */
+            border: 2px dotted #ccc; display: flex; 
+            align-items: center; justify-content: center; 
+            position: relative; overflow: hidden; /* Importante para o zoom não vazar */
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
         }
-        .placeholder-img { font-size: 40px; font-weight: 900; color: #e6e7e8; }
+        
+        /* A imagem em si */
+        #img-preview {
+            position: absolute;
+            transform-origin: center center;
+            /* O transform será controlado via JS */
+        }
 
-        /* Rodapé Anotações */
-        .area-desc { margin-top: 10px; font-weight: 900; font-size: 12px; }
+        .placeholder-text { font-size: 30px; font-weight: 900; color: #e6e7e8; position: absolute; z-index: 0; }
+
+        /* Rodapé Descrição */
+        .area-desc-titulo { font-weight: 900; font-size: 12px; margin-bottom: 2px;}
         .box-anotacoes { 
-            height: 150px; border: 2px dotted #ccc; margin-top: 5px; 
-            display: flex; align-items: center; justify-content: center;
+            height: 100px; border: 1px solid var(--black); 
+            padding: 5px; font-size: 12px; font-family: 'Montserrat', sans-serif;
+            white-space: pre-wrap; /* Mantém as quebras de linha do texto */
         }
 
-        /* Botão Imprimir */
         .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007f3d;}
-        .btn-print:active { transform: translateY(4px); box-shadow: none; }
+        .btn-print:hover { background: #008f45; }
 
         @media print {
             body { background: white; }
             #painel-controle { display: none; }
             #area-impressao { margin: 0; padding: 0; width: 100%; min-height: auto; background: none; }
-            .folha-a4 { box-shadow: none; padding: 0; margin: 0; }
+            .folha-a4 { box-shadow: none; padding: 0; margin: 0; width: 100%; height: auto; page-break-after: always; }
+            
+            /* Ajustes finos para impressão */
+            .area-imagens { border: 1px solid #eee; }
         }
     </style>
 </head>
 <body>
 
     <div id="painel-controle">
-        <h2 style="margin-top: 0;">PREENCHIMENTO OS</h2>
+        <h2 style="margin-top: 0; color: #f1c40f;">GERADOR DE O.S.</h2>
 
         <div class="grupo-input">
             <label>NOME DA EMPRESA</label>
-            <input type="text" id="in-empresa" oninput="up()" placeholder="Ex: Gráfica Rápida">
+            <input type="text" id="in-empresa" oninput="up()" placeholder="Ex: Gráfica Rápida" value="SUA EMPRESA AQUI">
         </div>
 
         <div class="titulo-secao">DADOS DO CLIENTE</div>
@@ -145,7 +202,7 @@
             <input type="text" id="in-end" oninput="up()">
         </div>
 
-        <div class="titulo-secao">DADOS DA ORDEM</div>
+        <div class="titulo-secao">FINANCEIRO & DATAS</div>
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input" style="flex:1;">
                 <label>Nº OS</label>
@@ -159,16 +216,15 @@
 
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input">
-                <label>DATA APROVAÇÃO</label>
-                <input type="text" id="in-data-aprov" oninput="up()" placeholder="00/00/00">
+                <label>APROVAÇÃO</label>
+                <input type="text" id="in-data-aprov" oninput="up()" placeholder="00/00">
             </div>
             <div class="grupo-input">
                 <label>DATA LIMITE</label>
-                <input type="text" id="in-data-limite" oninput="up()" placeholder="00/00/00">
+                <input type="text" id="in-data-limite" oninput="up()" placeholder="00/00">
             </div>
         </div>
 
-        <div class="titulo-secao">STATUS FINANCEIRO</div>
         <div class="check-group">
             <label class="check-item"><input type="checkbox" id="chk-entrada" onchange="up()"> ENTRADA (E)</label>
             <label class="check-item"><input type="checkbox" id="chk-faturado" onchange="up()"> FATURADO (F)</label>
@@ -188,13 +244,30 @@
             <label>TÍTULO DO SERVIÇO</label>
             <input type="text" id="in-servico" oninput="up()">
         </div>
+        
         <div class="grupo-input">
             <label>SELECIONAR IMAGEM</label>
-            <input type="file" accept="image/*" onchange="previewImg(event)">
+            <input type="file" accept="image/*" onchange="carregarImagem(event)">
+        </div>
+
+        <div id="controles-img" style="display:none; background: #34495e; padding: 10px; border-radius: 5px;">
+            <label>ZOOM</label>
+            <input type="range" id="zoom-img" min="0.1" max="3" step="0.1" value="1" oninput="ajustarImagem()">
+            
+            <label>POSIÇÃO X (Lados)</label>
+            <input type="range" id="pos-x" min="-300" max="300" value="0" oninput="ajustarImagem()">
+            
+            <label>POSIÇÃO Y (Altura)</label>
+            <input type="range" id="pos-y" min="-300" max="300" value="0" oninput="ajustarImagem()">
+        </div>
+
+        <div class="grupo-input" style="margin-top: 15px;">
+            <label>DESCRIÇÃO DO SERVIÇO / OBS</label>
+            <textarea id="in-desc" oninput="up()" placeholder="Detalhes de material, acabamento..."></textarea>
         </div>
 
         <button class="btn-print" onclick="window.print()">IMPRIMIR / PDF</button>
-        <br><br><br>
+        <br><br>
     </div>
 
     <div id="area-impressao">
@@ -204,7 +277,7 @@
             
             <div class="linha-dados">
                 <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
-                <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold;"><span style="margin-right: 5px;">Telefone</span> <span id="out-tel" style="font-weight: 400;"></span></div>
+                <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Telefone</span> <span id="out-tel" style="font-weight: 400;"></span></div>
                 <div class="col" style="flex: 0.5; justify-content: center; font-weight: 900; font-size: 16px;">OS <span id="out-os" style="margin-left: 10px;">0000</span></div>
             </div>
 
@@ -219,11 +292,11 @@
                 <div class="box-datas">
                     <div class="data-item">
                         <div class="data-header">Aprovação Layout</div>
-                        <div class="data-valor" style="color: black;" id="out-data-aprov">00/00/00</div>
+                        <div class="data-valor" style="color: black;" id="out-data-aprov">00/00</div>
                     </div>
                     <div class="data-item">
                         <div class="data-header" style="background: var(--red);">Data LIMITE</div>
-                        <div class="data-valor" id="out-data-limite">00/00/00</div>
+                        <div class="data-valor" id="out-data-limite">00/00</div>
                     </div>
                 </div>
             </div>
@@ -267,14 +340,13 @@
 
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
 
-            <div class="area-imagens" id="container-fotos">
-                <span class="placeholder-img">ÁREA DE IMAGENS</span>
+            <div class="area-imagens">
+                <span class="placeholder-text" id="placeholder-text">IMAGEM AQUI</span>
+                <img id="img-preview" src="" style="display: none;">
             </div>
 
-            <div class="area-desc">Descrição do serviço:</div>
-            <div class="box-anotacoes">
-                <span class="placeholder-img" style="font-size: 24px; opacity: 0.5;">ÁREA DE ANOTAÇÕES</span>
-            </div>
+            <div class="area-desc-titulo">Descrição do serviço:</div>
+            <div class="box-anotacoes" id="out-desc"></div>
 
         </div>
     </div>
@@ -288,17 +360,18 @@
             document.getElementById('out-os').innerText = document.getElementById('in-os').value || "0000";
             document.getElementById('out-end').innerText = document.getElementById('in-end').value;
             document.getElementById('out-pag').innerText = document.getElementById('in-pag').value || "R$ 0,00";
-            document.getElementById('out-data-aprov').innerText = document.getElementById('in-data-aprov').value || "00/00/00";
-            document.getElementById('out-data-limite').innerText = document.getElementById('in-data-limite').value || "00/00/00";
+            document.getElementById('out-data-aprov').innerText = document.getElementById('in-data-aprov').value || "00/00";
+            document.getElementById('out-data-limite').innerText = document.getElementById('in-data-limite').value || "00/00";
             document.getElementById('out-servico').innerText = document.getElementById('in-servico').value || "NOME DO SERVIÇO";
+            document.getElementById('out-desc').innerText = document.getElementById('in-desc').value;
 
             // Checkboxes (Lógica do X)
             document.getElementById('x-entrada').innerText = document.getElementById('chk-entrada').checked ? "X" : "";
             document.getElementById('x-faturado').innerText = document.getElementById('chk-faturado').checked ? "X" : "";
             document.getElementById('x-pago').innerText = document.getElementById('chk-pago').checked ? "X" : "";
             
-            // Maquina cartao (fundo amarelo se checado, ou X)
-            document.getElementById('x-maq').style.backgroundColor = document.getElementById('chk-maq').checked ? "#f1c40f" : "white";
+            // Maquina cartao
+            document.getElementById('x-maq').innerText = document.getElementById('chk-maq').checked ? "X" : "";
 
             // Logística
             document.getElementById('x-inst').innerText = document.getElementById('chk-inst').checked ? "X" : "";
@@ -306,19 +379,38 @@
             document.getElementById('x-ret').innerText = document.getElementById('chk-ret').checked ? "X" : "";
         }
 
-        // Função de Imagem (Básica por enquanto)
-        function previewImg(event) {
-            const container = document.getElementById('container-fotos');
+        // --- SISTEMA DE IMAGEM ---
+        function carregarImagem(event) {
+            const input = event.target;
             const reader = new FileReader();
+            
             reader.onload = function(){
-                const img = document.createElement('img');
+                const img = document.getElementById('img-preview');
+                const placeholder = document.getElementById('placeholder-text');
+                const painelControle = document.getElementById('controles-img');
+
                 img.src = reader.result;
-                img.style.maxHeight = "100%";
-                img.style.maxWidth = "100%";
-                container.innerHTML = "";
-                container.appendChild(img);
+                img.style.display = "block";
+                placeholder.style.display = "none";
+                painelControle.style.display = "block"; // Mostra os sliders
+                
+                // Reseta os sliders
+                document.getElementById('zoom-img').value = 1;
+                document.getElementById('pos-x').value = 0;
+                document.getElementById('pos-y').value = 0;
+                ajustarImagem();
             }
-            reader.readAsDataURL(event.target.files[0]);
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function ajustarImagem() {
+            const img = document.getElementById('img-preview');
+            const zoom = document.getElementById('zoom-img').value;
+            const x = document.getElementById('pos-x').value;
+            const y = document.getElementById('pos-y').value;
+
+            // Aplica a mágica do CSS Transform
+            img.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
         }
     </script>
 </body>
