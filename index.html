@@ -21,7 +21,7 @@
             margin: 0; padding: 0;
             background: #333; display: flex;
             user-select: none;
-            overflow: hidden; /* Evita scroll duplo no mobile */
+            overflow: hidden; 
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
@@ -32,27 +32,19 @@
             transition: transform 0.3s ease;
         }
         
+        /* Estilização básica de inputs e scrollbars igual ao anterior... */
         #painel-controle::-webkit-scrollbar { width: 8px; }
         #painel-controle::-webkit-scrollbar-track { background: #1a252f; }
         #painel-controle::-webkit-scrollbar-thumb { background: #f1c40f; border-radius: 4px; }
-
         .grupo-input { margin-bottom: 15px; }
         .titulo-secao { color: #f1c40f; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 10px;}
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #bdc3c7; }
-        
-        input[type="text"], input[type="date"], input[type="number"], select { 
+        input[type="text"], input[type="date"], input[type="number"], select, textarea { 
             width: 100%; padding: 10px; border-radius: 6px; border: none; 
             box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-weight: bold;
             background: #34495e; color: white;
         }
-        input:focus, textarea:focus { outline: 2px solid #f1c40f; background: #405569; }
-
-        textarea {
-            width: 100%; padding: 10px; border-radius: 6px; border: none; 
-            box-sizing: border-box; font-family: 'Montserrat', sans-serif; 
-            height: 80px; resize: none; background: #34495e; color: white;
-        }
-        
+        textarea { height: 80px; resize: none; }
         .check-group { display: flex; flex-direction: column; gap: 8px; }
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); accent-color: #f1c40f; }
@@ -70,202 +62,124 @@
             padding: 10mm; box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             display: flex; flex-direction: column;
-            transform-origin: top center;
+            transform-origin: top center; /* Importante para o scale funcionar */
         }
 
-        /* --- CABEÇALHO --- */
-        .header-grid {
-            display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px;
-        }
-
+        /* --- ESTILOS DO CONTEÚDO DA OS (Igual V7) --- */
+        .header-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px; }
         .col-esq { display: flex; flex-direction: column; gap: 4px; }
-        
-        .col-dir { 
-            display: flex; flex-direction: column; 
-            border: 2px solid var(--black);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-        }
-
-        .header-top { 
-            background: var(--black); color: white; padding: 8px 12px; 
-            font-weight: 900; font-size: 22px; text-transform: uppercase; 
-            border-radius: var(--border-radius); margin-bottom: 4px;
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
-        
+        .col-dir { display: flex; flex-direction: column; border: 2px solid var(--black); border-radius: var(--border-radius); overflow: hidden; }
+        .header-top { background: var(--black); color: white; padding: 8px 12px; font-weight: 900; font-size: 22px; text-transform: uppercase; border-radius: var(--border-radius); margin-bottom: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .linha-dados { display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; height: 32px;}
         .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; }
         .col:last-child { border-right: none; }
-        
         .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
-        /* ESTILO OS DARK (Solicitado) */
-        .box-os {
-            background: var(--black); /* Fundo Preto */
-            flex: 1; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center;
-            border-bottom: 2px solid var(--black);
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-            padding: 2px;
-        }
-        .os-label { font-size: 12px; font-weight: 900; color: white; margin-bottom: 2px;} /* Texto Branco */
-        .os-valor-box {
-            background: white; /* Caixa Branca */
-            width: 90%; text-align: center; border-radius: 4px;
-        }
-        .os-valor { font-size: 24px; font-weight: 900; color: var(--black); line-height: 1.2; } /* Numero Preto */
-
-        .box-logistica {
-            padding: 5px; flex: 1; display: flex; flex-direction: column; justify-content: center;
-            background: white;
-        }
+        /* OS DARK */
+        .box-os { background: var(--black); flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 2px solid var(--black); -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 2px; }
+        .os-label { font-size: 12px; font-weight: 900; color: white; margin-bottom: 2px;}
+        .os-valor-box { background: white; width: 90%; text-align: center; border-radius: 4px; }
+        .os-valor { font-size: 24px; font-weight: 900; color: var(--black); line-height: 1.2; }
+        .box-logistica { padding: 5px; flex: 1; display: flex; flex-direction: column; justify-content: center; background: white; }
         .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold;}
-        .box-check-log { 
-            width: 10px; height: 10px; border: 1px solid var(--black); 
-            margin-right: 6px; display: flex; align-items: center; justify-content: center; 
-            font-size: 8px; color: var(--red); line-height: 10px;
-            border-radius: 50%;
-        }
+        .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--red); line-height: 10px; border-radius: 50%; }
 
-        .grid-datas-pag {
-            display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px;
-        }
-
-        .box-pagamento { 
-            display: flex; flex-direction: column; justify-content: center; padding-left: 10px; 
-            background: #eee; border-radius: var(--border-radius); border: 1px solid #ddd;
-            font-size: 10px; font-weight: 900;
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
+        .grid-datas-pag { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px; }
+        .box-pagamento { display: flex; flex-direction: column; justify-content: center; padding-left: 10px; background: #eee; border-radius: var(--border-radius); border: 1px solid #ddd; font-size: 10px; font-weight: 900; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .pag-valor { font-size: 16px; color: var(--red); }
+        .box-data { border: 1px solid #ddd; border-radius: var(--border-radius); display: flex; flex-direction: column; overflow: hidden; }
+        .data-header { background: #666; color: white; font-size: 9px; text-align: center; padding: 3px; font-weight: bold; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .data-valor { text-align: center; font-weight: 900; color: var(--red); font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; }
 
-        .box-data {
-            border: 1px solid #ddd; border-radius: var(--border-radius);
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        .data-header { 
-            background: #666; color: white; font-size: 9px; text-align: center; 
-            padding: 3px; font-weight: bold; text-transform: uppercase;
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
-        .data-valor { 
-            text-align: center; font-weight: 900; color: var(--red); 
-            font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; 
-        }
-
-        .area-status { 
-            display: flex; align-items: center; gap: 10px; 
-            margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc;
-        }
-        
+        .area-status { display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc; }
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
-        .badge-box { 
-            display: flex; width: 60px; height: 26px; 
-            border: 1px solid #ccc; border-radius: 13px; overflow: hidden; 
-            box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
-        }
-        .badge-letra { 
-            width: 24px; display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: 900; font-size: 14px; 
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
+        .badge-box { display: flex; width: 60px; height: 26px; border: 1px solid #ccc; border-radius: 13px; overflow: hidden; box-shadow: 1px 1px 0px rgba(0,0,0,0.1); }
+        .badge-letra { width: 24px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; }
-        
         .bg-red { background: var(--red); border-color: var(--red); }
         .bg-blue { background: var(--blue); border-color: var(--blue); }
         .bg-green { background: var(--green); border-color: var(--green); }
-
-        .maq-cartao { 
-            margin-left: auto; background: var(--red); color: white; 
-            font-weight: 900; font-size: 10px; padding: 4px 8px; 
-            display: flex; align-items: center; gap: 6px; height: 20px;
-            border-radius: 4px;
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
+        .maq-cartao { margin-left: auto; background: var(--red); color: white; font-weight: 900; font-size: 10px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; height: 20px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
         .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* CANVAS DE IMAGENS */
-        .area-imagens { 
-            flex-grow: 1; border: 2px dashed #ccc; border-radius: var(--border-radius);
-            position: relative; overflow: hidden; margin-bottom: 5px; background-color: #fcfcfc;
-            touch-action: none; /* Vital para o touch funcionar */
-        }
-        
+        .area-imagens { flex-grow: 1; border: 2px dashed #ccc; border-radius: var(--border-radius); position: relative; overflow: hidden; margin-bottom: 5px; background-color: #fcfcfc; touch-action: none; }
         .draggable-img { position: absolute; cursor: move; width: 150px; touch-action: none;}
         .img-selected { border: 2px solid var(--blue); box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
         .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
-
         .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase;}
-        .box-anotacoes { 
-            height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius);
-            padding: 8px; font-size: 11px; font-family: 'Montserrat', sans-serif;
-            white-space: pre-wrap; background: #fcfcfc;
-        }
+        .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius); padding: 8px; font-size: 11px; font-family: 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; }
 
         .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
         .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
 
-        /* --- BOTÃO MOBILE FLUTUANTE --- */
-        #btn-mobile-toggle {
-            display: none; /* Escondido no PC */
+        /* --- CONTROLES FLUTUANTES (MOBILE) --- */
+        .fab-btn {
             position: fixed; bottom: 20px; right: 20px;
             width: 60px; height: 60px; border-radius: 50%;
-            background: #f1c40f; color: #2c3e50;
             border: none; font-size: 24px; font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 100; cursor: pointer; align-items: center; justify-content: center;
+            z-index: 100; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
+        #btn-abrir-previa { background: #f1c40f; color: #2c3e50; display: none; }
+        #btn-fechar-previa { background: #e74c3c; color: white; display: none; bottom: 90px; /* Acima do slider se houver */ }
 
-        /* --- RESPONSIVIDADE MOBILE --- */
+        /* Slider de Zoom Mobile */
+        #mobile-zoom-control {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(44, 62, 80, 0.95); padding: 20px; box-sizing: border-box;
+            z-index: 101; text-align: center; color: white;
+            border-top-left-radius: 15px; border-top-right-radius: 15px;
+        }
+        #mobile-zoom-control label { color: #f1c40f; font-weight: bold; margin-bottom: 10px; display: block;}
+        #mobile-zoom-control input[type=range] { width: 100%; }
+
+        /* --- RESPONSIVIDADE MOBILE REVISADA --- */
         @media (max-width: 768px) {
-            body { display: block; overflow: auto; } /* Libera scroll no body */
+            body { display: block; overflow: auto; background: #2c3e50; }
             
             #painel-controle { 
                 width: 100%; height: auto; position: relative; 
-                padding-bottom: 80px; /* Espaço pro botão flutuante */
+                padding-bottom: 100px; /* Espaço extra */
+                background: #2c3e50; z-index: 10;
             }
 
             #area-impressao {
-                display: none; /* Esconde prévia inicialmente */
-                margin-left: 0; width: 100%; height: 100vh;
-                position: fixed; top: 0; left: 0; z-index: 50;
-                padding: 10px; /* Menos padding no mobile */
+                display: none; /* Esconde inicialmente */
+                position: fixed; top: 0; left: 0; 
+                width: 100%; height: 100vh;
+                background: #333; /* Fundo escuro atrás do papel */
+                z-index: 50;
+                padding: 0; /* Remove padding para usarmos flex center */
+                align-items: center; /* Centraliza verticalmente */
             }
 
+            /* O truque do Scale */
             .folha-a4 {
-                width: 100%; height: auto; min-height: 90vh; /* Ajusta altura */
-                transform: scale(0.65); /* Diminui a folha para caber na tela */
-                transform-origin: top center;
-                margin-bottom: 50px;
+                /* Largura fixa de A4 */
+                min-width: 210mm; width: 210mm; 
+                /* O JS vai calcular o transform: scale() correto */
+                transform-origin: center center;
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
             }
 
-            #btn-mobile-toggle { display: flex; } /* Mostra botão */
-            
-            .btn-print { display: none; } /* Esconde imprimir no mobile (bugado em alguns) */
-            /* Botao Voltar na prévia */
-            #btn-fechar-previa {
-                display: block !important;
-                width: 100%; padding: 15px; background: #e74c3c; color: white;
-                text-align: center; font-weight: bold; margin-bottom: 10px;
-                border-radius: 6px; cursor: pointer;
-            }
+            #btn-abrir-previa { display: flex; }
+            .btn-print { display: none; }
         }
 
         @page { size: A4; margin: 0; }
-
         @media print {
             body { background: white; margin: 0; padding: 0; display: block;}
-            #painel-controle, #btn-mobile-toggle, #btn-fechar-previa { display: none; }
+            #painel-controle, .fab-btn, #mobile-zoom-control { display: none !important; }
             #area-impressao { 
                 margin: 0; padding: 0; width: 100%; height: 100vh; 
                 background: none; display: block; position: static;
+                transform: none;
             }
             .folha-a4 { 
                 box-shadow: none; padding: 10mm; margin: 0 auto; 
-                width: 210mm; min-height: 296mm; transform: none; 
+                width: 210mm; min-height: 296mm; transform: none !important; 
             }
             .area-imagens { border: 1px dashed #ccc; }
             .placeholder-text { display: none; }
@@ -275,7 +189,13 @@
 </head>
 <body>
 
-    <button id="btn-mobile-toggle" onclick="alternarVisao()">👁️</button>
+    <button id="btn-abrir-previa" class="fab-btn" onclick="abrirPrevia()">👁️</button>
+    <button id="btn-fechar-previa" class="fab-btn" onclick="fecharPrevia()">✏️</button>
+
+    <div id="mobile-zoom-control">
+        <label>TAMANHO DA IMAGEM</label>
+        <input type="range" id="zoom-slider" min="50" max="400" value="150" oninput="aplicarZoomMobile(this.value)">
+    </div>
 
     <div id="painel-controle">
         <h2 style="margin-top: 0; color: #f1c40f;">GERADOR DE O.S.</h2>
@@ -284,8 +204,6 @@
             <label>NOME DA EMPRESA</label>
             <input type="text" id="in-empresa" placeholder="Ex: Gráfica Rápida" value="SUA EMPRESA AQUI">
         </div>
-
-        <div class="titulo-secao">DADOS DO CLIENTE</div>
         <div class="grupo-input">
             <label>NOME DO CLIENTE</label>
             <input type="text" id="in-cliente">
@@ -299,7 +217,6 @@
             <input type="text" id="in-end">
         </div>
 
-        <div class="titulo-secao">FINANCEIRO & DATAS</div>
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input" style="flex:1;">
                 <label>Nº OS</label>
@@ -336,7 +253,6 @@
             <label class="check-item"><input type="checkbox" id="chk-ret"> RETIRADA</label>
         </div>
 
-        <div class="titulo-secao">SERVIÇO E IMAGEM</div>
         <div class="grupo-input">
             <label>TÍTULO DO SERVIÇO</label>
             <input type="text" id="in-servico">
@@ -345,23 +261,19 @@
         <div class="grupo-input">
             <label style="color: #f1c40f; font-weight: bold;">ADICIONAR IMAGENS</label>
             <input type="file" accept="image/*" multiple onchange="adicionarImagens(event)">
-            <label style="font-size: 10px; margin-top: 5px;">*No celular: Arraste com o dedo.</label>
         </div>
 
         <div class="grupo-input" style="margin-top: 15px;">
-            <label>DESCRIÇÃO DO SERVIÇO / OBS</label>
-            <textarea id="in-desc" placeholder="Detalhes de material, acabamento..."></textarea>
+            <label>DESCRIÇÃO / OBS</label>
+            <textarea id="in-desc" placeholder="Detalhes..."></textarea>
         </div>
 
         <button id="btn-salvar" class="btn-save">SALVAR NO SISTEMA</button>
         <button class="btn-print" onclick="window.print()">IMPRIMIR / PDF</button>
-        <br><br>
     </div>
 
     <div id="area-impressao">
-        <div id="btn-fechar-previa" style="display:none;" onclick="alternarVisao()">VOLTAR / EDITAR</div>
-
-        <div class="folha-a4">
+        <div class="folha-a4" id="folha-a4">
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
             
             <div class="header-grid">
@@ -392,9 +304,7 @@
                 <div class="col-dir">
                     <div class="box-os">
                         <span class="os-label">Nº OS</span>
-                        <div class="os-valor-box">
-                            <span class="os-valor" id="out-os">0000</span>
-                        </div>
+                        <div class="os-valor-box"><span class="os-valor" id="out-os">0000</span></div>
                     </div>
                     <div class="box-logistica">
                         <div class="log-item"><div class="box-check-log" id="x-inst"></div> INSTALAÇÃO</div>
@@ -444,7 +354,6 @@
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
             btn.disabled = true;
-
             try {
                 const dados = {
                     empresa: document.getElementById('in-empresa').value,
@@ -470,7 +379,6 @@
                     },
                     data_criacao: new Date()
                 };
-
                 const docRef = await addDoc(collection(db, "ordens_servico"), dados);
                 alert("OS Salva com sucesso! ID: " + docRef.id);
                 btn.innerText = "SALVAR NO SISTEMA";
@@ -486,50 +394,46 @@
     </script>
 
     <script>
-        // --- MOBILE TOGGLE ---
-        let modoPrevia = false;
-        window.alternarVisao = function() {
-            const painel = document.getElementById('painel-controle');
-            const previa = document.getElementById('area-impressao');
-            const btn = document.getElementById('btn-mobile-toggle');
-
-            if (!modoPrevia) {
-                // Ir para Prévia
-                painel.style.display = 'none';
-                previa.style.display = 'flex'; // Mostra a folha
-                btn.style.display = 'none'; // Some botão flutuante
-                modoPrevia = true;
-            } else {
-                // Voltar para Edição
-                painel.style.display = 'block';
-                previa.style.display = 'none';
-                btn.style.display = 'flex';
-                modoPrevia = false;
-            }
+        // --- NAVEGAÇÃO MOBILE ---
+        function abrirPrevia() {
+            document.getElementById('painel-controle').style.display = 'none';
+            document.getElementById('area-impressao').style.display = 'flex';
+            document.getElementById('btn-abrir-previa').style.display = 'none';
+            document.getElementById('btn-fechar-previa').style.display = 'flex';
+            
+            // MÁGICA DO SCALE (Ajusta o A4 para caber na tela)
+            const folha = document.getElementById('folha-a4');
+            const larguraTela = window.innerWidth;
+            const larguraFolha = folha.offsetWidth; // ~793px (210mm)
+            
+            // Deixa uma margem de segurança (0.9)
+            const escala = (larguraTela / larguraFolha) * 0.95;
+            
+            folha.style.transform = `scale(${escala})`;
         }
 
+        function fecharPrevia() {
+            document.getElementById('painel-controle').style.display = 'block';
+            document.getElementById('area-impressao').style.display = 'none';
+            document.getElementById('btn-abrir-previa').style.display = 'flex';
+            document.getElementById('btn-fechar-previa').style.display = 'none';
+            document.getElementById('mobile-zoom-control').style.display = 'none'; // Esconde zoom
+        }
+
+        // Listener para atualizar textos
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
-            if(input.type !== 'file') {
-                input.addEventListener('input', up);
-                input.addEventListener('change', up);
+            if(input.type !== 'file' && input.type !== 'range') {
+                input.addEventListener('input', up); input.addEventListener('change', up);
             }
         });
 
         function up() {
-            const setTxt = (idOut, idIn, def) => {
-                const val = document.getElementById(idIn).value;
-                document.getElementById(idOut).innerText = val || def || "";
-            };
-            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA');
-            setTxt('out-cliente', 'in-cliente', '');
-            setTxt('out-tel', 'in-tel', '');
-            setTxt('out-os', 'in-os', '0000');
-            setTxt('out-end', 'in-end', '');
-            setTxt('out-pag', 'in-pag', 'R$ 0,00');
-            setTxt('out-data-aprov', 'in-data-aprov', '00/00');
-            setTxt('out-data-limite', 'in-data-limite', '00/00');
-            setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
+            const setTxt = (idOut, idIn, def) => { document.getElementById(idOut).innerText = document.getElementById(idIn).value || def || ""; };
+            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); setTxt('out-cliente', 'in-cliente', '');
+            setTxt('out-tel', 'in-tel', ''); setTxt('out-os', 'in-os', '0000'); setTxt('out-end', 'in-end', '');
+            setTxt('out-pag', 'in-pag', 'R$ 0,00'); setTxt('out-data-aprov', 'in-data-aprov', '00/00');
+            setTxt('out-data-limite', 'in-data-limite', '00/00'); setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
             setTxt('out-desc', 'in-desc', '');
 
             const setX = (idOut, idIn) => document.getElementById(idOut).innerText = document.getElementById(idIn).checked ? "X" : "";
@@ -537,16 +441,15 @@
             setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
         }
 
-        // --- CANVAS DE IMAGENS TOUCH & MOUSE ---
+        // --- CANVAS DE IMAGENS ---
         const canvas = document.getElementById('canvas-imagens');
         let draggedImg = null;
         let startX, startY, initialLeft, initialTop;
+        let selectedImgForZoom = null;
 
         window.adicionarImagens = function(event) {
             const files = event.target.files;
             if (!files) return;
-            const atuais = document.querySelectorAll('.draggable-img').length;
-            if (atuais + files.length > 6) { alert("Máximo de 6 imagens."); return; }
             document.getElementById('placeholder-text').style.display = 'none';
 
             Array.from(files).forEach(file => {
@@ -555,17 +458,13 @@
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     img.classList.add('draggable-img');
-                    img.style.left = (20 + Math.random() * 50) + 'px';
-                    img.style.top = (20 + Math.random() * 50) + 'px';
+                    img.style.left = '50px'; img.style.top = '50px';
+                    img.style.width = '150px';
                     
-                    // Mouse Events
                     img.addEventListener('mousedown', startDragMouse);
                     img.addEventListener('click', selectImage);
-                    img.addEventListener('dblclick', deleteImage);
-                    img.addEventListener('wheel', resizeImage, { passive: false });
-                    
-                    // Touch Events (Para Celular)
                     img.addEventListener('touchstart', startDragTouch, {passive: false});
+                    img.addEventListener('dblclick', (e) => e.target.remove());
                     
                     canvas.appendChild(img);
                 }
@@ -577,14 +476,29 @@
             e.stopPropagation();
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
             e.target.classList.add('img-selected');
-        }
-        canvas.addEventListener('click', () => document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected')));
-        function deleteImage(e) {
-            e.target.remove();
-            if (document.querySelectorAll('.draggable-img').length === 0) document.getElementById('placeholder-text').style.display = 'block';
+            
+            // Ativa zoom mobile
+            selectedImgForZoom = e.target;
+            const zoomControl = document.getElementById('mobile-zoom-control');
+            const slider = document.getElementById('zoom-slider');
+            
+            // Pega largura atual
+            slider.value = parseInt(selectedImgForZoom.style.width);
+            zoomControl.style.display = 'block';
         }
 
-        // Mouse Drag Logic
+        window.aplicarZoomMobile = function(valor) {
+            if(selectedImgForZoom) {
+                selectedImgForZoom.style.width = valor + 'px';
+            }
+        }
+
+        canvas.addEventListener('click', () => {
+             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
+             document.getElementById('mobile-zoom-control').style.display = 'none'; // Esconde zoom
+        });
+
+        // Mouse Drag
         function startDragMouse(e) {
             e.preventDefault(); draggedImg = e.target; selectImage(e);
             startX = e.clientX; startY = e.clientY;
@@ -600,12 +514,10 @@
             draggedImg = null; document.removeEventListener('mousemove', dragMouse); document.removeEventListener('mouseup', stopDragMouse);
         }
 
-        // Touch Drag Logic (Mobile)
+        // Touch Drag
         function startDragTouch(e) {
-            // Se for dois dedos, permite zoom/scroll nativo, senão previne
             if(e.touches.length > 1) return;
-            e.preventDefault(); 
-            draggedImg = e.target; selectImage(e);
+            e.preventDefault(); draggedImg = e.target; selectImage(e);
             const touch = e.touches[0];
             startX = touch.clientX; startY = touch.clientY;
             initialLeft = draggedImg.offsetLeft; initialTop = draggedImg.offsetTop;
@@ -620,14 +532,6 @@
         }
         function stopDragTouch() {
             draggedImg = null; document.removeEventListener('touchmove', dragTouch); document.removeEventListener('touchend', stopDragTouch);
-        }
-
-        function resizeImage(e) {
-            e.preventDefault();
-            const scaleAmount = 10;
-            let currentWidth = this.offsetWidth;
-            if (e.deltaY < 0) this.style.width = (currentWidth + scaleAmount) + 'px';
-            else if (currentWidth > 50) this.style.width = (currentWidth - scaleAmount) + 'px';
         }
     </script>
 </body>
