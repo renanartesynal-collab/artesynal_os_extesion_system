@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de OS - Comunicação Visual</title>
+    <style>
+        /* Estilo para a tela do computador */
+        body { font-family: sans-serif; display: flex; margin: 0; background: #f0f0f0; }
+        
+        #painel-controle { 
+            width: 350px; padding: 20px; background: #2c3e50; color: white;
+            height: 100vh; overflow-y: auto; position: fixed;
+        }
+
+        #area-impressao {
+            margin-left: 370px; padding: 40px;
+            display: flex; justify-content: center; width: 100%;
+        }
+
+        /* A "Folha A4" na tela */
+        .folha-a4 {
+            width: 210mm; height: 297mm;
+            padding: 10mm; /* Margem de 1cm pedida */
+            background: white; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            border: 1px dashed #ccc; box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Estilo para o Botão de Imprimir */
+        .btn-imprimir {
+            background: #27ae60; color: white; border: none;
+            padding: 10px 20px; cursor: pointer; border-radius: 5px;
+            width: 100%; margin-top: 20px;
+        }
+
+        /* Configuração para gerar o PDF/Imprimir corretamente */
+        @media print {
+            body { background: none; }
+            #painel-controle { display: none; } /* Esconde o painel ao imprimir */
+            #area-impressao { margin: 0; padding: 0; }
+            .folha-a4 { box-shadow: none; border: none; margin: 0; }
+        }
+
+        /* Layout da OS conforme sua imagem */
+        .cabecalho-os { border: 2px solid #000; width: 100%; }
+        .linha { display: flex; border-bottom: 1px solid #000; }
+        .campo { padding: 5px; border-right: 1px solid #000; flex-grow: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="painel-controle">
+        <h2>Dados da OS</h2>
+        <label>Nome da Empresa:</label><br>
+        <input type="text" id="in-empresa" oninput="atualizar()"><br><br>
+        
+        <label>Cliente:</label><br>
+        <input type="text" id="in-cliente" oninput="atualizar()"><br><br>
+
+        <label>Imagens (Central):</label><br>
+        <input type="file" id="in-img" accept="image/*" onchange="carregarImagem(event)"><br><br>
+
+        <button class="btn-imprimir" onclick="window.print()">Gerar PDF / Imprimir</button>
+    </div>
+
+    <div id="area-impressao">
+        <div class="folha-a4" id="folha">
+            <div class="cabecalho-os">
+                <div class="linha" style="background: #000; color: #fff; font-weight: bold;">
+                    <div class="campo" id="out-empresa">NOME DA EMPRESA</div>
+                </div>
+                <div class="linha">
+                    <div class="campo">Cliente: <span id="out-cliente">...</span></div>
+                    <div class="campo">OS: <span id="out-os">0000</span></div>
+                </div>
+            </div>
+
+            <div id="container-imagens" style="margin-top: 20px; text-align: center;">
+                <p style="color: #ccc; margin-top: 100px;">ÁREA DE IMAGENS</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para atualizar o texto em tempo real
+        function atualizar() {
+            document.getElementById('out-empresa').innerText = document.getElementById('in-empresa').value || "NOME DA EMPRESA";
+            document.getElementById('out-cliente').innerText = document.getElementById('in-cliente').value || "...";
+        }
+
+        // Função básica para colocar a imagem na tela
+        function carregarImagem(event) {
+            const container = document.getElementById('container-imagens');
+            const url = URL.createObjectURL(event.target.files[0]);
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.width = "200px"; // Tamanho inicial
+            img.style.cursor = "move";
+            container.innerHTML = ""; // Limpa o texto "Área de Imagens"
+            container.appendChild(img);
+        }
+    </script>
+</body>
+</html>
