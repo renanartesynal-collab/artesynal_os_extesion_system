@@ -23,7 +23,6 @@
             border-right: 5px solid #1a252f; z-index: 10;
         }
         
-        /* Barra de rolagem estilizada */
         #painel-controle::-webkit-scrollbar { width: 8px; }
         #painel-controle::-webkit-scrollbar-track { background: #1a252f; }
         #painel-controle::-webkit-scrollbar-thumb { background: #f1c40f; border-radius: 4px; }
@@ -47,7 +46,7 @@
         .range-control { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
         input[type="range"] { flex: 1; cursor: pointer; }
 
-        /* Checkboxes customizados do painel */
+        /* Checkboxes customizados */
         .check-group { display: flex; flex-direction: column; gap: 8px; }
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); }
@@ -60,7 +59,7 @@
         }
         
         .folha-a4 {
-            width: 210mm; height: 296mm; /* A4 Padrão */
+            width: 210mm; height: 296mm; 
             padding: 10mm; background: white; 
             position: relative; box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -71,8 +70,7 @@
         .header-top { 
             background: var(--black); color: white; padding: 8px 10px; 
             font-weight: 900; font-size: 24px; text-transform: uppercase; 
-            -webkit-print-color-adjust: exact; /* Força impressão da cor de fundo */
-            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         
         .linha-dados { display: flex; border: 1px solid var(--black); border-top: none; }
@@ -81,7 +79,7 @@
         
         .label-simple { font-weight: 900; margin-right: 5px; }
 
-        /* Área Intermediária (Pagamento e Datas) */
+        /* Área Intermediária */
         .area-intermediaria { display: flex; border: 1px solid var(--black); border-top: none; height: 45px; }
         
         .box-pagamento { 
@@ -139,41 +137,34 @@
         .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 24px; margin: 10px 0; text-transform: uppercase; }
         
         .area-imagens { 
-            flex: 1; /* Ocupa o espaço restante */
-            border: 2px dotted #ccc; display: flex; 
+            flex: 1; border: 2px dotted #ccc; display: flex; 
             align-items: center; justify-content: center; 
-            position: relative; overflow: hidden; /* Importante para o zoom não vazar */
-            margin-bottom: 10px;
+            position: relative; overflow: hidden; margin-bottom: 10px;
             background-color: #f9f9f9;
         }
         
-        /* A imagem em si */
-        #img-preview {
-            position: absolute;
-            transform-origin: center center;
-            /* O transform será controlado via JS */
-        }
-
+        #img-preview { position: absolute; transform-origin: center center; }
         .placeholder-text { font-size: 30px; font-weight: 900; color: #e6e7e8; position: absolute; z-index: 0; }
 
-        /* Rodapé Descrição */
         .area-desc-titulo { font-weight: 900; font-size: 12px; margin-bottom: 2px;}
         .box-anotacoes { 
             height: 100px; border: 1px solid var(--black); 
             padding: 5px; font-size: 12px; font-family: 'Montserrat', sans-serif;
-            white-space: pre-wrap; /* Mantém as quebras de linha do texto */
+            white-space: pre-wrap; 
         }
 
-        .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007f3d;}
+        /* Botões */
+        .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d;}
         .btn-print:hover { background: #008f45; }
+
+        .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0;}
+        .btn-save:hover { background: #009ad6; }
 
         @media print {
             body { background: white; }
             #painel-controle { display: none; }
             #area-impressao { margin: 0; padding: 0; width: 100%; min-height: auto; background: none; }
             .folha-a4 { box-shadow: none; padding: 0; margin: 0; width: 100%; height: auto; page-break-after: always; }
-            
-            /* Ajustes finos para impressão */
             .area-imagens { border: 1px solid #eee; }
         }
     </style>
@@ -185,64 +176,64 @@
 
         <div class="grupo-input">
             <label>NOME DA EMPRESA</label>
-            <input type="text" id="in-empresa" oninput="up()" placeholder="Ex: Gráfica Rápida" value="SUA EMPRESA AQUI">
+            <input type="text" id="in-empresa" placeholder="Ex: Gráfica Rápida" value="SUA EMPRESA AQUI">
         </div>
 
         <div class="titulo-secao">DADOS DO CLIENTE</div>
         <div class="grupo-input">
             <label>NOME DO CLIENTE</label>
-            <input type="text" id="in-cliente" oninput="up()">
+            <input type="text" id="in-cliente">
         </div>
         <div class="grupo-input">
             <label>TELEFONE</label>
-            <input type="text" id="in-tel" oninput="up()" placeholder="(00) 00000-0000">
+            <input type="text" id="in-tel" placeholder="(00) 00000-0000">
         </div>
         <div class="grupo-input">
             <label>ENDEREÇO</label>
-            <input type="text" id="in-end" oninput="up()">
+            <input type="text" id="in-end">
         </div>
 
         <div class="titulo-secao">FINANCEIRO & DATAS</div>
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input" style="flex:1;">
                 <label>Nº OS</label>
-                <input type="text" id="in-os" oninput="up()" placeholder="0000">
+                <input type="text" id="in-os" placeholder="0000">
             </div>
             <div class="grupo-input" style="flex:2;">
                 <label>VALOR RESTANTE</label>
-                <input type="text" id="in-pag" oninput="up()" placeholder="R$ 0,00">
+                <input type="text" id="in-pag" placeholder="R$ 0,00">
             </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input">
                 <label>APROVAÇÃO</label>
-                <input type="text" id="in-data-aprov" oninput="up()" placeholder="00/00">
+                <input type="text" id="in-data-aprov" placeholder="00/00">
             </div>
             <div class="grupo-input">
                 <label>DATA LIMITE</label>
-                <input type="text" id="in-data-limite" oninput="up()" placeholder="00/00">
+                <input type="text" id="in-data-limite" placeholder="00/00">
             </div>
         </div>
 
         <div class="check-group">
-            <label class="check-item"><input type="checkbox" id="chk-entrada" onchange="up()"> ENTRADA (E)</label>
-            <label class="check-item"><input type="checkbox" id="chk-faturado" onchange="up()"> FATURADO (F)</label>
-            <label class="check-item"><input type="checkbox" id="chk-pago" onchange="up()"> PAGO (P)</label>
-            <label class="check-item"><input type="checkbox" id="chk-maq" onchange="up()"> MÁQUINA DE CARTÃO</label>
+            <label class="check-item"><input type="checkbox" id="chk-entrada"> ENTRADA (E)</label>
+            <label class="check-item"><input type="checkbox" id="chk-faturado"> FATURADO (F)</label>
+            <label class="check-item"><input type="checkbox" id="chk-pago"> PAGO (P)</label>
+            <label class="check-item"><input type="checkbox" id="chk-maq"> MÁQUINA DE CARTÃO</label>
         </div>
 
         <div class="titulo-secao">LOGÍSTICA</div>
         <div class="check-group">
-            <label class="check-item"><input type="checkbox" id="chk-inst" onchange="up()"> INSTALAÇÃO</label>
-            <label class="check-item"><input type="checkbox" id="chk-ent" onchange="up()"> ENTREGA</label>
-            <label class="check-item"><input type="checkbox" id="chk-ret" onchange="up()"> RETIRADA</label>
+            <label class="check-item"><input type="checkbox" id="chk-inst"> INSTALAÇÃO</label>
+            <label class="check-item"><input type="checkbox" id="chk-ent"> ENTREGA</label>
+            <label class="check-item"><input type="checkbox" id="chk-ret"> RETIRADA</label>
         </div>
 
         <div class="titulo-secao">SERVIÇO E IMAGEM</div>
         <div class="grupo-input">
             <label>TÍTULO DO SERVIÇO</label>
-            <input type="text" id="in-servico" oninput="up()">
+            <input type="text" id="in-servico">
         </div>
         
         <div class="grupo-input">
@@ -253,38 +244,33 @@
         <div id="controles-img" style="display:none; background: #34495e; padding: 10px; border-radius: 5px;">
             <label>ZOOM</label>
             <input type="range" id="zoom-img" min="0.1" max="3" step="0.1" value="1" oninput="ajustarImagem()">
-            
             <label>POSIÇÃO X (Lados)</label>
             <input type="range" id="pos-x" min="-300" max="300" value="0" oninput="ajustarImagem()">
-            
             <label>POSIÇÃO Y (Altura)</label>
             <input type="range" id="pos-y" min="-300" max="300" value="0" oninput="ajustarImagem()">
         </div>
 
         <div class="grupo-input" style="margin-top: 15px;">
             <label>DESCRIÇÃO DO SERVIÇO / OBS</label>
-            <textarea id="in-desc" oninput="up()" placeholder="Detalhes de material, acabamento..."></textarea>
+            <textarea id="in-desc" placeholder="Detalhes de material, acabamento..."></textarea>
         </div>
 
+        <button id="btn-salvar" class="btn-save">SALVAR NO SISTEMA</button>
         <button class="btn-print" onclick="window.print()">IMPRIMIR / PDF</button>
         <br><br>
     </div>
 
     <div id="area-impressao">
         <div class="folha-a4">
-            
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
-            
             <div class="linha-dados">
                 <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
                 <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Telefone</span> <span id="out-tel" style="font-weight: 400;"></span></div>
                 <div class="col" style="flex: 0.5; justify-content: center; font-weight: 900; font-size: 16px;">OS <span id="out-os" style="margin-left: 10px;">0000</span></div>
             </div>
-
             <div class="linha-dados">
                 <div class="col" style="width: 100%;"><span class="label-simple">Endereço</span> <span id="out-end"></span></div>
             </div>
-
             <div class="area-intermediaria">
                 <div class="box-pagamento">
                     Pagamento Restante: <span id="out-pag" style="margin-left: 5px;">R$ 0,00</span>
@@ -300,7 +286,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="area-inferior">
                 <div style="display: flex; align-items: center;">
                     <div class="badges-wrapper">
@@ -317,13 +302,11 @@
                             <div class="badge-x" style="color: var(--green);" id="x-pago"></div>
                         </div>
                     </div>
-
                     <div class="maq-cartao">
                         MAQUINA DE CARTÃO!
                         <div class="box-check-maq" id="x-maq"></div>
                     </div>
                 </div>
-
                 <div class="logistica-wrapper">
                     <div class="logistica-header">Logística</div>
                     <div class="log-item">
@@ -337,79 +320,157 @@
                     </div>
                 </div>
             </div>
-
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
-
             <div class="area-imagens">
                 <span class="placeholder-text" id="placeholder-text">IMAGEM AQUI</span>
                 <img id="img-preview" src="" style="display: none;">
             </div>
-
             <div class="area-desc-titulo">Descrição do serviço:</div>
             <div class="box-anotacoes" id="out-desc"></div>
-
         </div>
     </div>
 
+    <script type="module">
+        // Importa o Firebase via CDN (Não precisa de instalação)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // CONFIGURAÇÃO DO SEU PROJETO
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
+            authDomain: "artesynal-os-system.firebaseapp.com",
+            projectId: "artesynal-os-system",
+            storageBucket: "artesynal-os-system.firebasestorage.app",
+            messagingSenderId: "539958005846",
+            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
+        };
+
+        // Inicia o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- FUNÇÃO DE SALVAR ---
+        async function salvarOS() {
+            const btn = document.getElementById('btn-salvar');
+            btn.innerText = "Salvando...";
+            btn.disabled = true;
+
+            try {
+                // Coleta os dados dos campos
+                const dados = {
+                    empresa: document.getElementById('in-empresa').value,
+                    cliente: document.getElementById('in-cliente').value,
+                    telefone: document.getElementById('in-tel').value,
+                    endereco: document.getElementById('in-end').value,
+                    os_numero: document.getElementById('in-os').value,
+                    valor_restante: document.getElementById('in-pag').value,
+                    data_aprovacao: document.getElementById('in-data-aprov').value,
+                    data_limite: document.getElementById('in-data-limite').value,
+                    servico_titulo: document.getElementById('in-servico').value,
+                    descricao: document.getElementById('in-desc').value,
+                    status: {
+                        entrada: document.getElementById('chk-entrada').checked,
+                        faturado: document.getElementById('chk-faturado').checked,
+                        pago: document.getElementById('chk-pago').checked,
+                        maquina: document.getElementById('chk-maq').checked
+                    },
+                    logistica: {
+                        instalacao: document.getElementById('chk-inst').checked,
+                        entrega: document.getElementById('chk-ent').checked,
+                        retirada: document.getElementById('chk-ret').checked
+                    },
+                    data_criacao: new Date()
+                };
+
+                // Envia para o Firebase (Coleção 'ordens_servico')
+                const docRef = await addDoc(collection(db, "ordens_servico"), dados);
+                
+                alert("OS Salva com sucesso! ID: " + docRef.id);
+                btn.innerText = "SALVAR NO SISTEMA";
+                btn.disabled = false;
+
+            } catch (e) {
+                console.error("Erro ao salvar: ", e);
+                alert("Erro ao salvar. Verifique se o banco de dados está criado no modo TESTE no console do Firebase.");
+                btn.innerText = "ERRO AO SALVAR";
+                btn.disabled = false;
+            }
+        }
+
+        // Atribui a função ao botão (necessário pois module é isolado)
+        document.getElementById('btn-salvar').addEventListener('click', salvarOS);
+    </script>
+
     <script>
+        // Esta parte cuida apenas da atualização visual em tempo real
+        // Adicionamos Event Listeners para todos os inputs para chamar a função 'up'
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if(input.type !== 'file' && input.type !== 'range') {
+                input.addEventListener('input', up);
+                input.addEventListener('change', up);
+            }
+        });
+
         function up() {
             // Textos Simples
-            document.getElementById('out-empresa').innerText = document.getElementById('in-empresa').value || "NOME DA EMPRESA";
-            document.getElementById('out-cliente').innerText = document.getElementById('in-cliente').value;
-            document.getElementById('out-tel').innerText = document.getElementById('in-tel').value;
-            document.getElementById('out-os').innerText = document.getElementById('in-os').value || "0000";
-            document.getElementById('out-end').innerText = document.getElementById('in-end').value;
-            document.getElementById('out-pag').innerText = document.getElementById('in-pag').value || "R$ 0,00";
-            document.getElementById('out-data-aprov').innerText = document.getElementById('in-data-aprov').value || "00/00";
-            document.getElementById('out-data-limite').innerText = document.getElementById('in-data-limite').value || "00/00";
-            document.getElementById('out-servico').innerText = document.getElementById('in-servico').value || "NOME DO SERVIÇO";
-            document.getElementById('out-desc').innerText = document.getElementById('in-desc').value;
+            const setTxt = (idOut, idIn, def) => {
+                const val = document.getElementById(idIn).value;
+                document.getElementById(idOut).innerText = val || def || "";
+            };
+
+            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA');
+            setTxt('out-cliente', 'in-cliente', '');
+            setTxt('out-tel', 'in-tel', '');
+            setTxt('out-os', 'in-os', '0000');
+            setTxt('out-end', 'in-end', '');
+            setTxt('out-pag', 'in-pag', 'R$ 0,00');
+            setTxt('out-data-aprov', 'in-data-aprov', '00/00');
+            setTxt('out-data-limite', 'in-data-limite', '00/00');
+            setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
+            setTxt('out-desc', 'in-desc', '');
 
             // Checkboxes (Lógica do X)
-            document.getElementById('x-entrada').innerText = document.getElementById('chk-entrada').checked ? "X" : "";
-            document.getElementById('x-faturado').innerText = document.getElementById('chk-faturado').checked ? "X" : "";
-            document.getElementById('x-pago').innerText = document.getElementById('chk-pago').checked ? "X" : "";
+            const setX = (idOut, idIn) => document.getElementById(idOut).innerText = document.getElementById(idIn).checked ? "X" : "";
             
-            // Maquina cartao
-            document.getElementById('x-maq').innerText = document.getElementById('chk-maq').checked ? "X" : "";
-
-            // Logística
-            document.getElementById('x-inst').innerText = document.getElementById('chk-inst').checked ? "X" : "";
-            document.getElementById('x-ent').innerText = document.getElementById('chk-ent').checked ? "X" : "";
-            document.getElementById('x-ret').innerText = document.getElementById('chk-ret').checked ? "X" : "";
+            setX('x-entrada', 'chk-entrada');
+            setX('x-faturado', 'chk-faturado');
+            setX('x-pago', 'chk-pago');
+            setX('x-inst', 'chk-inst');
+            setX('x-ent', 'chk-ent');
+            setX('x-ret', 'chk-ret');
+            setX('x-maq', 'chk-maq');
         }
 
         // --- SISTEMA DE IMAGEM ---
-        function carregarImagem(event) {
+        window.carregarImagem = function(event) {
             const input = event.target;
-            const reader = new FileReader();
-            
-            reader.onload = function(){
-                const img = document.getElementById('img-preview');
-                const placeholder = document.getElementById('placeholder-text');
-                const painelControle = document.getElementById('controles-img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e){
+                    const img = document.getElementById('img-preview');
+                    const placeholder = document.getElementById('placeholder-text');
+                    const painelControle = document.getElementById('controles-img');
 
-                img.src = reader.result;
-                img.style.display = "block";
-                placeholder.style.display = "none";
-                painelControle.style.display = "block"; // Mostra os sliders
-                
-                // Reseta os sliders
-                document.getElementById('zoom-img').value = 1;
-                document.getElementById('pos-x').value = 0;
-                document.getElementById('pos-y').value = 0;
-                ajustarImagem();
+                    img.src = e.target.result;
+                    img.style.display = "block";
+                    placeholder.style.display = "none";
+                    painelControle.style.display = "block";
+                    
+                    document.getElementById('zoom-img').value = 1;
+                    document.getElementById('pos-x').value = 0;
+                    document.getElementById('pos-y').value = 0;
+                    window.ajustarImagem();
+                }
+                reader.readAsDataURL(input.files[0]);
             }
-            reader.readAsDataURL(input.files[0]);
         }
 
-        function ajustarImagem() {
+        window.ajustarImagem = function() {
             const img = document.getElementById('img-preview');
             const zoom = document.getElementById('zoom-img').value;
             const x = document.getElementById('pos-x').value;
             const y = document.getElementById('pos-y').value;
-
-            // Aplica a mágica do CSS Transform
             img.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
         }
     </script>
