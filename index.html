@@ -12,7 +12,7 @@
             --blue: #00aeef;
             --green: #00a651;
             --gray: #e6e7e8;
-            --border-radius: 6px; /* Curva padrão */
+            --border-radius: 6px;
         }
 
         /* RESET GERAL */
@@ -20,6 +20,7 @@
             font-family: 'Montserrat', sans-serif; 
             margin: 0; padding: 0;
             background: #333; display: flex;
+            user-select: none; /* Evita selecionar texto ao arrastar imagens */
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
@@ -40,7 +41,7 @@
         input[type="text"], input[type="date"], input[type="number"], select { 
             width: 100%; padding: 10px; border-radius: 6px; border: none; 
             box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-weight: bold;
-            background: #34495e; color: white; /* Visual dark no input */
+            background: #34495e; color: white;
         }
         input:focus, textarea:focus { outline: 2px solid #f1c40f; background: #405569; }
 
@@ -73,7 +74,7 @@
         .header-top { 
             background: var(--black); color: white; padding: 8px 12px; 
             font-weight: 900; font-size: 22px; text-transform: uppercase; 
-            border-radius: var(--border-radius); /* Header arredondado */
+            border-radius: var(--border-radius);
             margin-bottom: 4px;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
@@ -84,7 +85,6 @@
         
         .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
-        /* Área Intermediária */
         .area-intermediaria { display: flex; gap: 4px; height: 40px; margin-bottom: 6px;}
         
         .box-pagamento { 
@@ -108,20 +108,16 @@
             font-size: 13px; display: flex; align-items: center; justify-content: center; height: 100%; 
         }
 
-        /* Status e Logística */
         .area-inferior { 
             display: flex; justify-content: space-between; 
             margin-top: 5px; border-bottom: 2px dotted #ccc; 
             padding-bottom: 10px; align-items: flex-end;
         }
         
-        /* BADGES ARREDONDADOS */
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
         .badge-box { 
             display: flex; width: 60px; height: 26px; 
-            border: 1px solid #ccc; 
-            border-radius: 13px; /* Pílula completa */
-            overflow: hidden; 
+            border: 1px solid #ccc; border-radius: 13px; overflow: hidden; 
             box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
         }
         .badge-letra { 
@@ -135,7 +131,6 @@
         .bg-blue { background: var(--blue); border-color: var(--blue); }
         .bg-green { background: var(--green); border-color: var(--green); }
 
-        /* Máquina Cartão - Estilo Tag */
         .maq-cartao { 
             margin-left: 12px; background: var(--red); color: white; 
             font-weight: 900; font-size: 10px; padding: 4px 8px; 
@@ -145,7 +140,6 @@
         }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
-        /* Logística */
         .logistica-wrapper { width: 140px; font-size: 10px; font-weight: 900; }
         .logistica-header { 
             background: #555; color: white; text-align: center; padding: 2px; margin-bottom: 4px; 
@@ -153,29 +147,49 @@
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         .log-item { display: flex; align-items: center; margin-bottom: 3px; }
-        /* Checkbox Redondo (Bolinha) */
         .box-check-log { 
             width: 12px; height: 12px; border: 1px solid var(--black); 
             margin-right: 6px; display: flex; align-items: center; justify-content: center; 
             font-size: 8px; color: var(--red); line-height: 12px;
-            border-radius: 50%; /* Círculo */
+            border-radius: 50%;
         }
 
-        /* Imagens e Corpo */
         .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
         
+        /* --- ÁREA DE IMAGENS INTERATIVA --- */
         .area-imagens { 
             flex-grow: 1; 
-            border: 2px dashed #ccc; /* Pontilhado mais bonito */
+            border: 2px dashed #ccc; 
             border-radius: var(--border-radius);
-            display: flex; 
-            align-items: center; justify-content: center; 
-            position: relative; overflow: hidden; margin-bottom: 10px;
+            position: relative; 
+            overflow: hidden; 
+            margin-bottom: 10px;
             background-color: #fcfcfc;
+            cursor: crosshair; /* Indica que pode colocar coisas */
         }
         
-        #img-preview { position: absolute; transform-origin: center center; }
-        .placeholder-text { font-size: 24px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; }
+        /* Estilo da Imagem Arrastável */
+        .draggable-img {
+            position: absolute;
+            cursor: move;
+            transition: box-shadow 0.2s;
+            /* Inicia com um tamanho padrão razoável */
+            width: 200px; 
+        }
+
+        /* Classe para imagem selecionada */
+        .img-selected {
+            border: 2px solid var(--blue);
+            box-shadow: 0 0 10px rgba(0, 174, 239, 0.5);
+            z-index: 100; /* Traz para frente */
+        }
+
+        .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
+        .instrucoes-overlay {
+            position: absolute; bottom: 5px; right: 5px; 
+            font-size: 10px; color: #999; background: rgba(255,255,255,0.8);
+            padding: 2px 5px; border-radius: 4px; pointer-events: none; z-index: 5;
+        }
 
         .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 4px; color: #555; text-transform: uppercase;}
         .box-anotacoes { 
@@ -184,14 +198,12 @@
             white-space: pre-wrap; background: #fcfcfc;
         }
 
-        /* Botões */
         .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
         .btn-print:hover { background: #008f45; transform: translateY(2px); box-shadow: 0 2px 0 #007f3d;}
 
         .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
         .btn-save:hover { background: #009ad6; transform: translateY(2px); box-shadow: 0 2px 0 #007db0;}
 
-        /* --- CONFIGURAÇÃO DE IMPRESSÃO --- */
         @page { size: A4; margin: 0; }
 
         @media print {
@@ -206,6 +218,8 @@
                 width: 210mm; height: 296mm; page-break-after: always; border: none;
             }
             .area-imagens { border: 1px dashed #ccc; }
+            .placeholder-text, .instrucoes-overlay { display: none; }
+            .img-selected { border: none; box-shadow: none; } /* Remove borda azul na impressão */
         }
     </style>
 </head>
@@ -277,17 +291,9 @@
         </div>
         
         <div class="grupo-input">
-            <label>SELECIONAR IMAGEM</label>
-            <input type="file" accept="image/*" onchange="carregarImagem(event)">
-        </div>
-
-        <div id="controles-img" style="display:none; background: #34495e; padding: 10px; border-radius: 6px; margin-top: 10px;">
-            <label>ZOOM</label>
-            <input type="range" id="zoom-img" min="0.1" max="3" step="0.1" value="1" oninput="ajustarImagem()">
-            <label>POSIÇÃO X (Lados)</label>
-            <input type="range" id="pos-x" min="-300" max="300" value="0" oninput="ajustarImagem()">
-            <label>POSIÇÃO Y (Altura)</label>
-            <input type="range" id="pos-y" min="-300" max="300" value="0" oninput="ajustarImagem()">
+            <label style="color: #f1c40f; font-weight: bold;">ADICIONAR IMAGENS (Máx 6)</label>
+            <input type="file" accept="image/*" multiple onchange="adicionarImagens(event)">
+            <label style="font-size: 10px; margin-top: 5px;">*Arraste para mover. Clique + Scroll para zoom. 2x Clique apagar.</label>
         </div>
 
         <div class="grupo-input" style="margin-top: 15px;">
@@ -367,9 +373,9 @@
             
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
             
-            <div class="area-imagens">
-                <span class="placeholder-text" id="placeholder-text">IMAGEM<br>DO SERVIÇO</span>
-                <img id="img-preview" src="" style="display: none;">
+            <div class="area-imagens" id="canvas-imagens">
+                <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS<br>PARA ORGANIZAR</span>
+                <div class="instrucoes-overlay">Scroll p/ Zoom | 2x Clique p/ Apagar</div>
             </div>
             
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
@@ -399,6 +405,10 @@
             btn.disabled = true;
 
             try {
+                // NOTA: No momento salvamos apenas o texto, as imagens do canvas
+                // não estão indo pro banco pois exigiria o Firebase Storage.
+                // Mas para gerar PDF/Imprimir funciona perfeito.
+                
                 const dados = {
                     empresa: document.getElementById('in-empresa').value,
                     cliente: document.getElementById('in-cliente').value,
@@ -439,9 +449,10 @@
     </script>
 
     <script>
+        // Atualização dos textos e checkboxes
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
-            if(input.type !== 'file' && input.type !== 'range') {
+            if(input.type !== 'file') {
                 input.addEventListener('input', up);
                 input.addEventListener('change', up);
             }
@@ -475,33 +486,117 @@
             setX('x-maq', 'chk-maq');
         }
 
-        window.carregarImagem = function(event) {
-            const input = event.target;
-            if (input.files && input.files[0]) {
+        // --- SISTEMA DE CANVAS DE IMAGENS ---
+        const canvas = document.getElementById('canvas-imagens');
+        let draggedImg = null;
+        let startX, startY, initialLeft, initialTop;
+
+        // 1. Adicionar Imagens
+        window.adicionarImagens = function(event) {
+            const files = event.target.files;
+            if (!files) return;
+
+            // Verificação de limite
+            const atuais = document.querySelectorAll('.draggable-img').length;
+            if (atuais + files.length > 6) {
+                alert("Máximo de 6 imagens permitido.");
+                return;
+            }
+
+            document.getElementById('placeholder-text').style.display = 'none';
+
+            Array.from(files).forEach(file => {
                 const reader = new FileReader();
-                reader.onload = function(e){
-                    const img = document.getElementById('img-preview');
-                    const placeholder = document.getElementById('placeholder-text');
-                    const painelControle = document.getElementById('controles-img');
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.style.display = "block";
-                    placeholder.style.display = "none";
-                    painelControle.style.display = "block";
-                    document.getElementById('zoom-img').value = 1;
-                    document.getElementById('pos-x').value = 0;
-                    document.getElementById('pos-y').value = 0;
-                    window.ajustarImagem();
+                    img.classList.add('draggable-img');
+                    
+                    // Posição inicial aleatória leve para não empilhar
+                    img.style.left = (50 + Math.random() * 100) + 'px';
+                    img.style.top = (50 + Math.random() * 100) + 'px';
+                    
+                    // Eventos da imagem
+                    img.addEventListener('mousedown', startDrag);
+                    img.addEventListener('click', selectImage);
+                    img.addEventListener('dblclick', deleteImage);
+                    img.addEventListener('wheel', resizeImage, { passive: false }); // Scroll para zoom
+                    
+                    canvas.appendChild(img);
                 }
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 2. Selecionar Imagem (Borda Azul)
+        function selectImage(e) {
+            e.stopPropagation(); // Não propaga para o canvas
+            // Remove seleção de outras
+            document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
+            // Adiciona nesta
+            e.target.classList.add('img-selected');
+        }
+
+        // Clicar fora remove a seleção
+        canvas.addEventListener('click', () => {
+             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
+        });
+
+        // 3. Deletar Imagem (Duplo Clique)
+        function deleteImage(e) {
+            e.target.remove();
+            if (document.querySelectorAll('.draggable-img').length === 0) {
+                document.getElementById('placeholder-text').style.display = 'block';
             }
         }
 
-        window.ajustarImagem = function() {
-            const img = document.getElementById('img-preview');
-            const zoom = document.getElementById('zoom-img').value;
-            const x = document.getElementById('pos-x').value;
-            const y = document.getElementById('pos-y').value;
-            img.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+        // 4. Arrastar (Drag and Drop)
+        function startDrag(e) {
+            e.preventDefault();
+            draggedImg = e.target;
+            
+            // Traz para frente
+            selectImage(e); 
+
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = draggedImg.offsetLeft;
+            initialTop = draggedImg.offsetTop;
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(e) {
+            if (!draggedImg) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            draggedImg.style.left = `${initialLeft + dx}px`;
+            draggedImg.style.top = `${initialTop + dy}px`;
+        }
+
+        function stopDrag() {
+            draggedImg = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        // 5. Redimensionar com Scroll
+        function resizeImage(e) {
+            e.preventDefault(); // Impede a página de rolar
+            const scaleAmount = 10;
+            let currentWidth = this.offsetWidth;
+            
+            if (e.deltaY < 0) {
+                // Scroll para cima (Aumentar)
+                this.style.width = (currentWidth + scaleAmount) + 'px';
+            } else {
+                // Scroll para baixo (Diminuir)
+                if (currentWidth > 50) { // Tamanho mínimo
+                    this.style.width = (currentWidth - scaleAmount) + 'px';
+                }
+            }
         }
     </script>
 </body>
