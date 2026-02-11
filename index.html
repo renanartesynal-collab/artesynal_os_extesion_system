@@ -14,7 +14,14 @@
             --gray: #e6e7e8;
         }
 
-        body { font-family: 'Montserrat', sans-serif; display: flex; margin: 0; background: #333; }
+        /* RESET GERAL */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            margin: 0; 
+            padding: 0;
+            background: #333; 
+            display: flex;
+        }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
         #painel-controle { 
@@ -53,64 +60,73 @@
 
         /* --- ÁREA DE IMPRESSÃO (DIREITA) --- */
         #area-impressao { 
-            margin-left: 380px; padding: 40px; display: flex; 
-            justify-content: center; width: calc(100% - 380px); 
-            background: #555; min-height: 100vh; 
+            margin-left: 380px; 
+            display: flex; 
+            justify-content: center; 
+            padding: 40px;
+            width: calc(100% - 380px); 
+            background: #555; 
+            min-height: 100vh; 
+            box-sizing: border-box;
         }
         
         .folha-a4 {
-            width: 210mm; height: 296mm; 
-            padding: 10mm; background: white; 
-            position: relative; box-sizing: border-box;
+            width: 210mm; 
+            height: 296mm; /* Tamanho exato A4 */
+            background: white; 
+            position: relative; 
+            padding: 10mm; /* Margem interna de 1cm */
+            box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column;
+            display: flex; 
+            flex-direction: column;
         }
 
         /* --- ESTRUTURA DO MODELO --- */
         .header-top { 
-            background: var(--black); color: white; padding: 8px 10px; 
-            font-weight: 900; font-size: 24px; text-transform: uppercase; 
+            background: var(--black); color: white; padding: 5px 10px; 
+            font-weight: 900; font-size: 20px; text-transform: uppercase; 
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         
         .linha-dados { display: flex; border: 1px solid var(--black); border-top: none; }
-        .col { padding: 5px 8px; border-right: 1px solid var(--black); font-size: 13px; display: flex; align-items: center; }
+        .col { padding: 4px 8px; border-right: 1px solid var(--black); font-size: 12px; display: flex; align-items: center; }
         .col:last-child { border-right: none; }
         
         .label-simple { font-weight: 900; margin-right: 5px; }
 
         /* Área Intermediária */
-        .area-intermediaria { display: flex; border: 1px solid var(--black); border-top: none; height: 45px; }
+        .area-intermediaria { display: flex; border: 1px solid var(--black); border-top: none; height: 35px; }
         
         .box-pagamento { 
             flex: 1.8; display: flex; align-items: center; padding-left: 10px; 
-            font-weight: 900; font-size: 16px; background: #eee;
+            font-weight: 900; font-size: 14px; background: #eee;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
 
         .box-datas { flex: 1.2; display: flex; }
         .data-item { flex: 1; border-left: 1px solid var(--black); display: flex; flex-direction: column; }
         .data-header { 
-            background: #555; color: white; font-size: 9px; text-align: center; 
+            background: #555; color: white; font-size: 8px; text-align: center; 
             padding: 2px; font-weight: bold; 
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         .data-valor { 
             text-align: center; font-weight: 900; color: var(--red); 
-            font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; 
+            font-size: 12px; display: flex; align-items: center; justify-content: center; height: 100%; 
         }
 
         /* Status e Logística */
-        .area-inferior { display: flex; justify-content: space-between; margin-top: 5px; border-bottom: 2px dotted #ccc; padding-bottom: 10px;}
+        .area-inferior { display: flex; justify-content: space-between; margin-top: 5px; border-bottom: 2px dotted #ccc; padding-bottom: 5px;}
         
-        .badges-wrapper { display: flex; gap: 5px; align-items: flex-start; }
-        .badge-box { display: flex; width: 60px; height: 25px; border: 1px solid #ccc; }
+        .badges-wrapper { display: flex; gap: 3px; align-items: center; }
+        .badge-box { display: flex; width: 50px; height: 22px; border: 1px solid #ccc; }
         .badge-letra { 
-            width: 20px; display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: 900; font-size: 16px; 
+            width: 18px; display: flex; align-items: center; justify-content: center; 
+            color: white; font-weight: 900; font-size: 14px; 
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: var(--black); background: white; border-left: 1px solid #ccc; }
+        .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; border-left: 1px solid #ccc; }
         
         .bg-red { background: var(--red); border-color: var(--red); }
         .bg-blue { background: var(--blue); border-color: var(--blue); }
@@ -118,26 +134,28 @@
 
         .maq-cartao { 
             margin-left: 10px; background: var(--red); color: white; 
-            font-weight: 900; font-size: 11px; padding: 2px 5px; 
-            display: flex; align-items: center; gap: 5px;
+            font-weight: 900; font-size: 10px; padding: 2px 5px; 
+            display: flex; align-items: center; gap: 5px; height: 18px;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .box-check-maq { width: 15px; height: 15px; background: white; border: 1px solid #ccc; color: black; text-align: center; line-height: 14px; font-size: 14px; font-weight: 900;}
+        .box-check-maq { width: 12px; height: 12px; background: white; border: 1px solid #ccc; color: black; text-align: center; line-height: 12px; font-size: 12px; font-weight: 900;}
 
         /* Logística */
-        .logistica-wrapper { width: 140px; font-size: 11px; font-weight: 900; }
+        .logistica-wrapper { width: 140px; font-size: 10px; font-weight: 900; }
         .logistica-header { 
-            background: #555; color: white; text-align: center; padding: 2px; margin-bottom: 2px; 
+            background: #555; color: white; text-align: center; padding: 1px; margin-bottom: 2px; 
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         .log-item { display: flex; align-items: center; margin-bottom: 2px; }
-        .box-check-log { width: 12px; height: 12px; border: 1px solid var(--black); margin-right: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--red);}
+        .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--red); line-height: 10px;}
 
         /* Imagens e Corpo */
-        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 24px; margin: 10px 0; text-transform: uppercase; }
+        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 20px; margin: 10px 0; text-transform: uppercase; }
         
+        /* Flex-grow faz a imagem ocupar todo o espaço disponível verticalmente */
         .area-imagens { 
-            flex: 1; border: 2px dotted #ccc; display: flex; 
+            flex-grow: 1; 
+            border: 2px dotted #ccc; display: flex; 
             align-items: center; justify-content: center; 
             position: relative; overflow: hidden; margin-bottom: 10px;
             background-color: #f9f9f9;
@@ -160,12 +178,37 @@
         .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0;}
         .btn-save:hover { background: #009ad6; }
 
+        /* --- CONFIGURAÇÃO DE IMPRESSÃO (O SEGREDO) --- */
+        @page {
+            size: A4;
+            margin: 0; /* Remove margem branca do navegador */
+        }
+
         @media print {
-            body { background: white; }
-            #painel-controle { display: none; }
-            #area-impressao { margin: 0; padding: 0; width: 100%; min-height: auto; background: none; }
-            .folha-a4 { box-shadow: none; padding: 0; margin: 0; width: 100%; height: auto; page-break-after: always; }
-            .area-imagens { border: 1px solid #eee; }
+            body { 
+                background: white; 
+                margin: 0; 
+                padding: 0;
+            }
+            #painel-controle { display: none; } /* Some com o menu */
+            #area-impressao { 
+                margin: 0; 
+                padding: 0; 
+                width: 100%; 
+                height: 100vh; /* Força altura total */
+                background: none; 
+                display: block;
+            }
+            .folha-a4 { 
+                box-shadow: none; 
+                padding: 10mm; /* Mantém a margem interna de 1cm */
+                margin: 0 auto; 
+                width: 210mm; 
+                height: 296mm; 
+                page-break-after: always; 
+                border: none;
+            }
+            .area-imagens { border: 1px dotted #ccc; }
         }
     </style>
 </head>
@@ -331,7 +374,7 @@
     </div>
 
     <script type="module">
-        // Importa o Firebase via CDN (Não precisa de instalação)
+        // Importa o Firebase via CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -397,13 +440,11 @@
             }
         }
 
-        // Atribui a função ao botão (necessário pois module é isolado)
         document.getElementById('btn-salvar').addEventListener('click', salvarOS);
     </script>
 
     <script>
-        // Esta parte cuida apenas da atualização visual em tempo real
-        // Adicionamos Event Listeners para todos os inputs para chamar a função 'up'
+        // Atualização visual em tempo real
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             if(input.type !== 'file' && input.type !== 'range') {
@@ -413,7 +454,6 @@
         });
 
         function up() {
-            // Textos Simples
             const setTxt = (idOut, idIn, def) => {
                 const val = document.getElementById(idIn).value;
                 document.getElementById(idOut).innerText = val || def || "";
@@ -430,7 +470,6 @@
             setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
             setTxt('out-desc', 'in-desc', '');
 
-            // Checkboxes (Lógica do X)
             const setX = (idOut, idIn) => document.getElementById(idOut).innerText = document.getElementById(idIn).checked ? "X" : "";
             
             setX('x-entrada', 'chk-entrada');
