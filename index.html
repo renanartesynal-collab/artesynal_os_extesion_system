@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistema OS - Comunicação Visual</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -21,13 +21,15 @@
             margin: 0; padding: 0;
             background: #333; display: flex;
             user-select: none;
+            overflow: hidden; /* Evita scroll duplo no mobile */
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
         #painel-controle { 
             width: 380px; padding: 25px; background: #2c3e50; color: white;
             height: 100vh; overflow-y: auto; box-sizing: border-box; position: fixed;
-            border-right: 5px solid #1a252f; z-index: 10;
+            border-right: 5px solid #1a252f; z-index: 20;
+            transition: transform 0.3s ease;
         }
         
         #painel-controle::-webkit-scrollbar { width: 8px; }
@@ -59,32 +61,25 @@
         #area-impressao { 
             margin-left: 380px; display: flex; justify-content: center; 
             padding: 40px; width: calc(100% - 380px); 
-            background: #555; min-height: 100vh; box-sizing: border-box;
+            background: #555; height: 100vh; overflow-y: auto; box-sizing: border-box;
         }
         
         .folha-a4 {
-            width: 210mm; height: 296mm; 
+            width: 210mm; min-height: 296mm; 
             background: white; position: relative; 
             padding: 10mm; box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             display: flex; flex-direction: column;
+            transform-origin: top center;
         }
 
-        /* --- LAYOUT GRID DO CABEÇALHO (NOVO) --- */
-        /* O cabeçalho agora é um Grid de 2 colunas: 
-           Esq (75%): Dados, Endereço, Pagamento 
-           Dir (25%): OS e Logística */
+        /* --- CABEÇALHO --- */
         .header-grid {
-            display: grid;
-            grid-template-columns: 3fr 1fr; /* 3 partes para esq, 1 para dir */
-            gap: 8px;
-            margin-bottom: 5px;
+            display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px;
         }
 
-        /* Coluna Esquerda */
         .col-esq { display: flex; flex-direction: column; gap: 4px; }
         
-        /* Coluna Direita (OS e Logística) */
         .col-dir { 
             display: flex; flex-direction: column; 
             border: 2px solid var(--black);
@@ -92,38 +87,38 @@
             overflow: hidden;
         }
 
-        /* Header Título */
         .header-top { 
             background: var(--black); color: white; padding: 8px 12px; 
             font-weight: 900; font-size: 22px; text-transform: uppercase; 
-            border-radius: var(--border-radius);
-            margin-bottom: 4px;
+            border-radius: var(--border-radius); margin-bottom: 4px;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         
-        /* Linhas de Dados (Cliente/Tel) */
         .linha-dados { display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; height: 32px;}
         .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; }
         .col:last-child { border-right: none; }
         
         .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
-        /* Bloco OS (Dentro da col-dir) */
+        /* ESTILO OS DARK (Solicitado) */
         .box-os {
-            background: #eee; 
-            flex: 1; /* Ocupa metade da altura */
-            display: flex; flex-direction: column; 
+            background: var(--black); /* Fundo Preto */
+            flex: 1; display: flex; flex-direction: column; 
             align-items: center; justify-content: center;
             border-bottom: 2px solid var(--black);
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            padding: 2px;
         }
-        .os-label { font-size: 14px; font-weight: 900; color: #555; }
-        .os-valor { font-size: 28px; font-weight: 900; color: var(--red); line-height: 1; }
+        .os-label { font-size: 12px; font-weight: 900; color: white; margin-bottom: 2px;} /* Texto Branco */
+        .os-valor-box {
+            background: white; /* Caixa Branca */
+            width: 90%; text-align: center; border-radius: 4px;
+        }
+        .os-valor { font-size: 24px; font-weight: 900; color: var(--black); line-height: 1.2; } /* Numero Preto */
 
-        /* Bloco Logística (Dentro da col-dir) */
         .box-logistica {
-            padding: 5px; flex: 1;
-            display: flex; flex-direction: column; justify-content: center;
+            padding: 5px; flex: 1; display: flex; flex-direction: column; justify-content: center;
+            background: white;
         }
         .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold;}
         .box-check-log { 
@@ -133,12 +128,8 @@
             border-radius: 50%;
         }
 
-        /* Área de Datas e Pagamento (Agora alinhados) */
         .grid-datas-pag {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr; /* Pagamento maior, 2 datas iguais */
-            gap: 4px;
-            height: 45px;
+            display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px;
         }
 
         .box-pagamento { 
@@ -163,7 +154,6 @@
             font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; 
         }
 
-        /* Status Badges */
         .area-status { 
             display: flex; align-items: center; gap: 10px; 
             margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc;
@@ -187,8 +177,7 @@
         .bg-green { background: var(--green); border-color: var(--green); }
 
         .maq-cartao { 
-            margin-left: auto; /* Empurra para a direita */
-            background: var(--red); color: white; 
+            margin-left: auto; background: var(--red); color: white; 
             font-weight: 900; font-size: 10px; padding: 4px 8px; 
             display: flex; align-items: center; gap: 6px; height: 20px;
             border-radius: 4px;
@@ -196,20 +185,16 @@
         }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
-        /* Imagens e Corpo */
         .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
         
+        /* CANVAS DE IMAGENS */
         .area-imagens { 
-            flex-grow: 1; 
-            border: 2px dashed #ccc; 
-            border-radius: var(--border-radius);
-            position: relative; 
-            overflow: hidden; 
-            margin-bottom: 5px;
-            background-color: #fcfcfc;
+            flex-grow: 1; border: 2px dashed #ccc; border-radius: var(--border-radius);
+            position: relative; overflow: hidden; margin-bottom: 5px; background-color: #fcfcfc;
+            touch-action: none; /* Vital para o touch funcionar */
         }
         
-        .draggable-img { position: absolute; cursor: move; width: 200px; }
+        .draggable-img { position: absolute; cursor: move; width: 150px; touch-action: none;}
         .img-selected { border: 2px solid var(--blue); box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
         .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
 
@@ -220,25 +205,67 @@
             white-space: pre-wrap; background: #fcfcfc;
         }
 
-        /* Botões */
         .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
-        .btn-print:hover { background: #008f45; transform: translateY(2px); box-shadow: 0 2px 0 #007f3d;}
-
         .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
-        .btn-save:hover { background: #009ad6; transform: translateY(2px); box-shadow: 0 2px 0 #007db0;}
+
+        /* --- BOTÃO MOBILE FLUTUANTE --- */
+        #btn-mobile-toggle {
+            display: none; /* Escondido no PC */
+            position: fixed; bottom: 20px; right: 20px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #f1c40f; color: #2c3e50;
+            border: none; font-size: 24px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 100; cursor: pointer; align-items: center; justify-content: center;
+        }
+
+        /* --- RESPONSIVIDADE MOBILE --- */
+        @media (max-width: 768px) {
+            body { display: block; overflow: auto; } /* Libera scroll no body */
+            
+            #painel-controle { 
+                width: 100%; height: auto; position: relative; 
+                padding-bottom: 80px; /* Espaço pro botão flutuante */
+            }
+
+            #area-impressao {
+                display: none; /* Esconde prévia inicialmente */
+                margin-left: 0; width: 100%; height: 100vh;
+                position: fixed; top: 0; left: 0; z-index: 50;
+                padding: 10px; /* Menos padding no mobile */
+            }
+
+            .folha-a4 {
+                width: 100%; height: auto; min-height: 90vh; /* Ajusta altura */
+                transform: scale(0.65); /* Diminui a folha para caber na tela */
+                transform-origin: top center;
+                margin-bottom: 50px;
+            }
+
+            #btn-mobile-toggle { display: flex; } /* Mostra botão */
+            
+            .btn-print { display: none; } /* Esconde imprimir no mobile (bugado em alguns) */
+            /* Botao Voltar na prévia */
+            #btn-fechar-previa {
+                display: block !important;
+                width: 100%; padding: 15px; background: #e74c3c; color: white;
+                text-align: center; font-weight: bold; margin-bottom: 10px;
+                border-radius: 6px; cursor: pointer;
+            }
+        }
 
         @page { size: A4; margin: 0; }
 
         @media print {
-            body { background: white; margin: 0; padding: 0;}
-            #painel-controle { display: none; }
+            body { background: white; margin: 0; padding: 0; display: block;}
+            #painel-controle, #btn-mobile-toggle, #btn-fechar-previa { display: none; }
             #area-impressao { 
                 margin: 0; padding: 0; width: 100%; height: 100vh; 
-                background: none; display: block;
+                background: none; display: block; position: static;
             }
             .folha-a4 { 
                 box-shadow: none; padding: 10mm; margin: 0 auto; 
-                width: 210mm; height: 296mm; page-break-after: always; border: none;
+                width: 210mm; min-height: 296mm; transform: none; 
             }
             .area-imagens { border: 1px dashed #ccc; }
             .placeholder-text { display: none; }
@@ -247,6 +274,8 @@
     </style>
 </head>
 <body>
+
+    <button id="btn-mobile-toggle" onclick="alternarVisao()">👁️</button>
 
     <div id="painel-controle">
         <h2 style="margin-top: 0; color: #f1c40f;">GERADOR DE O.S.</h2>
@@ -314,9 +343,9 @@
         </div>
         
         <div class="grupo-input">
-            <label style="color: #f1c40f; font-weight: bold;">ADICIONAR IMAGENS (Máx 6)</label>
+            <label style="color: #f1c40f; font-weight: bold;">ADICIONAR IMAGENS</label>
             <input type="file" accept="image/*" multiple onchange="adicionarImagens(event)">
-            <label style="font-size: 10px; margin-top: 5px;">*Arraste para mover. Clique + Scroll para zoom. 2x Clique apagar.</label>
+            <label style="font-size: 10px; margin-top: 5px;">*No celular: Arraste com o dedo.</label>
         </div>
 
         <div class="grupo-input" style="margin-top: 15px;">
@@ -330,6 +359,8 @@
     </div>
 
     <div id="area-impressao">
+        <div id="btn-fechar-previa" style="display:none;" onclick="alternarVisao()">VOLTAR / EDITAR</div>
+
         <div class="folha-a4">
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
             
@@ -339,11 +370,9 @@
                         <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
                         <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Tel:</span> <span id="out-tel" style="font-weight: 400;"></span></div>
                     </div>
-
                     <div class="linha-dados">
                         <div class="col" style="width: 100%;"><span class="label-simple">Endereço</span> <span id="out-end"></span></div>
                     </div>
-
                     <div class="grid-datas-pag">
                         <div class="box-pagamento">
                             RESTANTE
@@ -363,48 +392,31 @@
                 <div class="col-dir">
                     <div class="box-os">
                         <span class="os-label">Nº OS</span>
-                        <span class="os-valor" id="out-os">0000</span>
+                        <div class="os-valor-box">
+                            <span class="os-valor" id="out-os">0000</span>
+                        </div>
                     </div>
                     <div class="box-logistica">
-                        <div class="log-item">
-                            <div class="box-check-log" id="x-inst"></div> INSTALAÇÃO
-                        </div>
-                        <div class="log-item">
-                            <div class="box-check-log" id="x-ent"></div> ENTREGA
-                        </div>
-                        <div class="log-item">
-                            <div class="box-check-log" id="x-ret"></div> RETIRADA
-                        </div>
+                        <div class="log-item"><div class="box-check-log" id="x-inst"></div> INSTALAÇÃO</div>
+                        <div class="log-item"><div class="box-check-log" id="x-ent"></div> ENTREGA</div>
+                        <div class="log-item"><div class="box-check-log" id="x-ret"></div> RETIRADA</div>
                     </div>
                 </div>
             </div>
 
             <div class="area-status">
                 <div class="badges-wrapper">
-                    <div class="badge-box bg-red">
-                        <div class="badge-letra">E</div>
-                        <div class="badge-x" id="x-entrada"></div>
-                    </div>
-                    <div class="badge-box bg-blue">
-                        <div class="badge-letra">F</div>
-                        <div class="badge-x" id="x-faturado" style="color: var(--blue);"></div>
-                    </div>
-                    <div class="badge-box bg-green">
-                        <div class="badge-letra">P</div>
-                        <div class="badge-x" id="x-pago" style="color: var(--green);"></div>
-                    </div>
+                    <div class="badge-box bg-red"><div class="badge-letra">E</div><div class="badge-x" id="x-entrada"></div></div>
+                    <div class="badge-box bg-blue"><div class="badge-letra">F</div><div class="badge-x" id="x-faturado" style="color: var(--blue);"></div></div>
+                    <div class="badge-box bg-green"><div class="badge-letra">P</div><div class="badge-x" id="x-pago" style="color: var(--green);"></div></div>
                 </div>
-                
-                <div class="maq-cartao">
-                    MÁQ. CARTÃO
-                    <div class="box-check-maq" id="x-maq"></div>
-                </div>
+                <div class="maq-cartao">MÁQ. CARTÃO<div class="box-check-maq" id="x-maq"></div></div>
             </div>
             
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
             
             <div class="area-imagens" id="canvas-imagens">
-                <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS<br>PARA ORGANIZAR</span>
+                <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>
             </div>
             
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
@@ -465,7 +477,7 @@
                 btn.disabled = false;
             } catch (e) {
                 console.error("Erro ao salvar: ", e);
-                alert("Erro ao salvar. Verifique se o banco de dados está criado no modo TESTE.");
+                alert("Erro ao salvar.");
                 btn.innerText = "ERRO AO SALVAR";
                 btn.disabled = false;
             }
@@ -474,6 +486,28 @@
     </script>
 
     <script>
+        // --- MOBILE TOGGLE ---
+        let modoPrevia = false;
+        window.alternarVisao = function() {
+            const painel = document.getElementById('painel-controle');
+            const previa = document.getElementById('area-impressao');
+            const btn = document.getElementById('btn-mobile-toggle');
+
+            if (!modoPrevia) {
+                // Ir para Prévia
+                painel.style.display = 'none';
+                previa.style.display = 'flex'; // Mostra a folha
+                btn.style.display = 'none'; // Some botão flutuante
+                modoPrevia = true;
+            } else {
+                // Voltar para Edição
+                painel.style.display = 'block';
+                previa.style.display = 'none';
+                btn.style.display = 'flex';
+                modoPrevia = false;
+            }
+        }
+
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             if(input.type !== 'file') {
@@ -487,7 +521,6 @@
                 const val = document.getElementById(idIn).value;
                 document.getElementById(idOut).innerText = val || def || "";
             };
-
             setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA');
             setTxt('out-cliente', 'in-cliente', '');
             setTxt('out-tel', 'in-tel', '');
@@ -500,16 +533,11 @@
             setTxt('out-desc', 'in-desc', '');
 
             const setX = (idOut, idIn) => document.getElementById(idOut).innerText = document.getElementById(idIn).checked ? "X" : "";
-            
-            setX('x-entrada', 'chk-entrada');
-            setX('x-faturado', 'chk-faturado');
-            setX('x-pago', 'chk-pago');
-            setX('x-inst', 'chk-inst');
-            setX('x-ent', 'chk-ent');
-            setX('x-ret', 'chk-ret');
-            setX('x-maq', 'chk-maq');
+            setX('x-entrada', 'chk-entrada'); setX('x-faturado', 'chk-faturado'); setX('x-pago', 'chk-pago');
+            setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
         }
 
+        // --- CANVAS DE IMAGENS TOUCH & MOUSE ---
         const canvas = document.getElementById('canvas-imagens');
         let draggedImg = null;
         let startX, startY, initialLeft, initialTop;
@@ -517,13 +545,8 @@
         window.adicionarImagens = function(event) {
             const files = event.target.files;
             if (!files) return;
-
             const atuais = document.querySelectorAll('.draggable-img').length;
-            if (atuais + files.length > 6) {
-                alert("Máximo de 6 imagens permitido.");
-                return;
-            }
-
+            if (atuais + files.length > 6) { alert("Máximo de 6 imagens."); return; }
             document.getElementById('placeholder-text').style.display = 'none';
 
             Array.from(files).forEach(file => {
@@ -532,12 +555,18 @@
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     img.classList.add('draggable-img');
-                    img.style.left = (50 + Math.random() * 100) + 'px';
-                    img.style.top = (50 + Math.random() * 100) + 'px';
-                    img.addEventListener('mousedown', startDrag);
+                    img.style.left = (20 + Math.random() * 50) + 'px';
+                    img.style.top = (20 + Math.random() * 50) + 'px';
+                    
+                    // Mouse Events
+                    img.addEventListener('mousedown', startDragMouse);
                     img.addEventListener('click', selectImage);
                     img.addEventListener('dblclick', deleteImage);
                     img.addEventListener('wheel', resizeImage, { passive: false });
+                    
+                    // Touch Events (Para Celular)
+                    img.addEventListener('touchstart', startDragTouch, {passive: false});
+                    
                     canvas.appendChild(img);
                 }
                 reader.readAsDataURL(file);
@@ -549,42 +578,48 @@
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
             e.target.classList.add('img-selected');
         }
-
-        canvas.addEventListener('click', () => {
-             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
-        });
-
+        canvas.addEventListener('click', () => document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected')));
         function deleteImage(e) {
             e.target.remove();
-            if (document.querySelectorAll('.draggable-img').length === 0) {
-                document.getElementById('placeholder-text').style.display = 'block';
-            }
+            if (document.querySelectorAll('.draggable-img').length === 0) document.getElementById('placeholder-text').style.display = 'block';
         }
 
-        function startDrag(e) {
-            e.preventDefault();
-            draggedImg = e.target;
-            selectImage(e); 
-            startX = e.clientX;
-            startY = e.clientY;
-            initialLeft = draggedImg.offsetLeft;
-            initialTop = draggedImg.offsetTop;
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', stopDrag);
+        // Mouse Drag Logic
+        function startDragMouse(e) {
+            e.preventDefault(); draggedImg = e.target; selectImage(e);
+            startX = e.clientX; startY = e.clientY;
+            initialLeft = draggedImg.offsetLeft; initialTop = draggedImg.offsetTop;
+            document.addEventListener('mousemove', dragMouse); document.addEventListener('mouseup', stopDragMouse);
         }
-
-        function drag(e) {
+        function dragMouse(e) {
             if (!draggedImg) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            draggedImg.style.left = `${initialLeft + dx}px`;
-            draggedImg.style.top = `${initialTop + dy}px`;
+            draggedImg.style.left = `${initialLeft + (e.clientX - startX)}px`;
+            draggedImg.style.top = `${initialTop + (e.clientY - startY)}px`;
+        }
+        function stopDragMouse() {
+            draggedImg = null; document.removeEventListener('mousemove', dragMouse); document.removeEventListener('mouseup', stopDragMouse);
         }
 
-        function stopDrag() {
-            draggedImg = null;
-            document.removeEventListener('mousemove', drag);
-            document.removeEventListener('mouseup', stopDrag);
+        // Touch Drag Logic (Mobile)
+        function startDragTouch(e) {
+            // Se for dois dedos, permite zoom/scroll nativo, senão previne
+            if(e.touches.length > 1) return;
+            e.preventDefault(); 
+            draggedImg = e.target; selectImage(e);
+            const touch = e.touches[0];
+            startX = touch.clientX; startY = touch.clientY;
+            initialLeft = draggedImg.offsetLeft; initialTop = draggedImg.offsetTop;
+            document.addEventListener('touchmove', dragTouch, {passive: false}); document.addEventListener('touchend', stopDragTouch);
+        }
+        function dragTouch(e) {
+            if (!draggedImg) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            draggedImg.style.left = `${initialLeft + (touch.clientX - startX)}px`;
+            draggedImg.style.top = `${initialTop + (touch.clientY - startY)}px`;
+        }
+        function stopDragTouch() {
+            draggedImg = null; document.removeEventListener('touchmove', dragTouch); document.removeEventListener('touchend', stopDragTouch);
         }
 
         function resizeImage(e) {
