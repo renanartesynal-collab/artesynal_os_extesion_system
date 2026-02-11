@@ -12,15 +12,14 @@
             --blue: #00aeef;
             --green: #00a651;
             --gray: #e6e7e8;
+            --border-radius: 6px; /* Curva padrão */
         }
 
         /* RESET GERAL */
         body { 
             font-family: 'Montserrat', sans-serif; 
-            margin: 0; 
-            padding: 0;
-            background: #333; 
-            display: flex;
+            margin: 0; padding: 0;
+            background: #333; display: flex;
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
@@ -39,176 +38,174 @@
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #bdc3c7; }
         
         input[type="text"], input[type="date"], input[type="number"], select { 
-            width: 100%; padding: 8px; border-radius: 4px; border: none; 
+            width: 100%; padding: 10px; border-radius: 6px; border: none; 
             box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-weight: bold;
+            background: #34495e; color: white; /* Visual dark no input */
         }
+        input:focus, textarea:focus { outline: 2px solid #f1c40f; background: #405569; }
 
         textarea {
-            width: 100%; padding: 8px; border-radius: 4px; border: none; 
+            width: 100%; padding: 10px; border-radius: 6px; border: none; 
             box-sizing: border-box; font-family: 'Montserrat', sans-serif; 
-            height: 80px; resize: none;
+            height: 80px; resize: none; background: #34495e; color: white;
         }
         
-        /* Sliders de Imagem */
-        .range-control { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-        input[type="range"] { flex: 1; cursor: pointer; }
-
-        /* Checkboxes customizados */
         .check-group { display: flex; flex-direction: column; gap: 8px; }
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .check-item input { transform: scale(1.2); }
+        .check-item input { transform: scale(1.2); accent-color: #f1c40f; }
 
         /* --- ÁREA DE IMPRESSÃO (DIREITA) --- */
         #area-impressao { 
-            margin-left: 380px; 
-            display: flex; 
-            justify-content: center; 
-            padding: 40px;
-            width: calc(100% - 380px); 
-            background: #555; 
-            min-height: 100vh; 
-            box-sizing: border-box;
+            margin-left: 380px; display: flex; justify-content: center; 
+            padding: 40px; width: calc(100% - 380px); 
+            background: #555; min-height: 100vh; box-sizing: border-box;
         }
         
         .folha-a4 {
-            width: 210mm; 
-            height: 296mm; /* Tamanho exato A4 */
-            background: white; 
-            position: relative; 
-            padding: 10mm; /* Margem interna de 1cm */
-            box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            display: flex; 
-            flex-direction: column;
+            width: 210mm; height: 296mm; 
+            background: white; position: relative; 
+            padding: 10mm; box-sizing: border-box;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
         }
 
         /* --- ESTRUTURA DO MODELO --- */
         .header-top { 
-            background: var(--black); color: white; padding: 5px 10px; 
-            font-weight: 900; font-size: 20px; text-transform: uppercase; 
+            background: var(--black); color: white; padding: 8px 12px; 
+            font-weight: 900; font-size: 22px; text-transform: uppercase; 
+            border-radius: var(--border-radius); /* Header arredondado */
+            margin-bottom: 4px;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         
-        .linha-dados { display: flex; border: 1px solid var(--black); border-top: none; }
-        .col { padding: 4px 8px; border-right: 1px solid var(--black); font-size: 12px; display: flex; align-items: center; }
+        .linha-dados { display: flex; border: 1px solid #ddd; margin-bottom: 4px; border-radius: var(--border-radius); overflow: hidden; }
+        .col { padding: 6px 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; }
         .col:last-child { border-right: none; }
         
-        .label-simple { font-weight: 900; margin-right: 5px; }
+        .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
         /* Área Intermediária */
-        .area-intermediaria { display: flex; border: 1px solid var(--black); border-top: none; height: 35px; }
+        .area-intermediaria { display: flex; gap: 4px; height: 40px; margin-bottom: 6px;}
         
         .box-pagamento { 
-            flex: 1.8; display: flex; align-items: center; padding-left: 10px; 
+            flex: 1.8; display: flex; align-items: center; padding-left: 15px; 
             font-weight: 900; font-size: 14px; background: #eee;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
 
-        .box-datas { flex: 1.2; display: flex; }
-        .data-item { flex: 1; border-left: 1px solid var(--black); display: flex; flex-direction: column; }
+        .box-datas { flex: 1.2; display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; }
+        .data-item { flex: 1; border-left: 1px solid #ddd; display: flex; flex-direction: column; }
+        .data-item:first-child { border-left: none; }
         .data-header { 
-            background: #555; color: white; font-size: 8px; text-align: center; 
-            padding: 2px; font-weight: bold; 
+            background: #666; color: white; font-size: 9px; text-align: center; 
+            padding: 3px; font-weight: bold; text-transform: uppercase;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         .data-valor { 
             text-align: center; font-weight: 900; color: var(--red); 
-            font-size: 12px; display: flex; align-items: center; justify-content: center; height: 100%; 
+            font-size: 13px; display: flex; align-items: center; justify-content: center; height: 100%; 
         }
 
         /* Status e Logística */
-        .area-inferior { display: flex; justify-content: space-between; margin-top: 5px; border-bottom: 2px dotted #ccc; padding-bottom: 5px;}
+        .area-inferior { 
+            display: flex; justify-content: space-between; 
+            margin-top: 5px; border-bottom: 2px dotted #ccc; 
+            padding-bottom: 10px; align-items: flex-end;
+        }
         
-        .badges-wrapper { display: flex; gap: 3px; align-items: center; }
-        .badge-box { display: flex; width: 50px; height: 22px; border: 1px solid #ccc; }
+        /* BADGES ARREDONDADOS */
+        .badges-wrapper { display: flex; gap: 6px; align-items: center; }
+        .badge-box { 
+            display: flex; width: 60px; height: 26px; 
+            border: 1px solid #ccc; 
+            border-radius: 13px; /* Pílula completa */
+            overflow: hidden; 
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+        }
         .badge-letra { 
-            width: 18px; display: flex; align-items: center; justify-content: center; 
+            width: 24px; display: flex; align-items: center; justify-content: center; 
             color: white; font-weight: 900; font-size: 14px; 
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; border-left: 1px solid #ccc; }
+        .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; }
         
         .bg-red { background: var(--red); border-color: var(--red); }
         .bg-blue { background: var(--blue); border-color: var(--blue); }
         .bg-green { background: var(--green); border-color: var(--green); }
 
+        /* Máquina Cartão - Estilo Tag */
         .maq-cartao { 
-            margin-left: 10px; background: var(--red); color: white; 
-            font-weight: 900; font-size: 10px; padding: 2px 5px; 
-            display: flex; align-items: center; gap: 5px; height: 18px;
+            margin-left: 12px; background: var(--red); color: white; 
+            font-weight: 900; font-size: 10px; padding: 4px 8px; 
+            display: flex; align-items: center; gap: 6px; height: 20px;
+            border-radius: 4px;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .box-check-maq { width: 12px; height: 12px; background: white; border: 1px solid #ccc; color: black; text-align: center; line-height: 12px; font-size: 12px; font-weight: 900;}
+        .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
         /* Logística */
         .logistica-wrapper { width: 140px; font-size: 10px; font-weight: 900; }
         .logistica-header { 
-            background: #555; color: white; text-align: center; padding: 1px; margin-bottom: 2px; 
+            background: #555; color: white; text-align: center; padding: 2px; margin-bottom: 4px; 
+            border-radius: 3px;
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
-        .log-item { display: flex; align-items: center; margin-bottom: 2px; }
-        .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 5px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--red); line-height: 10px;}
+        .log-item { display: flex; align-items: center; margin-bottom: 3px; }
+        /* Checkbox Redondo (Bolinha) */
+        .box-check-log { 
+            width: 12px; height: 12px; border: 1px solid var(--black); 
+            margin-right: 6px; display: flex; align-items: center; justify-content: center; 
+            font-size: 8px; color: var(--red); line-height: 12px;
+            border-radius: 50%; /* Círculo */
+        }
 
         /* Imagens e Corpo */
-        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 20px; margin: 10px 0; text-transform: uppercase; }
+        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Flex-grow faz a imagem ocupar todo o espaço disponível verticalmente */
         .area-imagens { 
             flex-grow: 1; 
-            border: 2px dotted #ccc; display: flex; 
+            border: 2px dashed #ccc; /* Pontilhado mais bonito */
+            border-radius: var(--border-radius);
+            display: flex; 
             align-items: center; justify-content: center; 
             position: relative; overflow: hidden; margin-bottom: 10px;
-            background-color: #f9f9f9;
+            background-color: #fcfcfc;
         }
         
         #img-preview { position: absolute; transform-origin: center center; }
-        .placeholder-text { font-size: 30px; font-weight: 900; color: #e6e7e8; position: absolute; z-index: 0; }
+        .placeholder-text { font-size: 24px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; }
 
-        .area-desc-titulo { font-weight: 900; font-size: 12px; margin-bottom: 2px;}
+        .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 4px; color: #555; text-transform: uppercase;}
         .box-anotacoes { 
-            height: 100px; border: 1px solid var(--black); 
-            padding: 5px; font-size: 12px; font-family: 'Montserrat', sans-serif;
-            white-space: pre-wrap; 
+            height: 100px; border: 1px solid #ccc; border-radius: var(--border-radius);
+            padding: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif;
+            white-space: pre-wrap; background: #fcfcfc;
         }
 
         /* Botões */
-        .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d;}
-        .btn-print:hover { background: #008f45; }
+        .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
+        .btn-print:hover { background: #008f45; transform: translateY(2px); box-shadow: 0 2px 0 #007f3d;}
 
-        .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:5px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0;}
-        .btn-save:hover { background: #009ad6; }
+        .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
+        .btn-save:hover { background: #009ad6; transform: translateY(2px); box-shadow: 0 2px 0 #007db0;}
 
-        /* --- CONFIGURAÇÃO DE IMPRESSÃO (O SEGREDO) --- */
-        @page {
-            size: A4;
-            margin: 0; /* Remove margem branca do navegador */
-        }
+        /* --- CONFIGURAÇÃO DE IMPRESSÃO --- */
+        @page { size: A4; margin: 0; }
 
         @media print {
-            body { 
-                background: white; 
-                margin: 0; 
-                padding: 0;
-            }
-            #painel-controle { display: none; } /* Some com o menu */
+            body { background: white; margin: 0; padding: 0;}
+            #painel-controle { display: none; }
             #area-impressao { 
-                margin: 0; 
-                padding: 0; 
-                width: 100%; 
-                height: 100vh; /* Força altura total */
-                background: none; 
-                display: block;
+                margin: 0; padding: 0; width: 100%; height: 100vh; 
+                background: none; display: block;
             }
             .folha-a4 { 
-                box-shadow: none; 
-                padding: 10mm; /* Mantém a margem interna de 1cm */
-                margin: 0 auto; 
-                width: 210mm; 
-                height: 296mm; 
-                page-break-after: always; 
-                border: none;
+                box-shadow: none; padding: 10mm; margin: 0 auto; 
+                width: 210mm; height: 296mm; page-break-after: always; border: none;
             }
-            .area-imagens { border: 1px dotted #ccc; }
+            .area-imagens { border: 1px dashed #ccc; }
         }
     </style>
 </head>
@@ -284,7 +281,7 @@
             <input type="file" accept="image/*" onchange="carregarImagem(event)">
         </div>
 
-        <div id="controles-img" style="display:none; background: #34495e; padding: 10px; border-radius: 5px;">
+        <div id="controles-img" style="display:none; background: #34495e; padding: 10px; border-radius: 6px; margin-top: 10px;">
             <label>ZOOM</label>
             <input type="range" id="zoom-img" min="0.1" max="3" step="0.1" value="1" oninput="ajustarImagem()">
             <label>POSIÇÃO X (Lados)</label>
@@ -306,52 +303,56 @@
     <div id="area-impressao">
         <div class="folha-a4">
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
+            
             <div class="linha-dados">
                 <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
-                <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Telefone</span> <span id="out-tel" style="font-weight: 400;"></span></div>
-                <div class="col" style="flex: 0.5; justify-content: center; font-weight: 900; font-size: 16px;">OS <span id="out-os" style="margin-left: 10px;">0000</span></div>
+                <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Tel:</span> <span id="out-tel" style="font-weight: 400;"></span></div>
+                <div class="col" style="flex: 0.5; justify-content: center; font-weight: 900; font-size: 16px;">OS <span id="out-os" style="margin-left: 10px; color: var(--red);">0000</span></div>
             </div>
+            
             <div class="linha-dados">
                 <div class="col" style="width: 100%;"><span class="label-simple">Endereço</span> <span id="out-end"></span></div>
             </div>
+            
             <div class="area-intermediaria">
                 <div class="box-pagamento">
-                    Pagamento Restante: <span id="out-pag" style="margin-left: 5px;">R$ 0,00</span>
+                    RESTANTE A PAGAR: <span id="out-pag" style="margin-left: 8px; color: var(--red);">R$ 0,00</span>
                 </div>
                 <div class="box-datas">
                     <div class="data-item">
-                        <div class="data-header">Aprovação Layout</div>
+                        <div class="data-header">Aprovação</div>
                         <div class="data-valor" style="color: black;" id="out-data-aprov">00/00</div>
                     </div>
                     <div class="data-item">
-                        <div class="data-header" style="background: var(--red);">Data LIMITE</div>
+                        <div class="data-header" style="background: var(--red);">ENTREGA</div>
                         <div class="data-valor" id="out-data-limite">00/00</div>
                     </div>
                 </div>
             </div>
+            
             <div class="area-inferior">
                 <div style="display: flex; align-items: center;">
                     <div class="badges-wrapper">
                         <div class="badge-box bg-red">
                             <div class="badge-letra">E</div>
-                            <div class="badge-x text-red" id="x-entrada"></div>
+                            <div class="badge-x" id="x-entrada"></div>
                         </div>
                         <div class="badge-box bg-blue">
                             <div class="badge-letra">F</div>
-                            <div class="badge-x" style="color: var(--blue);" id="x-faturado"></div>
+                            <div class="badge-x" id="x-faturado" style="color: var(--blue);"></div>
                         </div>
                         <div class="badge-box bg-green">
                             <div class="badge-letra">P</div>
-                            <div class="badge-x" style="color: var(--green);" id="x-pago"></div>
+                            <div class="badge-x" id="x-pago" style="color: var(--green);"></div>
                         </div>
                     </div>
                     <div class="maq-cartao">
-                        MAQUINA DE CARTÃO!
+                        MÁQ. CARTÃO
                         <div class="box-check-maq" id="x-maq"></div>
                     </div>
                 </div>
                 <div class="logistica-wrapper">
-                    <div class="logistica-header">Logística</div>
+                    <div class="logistica-header">LOGÍSTICA</div>
                     <div class="log-item">
                         <div class="box-check-log" id="x-inst"></div> INSTALAÇÃO
                     </div>
@@ -363,22 +364,23 @@
                     </div>
                 </div>
             </div>
+            
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
+            
             <div class="area-imagens">
-                <span class="placeholder-text" id="placeholder-text">IMAGEM AQUI</span>
+                <span class="placeholder-text" id="placeholder-text">IMAGEM<br>DO SERVIÇO</span>
                 <img id="img-preview" src="" style="display: none;">
             </div>
-            <div class="area-desc-titulo">Descrição do serviço:</div>
+            
+            <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
             <div class="box-anotacoes" id="out-desc"></div>
         </div>
     </div>
 
     <script type="module">
-        // Importa o Firebase via CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURAÇÃO DO SEU PROJETO
         const firebaseConfig = {
             apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
             authDomain: "artesynal-os-system.firebaseapp.com",
@@ -388,18 +390,15 @@
             appId: "1:539958005846:web:9120505e097b56bf16ebf7"
         };
 
-        // Inicia o Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- FUNÇÃO DE SALVAR ---
         async function salvarOS() {
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
             btn.disabled = true;
 
             try {
-                // Coleta os dados dos campos
                 const dados = {
                     empresa: document.getElementById('in-empresa').value,
                     cliente: document.getElementById('in-cliente').value,
@@ -425,26 +424,21 @@
                     data_criacao: new Date()
                 };
 
-                // Envia para o Firebase (Coleção 'ordens_servico')
                 const docRef = await addDoc(collection(db, "ordens_servico"), dados);
-                
                 alert("OS Salva com sucesso! ID: " + docRef.id);
                 btn.innerText = "SALVAR NO SISTEMA";
                 btn.disabled = false;
-
             } catch (e) {
                 console.error("Erro ao salvar: ", e);
-                alert("Erro ao salvar. Verifique se o banco de dados está criado no modo TESTE no console do Firebase.");
+                alert("Erro ao salvar. Verifique se o banco de dados está criado no modo TESTE.");
                 btn.innerText = "ERRO AO SALVAR";
                 btn.disabled = false;
             }
         }
-
         document.getElementById('btn-salvar').addEventListener('click', salvarOS);
     </script>
 
     <script>
-        // Atualização visual em tempo real
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             if(input.type !== 'file' && input.type !== 'range') {
@@ -481,7 +475,6 @@
             setX('x-maq', 'chk-maq');
         }
 
-        // --- SISTEMA DE IMAGEM ---
         window.carregarImagem = function(event) {
             const input = event.target;
             if (input.files && input.files[0]) {
@@ -490,12 +483,10 @@
                     const img = document.getElementById('img-preview');
                     const placeholder = document.getElementById('placeholder-text');
                     const painelControle = document.getElementById('controles-img');
-
                     img.src = e.target.result;
                     img.style.display = "block";
                     placeholder.style.display = "none";
                     painelControle.style.display = "block";
-                    
                     document.getElementById('zoom-img').value = 1;
                     document.getElementById('pos-x').value = 0;
                     document.getElementById('pos-y').value = 0;
