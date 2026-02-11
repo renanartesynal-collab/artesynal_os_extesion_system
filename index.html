@@ -20,7 +20,7 @@
             font-family: 'Montserrat', sans-serif; 
             margin: 0; padding: 0;
             background: #333; display: flex;
-            user-select: none; /* Evita selecionar texto ao arrastar imagens */
+            user-select: none;
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
@@ -70,7 +70,29 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- ESTRUTURA DO MODELO --- */
+        /* --- LAYOUT GRID DO CABEÇALHO (NOVO) --- */
+        /* O cabeçalho agora é um Grid de 2 colunas: 
+           Esq (75%): Dados, Endereço, Pagamento 
+           Dir (25%): OS e Logística */
+        .header-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr; /* 3 partes para esq, 1 para dir */
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        /* Coluna Esquerda */
+        .col-esq { display: flex; flex-direction: column; gap: 4px; }
+        
+        /* Coluna Direita (OS e Logística) */
+        .col-dir { 
+            display: flex; flex-direction: column; 
+            border: 2px solid var(--black);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        /* Header Título */
         .header-top { 
             background: var(--black); color: white; padding: 8px 12px; 
             font-weight: 900; font-size: 22px; text-transform: uppercase; 
@@ -79,25 +101,58 @@
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
         
-        .linha-dados { display: flex; border: 1px solid #ddd; margin-bottom: 4px; border-radius: var(--border-radius); overflow: hidden; }
-        .col { padding: 6px 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; }
+        /* Linhas de Dados (Cliente/Tel) */
+        .linha-dados { display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; height: 32px;}
+        .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; }
         .col:last-child { border-right: none; }
         
         .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
-        .area-intermediaria { display: flex; gap: 4px; height: 40px; margin-bottom: 6px;}
-        
-        .box-pagamento { 
-            flex: 1.8; display: flex; align-items: center; padding-left: 15px; 
-            font-weight: 900; font-size: 14px; background: #eee;
-            border-radius: var(--border-radius);
-            border: 1px solid #ddd;
+        /* Bloco OS (Dentro da col-dir) */
+        .box-os {
+            background: #eee; 
+            flex: 1; /* Ocupa metade da altura */
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            border-bottom: 2px solid var(--black);
             -webkit-print-color-adjust: exact; print-color-adjust: exact;
         }
+        .os-label { font-size: 14px; font-weight: 900; color: #555; }
+        .os-valor { font-size: 28px; font-weight: 900; color: var(--red); line-height: 1; }
 
-        .box-datas { flex: 1.2; display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; }
-        .data-item { flex: 1; border-left: 1px solid #ddd; display: flex; flex-direction: column; }
-        .data-item:first-child { border-left: none; }
+        /* Bloco Logística (Dentro da col-dir) */
+        .box-logistica {
+            padding: 5px; flex: 1;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold;}
+        .box-check-log { 
+            width: 10px; height: 10px; border: 1px solid var(--black); 
+            margin-right: 6px; display: flex; align-items: center; justify-content: center; 
+            font-size: 8px; color: var(--red); line-height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Área de Datas e Pagamento (Agora alinhados) */
+        .grid-datas-pag {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr; /* Pagamento maior, 2 datas iguais */
+            gap: 4px;
+            height: 45px;
+        }
+
+        .box-pagamento { 
+            display: flex; flex-direction: column; justify-content: center; padding-left: 10px; 
+            background: #eee; border-radius: var(--border-radius); border: 1px solid #ddd;
+            font-size: 10px; font-weight: 900;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        .pag-valor { font-size: 16px; color: var(--red); }
+
+        .box-data {
+            border: 1px solid #ddd; border-radius: var(--border-radius);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
         .data-header { 
             background: #666; color: white; font-size: 9px; text-align: center; 
             padding: 3px; font-weight: bold; text-transform: uppercase;
@@ -105,13 +160,13 @@
         }
         .data-valor { 
             text-align: center; font-weight: 900; color: var(--red); 
-            font-size: 13px; display: flex; align-items: center; justify-content: center; height: 100%; 
+            font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; 
         }
 
-        .area-inferior { 
-            display: flex; justify-content: space-between; 
-            margin-top: 5px; border-bottom: 2px dotted #ccc; 
-            padding-bottom: 10px; align-items: flex-end;
+        /* Status Badges */
+        .area-status { 
+            display: flex; align-items: center; gap: 10px; 
+            margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc;
         }
         
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
@@ -132,7 +187,8 @@
         .bg-green { background: var(--green); border-color: var(--green); }
 
         .maq-cartao { 
-            margin-left: 12px; background: var(--red); color: white; 
+            margin-left: auto; /* Empurra para a direita */
+            background: var(--red); color: white; 
             font-weight: 900; font-size: 10px; padding: 4px 8px; 
             display: flex; align-items: center; gap: 6px; height: 20px;
             border-radius: 4px;
@@ -140,64 +196,31 @@
         }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
-        .logistica-wrapper { width: 140px; font-size: 10px; font-weight: 900; }
-        .logistica-header { 
-            background: #555; color: white; text-align: center; padding: 2px; margin-bottom: 4px; 
-            border-radius: 3px;
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
-        .log-item { display: flex; align-items: center; margin-bottom: 3px; }
-        .box-check-log { 
-            width: 12px; height: 12px; border: 1px solid var(--black); 
-            margin-right: 6px; display: flex; align-items: center; justify-content: center; 
-            font-size: 8px; color: var(--red); line-height: 12px;
-            border-radius: 50%;
-        }
-
-        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
+        /* Imagens e Corpo */
+        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* --- ÁREA DE IMAGENS INTERATIVA --- */
         .area-imagens { 
             flex-grow: 1; 
             border: 2px dashed #ccc; 
             border-radius: var(--border-radius);
             position: relative; 
             overflow: hidden; 
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             background-color: #fcfcfc;
-            cursor: crosshair; /* Indica que pode colocar coisas */
         }
         
-        /* Estilo da Imagem Arrastável */
-        .draggable-img {
-            position: absolute;
-            cursor: move;
-            transition: box-shadow 0.2s;
-            /* Inicia com um tamanho padrão razoável */
-            width: 200px; 
-        }
-
-        /* Classe para imagem selecionada */
-        .img-selected {
-            border: 2px solid var(--blue);
-            box-shadow: 0 0 10px rgba(0, 174, 239, 0.5);
-            z-index: 100; /* Traz para frente */
-        }
-
+        .draggable-img { position: absolute; cursor: move; width: 200px; }
+        .img-selected { border: 2px solid var(--blue); box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
         .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
-        .instrucoes-overlay {
-            position: absolute; bottom: 5px; right: 5px; 
-            font-size: 10px; color: #999; background: rgba(255,255,255,0.8);
-            padding: 2px 5px; border-radius: 4px; pointer-events: none; z-index: 5;
-        }
 
-        .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 4px; color: #555; text-transform: uppercase;}
+        .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase;}
         .box-anotacoes { 
-            height: 100px; border: 1px solid #ccc; border-radius: var(--border-radius);
-            padding: 8px; font-size: 12px; font-family: 'Montserrat', sans-serif;
+            height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius);
+            padding: 8px; font-size: 11px; font-family: 'Montserrat', sans-serif;
             white-space: pre-wrap; background: #fcfcfc;
         }
 
+        /* Botões */
         .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
         .btn-print:hover { background: #008f45; transform: translateY(2px); box-shadow: 0 2px 0 #007f3d;}
 
@@ -218,8 +241,8 @@
                 width: 210mm; height: 296mm; page-break-after: always; border: none;
             }
             .area-imagens { border: 1px dashed #ccc; }
-            .placeholder-text, .instrucoes-overlay { display: none; }
-            .img-selected { border: none; box-shadow: none; } /* Remove borda azul na impressão */
+            .placeholder-text { display: none; }
+            .img-selected { border: none; box-shadow: none; }
         }
     </style>
 </head>
@@ -310,64 +333,71 @@
         <div class="folha-a4">
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
             
-            <div class="linha-dados">
-                <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
-                <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Tel:</span> <span id="out-tel" style="font-weight: 400;"></span></div>
-                <div class="col" style="flex: 0.5; justify-content: center; font-weight: 900; font-size: 16px;">OS <span id="out-os" style="margin-left: 10px; color: var(--red);">0000</span></div>
-            </div>
-            
-            <div class="linha-dados">
-                <div class="col" style="width: 100%;"><span class="label-simple">Endereço</span> <span id="out-end"></span></div>
-            </div>
-            
-            <div class="area-intermediaria">
-                <div class="box-pagamento">
-                    RESTANTE A PAGAR: <span id="out-pag" style="margin-left: 8px; color: var(--red);">R$ 0,00</span>
-                </div>
-                <div class="box-datas">
-                    <div class="data-item">
-                        <div class="data-header">Aprovação</div>
-                        <div class="data-valor" style="color: black;" id="out-data-aprov">00/00</div>
+            <div class="header-grid">
+                <div class="col-esq">
+                    <div class="linha-dados">
+                        <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
+                        <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Tel:</span> <span id="out-tel" style="font-weight: 400;"></span></div>
                     </div>
-                    <div class="data-item">
-                        <div class="data-header" style="background: var(--red);">ENTREGA</div>
-                        <div class="data-valor" id="out-data-limite">00/00</div>
+
+                    <div class="linha-dados">
+                        <div class="col" style="width: 100%;"><span class="label-simple">Endereço</span> <span id="out-end"></span></div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="area-inferior">
-                <div style="display: flex; align-items: center;">
-                    <div class="badges-wrapper">
-                        <div class="badge-box bg-red">
-                            <div class="badge-letra">E</div>
-                            <div class="badge-x" id="x-entrada"></div>
+
+                    <div class="grid-datas-pag">
+                        <div class="box-pagamento">
+                            RESTANTE
+                            <span id="out-pag" class="pag-valor">R$ 0,00</span>
                         </div>
-                        <div class="badge-box bg-blue">
-                            <div class="badge-letra">F</div>
-                            <div class="badge-x" id="x-faturado" style="color: var(--blue);"></div>
+                        <div class="box-data">
+                            <div class="data-header">Aprovação</div>
+                            <div class="data-valor" style="color: black;" id="out-data-aprov">00/00</div>
                         </div>
-                        <div class="badge-box bg-green">
-                            <div class="badge-letra">P</div>
-                            <div class="badge-x" id="x-pago" style="color: var(--green);"></div>
+                        <div class="box-data">
+                            <div class="data-header" style="background: var(--red);">ENTREGA</div>
+                            <div class="data-valor" id="out-data-limite">00/00</div>
                         </div>
                     </div>
-                    <div class="maq-cartao">
-                        MÁQ. CARTÃO
-                        <div class="box-check-maq" id="x-maq"></div>
+                </div>
+
+                <div class="col-dir">
+                    <div class="box-os">
+                        <span class="os-label">Nº OS</span>
+                        <span class="os-valor" id="out-os">0000</span>
+                    </div>
+                    <div class="box-logistica">
+                        <div class="log-item">
+                            <div class="box-check-log" id="x-inst"></div> INSTALAÇÃO
+                        </div>
+                        <div class="log-item">
+                            <div class="box-check-log" id="x-ent"></div> ENTREGA
+                        </div>
+                        <div class="log-item">
+                            <div class="box-check-log" id="x-ret"></div> RETIRADA
+                        </div>
                     </div>
                 </div>
-                <div class="logistica-wrapper">
-                    <div class="logistica-header">LOGÍSTICA</div>
-                    <div class="log-item">
-                        <div class="box-check-log" id="x-inst"></div> INSTALAÇÃO
+            </div>
+
+            <div class="area-status">
+                <div class="badges-wrapper">
+                    <div class="badge-box bg-red">
+                        <div class="badge-letra">E</div>
+                        <div class="badge-x" id="x-entrada"></div>
                     </div>
-                    <div class="log-item">
-                        <div class="box-check-log" id="x-ent"></div> ENTREGA
+                    <div class="badge-box bg-blue">
+                        <div class="badge-letra">F</div>
+                        <div class="badge-x" id="x-faturado" style="color: var(--blue);"></div>
                     </div>
-                    <div class="log-item">
-                        <div class="box-check-log" id="x-ret"></div> RETIRADA
+                    <div class="badge-box bg-green">
+                        <div class="badge-letra">P</div>
+                        <div class="badge-x" id="x-pago" style="color: var(--green);"></div>
                     </div>
+                </div>
+                
+                <div class="maq-cartao">
+                    MÁQ. CARTÃO
+                    <div class="box-check-maq" id="x-maq"></div>
                 </div>
             </div>
             
@@ -375,7 +405,6 @@
             
             <div class="area-imagens" id="canvas-imagens">
                 <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS<br>PARA ORGANIZAR</span>
-                <div class="instrucoes-overlay">Scroll p/ Zoom | 2x Clique p/ Apagar</div>
             </div>
             
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
@@ -405,10 +434,6 @@
             btn.disabled = true;
 
             try {
-                // NOTA: No momento salvamos apenas o texto, as imagens do canvas
-                // não estão indo pro banco pois exigiria o Firebase Storage.
-                // Mas para gerar PDF/Imprimir funciona perfeito.
-                
                 const dados = {
                     empresa: document.getElementById('in-empresa').value,
                     cliente: document.getElementById('in-cliente').value,
@@ -449,7 +474,6 @@
     </script>
 
     <script>
-        // Atualização dos textos e checkboxes
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             if(input.type !== 'file') {
@@ -486,17 +510,14 @@
             setX('x-maq', 'chk-maq');
         }
 
-        // --- SISTEMA DE CANVAS DE IMAGENS ---
         const canvas = document.getElementById('canvas-imagens');
         let draggedImg = null;
         let startX, startY, initialLeft, initialTop;
 
-        // 1. Adicionar Imagens
         window.adicionarImagens = function(event) {
             const files = event.target.files;
             if (!files) return;
 
-            // Verificação de limite
             const atuais = document.querySelectorAll('.draggable-img').length;
             if (atuais + files.length > 6) {
                 alert("Máximo de 6 imagens permitido.");
@@ -511,38 +532,28 @@
                     const img = document.createElement('img');
                     img.src = e.target.result;
                     img.classList.add('draggable-img');
-                    
-                    // Posição inicial aleatória leve para não empilhar
                     img.style.left = (50 + Math.random() * 100) + 'px';
                     img.style.top = (50 + Math.random() * 100) + 'px';
-                    
-                    // Eventos da imagem
                     img.addEventListener('mousedown', startDrag);
                     img.addEventListener('click', selectImage);
                     img.addEventListener('dblclick', deleteImage);
-                    img.addEventListener('wheel', resizeImage, { passive: false }); // Scroll para zoom
-                    
+                    img.addEventListener('wheel', resizeImage, { passive: false });
                     canvas.appendChild(img);
                 }
                 reader.readAsDataURL(file);
             });
         }
 
-        // 2. Selecionar Imagem (Borda Azul)
         function selectImage(e) {
-            e.stopPropagation(); // Não propaga para o canvas
-            // Remove seleção de outras
+            e.stopPropagation();
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
-            // Adiciona nesta
             e.target.classList.add('img-selected');
         }
 
-        // Clicar fora remove a seleção
         canvas.addEventListener('click', () => {
              document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
         });
 
-        // 3. Deletar Imagem (Duplo Clique)
         function deleteImage(e) {
             e.target.remove();
             if (document.querySelectorAll('.draggable-img').length === 0) {
@@ -550,19 +561,14 @@
             }
         }
 
-        // 4. Arrastar (Drag and Drop)
         function startDrag(e) {
             e.preventDefault();
             draggedImg = e.target;
-            
-            // Traz para frente
             selectImage(e); 
-
             startX = e.clientX;
             startY = e.clientY;
             initialLeft = draggedImg.offsetLeft;
             initialTop = draggedImg.offsetTop;
-
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', stopDrag);
         }
@@ -571,7 +577,6 @@
             if (!draggedImg) return;
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
-
             draggedImg.style.left = `${initialLeft + dx}px`;
             draggedImg.style.top = `${initialTop + dy}px`;
         }
@@ -582,21 +587,12 @@
             document.removeEventListener('mouseup', stopDrag);
         }
 
-        // 5. Redimensionar com Scroll
         function resizeImage(e) {
-            e.preventDefault(); // Impede a página de rolar
+            e.preventDefault();
             const scaleAmount = 10;
             let currentWidth = this.offsetWidth;
-            
-            if (e.deltaY < 0) {
-                // Scroll para cima (Aumentar)
-                this.style.width = (currentWidth + scaleAmount) + 'px';
-            } else {
-                // Scroll para baixo (Diminuir)
-                if (currentWidth > 50) { // Tamanho mínimo
-                    this.style.width = (currentWidth - scaleAmount) + 'px';
-                }
-            }
+            if (e.deltaY < 0) this.style.width = (currentWidth + scaleAmount) + 'px';
+            else if (currentWidth > 50) this.style.width = (currentWidth - scaleAmount) + 'px';
         }
     </script>
 </body>
