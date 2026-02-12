@@ -90,15 +90,33 @@
         .data-header { background: #666; color: white; font-size: 9px; text-align: center; padding: 3px; font-weight: bold; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .data-valor { text-align: center; font-weight: 900; color: var(--red); font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; }
 
+        /* STATUS BADGES - CORREÇÃO DE COR */
         .area-status { display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc; }
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
-        .badge-box { display: flex; width: 60px; height: 26px; border: 1px solid #ccc; border-radius: 13px; overflow: hidden; box-shadow: 1px 1px 0px rgba(0,0,0,0.1); }
-        .badge-letra { width: 24px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        
+        .badge-box { 
+            display: flex; width: 60px; height: 26px; 
+            border: 1px solid #ccc; border-radius: 13px; overflow: hidden; 
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important;
+        }
+        
+        /* Forçando cores com !important para garantir na impressão */
+        .bg-red { background-color: var(--red) !important; border-color: var(--red) !important; }
+        .bg-blue { background-color: var(--blue) !important; border-color: var(--blue) !important; }
+        .bg-green { background-color: var(--green) !important; border-color: var(--green) !important; }
+        
+        .badge-letra { 
+            width: 24px; display: flex; align-items: center; justify-content: center; 
+            color: white !important; font-weight: 900; font-size: 14px; 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important;
+        }
+        
         .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; }
-        .bg-red { background: var(--red); border-color: var(--red); }
-        .bg-blue { background: var(--blue); border-color: var(--blue); }
-        .bg-green { background: var(--green); border-color: var(--green); }
-        .maq-cartao { margin-left: auto; background: var(--red); color: white; font-weight: 900; font-size: 10px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; height: 20px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        
+        .maq-cartao { margin-left: auto; background: var(--red) !important; color: white !important; font-weight: 900; font-size: 10px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; height: 20px; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
         .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
@@ -134,7 +152,7 @@
             border-top-left-radius: 15px; border-top-right-radius: 15px;
         }
         #mobile-zoom-control label { color: #f1c40f; font-weight: bold; margin-bottom: 10px; display: block;}
-        /* Aumentei o max para 1500 para permitir zoom gigante */
+        /* Aumentei o max para 1500 */
         #mobile-zoom-control input[type=range] { width: 100%; }
 
         /* --- RESPONSIVIDADE MOBILE --- */
@@ -182,6 +200,13 @@
             .area-imagens { border: 1px dashed #ccc; }
             .placeholder-text { display: none; }
             .img-selected { border: none; box-shadow: none; }
+            
+            /* REFORÇO DE CORES NA IMPRESSÃO */
+            .bg-red { background-color: #ed1c24 !important; -webkit-print-color-adjust: exact; }
+            .bg-blue { background-color: #00aeef !important; -webkit-print-color-adjust: exact; }
+            .bg-green { background-color: #00a651 !important; -webkit-print-color-adjust: exact; }
+            .badge-letra { color: white !important; -webkit-print-color-adjust: exact; }
+            .maq-cartao { background-color: #ed1c24 !important; color: white !important; }
         }
     </style>
 </head>
@@ -474,7 +499,7 @@
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
             e.target.classList.add('img-selected');
             
-            // Só mostra o slider se for MOBILE (Detecta pela largura)
+            // Só mostra o slider se for MOBILE
             if (window.innerWidth <= 768) {
                 selectedImgForZoom = e.target;
                 const zoomControl = document.getElementById('mobile-zoom-control');
@@ -493,7 +518,7 @@
         // Função de Zoom com Scroll (PC)
         function resizeImage(e) {
             e.preventDefault();
-            const scaleAmount = 20; // Aumentei a velocidade do zoom no scroll
+            const scaleAmount = 20; 
             let currentWidth = this.offsetWidth;
             
             if (e.deltaY < 0) {
