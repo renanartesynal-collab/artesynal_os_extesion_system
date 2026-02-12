@@ -124,7 +124,7 @@
         
         #btn-abrir-previa { right: 20px; background: #f1c40f; color: #2c3e50; display: none; }
         #btn-fechar-previa { right: 20px; background: #e74c3c; color: white; display: none; }
-        #btn-imprimir-mobile { right: 90px; background: #00a651; color: white; display: none; } /* Botão de impressora */
+        #btn-imprimir-mobile { right: 90px; background: #00a651; color: white; display: none; }
 
         /* Slider de Zoom Mobile */
         #mobile-zoom-control {
@@ -134,43 +134,36 @@
             border-top-left-radius: 15px; border-top-right-radius: 15px;
         }
         #mobile-zoom-control label { color: #f1c40f; font-weight: bold; margin-bottom: 10px; display: block;}
+        /* Aumentei o max para 1500 para permitir zoom gigante */
         #mobile-zoom-control input[type=range] { width: 100%; }
 
-        /* --- RESPONSIVIDADE MOBILE CORRIGIDA --- */
+        /* --- RESPONSIVIDADE MOBILE --- */
         @media (max-width: 768px) {
             body { display: block; overflow: auto; background: #2c3e50; }
             
             #painel-controle { 
                 width: 100%; height: auto; position: relative; 
-                padding-bottom: 100px; /* Espaço extra */
+                padding-bottom: 100px;
                 background: #2c3e50; z-index: 10;
             }
 
             #area-impressao {
-                display: none; /* Esconde inicialmente */
-                position: fixed; top: 0; left: 0; 
+                display: none; position: fixed; top: 0; left: 0; 
                 width: 100%; height: 100vh;
-                background: #333; /* Fundo escuro atrás do papel */
-                z-index: 50;
-                /* Importante: permite scroll se a folha for maior */
+                background: #333; z-index: 50;
                 overflow-y: scroll;
-                align-items: flex-start; /* Começa do topo */
-                padding: 10px; /* Margem de segurança */
+                align-items: flex-start; padding: 10px;
             }
 
-            /* O truque do Scale */
             .folha-a4 {
-                /* Tamanho Real */
                 min-width: 210mm; width: 210mm; 
                 min-height: 296mm; height: auto;
-                /* Ponto de origem no TOPO CENTRO */
                 transform-origin: top center;
-                margin-top: 10px; /* Um pouco de respiro no topo */
-                margin-bottom: 100px; /* Espaço para os botões não cobrirem o fim */
+                margin-top: 10px; margin-bottom: 100px;
             }
 
             #btn-abrir-previa { display: flex; }
-            .btn-print { display: none; } /* Esconde o botão grande do form */
+            .btn-print { display: none; }
         }
 
         @page { size: A4; margin: 0; }
@@ -200,7 +193,7 @@
 
     <div id="mobile-zoom-control">
         <label>TAMANHO DA IMAGEM</label>
-        <input type="range" id="zoom-slider" min="50" max="400" value="150" oninput="aplicarZoomMobile(this.value)">
+        <input type="range" id="zoom-slider" min="50" max="1500" value="150" oninput="aplicarZoomMobile(this.value)">
     </div>
 
     <div id="painel-controle">
@@ -404,19 +397,13 @@
         function abrirPrevia() {
             document.getElementById('painel-controle').style.display = 'none';
             document.getElementById('area-impressao').style.display = 'flex';
-            
-            // Botões
             document.getElementById('btn-abrir-previa').style.display = 'none';
             document.getElementById('btn-fechar-previa').style.display = 'flex';
-            document.getElementById('btn-imprimir-mobile').style.display = 'flex'; // Mostra botão imprimir
+            document.getElementById('btn-imprimir-mobile').style.display = 'flex';
             
-            // MÁGICA DO SCALE (Ajusta o A4 para caber na tela)
             const folha = document.getElementById('folha-a4');
             const larguraTela = window.innerWidth;
-            // 794px é aprox a largura de 210mm
-            // Subtraímos 20px de padding do container
             const escala = (larguraTela - 20) / 794;
-            
             folha.style.transform = `scale(${escala})`;
         }
 
@@ -426,10 +413,9 @@
             document.getElementById('btn-abrir-previa').style.display = 'flex';
             document.getElementById('btn-fechar-previa').style.display = 'none';
             document.getElementById('btn-imprimir-mobile').style.display = 'none';
-            document.getElementById('mobile-zoom-control').style.display = 'none'; // Esconde zoom
+            document.getElementById('mobile-zoom-control').style.display = 'none';
         }
 
-        // Listener para atualizar textos
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             if(input.type !== 'file' && input.type !== 'range') {
@@ -474,6 +460,8 @@
                     img.addEventListener('click', selectImage);
                     img.addEventListener('touchstart', startDragTouch, {passive: false});
                     img.addEventListener('dblclick', (e) => e.target.remove());
+                    // Zoom com Scroll (PC)
+                    img.addEventListener('wheel', resizeImage, { passive: false });
                     
                     canvas.appendChild(img);
                 }
@@ -486,14 +474,14 @@
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
             e.target.classList.add('img-selected');
             
-            // Ativa zoom mobile
-            selectedImgForZoom = e.target;
-            const zoomControl = document.getElementById('mobile-zoom-control');
-            const slider = document.getElementById('zoom-slider');
-            
-            // Pega largura atual
-            slider.value = parseInt(selectedImgForZoom.style.width);
-            zoomControl.style.display = 'block';
+            // Só mostra o slider se for MOBILE (Detecta pela largura)
+            if (window.innerWidth <= 768) {
+                selectedImgForZoom = e.target;
+                const zoomControl = document.getElementById('mobile-zoom-control');
+                const slider = document.getElementById('zoom-slider');
+                slider.value = parseInt(selectedImgForZoom.style.width);
+                zoomControl.style.display = 'block';
+            }
         }
 
         window.aplicarZoomMobile = function(valor) {
@@ -502,9 +490,22 @@
             }
         }
 
+        // Função de Zoom com Scroll (PC)
+        function resizeImage(e) {
+            e.preventDefault();
+            const scaleAmount = 20; // Aumentei a velocidade do zoom no scroll
+            let currentWidth = this.offsetWidth;
+            
+            if (e.deltaY < 0) {
+                this.style.width = (currentWidth + scaleAmount) + 'px';
+            } else {
+                if (currentWidth > 50) this.style.width = (currentWidth - scaleAmount) + 'px';
+            }
+        }
+
         canvas.addEventListener('click', () => {
              document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
-             document.getElementById('mobile-zoom-control').style.display = 'none'; // Esconde zoom
+             document.getElementById('mobile-zoom-control').style.display = 'none';
         });
 
         // Mouse Drag
