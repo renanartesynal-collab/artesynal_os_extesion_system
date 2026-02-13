@@ -48,6 +48,12 @@
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); accent-color: #f1c40f; }
 
+        /* Botão Voltar */
+        .btn-voltar-topo {
+            display: inline-block; margin-bottom: 15px; color: #aaa; text-decoration: none; font-size: 12px; font-weight: bold;
+        }
+        .btn-voltar-topo:hover { color: white; }
+
         /* --- ÁREA DE IMPRESSÃO (DIREITA) --- */
         #area-impressao { 
             margin-left: 380px; display: flex; justify-content: center; 
@@ -78,13 +84,13 @@
         .box-os { 
             background: var(--black); 
             display: flex; 
-            flex-direction: row; /* Alterado para linha */
+            flex-direction: row; 
             align-items: center; 
-            justify-content: space-between; /* Espalha os itens */
+            justify-content: space-between; 
             border-bottom: 2px solid var(--black); 
             -webkit-print-color-adjust: exact; print-color-adjust: exact; 
             padding: 5px 8px;
-            height: 35px; /* Altura fixa para alinhar */
+            height: 35px; 
         }
         .os-label { font-size: 14px; font-weight: 900; color: white; margin-right: 5px; margin-bottom: 0;}
         .os-valor-box { background: white; flex: 1; text-align: center; border-radius: 4px; padding: 2px 0;}
@@ -101,14 +107,14 @@
             padding: 5px; flex: 1; 
             display: flex; flex-direction: column; justify-content: center; 
             background: white; 
-            border-right: 1px solid #ddd; /* Divisória entre logistica e QR */
+            border-right: 1px solid #ddd; 
         }
         .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold;}
         .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--red); line-height: 10px; border-radius: 50%; }
 
         /* QR CODE BOX */
         .box-qr {
-            width: 75px; /* Quadrado fixo */
+            width: 75px; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -118,7 +124,7 @@
         #img-preview-qr {
             max-width: 100%;
             max-height: 100%;
-            display: none; /* Escondido por padrão */
+            display: none; 
         }
 
         .grid-datas-pag { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px; }
@@ -140,7 +146,6 @@
             print-color-adjust: exact !important;
         }
         
-        /* Forçando cores com !important para garantir na impressão */
         .bg-red { background-color: #ed1c24 !important; border-color: var(--red) !important; }
         .bg-blue { background-color: #00aeef !important; border-color: var(--blue) !important; }
         .bg-green { background-color: #00a651 !important; border-color: var(--green) !important; }
@@ -259,6 +264,7 @@
     </div>
 
     <div id="painel-controle">
+        <a href="lista.html" class="btn-voltar-topo">⬅ VOLTAR PARA LISTA</a>
         <h2 style="margin-top: 0; color: #f1c40f;">GERADOR DE O.S.</h2>
 
         <div class="grupo-input">
@@ -409,7 +415,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
@@ -423,9 +429,71 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // VARIAVEL DE CONTROLE DE EDIÇÃO
+        let idEdicao = null;
+
+        // VERIFICA SE ESTÁ EDITANDO AO CARREGAR
+        window.onload = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const osId = urlParams.get('id');
+
+            if (osId) {
+                idEdicao = osId;
+                document.getElementById('btn-salvar').innerText = "ATUALIZAR O.S.";
+                document.getElementById('btn-salvar').style.backgroundColor = "#e67e22"; // Cor Laranja p/ diferenciar
+                await carregarDadosEdicao(osId);
+            }
+        };
+
+        // FUNÇÃO PARA CARREGAR DADOS DO FIREBASE
+        async function carregarDadosEdicao(id) {
+            try {
+                const docRef = doc(db, "ordens_servico", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // Preenche Inputs
+                    document.getElementById('in-empresa').value = data.empresa || "";
+                    document.getElementById('in-cliente').value = data.cliente || "";
+                    document.getElementById('in-tel').value = data.telefone || "";
+                    document.getElementById('in-end').value = data.endereco || "";
+                    document.getElementById('in-os').value = data.os_numero || "";
+                    document.getElementById('in-pag').value = data.valor_restante || "";
+                    document.getElementById('in-data-aprov').value = data.data_aprovacao || "";
+                    document.getElementById('in-data-limite').value = data.data_limite || "";
+                    document.getElementById('in-servico').value = data.servico_titulo || "";
+                    document.getElementById('in-desc').value = data.descricao || "";
+
+                    // Preenche Checkboxes
+                    if(data.status) {
+                        document.getElementById('chk-entrada').checked = data.status.entrada;
+                        document.getElementById('chk-faturado').checked = data.status.faturado;
+                        document.getElementById('chk-pago').checked = data.status.pago;
+                        document.getElementById('chk-maq').checked = data.status.maquina;
+                    }
+                    if(data.logistica) {
+                        document.getElementById('chk-inst').checked = data.logistica.instalacao;
+                        document.getElementById('chk-ent').checked = data.logistica.entrega;
+                        document.getElementById('chk-ret').checked = data.logistica.retirada;
+                    }
+
+                    // Força atualização visual
+                    window.up(); 
+                    alert("Dados carregados para edição!");
+                } else {
+                    alert("O.S. não encontrada!");
+                }
+            } catch (e) {
+                console.error("Erro ao carregar edição:", e);
+                alert("Erro ao carregar dados.");
+            }
+        }
+
         async function salvarOS() {
             const btn = document.getElementById('btn-salvar');
-            btn.innerText = "Salvando...";
+            btn.innerText = "Processando...";
             btn.disabled = true;
             try {
                 const dados = {
@@ -450,16 +518,32 @@
                         entrega: document.getElementById('chk-ent').checked,
                         retirada: document.getElementById('chk-ret').checked
                     },
-                    data_criacao: new Date()
+                    data_atualizacao: new Date()
                 };
-                const docRef = await addDoc(collection(db, "ordens_servico"), dados);
-                alert("OS Salva com sucesso! ID: " + docRef.id);
-                btn.innerText = "SALVAR NO SISTEMA";
+
+                // Se não for edição, adiciona data de criação
+                if (!idEdicao) {
+                    dados.data_criacao = new Date();
+                }
+
+                if (idEdicao) {
+                    // ATUALIZAR
+                    const docRef = doc(db, "ordens_servico", idEdicao);
+                    await updateDoc(docRef, dados);
+                    alert("O.S. Atualizada com sucesso!");
+                    btn.innerText = "ATUALIZAR O.S.";
+                } else {
+                    // CRIAR NOVO
+                    const docRef = await addDoc(collection(db, "ordens_servico"), dados);
+                    alert("Nova O.S. Salva! ID: " + docRef.id);
+                    btn.innerText = "SALVAR NO SISTEMA";
+                }
+                
                 btn.disabled = false;
             } catch (e) {
                 console.error("Erro ao salvar: ", e);
                 alert("Erro ao salvar.");
-                btn.innerText = "ERRO AO SALVAR";
+                btn.innerText = "ERRO";
                 btn.disabled = false;
             }
         }
@@ -497,7 +581,8 @@
             }
         });
 
-        function up() {
+        // Função tornada global (window.up) para ser chamada no carregamento
+        window.up = function() {
             const setTxt = (idOut, idIn, def) => { document.getElementById(idOut).innerText = document.getElementById(idIn).value || def || ""; };
             setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); setTxt('out-cliente', 'in-cliente', '');
             setTxt('out-tel', 'in-tel', ''); setTxt('out-os', 'in-os', '0000'); setTxt('out-end', 'in-end', '');
