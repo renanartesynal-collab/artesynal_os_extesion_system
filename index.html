@@ -22,7 +22,7 @@
             background: #333; display: flex;
             user-select: none;
             overflow: hidden; 
-            color: white; /* Texto padrão branco para o modo escuro */
+            color: white; 
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
@@ -69,8 +69,8 @@
             display: flex; flex-direction: column;
             transform-origin: top center; 
             
-            /* --- CORREÇÃO DO BUG "INVISÍVEL" --- */
-            color: var(--black); /* Força texto preto dentro da folha branca */
+            /* CORREÇÃO DO TEXTO BRANCO NO FUNDO BRANCO */
+            color: var(--black); 
         }
 
         /* --- ESTILOS DO CONTEÚDO DA OS --- */
@@ -421,6 +421,49 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // 1. DEFINIR FUNÇÃO UP GLOBALMENTE ANTES DE USAR
+        window.up = function() {
+            const setTxt = (idOut, idIn, def) => { 
+                const elIn = document.getElementById(idIn);
+                const elOut = document.getElementById(idOut);
+                if(elIn && elOut) {
+                    elOut.innerText = elIn.value || def || ""; 
+                }
+            };
+            
+            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); 
+            setTxt('out-cliente', 'in-cliente', '');
+            setTxt('out-tel', 'in-tel', ''); 
+            setTxt('out-os', 'in-os', '0000'); 
+            setTxt('out-end', 'in-end', '');
+            setTxt('out-pag', 'in-pag', 'R$ 0,00'); 
+            setTxt('out-data-aprov', 'in-data-aprov', '00/00');
+            setTxt('out-data-limite', 'in-data-limite', '00/00'); 
+            setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
+            setTxt('out-desc', 'in-desc', '');
+
+            const setX = (idOut, idIn) => {
+                const elIn = document.getElementById(idIn);
+                const elOut = document.getElementById(idOut);
+                if(elIn && elOut) {
+                    elOut.innerText = elIn.checked ? "X" : "";
+                }
+            };
+
+            setX('x-entrada', 'chk-entrada'); setX('x-faturado', 'chk-faturado'); setX('x-pago', 'chk-pago');
+            setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
+        }
+
+        // 2. ATRIBUIR EVENT LISTENERS
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if(input.type !== 'file' && input.type !== 'range') {
+                input.addEventListener('input', window.up); 
+                input.addEventListener('change', window.up);
+            }
+        });
+
+        // 3. FIREBASE LOGIC
         const firebaseConfig = {
             apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
             authDomain: "artesynal-os-system.firebaseapp.com",
@@ -433,23 +476,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // VARIAVEL DE CONTROLE DE EDIÇÃO
         let idEdicao = null;
 
-        // VERIFICA SE ESTÁ EDITANDO AO CARREGAR
         window.onload = async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const osId = urlParams.get('id');
 
             if (osId) {
                 idEdicao = osId;
-                document.getElementById('btn-salvar').innerText = "ATUALIZAR O.S.";
-                document.getElementById('btn-salvar').style.backgroundColor = "#e67e22"; // Cor Laranja p/ diferenciar
+                const btn = document.getElementById('btn-salvar');
+                if(btn) {
+                    btn.innerText = "ATUALIZAR O.S.";
+                    btn.style.backgroundColor = "#e67e22"; 
+                }
                 await carregarDadosEdicao(osId);
             }
         };
 
-        // FUNÇÃO PARA CARREGAR DADOS DO FIREBASE
         async function carregarDadosEdicao(id) {
             try {
                 const docRef = doc(db, "ordens_servico", id);
@@ -458,19 +501,19 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // Preenche Inputs
-                    document.getElementById('in-empresa').value = data.empresa || "";
-                    document.getElementById('in-cliente').value = data.cliente || "";
-                    document.getElementById('in-tel').value = data.telefone || "";
-                    document.getElementById('in-end').value = data.endereco || "";
-                    document.getElementById('in-os').value = data.os_numero || "";
-                    document.getElementById('in-pag').value = data.valor_restante || "";
-                    document.getElementById('in-data-aprov').value = data.data_aprovacao || "";
-                    document.getElementById('in-data-limite').value = data.data_limite || "";
-                    document.getElementById('in-servico').value = data.servico_titulo || "";
-                    document.getElementById('in-desc').value = data.descricao || "";
+                    const safeVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ""; }
+                    
+                    safeVal('in-empresa', data.empresa);
+                    safeVal('in-cliente', data.cliente);
+                    safeVal('in-tel', data.telefone);
+                    safeVal('in-end', data.endereco);
+                    safeVal('in-os', data.os_numero);
+                    safeVal('in-pag', data.valor_restante);
+                    safeVal('in-data-aprov', data.data_aprovacao);
+                    safeVal('in-data-limite', data.data_limite);
+                    safeVal('in-servico', data.servico_titulo);
+                    safeVal('in-desc', data.descricao);
 
-                    // Preenche Checkboxes
                     if(data.status) {
                         document.getElementById('chk-entrada').checked = data.status.entrada;
                         document.getElementById('chk-faturado').checked = data.status.faturado;
@@ -483,13 +526,12 @@
                         document.getElementById('chk-ret').checked = data.logistica.retirada;
                     }
 
-                    // Força atualização visual
                     window.up(); 
                 } else {
                     alert("O.S. não encontrada!");
                 }
             } catch (e) {
-                console.error("Erro ao carregar edição:", e);
+                console.error("Erro ao carregar:", e);
                 alert("Erro ao carregar dados.");
             }
         }
@@ -524,19 +566,16 @@
                     data_atualizacao: new Date()
                 };
 
-                // Se não for edição, adiciona data de criação
                 if (!idEdicao) {
                     dados.data_criacao = new Date();
                 }
 
                 if (idEdicao) {
-                    // ATUALIZAR
                     const docRef = doc(db, "ordens_servico", idEdicao);
                     await updateDoc(docRef, dados);
                     alert("O.S. Atualizada com sucesso!");
                     btn.innerText = "ATUALIZAR O.S.";
                 } else {
-                    // CRIAR NOVO
                     const docRef = await addDoc(collection(db, "ordens_servico"), dados);
                     alert("Nova O.S. Salva! ID: " + docRef.id);
                     btn.innerText = "SALVAR NO SISTEMA";
@@ -551,54 +590,8 @@
             }
         }
         document.getElementById('btn-salvar').addEventListener('click', salvarOS);
-    </script>
 
-    <script>
-        // --- NAVEGAÇÃO MOBILE ---
-        function abrirPrevia() {
-            document.getElementById('painel-controle').style.display = 'none';
-            document.getElementById('area-impressao').style.display = 'flex';
-            document.getElementById('btn-abrir-previa').style.display = 'none';
-            document.getElementById('btn-fechar-previa').style.display = 'flex';
-            document.getElementById('btn-imprimir-mobile').style.display = 'flex';
-            
-            const folha = document.getElementById('folha-a4');
-            const larguraTela = window.innerWidth;
-            const escala = (larguraTela - 20) / 794;
-            folha.style.transform = `scale(${escala})`;
-        }
-
-        function fecharPrevia() {
-            document.getElementById('painel-controle').style.display = 'block';
-            document.getElementById('area-impressao').style.display = 'none';
-            document.getElementById('btn-abrir-previa').style.display = 'flex';
-            document.getElementById('btn-fechar-previa').style.display = 'none';
-            document.getElementById('btn-imprimir-mobile').style.display = 'none';
-            document.getElementById('mobile-zoom-control').style.display = 'none';
-        }
-
-        const inputs = document.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            if(input.type !== 'file' && input.type !== 'range') {
-                input.addEventListener('input', up); input.addEventListener('change', up);
-            }
-        });
-
-        // Função tornada global (window.up) para ser chamada no carregamento
-        window.up = function() {
-            const setTxt = (idOut, idIn, def) => { document.getElementById(idOut).innerText = document.getElementById(idIn).value || def || ""; };
-            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); setTxt('out-cliente', 'in-cliente', '');
-            setTxt('out-tel', 'in-tel', ''); setTxt('out-os', 'in-os', '0000'); setTxt('out-end', 'in-end', '');
-            setTxt('out-pag', 'in-pag', 'R$ 0,00'); setTxt('out-data-aprov', 'in-data-aprov', '00/00');
-            setTxt('out-data-limite', 'in-data-limite', '00/00'); setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
-            setTxt('out-desc', 'in-desc', '');
-
-            const setX = (idOut, idIn) => document.getElementById(idOut).innerText = document.getElementById(idIn).checked ? "X" : "";
-            setX('x-entrada', 'chk-entrada'); setX('x-faturado', 'chk-faturado'); setX('x-pago', 'chk-pago');
-            setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
-        }
-
-        // --- LÓGICA DO QR CODE ---
+        // --- VISUAL LOGIC (QR, IMAGES) ---
         window.carregarQRCode = function(event) {
             const input = event.target;
             if (input.files && input.files[0]) {
@@ -612,7 +605,6 @@
             }
         }
 
-        // --- CANVAS DE IMAGENS ---
         const canvas = document.getElementById('canvas-imagens');
         let draggedImg = null;
         let startX, startY, initialLeft, initialTop;
@@ -636,7 +628,6 @@
                     img.addEventListener('click', selectImage);
                     img.addEventListener('touchstart', startDragTouch, {passive: false});
                     img.addEventListener('dblclick', (e) => e.target.remove());
-                    // Zoom com Scroll (PC)
                     img.addEventListener('wheel', resizeImage, { passive: false });
                     
                     canvas.appendChild(img);
@@ -650,7 +641,6 @@
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
             e.target.classList.add('img-selected');
             
-            // Só mostra o slider se for MOBILE
             if (window.innerWidth <= 768) {
                 selectedImgForZoom = e.target;
                 const zoomControl = document.getElementById('mobile-zoom-control');
@@ -666,12 +656,10 @@
             }
         }
 
-        // Função de Zoom com Scroll (PC)
         function resizeImage(e) {
             e.preventDefault();
             const scaleAmount = 20; 
             let currentWidth = this.offsetWidth;
-            
             if (e.deltaY < 0) {
                 this.style.width = (currentWidth + scaleAmount) + 'px';
             } else {
@@ -684,7 +672,6 @@
              document.getElementById('mobile-zoom-control').style.display = 'none';
         });
 
-        // Mouse Drag
         function startDragMouse(e) {
             e.preventDefault(); draggedImg = e.target; selectImage(e);
             startX = e.clientX; startY = e.clientY;
@@ -700,7 +687,6 @@
             draggedImg = null; document.removeEventListener('mousemove', dragMouse); document.removeEventListener('mouseup', stopDragMouse);
         }
 
-        // Touch Drag
         function startDragTouch(e) {
             if(e.touches.length > 1) return;
             e.preventDefault(); draggedImg = e.target; selectImage(e);
@@ -718,6 +704,31 @@
         }
         function stopDragTouch() {
             draggedImg = null; document.removeEventListener('touchmove', dragTouch); document.removeEventListener('touchend', stopDragTouch);
+        }
+    </script>
+    
+    <script>
+        // --- NAVEGAÇÃO MOBILE (SCRIPT SEPARADO) ---
+        function abrirPrevia() {
+            document.getElementById('painel-controle').style.display = 'none';
+            document.getElementById('area-impressao').style.display = 'flex';
+            document.getElementById('btn-abrir-previa').style.display = 'none';
+            document.getElementById('btn-fechar-previa').style.display = 'flex';
+            document.getElementById('btn-imprimir-mobile').style.display = 'flex';
+            
+            const folha = document.getElementById('folha-a4');
+            const larguraTela = window.innerWidth;
+            const escala = (larguraTela - 20) / 794;
+            folha.style.transform = `scale(${escala})`;
+        }
+
+        function fecharPrevia() {
+            document.getElementById('painel-controle').style.display = 'block';
+            document.getElementById('area-impressao').style.display = 'none';
+            document.getElementById('btn-abrir-previa').style.display = 'flex';
+            document.getElementById('btn-fechar-previa').style.display = 'none';
+            document.getElementById('btn-imprimir-mobile').style.display = 'none';
+            document.getElementById('mobile-zoom-control').style.display = 'none';
         }
     </script>
 </body>
