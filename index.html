@@ -22,6 +22,7 @@
             background: #333; display: flex;
             user-select: none;
             overflow: hidden; 
+            color: white; /* Texto padrão branco para o modo escuro */
         }
         
         /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
@@ -48,7 +49,6 @@
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); accent-color: #f1c40f; }
 
-        /* Botão Voltar */
         .btn-voltar-topo {
             display: inline-block; margin-bottom: 15px; color: #aaa; text-decoration: none; font-size: 12px; font-weight: bold;
         }
@@ -68,6 +68,9 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             display: flex; flex-direction: column;
             transform-origin: top center; 
+            
+            /* --- CORREÇÃO DO BUG "INVISÍVEL" --- */
+            color: var(--black); /* Força texto preto dentro da folha branca */
         }
 
         /* --- ESTILOS DO CONTEÚDO DA OS --- */
@@ -76,7 +79,7 @@
         .col-dir { display: flex; flex-direction: column; border: 2px solid var(--black); border-radius: var(--border-radius); overflow: hidden; }
         .header-top { background: var(--black); color: white; padding: 8px 12px; font-weight: 900; font-size: 22px; text-transform: uppercase; border-radius: var(--border-radius); margin-bottom: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .linha-dados { display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; height: 32px;}
-        .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; }
+        .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; color: var(--black); }
         .col:last-child { border-right: none; }
         .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
@@ -109,7 +112,7 @@
             background: white; 
             border-right: 1px solid #ddd; 
         }
-        .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold;}
+        .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold; color: var(--black); }
         .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--red); line-height: 10px; border-radius: 50%; }
 
         /* QR CODE BOX */
@@ -128,13 +131,13 @@
         }
 
         .grid-datas-pag { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px; }
-        .box-pagamento { display: flex; flex-direction: column; justify-content: center; padding-left: 10px; background: #eee; border-radius: var(--border-radius); border: 1px solid #ddd; font-size: 10px; font-weight: 900; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .box-pagamento { display: flex; flex-direction: column; justify-content: center; padding-left: 10px; background: #eee; border-radius: var(--border-radius); border: 1px solid #ddd; font-size: 10px; font-weight: 900; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: var(--black); }
         .pag-valor { font-size: 16px; color: var(--red); }
         .box-data { border: 1px solid #ddd; border-radius: var(--border-radius); display: flex; flex-direction: column; overflow: hidden; }
         .data-header { background: #666; color: white; font-size: 9px; text-align: center; padding: 3px; font-weight: bold; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .data-valor { text-align: center; font-weight: 900; color: var(--red); font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; }
 
-        /* STATUS BADGES - CORREÇÃO DE COR */
+        /* STATUS BADGES */
         .area-status { display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc; }
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
         
@@ -169,7 +172,7 @@
         .img-selected { border: 2px solid var(--blue); box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
         .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
         .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase;}
-        .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius); padding: 8px; font-size: 11px; font-family: 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; }
+        .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius); padding: 8px; font-size: 11px; font-family: 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; color: var(--black); }
 
         .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
         .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
@@ -228,7 +231,7 @@
 
         @page { size: A4; margin: 0; }
         @media print {
-            body { background: white; margin: 0; padding: 0; display: block;}
+            body { background: white; margin: 0; padding: 0; display: block; color: black !important;}
             #painel-controle, .fab-btn, #mobile-zoom-control { display: none !important; }
             #area-impressao { 
                 margin: 0; padding: 0; width: 100%; height: 100vh; 
@@ -238,6 +241,7 @@
             .folha-a4 { 
                 box-shadow: none; padding: 10mm; margin: 0 auto; 
                 width: 210mm; min-height: 296mm; transform: none !important; 
+                color: black !important;
             }
             .area-imagens { border: 1px dashed #ccc; }
             .placeholder-text { display: none; }
@@ -481,7 +485,6 @@
 
                     // Força atualização visual
                     window.up(); 
-                    alert("Dados carregados para edição!");
                 } else {
                     alert("O.S. não encontrada!");
                 }
