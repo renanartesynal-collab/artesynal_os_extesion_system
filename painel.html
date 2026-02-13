@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Central - Artesynal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #333;
+            --card-bg: #2c3e50;
+            --yellow: #f1c40f;
+            --blue: #00aeef;
+            --green: #00a651;
+            --red: #ed1c24;
+            --text-gray: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: white;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+        }
+
+        /* CABEÇALHO */
+        header {
+            width: 100%;
+            background: #231f20;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--yellow);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        h1 { margin: 0; font-weight: 900; letter-spacing: 1px; color: white; text-transform: uppercase; font-size: 24px; }
+        .subtitle { color: var(--yellow); font-size: 12px; margin-top: 5px; font-weight: 600; }
+
+        /* GRID DE CARTÕES */
+        .dashboard-container {
+            width: 100%; max-width: 1000px;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        /* ESTILO DO CARTÃO */
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none; /* Remove sublinhado do link */
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            height: 220px;
+            border: 1px solid #34495e;
+            position: relative; overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            border-color: var(--yellow);
+        }
+
+        .icon-box {
+            font-size: 50px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.1);
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .card-title { color: white; font-weight: 800; font-size: 20px; margin-bottom: 5px; text-transform: uppercase; }
+        .card-desc { color: var(--text-gray); font-size: 12px; margin-bottom: 20px; line-height: 1.4; }
+
+        .btn-acessar {
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 12px;
+            text-transform: uppercase;
+            border: none;
+            width: 100%;
+        }
+
+        /* CORES ESPECÍFICAS POR MÓDULO */
+        /* Módulo OS (Verde) */
+        .mod-os .icon-box { color: var(--green); border: 2px solid var(--green); }
+        .mod-os .btn-acessar { background: var(--green); color: white; }
+        
+        /* Módulo Lista (Azul) */
+        .mod-lista .icon-box { color: var(--blue); border: 2px solid var(--blue); }
+        .mod-lista .btn-acessar { background: var(--blue); color: white; }
+
+        /* Módulo Orçamento (Amarelo) */
+        .mod-orc .icon-box { color: var(--yellow); border: 2px solid var(--yellow); }
+        .mod-orc .btn-acessar { background: var(--yellow); color: #333; }
+
+        /* Módulo Admin (Vermelho/Cinza) */
+        .mod-admin .icon-box { color: var(--red); border: 2px solid var(--red); }
+        .mod-admin .btn-acessar { background: var(--red); color: white; }
+
+        /* Tag "Em Breve" */
+        .em-breve {
+            position: absolute; top: 10px; right: 10px;
+            background: #555; color: white; font-size: 10px;
+            padding: 4px 8px; border-radius: 4px; font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-container { grid-template-columns: 1fr; padding: 20px; }
+            .card { flex-direction: row; height: auto; text-align: left; align-items: center; padding: 20px; }
+            .icon-box { font-size: 30px; width: 60px; height: 60px; margin-bottom: 0; margin-right: 15px; }
+            .card-content { flex: 1; }
+            .btn-acessar { width: auto; display: none; /* Esconde botão no mobile para limpar visual, clica no card todo */ }
+            .card-desc { margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Painel Central</h1>
+        <div class="subtitle">SISTEMA ARTESYNAL</div>
+    </header>
+
+    <div class="dashboard-container">
+
+        <a href="index.html" class="card mod-os">
+            <div class="icon-box">📝</div>
+            <div class="card-content">
+                <div class="card-title">Gerar O.S.</div>
+                <div class="card-desc">Criar nova ordem de serviço, imprimir e salvar.</div>
+            </div>
+            <button class="btn-acessar">ACESSAR</button>
+        </a>
+
+        <a href="lista.html" class="card mod-lista">
+            <div class="icon-box">📂</div>
+            <div class="card-content">
+                <div class="card-title">Lista de O.S.</div>
+                <div class="card-desc">Visualizar, filtrar e editar serviços salvos.</div>
+            </div>
+            <button class="btn-acessar">ACESSAR</button>
+        </a>
+
+        <a href="orcamento.html" class="card mod-orc">
+            <div class="em-breve">EM BREVE</div>
+            <div class="icon-box">💰</div>
+            <div class="card-content">
+                <div class="card-title">Orçamentos</div>
+                <div class="card-desc">Calculadora rápida e gerador de propostas PDF.</div>
+            </div>
+            <button class="btn-acessar">ACESSAR</button>
+        </a>
+
+        <div class="card mod-admin" style="opacity: 0.6; cursor: default;">
+            <div class="em-breve">FUTURO</div>
+            <div class="icon-box">📊</div>
+            <div class="card-content">
+                <div class="card-title">Financeiro</div>
+                <div class="card-desc">Relatórios de faturamento e métricas.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div style="margin-top: auto; padding: 20px; font-size: 10px; color: #555;">
+        Sistema v1.0 - Desenvolvido para Artesynal
+    </div>
+
+</body>
+</html>
