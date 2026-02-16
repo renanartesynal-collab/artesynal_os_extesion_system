@@ -35,7 +35,7 @@
         .btn-edit { background: var(--blue); }
         .btn-link { background: var(--green); }
 
-        /* FAB (BOTÃO FLUTUANTE DE CRIAR) */
+        /* FAB */
         .fab-add {
             position: fixed; bottom: 20px; right: 20px;
             width: 60px; height: 60px; background: var(--yellow); color: #2c3e50;
@@ -81,13 +81,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Carregar Cards
         async function carregarLista() {
             const grid = document.getElementById('grid-orc');
             grid.innerHTML = '';
             
             try {
-                // Ordena por número (descendente para ver os novos primeiro)
                 const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"));
                 const snapshot = await getDocs(q);
                 
@@ -101,7 +99,7 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const id = doc.id;
-                    const num = String(data.numero_solicitacao || 0).padStart(3, '0'); // Formata 001
+                    const num = String(data.numero_solicitacao || 0).padStart(3, '0');
 
                     const html = `
                         <div class="card-orc">
@@ -127,24 +125,26 @@
             }
         }
 
-        // Funções Globais
         window.novaSolicitacao = () => {
-            window.open('solicitacao.html', '_blank'); // Abre vazio para criar
+            window.open('solicitacao.html', '_blank');
         }
 
         window.abrirGuia = (id, modo) => {
-            // Abre nova aba com ID e Modo (view ou edit)
             window.open(`solicitacao.html?id=${id}&mode=${modo}`, '_blank');
         }
 
+        // --- CORREÇÃO DO LINK ---
         window.gerarLink = (id, num) => {
-            // Cria o link completo
-            const url = `${window.location.origin}/solicitacao.html?id=${id}&mode=view`;
-            const texto = `Solicitação de Orçamento #${num}: ${url}`;
+            // Pega a URL atual inteira e remove o nome do arquivo atual (orcamentos.html)
+            // Isso garante que se estiver em github.io/projeto/, ele mantenha o /projeto/
+            let baseUrl = window.location.href;
+            baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
             
-            // Copia para área de transferência
+            const urlFinal = `${baseUrl}/solicitacao.html?id=${id}&mode=view`;
+            const texto = `Solicitação de Orçamento #${num}: ${urlFinal}`;
+            
             navigator.clipboard.writeText(texto).then(() => {
-                alert("Link copiado!\n" + texto);
+                alert("Link copiado para a área de transferência!\n\n" + urlFinal);
             });
         }
 
