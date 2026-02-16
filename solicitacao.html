@@ -110,9 +110,9 @@
             <canvas id="editor-canvas"></canvas>
         </div>
         <div class="draw-toolbar">
-            <button class="btn-tool btn-cancel" onclick="fecharEditor()">CANCELAR</button>
-            <button class="btn-tool btn-undo" onclick="desfazerUltimo()">↩ DESFAZER</button>
-            <button class="btn-tool btn-confirm" onclick="salvarEditor()">SALVAR</button>
+            <button class="btn-tool btn-cancel" onclick="window.fecharEditor()">CANCELAR</button>
+            <button class="btn-tool btn-undo" onclick="window.desfazerUltimo()">↩ DESFAZER</button>
+            <button class="btn-tool btn-confirm" onclick="window.salvarEditor()">SALVAR</button>
         </div>
     </div>
 
@@ -175,17 +175,17 @@
                          <span id="no-photo-msg-edit" style="color:#555; font-size:12px;">Selecione uma foto acima</span>
                     </div>
                     
-                    <button type="button" id="btn-medidas" class="btn-photo btn-measure" onclick="abrirEditor()" style="display:none;">
+                    <button type="button" id="btn-medidas" class="btn-photo btn-measure" onclick="window.abrirEditor()" style="display:none;">
                         📏 ADICIONAR MEDIDAS NA FOTO
                     </button>
 
                     <div style="margin-top: 10px;">
                         <label style="font-size: 10px; color: var(--blue);">LEGENDA DA FOTO SELECIONADA:</label>
-                        <input type="text" id="in-foto-obs" placeholder="Ex: Detalhe do acabamento..." oninput="atualizarLegendaFoto()">
+                        <input type="text" id="in-foto-obs" placeholder="Ex: Detalhe do acabamento..." oninput="window.atualizarLegendaFoto()">
                     </div>
                 </div>
 
-                <button type="button" id="btn-salvar" class="btn-save" onclick="salvarSolicitacao()">SALVAR SOLICITAÇÃO</button>
+                <button type="button" id="btn-salvar" class="btn-save" onclick="window.salvarSolicitacao()">SALVAR SOLICITAÇÃO</button>
             </form>
         </div>
 
@@ -227,16 +227,16 @@
 
             <div style="margin-top: 20px;">
                 <div class="photo-viewer">
-                    <button type="button" class="nav-btn prev" onclick="mudarFoto(-1)">&#10094;</button>
+                    <button type="button" class="nav-btn prev" onclick="window.mudarFoto(-1)">&#10094;</button>
                     <img id="img-display" src="" style="display:none;">
                     <span id="no-photo-msg" style="color:#555; font-size:12px;">Sem fotos anexadas</span>
-                    <button type="button" class="nav-btn next" onclick="mudarFoto(1)">&#10095;</button>
+                    <button type="button" class="nav-btn next" onclick="window.mudarFoto(1)">&#10095;</button>
                 </div>
                 <div class="photo-count" id="photo-count">0 / 0</div>
                 <div class="photo-caption-display" id="caption-display" style="display: none;"></div>
             </div>
 
-            <button class="fab-edit" id="btn-floating-edit" onclick="alternarModo('edit')">✏️</button>
+            <button class="fab-edit" id="btn-floating-edit" onclick="window.alternarModo('edit')">✏️</button>
         </div>
 
     </div>
@@ -257,17 +257,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // VARIÁVEIS GLOBAIS (Acessíveis pelo HTML)
         let imagens = []; 
         let indiceAtual = 0;
         let idEdicao = null;
         let modoAtual = 'edit'; 
 
-        // VARIÁVEIS DO EDITOR DE SETAS
+        // VARIÁVEIS EDITOR
         let canvas, ctx;
         let isDrawing = false;
         let startX, startY;
-        let arrows = []; // Armazena as setas temporariamente
-        let imgObj = null; // A imagem sendo editada
+        let arrows = [];
+        let imgObj = null;
+        let lastX, lastY;
 
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
@@ -275,42 +277,37 @@
             const mode = params.get('mode');
 
             if (mode === 'view' && idEdicao) {
-                alternarModo('view');
+                window.alternarModo('view');
             } else {
-                alternarModo('edit');
+                window.alternarModo('edit');
             }
 
             if (idEdicao) {
                 await carregarDados(idEdicao);
             }
 
-            document.getElementById('file-input').addEventListener('change', processarImagens);
-            document.getElementById('camera-input').addEventListener('change', processarImagens);
+            document.getElementById('file-input').addEventListener('change', window.processarImagens);
+            document.getElementById('camera-input').addEventListener('change', window.processarImagens);
 
-            // Setup do Canvas
+            // Canvas Setup
             canvas = document.getElementById('editor-canvas');
             ctx = canvas.getContext('2d');
             
-            // Eventos Mouse
             canvas.addEventListener('mousedown', startArrow);
             canvas.addEventListener('mousemove', drawPreview);
             canvas.addEventListener('mouseup', endArrow);
 
-            // Eventos Touch (Mobile)
+            // Touch
             canvas.addEventListener('touchstart', (e) => {
                 const touch = e.touches[0];
-                const mouseEvent = new MouseEvent("mousedown", {
-                    clientX: touch.clientX, clientY: touch.clientY
-                });
+                const mouseEvent = new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY });
                 canvas.dispatchEvent(mouseEvent);
             }, {passive: false});
 
             canvas.addEventListener('touchmove', (e) => {
-                e.preventDefault(); // Evita rolar a tela
+                e.preventDefault();
                 const touch = e.touches[0];
-                const mouseEvent = new MouseEvent("mousemove", {
-                    clientX: touch.clientX, clientY: touch.clientY
-                });
+                const mouseEvent = new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY });
                 canvas.dispatchEvent(mouseEvent);
             }, {passive: false});
 
@@ -320,7 +317,7 @@
             });
         };
 
-        // --- FUNÇÕES DO EDITOR DE MEDIDAS ---
+        // --- FUNÇÕES EDITOR (GLOBAIS) ---
         window.abrirEditor = () => {
             if (imagens.length === 0) return;
             const imgData = imagens[indiceAtual].url;
@@ -328,10 +325,9 @@
             imgObj = new Image();
             imgObj.src = imgData;
             imgObj.onload = () => {
-                // Configurar canvas para o tamanho da imagem
                 canvas.width = imgObj.width;
                 canvas.height = imgObj.height;
-                arrows = []; // Limpa setas anteriores
+                arrows = []; 
                 redrawCanvas();
                 document.getElementById('draw-modal').style.display = 'flex';
             };
@@ -347,102 +343,52 @@
         }
 
         window.salvarEditor = () => {
-            // Salva o canvas como nova imagem
             const novaUrl = canvas.toDataURL('image/jpeg', 0.8);
             imagens[indiceAtual].url = novaUrl;
-            
-            // Atualiza visualização principal
-            renderMiniaturas();
-            atualizarVisualizadorEdit();
-            fecharEditor();
+            window.renderMiniaturas();
+            window.atualizarVisualizadorEdit();
+            window.fecharEditor();
         }
 
         function startArrow(e) {
             isDrawing = true;
             const rect = canvas.getBoundingClientRect();
-            // Calcula escala entre tamanho visual e tamanho real do canvas
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            
             startX = (e.clientX - rect.left) * scaleX;
             startY = (e.clientY - rect.top) * scaleY;
         }
 
         function drawPreview(e) {
-            if (!isDrawing) return;
-            redrawCanvas(); // Desenha fundo e setas salvas
-            
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const currX = (e.clientX - rect.left) * scaleX;
-            const currY = (e.clientY - rect.top) * scaleY;
-
-            // Desenha seta provisória (VERDE LIMAO)
-            drawArrow(ctx, startX, startY, currX, currY, null, "#32CD32");
-        }
-
-        function endArrow(e) {
-            if (!isDrawing) return;
-            isDrawing = false;
-            
-            // Pede o texto da medida
-            const medida = prompt("Digite a medida (ex: 2,50m):");
-            if (medida) {
-                // Pega coordenada final correta (precisa recalcular pois o evento mouseup pode ter leve desvio)
-                // Usaremos a última posição do mousemove ou recalculamos se possível, mas aqui vamos simplificar:
-                // Como não temos 'e.clientX' confiável no touchEnd sem changedTouches, 
-                // vamos assumir que o usuário parou onde queria.
-                // Obs: Para maior precisão, o ideal seria guardar lastX/lastY no mousemove.
-                // Mas vamos usar o preview.
-                
-                // Melhor abordagem: usaremos as setas já desenhadas.
-                // Na verdade, precisamos adicionar ao array 'arrows'.
-                // Vamos pegar a posição final do mouse. (No touch end, precisamos de changedTouches)
-                
-                // Correção rápida para pegar coordenadas finais corretamente:
-                // Vamos apenas redesenhar o canvas final e adicionar ao array na próxima interação.
-                // Mas precisamos das coordenadas finais.
-                // Vamos adicionar uma variavel global lastX, lastY atualizada no move.
-            }
-        }
-        
-        // CORREÇÃO LOGICA DE DESENHO PARA SIMPLIFICAR
-        let lastX, lastY;
-        canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             lastX = (e.clientX - rect.left) * scaleX;
             lastY = (e.clientY - rect.top) * scaleY;
-        });
 
-        // Sobrescrevendo endArrow para usar lastX/lastY
-        canvas.removeEventListener('mouseup', endArrow); // Remove o antigo se existir
-        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            redrawCanvas();
+            drawArrow(ctx, startX, startY, lastX, lastY, null, "#32CD32");
+        }
+
+        function endArrow(e) {
             if (!isDrawing) return;
             isDrawing = false;
-            const medida = prompt("Medida:");
+            const medida = prompt("Digite a medida (ex: 2,50m):");
             if(medida) {
-                arrows.push({
-                    x1: startX, y1: startY, x2: lastX, y2: lastY, text: medida
-                });
+                arrows.push({ x1: startX, y1: startY, x2: lastX, y2: lastY, text: medida });
             }
             redrawCanvas();
-        });
+        }
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(imgObj, 0, 0); // Desenha foto original
-            
-            // Desenha todas as setas salvas
-            arrows.forEach(a => {
-                drawArrow(ctx, a.x1, a.y1, a.x2, a.y2, a.text, "#00FF00"); // Verde Neon
-            });
+            ctx.drawImage(imgObj, 0, 0);
+            arrows.forEach(a => drawArrow(ctx, a.x1, a.y1, a.x2, a.y2, a.text, "#00FF00"));
         }
 
         function drawArrow(ctx, x1, y1, x2, y2, text, color) {
-            const headLength = 20 * (canvas.width / 800); // Escala a seta baseada na imagem
+            const headLength = 20 * (canvas.width / 800);
             const lineWidth = 5 * (canvas.width / 800);
             const fontSize = 24 * (canvas.width / 800);
             
@@ -455,64 +401,48 @@
             ctx.lineWidth = lineWidth;
             ctx.lineCap = "round";
 
-            // Linha Principal
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 
-            // Ponta Final
             ctx.beginPath();
             ctx.moveTo(x2, y2);
             ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
-            ctx.lineTo(x2, y2);
-            ctx.fill();
+            ctx.lineTo(x2, y2); ctx.fill();
 
-            // Ponta Inicial (Bidirecional)
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x1 + headLength * Math.cos(angle - Math.PI / 6), y1 + headLength * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x1 + headLength * Math.cos(angle + Math.PI / 6), y1 + headLength * Math.sin(angle + Math.PI / 6));
-            ctx.lineTo(x1, y1);
-            ctx.fill();
+            ctx.lineTo(x1, y1); ctx.fill();
 
-            // Texto no Centro
             if (text) {
                 const midX = (x1 + x2) / 2;
                 const midY = (y1 + y2) / 2;
-                
                 ctx.font = `bold ${fontSize}px Arial`;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                
-                // Fundo do texto para leitura
                 const textWidth = ctx.measureText(text).width;
                 ctx.fillStyle = "rgba(0,0,0,0.7)";
                 ctx.fillRect(midX - textWidth/2 - 5, midY - fontSize/2 - 5, textWidth + 10, fontSize + 10);
-                
-                ctx.fillStyle = "#fff"; // Texto Branco
+                ctx.fillStyle = "#fff";
                 ctx.fillText(text, midX, midY);
             }
         }
 
-        // --- SISTEMA EXISTENTE ---
+        // --- SISTEMA GERAL ---
         window.alternarModo = (modo) => {
             modoAtual = modo;
-            const editContainer = document.getElementById('edit-mode');
-            const viewContainer = document.getElementById('view-mode');
-
             if (modo === 'view') {
-                editContainer.style.display = 'none';
-                viewContainer.style.display = 'block';
+                document.getElementById('edit-mode').style.display = 'none';
+                document.getElementById('view-mode').style.display = 'block';
                 document.body.style.backgroundColor = '#1a252f'; 
-                renderVisualizadorView(); 
+                window.renderVisualizadorView();
             } else {
-                editContainer.style.display = 'block';
-                viewContainer.style.display = 'none';
+                document.getElementById('edit-mode').style.display = 'block';
+                document.getElementById('view-mode').style.display = 'none';
                 document.body.style.backgroundColor = '#222';
-                renderMiniaturas(); 
-                atualizarVisualizadorEdit(); 
+                window.renderMiniaturas();
+                window.atualizarVisualizadorEdit();
             }
         }
 
@@ -522,49 +452,45 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
+                    // FORM
+                    const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; }
                     document.getElementById('display-num-edit').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
-                    document.getElementById('in-cliente').value = data.cliente || '';
-                    document.getElementById('in-empresa').value = data.empresa || '';
-                    document.getElementById('in-servico').value = data.servico_titulo || '';
-                    document.getElementById('in-material').value = data.tipo_material || '';
-                    document.getElementById('in-medidas').value = data.medidas || '';
-                    document.getElementById('in-endereco').value = data.endereco || '';
-                    document.getElementById('in-instalacao').value = data.precisa_instalacao || 'Não';
-                    document.getElementById('in-obs').value = data.observacoes || '';
-                    const radios = document.getElementsByName('tipo');
-                    radios.forEach(r => { if(r.value === data.tipo_servico_material) r.checked = true; });
+                    setVal('in-cliente', data.cliente);
+                    setVal('in-empresa', data.empresa);
+                    setVal('in-servico', data.servico_titulo);
+                    setVal('in-material', data.tipo_material);
+                    setVal('in-medidas', data.medidas);
+                    setVal('in-endereco', data.endereco);
+                    setVal('in-instalacao', data.precisa_instalacao || 'Não');
+                    setVal('in-obs', data.observacoes);
+                    document.getElementsByName('tipo').forEach(r => { if(r.value === data.tipo_servico_material) r.checked = true; });
 
-                    document.getElementById('view-id').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
-                    document.getElementById('view-tipo').innerText = data.tipo_servico_material || 'GERAL';
-                    document.getElementById('view-cliente').innerText = data.cliente || 'Consumidor Final';
-                    document.getElementById('view-empresa').innerText = data.empresa || '';
-                    document.getElementById('view-servico').innerText = data.servico_titulo || 'Solicitação sem título';
-                    document.getElementById('view-material').innerText = data.tipo_material || '-';
-                    document.getElementById('view-medidas').innerText = data.medidas || '-';
-                    const inst = data.precisa_instalacao || 'Não';
-                    const elInst = document.getElementById('view-instalacao');
-                    elInst.innerText = inst;
-                    elInst.style.color = inst === 'Sim' ? '#f1c40f' : '#eee';
-                    document.getElementById('view-endereco').innerText = data.endereco || 'Retirada no local';
-                    document.getElementById('view-obs').innerText = data.observacoes || 'Nenhuma observação registrada.';
-                    if(data.data_criacao) {
-                        const d = data.data_criacao.toDate();
-                        document.getElementById('view-data').innerText = d.toLocaleDateString('pt-BR');
-                    }
-                    document.getElementById('btn-floating-edit').onclick = function() {
-                        window.location.href = `solicitacao.html?id=${id}&mode=edit`;
-                    };
+                    // VIEW
+                    const setTxt = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val || '--'; }
+                    setTxt('view-id', "#" + String(data.numero_solicitacao || 0).padStart(3, '0'));
+                    setTxt('view-tipo', data.tipo_servico_material || 'GERAL');
+                    setTxt('view-cliente', data.cliente || 'Cliente');
+                    setTxt('view-empresa', data.empresa || '');
+                    setTxt('view-servico', data.servico_titulo || 'Sem título');
+                    setTxt('view-material', data.tipo_material);
+                    setTxt('view-medidas', data.medidas);
+                    setTxt('view-instalacao', data.precisa_instalacao);
+                    setTxt('view-endereco', data.endereco);
+                    setTxt('view-obs', data.observacoes || 'Nenhuma observação.');
+                    if(data.data_criacao) setTxt('view-data', data.data_criacao.toDate().toLocaleDateString('pt-BR'));
+                    
+                    document.getElementById('btn-floating-edit').onclick = () => window.location.href = `solicitacao.html?id=${id}&mode=edit`;
 
                     if(data.imagens && data.imagens.length > 0) {
                         imagens = data.imagens;
                         indiceAtual = 0;
-                        renderMiniaturas();
-                        atualizarVisualizadorEdit();
-                        renderVisualizadorView();
+                        window.renderMiniaturas();
+                        window.atualizarVisualizadorEdit();
+                        window.renderVisualizadorView();
                     }
                 }
             } catch (e) {
-                alert("Erro ao carregar: " + e.message);
+                console.error(e);
             }
         }
 
@@ -576,59 +502,56 @@
                 imagens.push({ url: base64, obs: '' });
             }
             indiceAtual = imagens.length - 1; 
-            renderMiniaturas();
-            atualizarVisualizadorEdit();
+            window.renderMiniaturas();
+            window.atualizarVisualizadorEdit();
         }
 
         window.renderMiniaturas = () => {
             const container = document.getElementById('mini-gallery');
-            if(!container) return; 
+            if(!container) return;
             container.innerHTML = '';
-
             imagens.forEach((img, idx) => {
                 const isSelected = idx === indiceAtual ? 'selected' : '';
-                const html = `
-                    <div class="thumb-card ${isSelected}" onclick="selecionarFoto(${idx})">
+                container.innerHTML += `
+                    <div class="thumb-card ${isSelected}" onclick="window.selecionarFoto(${idx})">
                         <img src="${img.url}">
                         <div class="thumb-actions">
-                            <button class="thumb-btn btn-del-thumb" onclick="deletarFoto(event, ${idx})">X</button>
+                            <button class="thumb-btn btn-del-thumb" onclick="window.deletarFoto(event, ${idx})">X</button>
                             <div class="move-row">
-                                <button class="thumb-btn btn-move-thumb" onclick="moverFoto(event, ${idx}, -1)">&#9664;</button>
-                                <button class="thumb-btn btn-move-thumb" onclick="moverFoto(event, ${idx}, 1)">&#9654;</button>
+                                <button class="thumb-btn btn-move-thumb" onclick="window.moverFoto(event, ${idx}, -1)">&#9664;</button>
+                                <button class="thumb-btn btn-move-thumb" onclick="window.moverFoto(event, ${idx}, 1)">&#9654;</button>
                             </div>
                         </div>
-                    </div>
-                `;
-                container.innerHTML += html;
+                    </div>`;
             });
         }
 
         window.selecionarFoto = (idx) => {
             indiceAtual = idx;
-            renderMiniaturas();
-            atualizarVisualizadorEdit();
+            window.renderMiniaturas();
+            window.atualizarVisualizadorEdit();
         }
 
         window.deletarFoto = (e, idx) => {
-            e.stopPropagation(); 
-            if(confirm("Remover esta foto?")) {
+            e.stopPropagation();
+            if(confirm("Excluir?")) {
                 imagens.splice(idx, 1);
                 if (indiceAtual >= imagens.length) indiceAtual = imagens.length - 1;
                 if (indiceAtual < 0) indiceAtual = 0;
-                renderMiniaturas();
-                atualizarVisualizadorEdit();
+                window.renderMiniaturas();
+                window.atualizarVisualizadorEdit();
             }
         }
 
         window.moverFoto = (e, idx, dir) => {
             e.stopPropagation();
             const novoIdx = idx + dir;
-            if (novoIdx < 0 || novoIdx >= imagens.length) return; 
+            if (novoIdx < 0 || novoIdx >= imagens.length) return;
             [imagens[idx], imagens[novoIdx]] = [imagens[novoIdx], imagens[idx]];
             if (indiceAtual === idx) indiceAtual = novoIdx;
             else if (indiceAtual === novoIdx) indiceAtual = idx;
-            renderMiniaturas();
-            atualizarVisualizadorEdit();
+            window.renderMiniaturas();
+            window.atualizarVisualizadorEdit();
         }
 
         window.atualizarVisualizadorEdit = () => {
@@ -647,10 +570,7 @@
 
             if(imgEl) { imgEl.src = imagens[indiceAtual].url; imgEl.style.display = 'block'; }
             if(msgEl) msgEl.style.display = 'none';
-            if(obsInput) { 
-                obsInput.value = imagens[indiceAtual].obs || ''; 
-                obsInput.disabled = false; 
-            }
+            if(obsInput) { obsInput.value = imagens[indiceAtual].obs || ''; obsInput.disabled = false; }
             if(btnMedidas) btnMedidas.style.display = 'flex';
         }
 
@@ -659,7 +579,7 @@
             indiceAtual += dir;
             if (indiceAtual < 0) indiceAtual = imagens.length - 1;
             if (indiceAtual >= imagens.length) indiceAtual = 0;
-            renderVisualizadorView();
+            window.renderVisualizadorView();
         }
 
         window.renderVisualizadorView = () => {
@@ -667,32 +587,27 @@
             const msgEl = document.getElementById('no-photo-msg');
             const countEl = document.getElementById('photo-count');
             const captionEl = document.getElementById('caption-display');
-
-            if (imagens.length === 0) {
+            
+            if (!imagens || imagens.length === 0) {
                 if(imgEl) imgEl.style.display = 'none';
                 if(msgEl) msgEl.style.display = 'block';
                 if(countEl) countEl.innerText = "0 / 0";
                 if(captionEl) captionEl.style.display = 'none';
                 return;
             }
-
+            
             if(imgEl) { imgEl.src = imagens[indiceAtual].url; imgEl.style.display = 'block'; }
             if(msgEl) msgEl.style.display = 'none';
             if(countEl) countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
-            
             const legenda = imagens[indiceAtual].obs || '';
-            if (legenda && captionEl) {
+            if(captionEl) {
                 captionEl.innerText = legenda;
-                captionEl.style.display = 'block';
-            } else if (captionEl) {
-                captionEl.style.display = 'none';
+                captionEl.style.display = legenda ? 'block' : 'none';
             }
         }
 
         window.atualizarLegendaFoto = () => {
-            if (imagens.length > 0) {
-                imagens[indiceAtual].obs = document.getElementById('in-foto-obs').value;
-            }
+            if (imagens.length > 0) imagens[indiceAtual].obs = document.getElementById('in-foto-obs').value;
         }
 
         function comprimirImagem(file) {
@@ -720,7 +635,6 @@
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
             btn.disabled = true;
-
             try {
                 const dados = {
                     tipo_servico_material: document.querySelector('input[name="tipo"]:checked').value,
@@ -738,24 +652,21 @@
 
                 if (idEdicao) {
                     await updateDoc(doc(db, "orcamentos", idEdicao), dados);
-                    alert("Atualizado com sucesso!");
+                    alert("Salvo!");
                     window.location.href = `solicitacao.html?id=${idEdicao}&mode=view`;
                 } else {
                     const coll = collection(db, "orcamentos");
                     const snapshot = await getCountFromServer(coll);
                     const novoNumero = snapshot.data().count + 1;
-                    
                     dados.numero_solicitacao = novoNumero;
                     dados.data_criacao = new Date();
-
                     const docRef = await addDoc(coll, dados);
-                    alert(`Solicitação #${novoNumero} criada!`);
+                    alert("Criado!");
                     window.location.href = `solicitacao.html?id=${docRef.id}&mode=view`;
                 }
-
             } catch (e) {
                 console.error(e);
-                alert("Erro ao salvar (verifique tamanho das fotos).");
+                alert("Erro ao salvar.");
                 btn.innerText = "Tentar Novamente";
                 btn.disabled = false;
             }
