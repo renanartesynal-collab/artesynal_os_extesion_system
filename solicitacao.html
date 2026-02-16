@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitação de Orçamento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --text: #eee; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
+
+        .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        /* HEADER */
+        .header-form { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 10px; }
+        h2 { margin: 0; color: var(--yellow); }
+        .badge-num { background: var(--blue); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; }
+
+        /* FORM */
+        .row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .col { flex: 1; min-width: 250px; }
+        
+        label { display: block; font-size: 12px; margin-bottom: 5px; color: #ccc; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Montserrat'; }
+        textarea { height: 100px; resize: none; }
+
+        /* RADIO CUSTOMIZADO */
+        .radio-group { display: flex; gap: 20px; background: var(--input-bg); padding: 10px; border-radius: 5px; }
+        .radio-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        input[type="radio"] { width: auto; accent-color: var(--yellow); }
+
+        /* GALERIA DE FOTOS */
+        .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
+        .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
+        
+        .btn-photo { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; color: white; }
+        .btn-upload { background: #555; }
+        .btn-cam { background: var(--blue); }
+        
+        /* VISUALIZADOR DA FOTO */
+        .photo-viewer { background: #000; height: 300px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+        .photo-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; padding: 15px; font-size: 20px; cursor: pointer; }
+        .prev { left: 0; }
+        .next { right: 0; }
+        
+        .photo-caption { margin-bottom: 20px; }
+        .photo-count { text-align: center; font-size: 12px; color: #aaa; margin-bottom: 5px; }
+
+        /* BOTÃO SALVAR */
+        .btn-save { width: 100%; padding: 15px; background: var(--green); color: white; font-weight: 900; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .btn-save:disabled { background: #555; cursor: not-allowed; }
+
+        /* MODO VIEW (LEITURA) */
+        .readonly input, .readonly textarea, .readonly select { pointer-events: none; opacity: 0.7; border: 1px solid #555; }
+        .readonly .btn-save, .readonly .gallery-controls { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-container">
+        <div class="header-form">
+            <h2>Detalhes da Solicitação</h2>
+            <div class="badge-num" id="display-num">NOVO</div>
+        </div>
+
+        <form id="form-orcamento">
+            <label>O QUE ESTÁ SENDO SOLICITADO?</label>
+            <div class="radio-group">
+                <label class="radio-item"><input type="radio" name="tipo" value="Serviço" checked> Serviço</label>
+                <label class="radio-item"><input type="radio" name="tipo" value="Material"> Material</label>
+            </div>
+            <br>
+
+            <div class="row">
+                <div class="col">
+                    <label>CLIENTE</label>
+                    <input type="text" id="in-cliente" placeholder="Nome do Cliente">
+                </div>
+                <div class="col">
+                    <label>EMPRESA</label>
+                    <input type="text" id="in-empresa" placeholder="Nome da Empresa">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label>SERVIÇO SOLICITADO / TÍTULO</label>
+                    <input type="text" id="in-servico" placeholder="Ex: Fachada ACM">
+                </div>
+                <div class="col">
+                    <label>TIPO DE MATERIAL</label>
+                    <input type="text" id="in-material" placeholder="Ex: Adesivo Vinil">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label>MEDIDAS (Largura x Altura)</label>
+                    <input type="text" id="in-medidas" placeholder="Ex: 200x100cm">
+                </div>
+                <div class="col">
+                    <label>PRECISA DE INSTALAÇÃO?</label>
+                    <select id="in-instalacao">
+                        <option value="Não">Não, apenas entrega/retirada</option>
+                        <option value="Sim">Sim, precisa instalar</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col">
+                <label>ENDEREÇO / LOCAL</label>
+                <input type="text" id="in-endereco" placeholder="Rua, Número, Bairro...">
+            </div>
+            <br>
+
+            <label>OBSERVAÇÕES GERAIS</label>
+            <textarea id="in-obs" placeholder="Detalhes técnicos, cor, acabamento..."></textarea>
+
+            <div class="gallery-container">
+                <label style="color: var(--yellow); text-align: center; margin-bottom: 10px;">FOTOS E ANEXOS</label>
+                
+                <div class="gallery-controls">
+                    <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
+
+                    <button type="button" class="btn-photo btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR</button>
+                    <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
+                </div>
+
+                <div class="photo-viewer">
+                    <button type="button" class="nav-btn prev" onclick="mudarFoto(-1)">&#10094;</button>
+                    <img id="img-display" src="" style="display:none;">
+                    <span id="no-photo-msg" style="color:#555; font-size:12px;">Nenhuma foto anexada</span>
+                    <button type="button" class="nav-btn next" onclick="mudarFoto(1)">&#10095;</button>
+                </div>
+                
+                <div class="photo-count" id="photo-count">0 / 0</div>
+
+                <div class="photo-caption">
+                    <label>ANOTAÇÃO SOBRE ESTA FOTO:</label>
+                    <input type="text" id="in-foto-obs" placeholder="Ex: Parede com desnível..." oninput="atualizarLegendaFoto()">
+                </div>
+            </div>
+
+            <button type="button" id="btn-salvar" class="btn-save" onclick="salvarSolicitacao()">SALVAR SOLICITAÇÃO</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDoc, doc, updateDoc, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
+            authDomain: "artesynal-os-system.firebaseapp.com",
+            projectId: "artesynal-os-system",
+            storageBucket: "artesynal-os-system.firebasestorage.app",
+            messagingSenderId: "539958005846",
+            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // VARIÁVEIS GLOBAIS
+        let imagens = []; // Array de objetos { url: 'base64...', obs: 'texto' }
+        let indiceAtual = 0;
+        let idEdicao = null;
+        let modoView = false;
+
+        // --- INICIALIZAÇÃO ---
+        window.onload = async () => {
+            const params = new URLSearchParams(window.location.search);
+            idEdicao = params.get('id');
+            const mode = params.get('mode');
+
+            if (mode === 'view') {
+                modoView = true;
+                document.getElementById('main-container').classList.add('readonly');
+                document.querySelector('h2').innerText = "Visualizar Solicitação";
+            }
+
+            if (idEdicao) {
+                await carregarDados(idEdicao);
+            }
+
+            // Listeners de Upload
+            document.getElementById('file-input').addEventListener('change', processarImagens);
+            document.getElementById('camera-input').addEventListener('change', processarImagens);
+        };
+
+        // --- CARREGAR DADOS ---
+        async function carregarDados(id) {
+            try {
+                const docSnap = await getDoc(doc(db, "orcamentos", id));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // Preencher campos
+                    document.getElementById('display-num').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
+                    document.getElementById('in-cliente').value = data.cliente || '';
+                    document.getElementById('in-empresa').value = data.empresa || '';
+                    document.getElementById('in-servico').value = data.servico_titulo || '';
+                    document.getElementById('in-material').value = data.tipo_material || '';
+                    document.getElementById('in-medidas').value = data.medidas || '';
+                    document.getElementById('in-endereco').value = data.endereco || '';
+                    document.getElementById('in-instalacao').value = data.precisa_instalacao || 'Não';
+                    document.getElementById('in-obs').value = data.observacoes || '';
+
+                    // Radio Button
+                    const radios = document.getElementsByName('tipo');
+                    radios.forEach(r => {
+                        if(r.value === data.tipo_servico_material) r.checked = true;
+                    });
+
+                    // Imagens
+                    if(data.imagens && data.imagens.length > 0) {
+                        imagens = data.imagens;
+                        indiceAtual = 0;
+                        atualizarVisualizador();
+                    }
+                }
+            } catch (e) {
+                alert("Erro ao carregar: " + e.message);
+            }
+        }
+
+        // --- LÓGICA DE IMAGENS ---
+        window.processarImagens = async (event) => {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            for (let file of files) {
+                const base64 = await comprimirImagem(file);
+                // Adiciona nova imagem ao array
+                imagens.push({ url: base64, obs: '' });
+            }
+            
+            // Vai para a última imagem adicionada
+            indiceAtual = imagens.length - 1;
+            atualizarVisualizador();
+        }
+
+        window.mudarFoto = (dir) => {
+            if (imagens.length === 0) return;
+            indiceAtual += dir;
+            if (indiceAtual < 0) indiceAtual = imagens.length - 1;
+            if (indiceAtual >= imagens.length) indiceAtual = 0;
+            atualizarVisualizador();
+        }
+
+        function atualizarVisualizador() {
+            const imgEl = document.getElementById('img-display');
+            const msgEl = document.getElementById('no-photo-msg');
+            const countEl = document.getElementById('photo-count');
+            const obsInput = document.getElementById('in-foto-obs');
+
+            if (imagens.length === 0) {
+                imgEl.style.display = 'none';
+                msgEl.style.display = 'block';
+                countEl.innerText = "0 / 0";
+                obsInput.value = '';
+                obsInput.disabled = true;
+                return;
+            }
+
+            // Exibir imagem atual
+            imgEl.src = imagens[indiceAtual].url;
+            imgEl.style.display = 'block';
+            msgEl.style.display = 'none';
+            countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
+            
+            // Exibir anotação salva
+            obsInput.value = imagens[indiceAtual].obs || '';
+            obsInput.disabled = modoView; // Trava se for modo leitura
+        }
+
+        window.atualizarLegendaFoto = () => {
+            if (imagens.length > 0) {
+                imagens[indiceAtual].obs = document.getElementById('in-foto-obs').value;
+            }
+        }
+
+        // Reuso da função de compressão (Leve e Eficiente)
+        function comprimirImagem(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = 800 / Math.max(img.width, img.height);
+                        const w = scale < 1 ? img.width * scale : img.width;
+                        const h = scale < 1 ? img.height * scale : img.height;
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
+        }
+
+        // --- SALVAR ---
+        window.salvarSolicitacao = async () => {
+            const btn = document.getElementById('btn-salvar');
+            btn.innerText = "Salvando...";
+            btn.disabled = true;
+
+            try {
+                // Montar Objeto
+                const dados = {
+                    tipo_servico_material: document.querySelector('input[name="tipo"]:checked').value,
+                    cliente: document.getElementById('in-cliente').value,
+                    empresa: document.getElementById('in-empresa').value,
+                    servico_titulo: document.getElementById('in-servico').value,
+                    tipo_material: document.getElementById('in-material').value,
+                    medidas: document.getElementById('in-medidas').value,
+                    endereco: document.getElementById('in-endereco').value,
+                    precisa_instalacao: document.getElementById('in-instalacao').value,
+                    observacoes: document.getElementById('in-obs').value,
+                    imagens: imagens, // Salva o array com base64 e legendas
+                    data_atualizacao: new Date()
+                };
+
+                if (idEdicao) {
+                    // ATUALIZAR
+                    await updateDoc(doc(db, "orcamentos", idEdicao), dados);
+                    alert("Atualizado com sucesso!");
+                } else {
+                    // CRIAR NOVO
+                    // 1. Descobrir o número do orçamento (Contar quantos existem + 1)
+                    const coll = collection(db, "orcamentos");
+                    const snapshot = await getCountFromServer(coll);
+                    const novoNumero = snapshot.data().count + 1;
+                    
+                    dados.numero_solicitacao = novoNumero;
+                    dados.data_criacao = new Date();
+
+                    await addDoc(coll, dados);
+                    alert(`Solicitação #${novoNumero} criada com sucesso!`);
+                }
+                
+                // Fecha a aba ou recarrega se for edição
+                if(!idEdicao) window.close(); 
+                else location.reload();
+
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao salvar (verifique se as imagens não são muito grandes).");
+                btn.innerText = "Tentar Novamente";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
