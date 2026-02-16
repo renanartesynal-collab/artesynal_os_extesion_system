@@ -9,37 +9,26 @@
         :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; --text: #eee; }
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
 
-        /* --- CONTAINER GERAL --- */
         .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
-        /* ========================
-           ESTILOS DO MODO EDIÇÃO (FORMULÁRIO)
-           ======================== */
+        /* MODO EDIÇÃO */
         #edit-mode { display: block; }
-        
         .header-form { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 10px; }
         h2 { margin: 0; color: var(--yellow); }
         .badge-num { background: var(--blue); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; }
-
         .row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
         .col { flex: 1; min-width: 250px; }
-        
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #ccc; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Montserrat'; }
         textarea { height: 100px; resize: none; }
-
         .radio-group { display: flex; gap: 20px; background: var(--input-bg); padding: 10px; border-radius: 5px; }
         .radio-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
         input[type="radio"] { width: auto; accent-color: var(--yellow); }
-
         .btn-save { width: 100%; padding: 15px; background: var(--green); color: white; font-weight: 900; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
         .btn-save:disabled { background: #555; cursor: not-allowed; }
 
-        /* ========================
-           ESTILOS DO MODO VISUALIZAÇÃO (CARD BONITO)
-           ======================== */
+        /* MODO VISUALIZAÇÃO */
         #view-mode { display: none; }
-
         .view-card { background: #2c3e50; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; }
         .view-header { background: #1a252f; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--yellow); }
         .view-title { font-size: 12px; color: #aaa; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
@@ -55,59 +44,37 @@
         .view-item div { font-size: 16px; font-weight: 600; color: #eee; }
         .view-obs-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #ddd; border-left: 3px solid var(--blue); }
 
-        /* ========================
-           GALERIA
-           ======================== */
+        /* GALERIA GERAL */
         .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
-        
         .btn-photo { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; color: white; }
         .btn-upload { background: #555; }
         .btn-cam { background: var(--blue); }
         
-        /* VISUALIZADOR GRANDE */
         .photo-viewer { background: #000; height: 350px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
         .photo-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .nav-btn { position: absolute; top: 0; bottom: 0; width: 60px; background: rgba(0,0,0,0.3); color: white; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
         .nav-btn:hover { background: rgba(0,0,0,0.6); }
         .prev { left: 0; }
         .next { right: 0; }
-        
         .photo-caption-display { text-align: center; font-size: 14px; padding: 10px; background: #222; border-radius: 5px; margin-top: 5px; font-style: italic; color: #ccc; }
         .photo-count { text-align: center; font-size: 12px; color: #aaa; margin-bottom: 5px; }
 
-        /* NOVA ÁREA DE MINIATURAS (MANAGER) */
-        .mini-gallery-grid { 
-            display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #444; 
-        }
+        /* GRID DE MINIATURAS */
+        .mini-gallery-grid { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #444; min-height: 90px; align-items: center; }
         .mini-gallery-grid::-webkit-scrollbar { height: 8px; }
         .mini-gallery-grid::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
         
-        .thumb-card { 
-            min-width: 80px; width: 80px; height: 80px; position: relative; 
-            border: 2px solid transparent; border-radius: 5px; overflow: hidden; background: #000; flex-shrink: 0; cursor: pointer; 
-        }
+        .thumb-card { min-width: 80px; width: 80px; height: 80px; position: relative; border: 2px solid transparent; border-radius: 5px; overflow: hidden; background: #000; flex-shrink: 0; cursor: pointer; }
         .thumb-card.selected { border-color: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
         .thumb-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
         .thumb-card.selected img { opacity: 1; }
-        
-        /* Botões de Ação na Miniatura */
-        .thumb-actions { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-            display: flex; flex-direction: column; justify-content: space-between; 
-            padding: 2px; pointer-events: none; /* Deixa clicar na imagem */
-        }
-        .thumb-btn { 
-            width: 20px; height: 20px; background: rgba(0,0,0,0.7); color: white; 
-            border: none; border-radius: 3px; font-size: 10px; font-weight: bold; 
-            cursor: pointer; pointer-events: auto; /* Reativa clique nos botões */
-            display: flex; align-items: center; justify-content: center;
-        }
+        .thumb-actions { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 2px; pointer-events: none; }
+        .thumb-btn { width: 20px; height: 20px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 3px; font-size: 10px; font-weight: bold; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;}
         .btn-del-thumb { background: var(--red); align-self: flex-end; }
         .btn-move-thumb { background: var(--blue); }
         .move-row { display: flex; justify-content: space-between; width: 100%; margin-top: auto;}
 
-        /* Botão Flutuante Editar */
         .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none;}
 
         @media (max-width: 600px) {
@@ -170,8 +137,7 @@
                         <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
                     </div>
 
-                    <div class="mini-gallery-grid" id="mini-gallery">
-                        </div>
+                    <div class="mini-gallery-grid" id="mini-gallery"></div>
 
                     <div class="photo-viewer" style="height: 300px; border: 1px solid #555;">
                          <img id="img-display-edit" src="" style="display:none;">
@@ -256,13 +222,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // VARIÁVEIS GLOBAIS
         let imagens = []; 
         let indiceAtual = 0;
         let idEdicao = null;
         let modoAtual = 'edit'; 
 
-        // --- INICIALIZAÇÃO ---
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
             idEdicao = params.get('id');
@@ -278,12 +242,10 @@
                 await carregarDados(idEdicao);
             }
 
-            // Listeners de Upload
             document.getElementById('file-input').addEventListener('change', processarImagens);
             document.getElementById('camera-input').addEventListener('change', processarImagens);
         };
 
-        // --- ALTERNAR MODOS ---
         window.alternarModo = (modo) => {
             modoAtual = modo;
             const editContainer = document.getElementById('edit-mode');
@@ -293,24 +255,23 @@
                 editContainer.style.display = 'none';
                 viewContainer.style.display = 'block';
                 document.body.style.backgroundColor = '#1a252f'; 
-                renderVisualizadorView(); // Renderiza player modo leitura
+                renderVisualizadorView(); 
             } else {
                 editContainer.style.display = 'block';
                 viewContainer.style.display = 'none';
                 document.body.style.backgroundColor = '#222';
-                renderMiniaturas(); // Renderiza grid de edição
-                atualizarVisualizadorEdit();
+                renderMiniaturas(); 
+                atualizarVisualizadorEdit(); 
             }
         }
 
-        // --- CARREGAR DADOS ---
         async function carregarDados(id) {
             try {
                 const docSnap = await getDoc(doc(db, "orcamentos", id));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // EDIT FORM
+                    // PREENCHER FORMULÁRIO
                     document.getElementById('display-num-edit').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     document.getElementById('in-cliente').value = data.cliente || '';
                     document.getElementById('in-empresa').value = data.empresa || '';
@@ -323,7 +284,7 @@
                     const radios = document.getElementsByName('tipo');
                     radios.forEach(r => { if(r.value === data.tipo_servico_material) r.checked = true; });
 
-                    // VIEW CARD
+                    // PREENCHER CARD DE VISUALIZAÇÃO
                     document.getElementById('view-id').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     document.getElementById('view-tipo').innerText = data.tipo_servico_material || 'GERAL';
                     document.getElementById('view-cliente').innerText = data.cliente || 'Consumidor Final';
@@ -331,10 +292,7 @@
                     document.getElementById('view-servico').innerText = data.servico_titulo || 'Solicitação sem título';
                     document.getElementById('view-material').innerText = data.tipo_material || '-';
                     document.getElementById('view-medidas').innerText = data.medidas || '-';
-                    const inst = data.precisa_instalacao || 'Não';
-                    const elInst = document.getElementById('view-instalacao');
-                    elInst.innerText = inst;
-                    elInst.style.color = inst === 'Sim' ? '#f1c40f' : '#eee';
+                    document.getElementById('view-instalacao').innerText = data.precisa_instalacao || 'Não';
                     document.getElementById('view-endereco').innerText = data.endereco || 'Retirada no local';
                     document.getElementById('view-obs').innerText = data.observacoes || 'Nenhuma observação registrada.';
                     if(data.data_criacao) {
@@ -345,12 +303,13 @@
                         window.location.href = `solicitacao.html?id=${id}&mode=edit`;
                     };
 
-                    // IMAGENS
+                    // CARREGAR IMAGENS
                     if(data.imagens && data.imagens.length > 0) {
                         imagens = data.imagens;
                         indiceAtual = 0;
-                        if (modoAtual === 'edit') renderMiniaturas();
-                        else renderVisualizadorView();
+                        renderMiniaturas();
+                        atualizarVisualizadorEdit();
+                        renderVisualizadorView();
                     }
                 }
             } catch (e) {
@@ -358,7 +317,6 @@
             }
         }
 
-        // --- SISTEMA DE IMAGENS (MANAGER) ---
         window.processarImagens = async (event) => {
             const files = event.target.files;
             if (!files.length) return;
@@ -366,14 +324,14 @@
                 const base64 = await comprimirImagem(file);
                 imagens.push({ url: base64, obs: '' });
             }
-            indiceAtual = imagens.length - 1; // Seleciona a ultima adicionada
+            indiceAtual = imagens.length - 1; 
             renderMiniaturas();
             atualizarVisualizadorEdit();
         }
 
-        // Renderiza a lista de miniaturas com botões de ação
         window.renderMiniaturas = () => {
             const container = document.getElementById('mini-gallery');
+            if(!container) return; // Evita erro se não achar o elemento
             container.innerHTML = '';
 
             imagens.forEach((img, idx) => {
@@ -402,7 +360,7 @@
         }
 
         window.deletarFoto = (e, idx) => {
-            e.stopPropagation(); // Evita selecionar ao clicar no X
+            e.stopPropagation(); 
             if(confirm("Remover esta foto?")) {
                 imagens.splice(idx, 1);
                 if (indiceAtual >= imagens.length) indiceAtual = imagens.length - 1;
@@ -415,12 +373,10 @@
         window.moverFoto = (e, idx, dir) => {
             e.stopPropagation();
             const novoIdx = idx + dir;
-            if (novoIdx < 0 || novoIdx >= imagens.length) return; // Fora do limite
+            if (novoIdx < 0 || novoIdx >= imagens.length) return; 
 
-            // Troca de posição
             [imagens[idx], imagens[novoIdx]] = [imagens[novoIdx], imagens[idx]];
             
-            // Segue a imagem selecionada
             if (indiceAtual === idx) indiceAtual = novoIdx;
             else if (indiceAtual === novoIdx) indiceAtual = idx;
 
@@ -428,27 +384,26 @@
             atualizarVisualizadorEdit();
         }
 
-        function actualizarVisualizadorEdit() {
+        window.atualizarVisualizadorEdit = () => {
             const imgEl = document.getElementById('img-display-edit');
             const msgEl = document.getElementById('no-photo-msg-edit');
             const obsInput = document.getElementById('in-foto-obs');
 
-            if (imagens.length === 0) {
-                imgEl.style.display = 'none';
-                msgEl.style.display = 'block';
-                obsInput.value = '';
-                obsInput.disabled = true;
+            if (!imagens || imagens.length === 0) {
+                if(imgEl) imgEl.style.display = 'none';
+                if(msgEl) msgEl.style.display = 'block';
+                if(obsInput) { obsInput.value = ''; obsInput.disabled = true; }
                 return;
             }
 
-            imgEl.src = imagens[indiceAtual].url;
-            imgEl.style.display = 'block';
-            msgEl.style.display = 'none';
-            obsInput.value = imagens[indiceAtual].obs || '';
-            obsInput.disabled = false;
+            if(imgEl) { imgEl.src = imagens[indiceAtual].url; imgEl.style.display = 'block'; }
+            if(msgEl) msgEl.style.display = 'none';
+            if(obsInput) { 
+                obsInput.value = imagens[indiceAtual].obs || ''; 
+                obsInput.disabled = false; 
+            }
         }
 
-        // --- SISTEMA DE VISUALIZAÇÃO (VIEWER) ---
         window.mudarFoto = (dir) => {
             if (imagens.length === 0) return;
             indiceAtual += dir;
@@ -457,30 +412,29 @@
             renderVisualizadorView();
         }
 
-        function renderVisualizadorView() {
+        window.renderVisualizadorView = () => {
             const imgEl = document.getElementById('img-display');
             const msgEl = document.getElementById('no-photo-msg');
             const countEl = document.getElementById('photo-count');
             const captionEl = document.getElementById('caption-display');
 
             if (imagens.length === 0) {
-                imgEl.style.display = 'none';
-                msgEl.style.display = 'block';
-                countEl.innerText = "0 / 0";
-                captionEl.style.display = 'none';
+                if(imgEl) imgEl.style.display = 'none';
+                if(msgEl) msgEl.style.display = 'block';
+                if(countEl) countEl.innerText = "0 / 0";
+                if(captionEl) captionEl.style.display = 'none';
                 return;
             }
 
-            imgEl.src = imagens[indiceAtual].url;
-            imgEl.style.display = 'block';
-            msgEl.style.display = 'none';
-            countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
+            if(imgEl) { imgEl.src = imagens[indiceAtual].url; imgEl.style.display = 'block'; }
+            if(msgEl) msgEl.style.display = 'none';
+            if(countEl) countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
             
             const legenda = imagens[indiceAtual].obs || '';
-            if (legenda) {
+            if (legenda && captionEl) {
                 captionEl.innerText = legenda;
                 captionEl.style.display = 'block';
-            } else {
+            } else if (captionEl) {
                 captionEl.style.display = 'none';
             }
         }
@@ -512,7 +466,6 @@
             });
         }
 
-        // --- SALVAR ---
         window.salvarSolicitacao = async () => {
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
