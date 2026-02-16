@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamentos - Artesynal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #333; --card-bg: #2c3e50; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: white; }
+        
+        /* HEADER */
+        .header-orc { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #555; padding-bottom: 15px; }
+        h1 { margin: 0; color: var(--yellow); font-size: 24px; text-transform: uppercase; }
+        .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+
+        /* GRID */
+        .grid-orc { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+        /* CARD */
+        .card-orc { background: var(--card-bg); border-radius: 10px; padding: 20px; position: relative; border-left: 5px solid var(--blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .card-orc:hover { transform: translateY(-5px); }
+        
+        .orc-num { font-size: 12px; color: #aaa; font-weight: bold; margin-bottom: 5px; }
+        .orc-cliente { font-size: 18px; font-weight: 800; color: white; margin-bottom: 2px; }
+        .orc-empresa { font-size: 12px; color: var(--yellow); font-weight: 600; margin-bottom: 10px; text-transform: uppercase;}
+        .orc-tipo { background: rgba(0,0,0,0.2); display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 15px; }
+
+        /* BOTÕES DO CARD */
+        .actions { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-card { flex: 1; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px; text-transform: uppercase; color: white; transition: opacity 0.2s; }
+        .btn-card:hover { opacity: 0.8; }
+        
+        .btn-view { background: #555; }
+        .btn-edit { background: var(--blue); }
+        .btn-link { background: var(--green); }
+
+        /* FAB (BOTÃO FLUTUANTE DE CRIAR) */
+        .fab-add {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 60px; height: 60px; background: var(--yellow); color: #2c3e50;
+            border-radius: 50%; border: none; font-size: 30px; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; z-index: 100;
+        }
+
+        #loading { text-align: center; color: #999; margin-top: 50px; }
+
+        @media (max-width: 600px) {
+            .header-orc { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .btn-voltar { align-self: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-orc">
+        <h1>Solicitações</h1>
+        <a href="painel.html" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
+    </div>
+
+    <div id="loading">Carregando solicitações...</div>
+    <div class="grid-orc" id="grid-orc">
+        </div>
+
+    <button class="fab-add" onclick="novaSolicitacao()">+</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
+            authDomain: "artesynal-os-system.firebaseapp.com",
+            projectId: "artesynal-os-system",
+            storageBucket: "artesynal-os-system.firebasestorage.app",
+            messagingSenderId: "539958005846",
+            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Carregar Cards
+        async function carregarLista() {
+            const grid = document.getElementById('grid-orc');
+            grid.innerHTML = '';
+            
+            try {
+                // Ordena por número (descendente para ver os novos primeiro)
+                const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"));
+                const snapshot = await getDocs(q);
+                
+                if(snapshot.empty) {
+                    document.getElementById('loading').innerText = "Nenhuma solicitação encontrada.";
+                    return;
+                }
+
+                document.getElementById('loading').style.display = 'none';
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    const num = String(data.numero_solicitacao || 0).padStart(3, '0'); // Formata 001
+
+                    const html = `
+                        <div class="card-orc">
+                            <div class="orc-num">SOLICITAÇÃO #${num}</div>
+                            <div class="orc-cliente">${data.cliente || 'Sem Cliente'}</div>
+                            <div class="orc-empresa">${data.empresa || 'Sem Empresa'}</div>
+                            <div class="orc-tipo">${data.tipo_servico_material || 'Geral'}</div>
+                            <div style="font-size: 11px; color: #ccc; margin-bottom: 10px;">${data.servico_titulo || '...'}</div>
+                            
+                            <div class="actions">
+                                <button class="btn-card btn-view" onclick="abrirGuia('${id}', 'view')">👁️ VER</button>
+                                <button class="btn-card btn-edit" onclick="abrirGuia('${id}', 'edit')">✏️ EDITAR</button>
+                                <button class="btn-card btn-link" onclick="gerarLink('${id}', '${num}')">🔗 LINK</button>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += html;
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerText = "Erro ao carregar lista.";
+            }
+        }
+
+        // Funções Globais
+        window.novaSolicitacao = () => {
+            window.open('solicitacao.html', '_blank'); // Abre vazio para criar
+        }
+
+        window.abrirGuia = (id, modo) => {
+            // Abre nova aba com ID e Modo (view ou edit)
+            window.open(`solicitacao.html?id=${id}&mode=${modo}`, '_blank');
+        }
+
+        window.gerarLink = (id, num) => {
+            // Cria o link completo
+            const url = `${window.location.origin}/solicitacao.html?id=${id}&mode=view`;
+            const texto = `Solicitação de Orçamento #${num}: ${url}`;
+            
+            // Copia para área de transferência
+            navigator.clipboard.writeText(texto).then(() => {
+                alert("Link copiado!\n" + texto);
+            });
+        }
+
+        carregarLista();
+    </script>
+</body>
+</html>
