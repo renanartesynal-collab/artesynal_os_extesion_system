@@ -41,29 +41,22 @@
         #view-mode { display: none; }
 
         .view-card { background: #2c3e50; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; }
-        
-        /* Cabeçalho do Card */
         .view-header { background: #1a252f; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--yellow); }
         .view-title { font-size: 12px; color: #aaa; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
         .view-id { font-size: 24px; font-weight: 900; color: var(--yellow); }
         .view-tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; background: #555; margin-left: 10px;}
-
-        /* Corpo do Card */
         .view-body { padding: 25px; }
-        
         .view-main-info { margin-bottom: 25px; border-bottom: 1px solid #444; padding-bottom: 20px; }
         .view-servico-titulo { font-size: 28px; font-weight: 900; color: white; margin-bottom: 5px; line-height: 1.1; }
         .view-cliente { font-size: 16px; color: var(--blue); font-weight: 600; margin-bottom: 2px; }
         .view-empresa { font-size: 14px; color: #aaa; }
-
-        /* Grid de Detalhes */
         .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .view-item label { color: var(--yellow); margin-bottom: 2px; font-size: 10px; }
         .view-item div { font-size: 16px; font-weight: 600; color: #eee; }
         .view-obs-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #ddd; border-left: 3px solid var(--blue); }
 
         /* ========================
-           GALERIA (COMPARTILHADA/ADAPTADA)
+           GALERIA
            ======================== */
         .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
@@ -72,7 +65,8 @@
         .btn-upload { background: #555; }
         .btn-cam { background: var(--blue); }
         
-        .photo-viewer { background: #000; height: 400px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+        /* VISUALIZADOR GRANDE */
+        .photo-viewer { background: #000; height: 350px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
         .photo-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .nav-btn { position: absolute; top: 0; bottom: 0; width: 60px; background: rgba(0,0,0,0.3); color: white; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
         .nav-btn:hover { background: rgba(0,0,0,0.6); }
@@ -82,7 +76,38 @@
         .photo-caption-display { text-align: center; font-size: 14px; padding: 10px; background: #222; border-radius: 5px; margin-top: 5px; font-style: italic; color: #ccc; }
         .photo-count { text-align: center; font-size: 12px; color: #aaa; margin-bottom: 5px; }
 
-        /* Botões Flutuantes View */
+        /* NOVA ÁREA DE MINIATURAS (MANAGER) */
+        .mini-gallery-grid { 
+            display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #444; 
+        }
+        .mini-gallery-grid::-webkit-scrollbar { height: 8px; }
+        .mini-gallery-grid::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
+        
+        .thumb-card { 
+            min-width: 80px; width: 80px; height: 80px; position: relative; 
+            border: 2px solid transparent; border-radius: 5px; overflow: hidden; background: #000; flex-shrink: 0; cursor: pointer; 
+        }
+        .thumb-card.selected { border-color: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+        .thumb-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .thumb-card.selected img { opacity: 1; }
+        
+        /* Botões de Ação na Miniatura */
+        .thumb-actions { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            padding: 2px; pointer-events: none; /* Deixa clicar na imagem */
+        }
+        .thumb-btn { 
+            width: 20px; height: 20px; background: rgba(0,0,0,0.7); color: white; 
+            border: none; border-radius: 3px; font-size: 10px; font-weight: bold; 
+            cursor: pointer; pointer-events: auto; /* Reativa clique nos botões */
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-del-thumb { background: var(--red); align-self: flex-end; }
+        .btn-move-thumb { background: var(--blue); }
+        .move-row { display: flex; justify-content: space-between; width: 100%; margin-top: auto;}
+
+        /* Botão Flutuante Editar */
         .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none;}
 
         @media (max-width: 600px) {
@@ -136,12 +161,26 @@
                 <textarea id="in-obs" placeholder="Detalhes técnicos, cor, acabamento..."></textarea>
 
                 <div class="gallery-container">
-                    <label style="color: var(--yellow); text-align: center; margin-bottom: 10px;">ADICIONAR FOTOS</label>
+                    <label style="color: var(--yellow); text-align: center; margin-bottom: 10px;">GERENCIAR FOTOS</label>
+                    
                     <div class="gallery-controls">
                         <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
                         <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
                         <button type="button" class="btn-photo btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR</button>
                         <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
+                    </div>
+
+                    <div class="mini-gallery-grid" id="mini-gallery">
+                        </div>
+
+                    <div class="photo-viewer" style="height: 300px; border: 1px solid #555;">
+                         <img id="img-display-edit" src="" style="display:none;">
+                         <span id="no-photo-msg-edit" style="color:#555; font-size:12px;">Selecione uma foto acima</span>
+                    </div>
+                    
+                    <div style="margin-top: 10px;">
+                        <label style="font-size: 10px; color: var(--blue);">LEGENDA DA FOTO SELECIONADA:</label>
+                        <input type="text" id="in-foto-obs" placeholder="Ex: Detalhe do acabamento..." oninput="atualizarLegendaFoto()">
                     </div>
                 </div>
 
@@ -194,11 +233,6 @@
                 </div>
                 <div class="photo-count" id="photo-count">0 / 0</div>
                 <div class="photo-caption-display" id="caption-display" style="display: none;"></div>
-                
-                <div id="edit-caption-area" style="margin-top: 10px;">
-                    <label style="font-size: 10px;">EDITAR LEGENDA DA FOTO:</label>
-                    <input type="text" id="in-foto-obs" placeholder="Anotação..." oninput="atualizarLegendaFoto()">
-                </div>
             </div>
 
             <button class="fab-edit" id="btn-floating-edit" onclick="alternarModo('edit')">✏️</button>
@@ -226,7 +260,7 @@
         let imagens = []; 
         let indiceAtual = 0;
         let idEdicao = null;
-        let modoAtual = 'edit'; // 'edit' ou 'view'
+        let modoAtual = 'edit'; 
 
         // --- INICIALIZAÇÃO ---
         window.onload = async () => {
@@ -249,26 +283,23 @@
             document.getElementById('camera-input').addEventListener('change', processarImagens);
         };
 
-        // --- ALTERNAR MODOS (VISUAL vs FORMULÁRIO) ---
+        // --- ALTERNAR MODOS ---
         window.alternarModo = (modo) => {
             modoAtual = modo;
             const editContainer = document.getElementById('edit-mode');
             const viewContainer = document.getElementById('view-mode');
-            const captionEditArea = document.getElementById('edit-caption-area');
 
             if (modo === 'view') {
                 editContainer.style.display = 'none';
                 viewContainer.style.display = 'block';
-                document.body.style.backgroundColor = '#1a252f'; // Fundo mais escuro pra destacar o card
-                captionEditArea.style.display = 'none'; // Esconde edição de legenda no modo leitura
+                document.body.style.backgroundColor = '#1a252f'; 
+                renderVisualizadorView(); // Renderiza player modo leitura
             } else {
                 editContainer.style.display = 'block';
                 viewContainer.style.display = 'none';
                 document.body.style.backgroundColor = '#222';
-                captionEditArea.style.display = 'block'; // Mostra input de legenda
-                
-                // Se estiver criando novo, atualiza a galeria para mostrar input
-                atualizarVisualizador();
+                renderMiniaturas(); // Renderiza grid de edição
+                atualizarVisualizadorEdit();
             }
         }
 
@@ -279,7 +310,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // --- PREENCHE FORMULÁRIO (EDIT) ---
+                    // EDIT FORM
                     document.getElementById('display-num-edit').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     document.getElementById('in-cliente').value = data.cliente || '';
                     document.getElementById('in-empresa').value = data.empresa || '';
@@ -292,7 +323,7 @@
                     const radios = document.getElementsByName('tipo');
                     radios.forEach(r => { if(r.value === data.tipo_servico_material) r.checked = true; });
 
-                    // --- PREENCHE CARD (VIEW) ---
+                    // VIEW CARD
                     document.getElementById('view-id').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     document.getElementById('view-tipo').innerText = data.tipo_servico_material || 'GERAL';
                     document.getElementById('view-cliente').innerText = data.cliente || 'Consumidor Final';
@@ -300,30 +331,26 @@
                     document.getElementById('view-servico').innerText = data.servico_titulo || 'Solicitação sem título';
                     document.getElementById('view-material').innerText = data.tipo_material || '-';
                     document.getElementById('view-medidas').innerText = data.medidas || '-';
-                    
                     const inst = data.precisa_instalacao || 'Não';
                     const elInst = document.getElementById('view-instalacao');
                     elInst.innerText = inst;
                     elInst.style.color = inst === 'Sim' ? '#f1c40f' : '#eee';
-
                     document.getElementById('view-endereco').innerText = data.endereco || 'Retirada no local';
                     document.getElementById('view-obs').innerText = data.observacoes || 'Nenhuma observação registrada.';
-                    
                     if(data.data_criacao) {
                         const d = data.data_criacao.toDate();
                         document.getElementById('view-data').innerText = d.toLocaleDateString('pt-BR');
                     }
-
-                    // Botão flutuante de edição (leva para a mesma pagina em mode edit)
                     document.getElementById('btn-floating-edit').onclick = function() {
                         window.location.href = `solicitacao.html?id=${id}&mode=edit`;
                     };
 
-                    // Imagens
+                    // IMAGENS
                     if(data.imagens && data.imagens.length > 0) {
                         imagens = data.imagens;
                         indiceAtual = 0;
-                        atualizarVisualizador();
+                        if (modoAtual === 'edit') renderMiniaturas();
+                        else renderVisualizadorView();
                     }
                 }
             } catch (e) {
@@ -331,59 +358,130 @@
             }
         }
 
-        // --- LÓGICA DE IMAGENS ---
+        // --- SISTEMA DE IMAGENS (MANAGER) ---
         window.processarImagens = async (event) => {
             const files = event.target.files;
             if (!files.length) return;
-
             for (let file of files) {
                 const base64 = await comprimirImagem(file);
                 imagens.push({ url: base64, obs: '' });
             }
-            indiceAtual = imagens.length - 1;
-            atualizarVisualizador();
+            indiceAtual = imagens.length - 1; // Seleciona a ultima adicionada
+            renderMiniaturas();
+            atualizarVisualizadorEdit();
         }
 
+        // Renderiza a lista de miniaturas com botões de ação
+        window.renderMiniaturas = () => {
+            const container = document.getElementById('mini-gallery');
+            container.innerHTML = '';
+
+            imagens.forEach((img, idx) => {
+                const isSelected = idx === indiceAtual ? 'selected' : '';
+                
+                const html = `
+                    <div class="thumb-card ${isSelected}" onclick="selecionarFoto(${idx})">
+                        <img src="${img.url}">
+                        <div class="thumb-actions">
+                            <button class="thumb-btn btn-del-thumb" onclick="deletarFoto(event, ${idx})">X</button>
+                            <div class="move-row">
+                                <button class="thumb-btn btn-move-thumb" onclick="moverFoto(event, ${idx}, -1)">&#9664;</button>
+                                <button class="thumb-btn btn-move-thumb" onclick="moverFoto(event, ${idx}, 1)">&#9654;</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        window.selecionarFoto = (idx) => {
+            indiceAtual = idx;
+            renderMiniaturas();
+            atualizarVisualizadorEdit();
+        }
+
+        window.deletarFoto = (e, idx) => {
+            e.stopPropagation(); // Evita selecionar ao clicar no X
+            if(confirm("Remover esta foto?")) {
+                imagens.splice(idx, 1);
+                if (indiceAtual >= imagens.length) indiceAtual = imagens.length - 1;
+                if (indiceAtual < 0) indiceAtual = 0;
+                renderMiniaturas();
+                atualizarVisualizadorEdit();
+            }
+        }
+
+        window.moverFoto = (e, idx, dir) => {
+            e.stopPropagation();
+            const novoIdx = idx + dir;
+            if (novoIdx < 0 || novoIdx >= imagens.length) return; // Fora do limite
+
+            // Troca de posição
+            [imagens[idx], imagens[novoIdx]] = [imagens[novoIdx], imagens[idx]];
+            
+            // Segue a imagem selecionada
+            if (indiceAtual === idx) indiceAtual = novoIdx;
+            else if (indiceAtual === novoIdx) indiceAtual = idx;
+
+            renderMiniaturas();
+            atualizarVisualizadorEdit();
+        }
+
+        function actualizarVisualizadorEdit() {
+            const imgEl = document.getElementById('img-display-edit');
+            const msgEl = document.getElementById('no-photo-msg-edit');
+            const obsInput = document.getElementById('in-foto-obs');
+
+            if (imagens.length === 0) {
+                imgEl.style.display = 'none';
+                msgEl.style.display = 'block';
+                obsInput.value = '';
+                obsInput.disabled = true;
+                return;
+            }
+
+            imgEl.src = imagens[indiceAtual].url;
+            imgEl.style.display = 'block';
+            msgEl.style.display = 'none';
+            obsInput.value = imagens[indiceAtual].obs || '';
+            obsInput.disabled = false;
+        }
+
+        // --- SISTEMA DE VISUALIZAÇÃO (VIEWER) ---
         window.mudarFoto = (dir) => {
             if (imagens.length === 0) return;
             indiceAtual += dir;
             if (indiceAtual < 0) indiceAtual = imagens.length - 1;
             if (indiceAtual >= imagens.length) indiceAtual = 0;
-            atualizarVisualizador();
+            renderVisualizadorView();
         }
 
-        function atualizarVisualizador() {
+        function renderVisualizadorView() {
             const imgEl = document.getElementById('img-display');
             const msgEl = document.getElementById('no-photo-msg');
             const countEl = document.getElementById('photo-count');
-            const obsInput = document.getElementById('in-foto-obs'); // Input Edit
-            const captionDisplay = document.getElementById('caption-display'); // Texto View
+            const captionEl = document.getElementById('caption-display');
 
             if (imagens.length === 0) {
                 imgEl.style.display = 'none';
                 msgEl.style.display = 'block';
                 countEl.innerText = "0 / 0";
-                captionDisplay.style.display = 'none';
+                captionEl.style.display = 'none';
                 return;
             }
 
-            // Exibir imagem atual
             imgEl.src = imagens[indiceAtual].url;
             imgEl.style.display = 'block';
             msgEl.style.display = 'none';
             countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
             
             const legenda = imagens[indiceAtual].obs || '';
-            
-            // Atualiza Input de Edição
-            obsInput.value = legenda;
-
-            // Atualiza Texto de Visualização
-            if(legenda.trim() !== "") {
-                captionDisplay.innerText = legenda;
-                captionDisplay.style.display = 'block';
+            if (legenda) {
+                captionEl.innerText = legenda;
+                captionEl.style.display = 'block';
             } else {
-                captionDisplay.style.display = 'none';
+                captionEl.style.display = 'none';
             }
         }
 
@@ -438,7 +536,6 @@
                 if (idEdicao) {
                     await updateDoc(doc(db, "orcamentos", idEdicao), dados);
                     alert("Atualizado com sucesso!");
-                    // Recarrega em modo VIEW para ver o resultado bonito
                     window.location.href = `solicitacao.html?id=${idEdicao}&mode=view`;
                 } else {
                     const coll = collection(db, "orcamentos");
@@ -450,7 +547,6 @@
 
                     const docRef = await addDoc(coll, dados);
                     alert(`Solicitação #${novoNumero} criada!`);
-                    // Abre o card criado em modo VIEW
                     window.location.href = `solicitacao.html?id=${docRef.id}&mode=view`;
                 }
 
