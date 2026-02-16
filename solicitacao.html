@@ -66,7 +66,6 @@
         .mini-gallery-grid { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #444; min-height: 90px; align-items: center; }
         .mini-gallery-grid::-webkit-scrollbar { height: 8px; }
         .mini-gallery-grid::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
-        
         .thumb-card { min-width: 80px; width: 80px; height: 80px; position: relative; border: 2px solid transparent; border-radius: 5px; overflow: hidden; background: #000; flex-shrink: 0; cursor: pointer; }
         .thumb-card.selected { border-color: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
         .thumb-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
@@ -86,32 +85,43 @@
         }
         #canvas-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; touch-action: none; }
         canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 20px #000; }
+        
         .draw-toolbar { 
-            height: 60px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-top: 2px solid var(--yellow);
+            height: 70px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-top: 2px solid var(--yellow);
         }
-        .btn-tool { padding: 8px 15px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-tool { padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; margin-right: 5px; }
         .btn-cancel { background: #555; color: white; }
         .btn-undo { background: var(--blue); color: white; }
         .btn-confirm { background: var(--green); color: white; }
+        
+        /* Botões de Seleção de Ferramenta */
+        .tool-select { background: #333; color: #aaa; border: 1px solid #555; }
+        .tool-select.active { background: var(--yellow); color: black; border-color: var(--yellow); }
 
         @media (max-width: 600px) {
             .view-grid { grid-template-columns: 1fr; }
             .photo-viewer { height: 250px; }
+            .draw-toolbar { padding: 0 10px; overflow-x: auto;}
         }
     </style>
 </head>
 <body>
 
     <div id="draw-modal">
-        <div style="text-align: center; color: var(--yellow); font-size: 12px; padding: 10px; background: #111;">
-            ARRASTE NA TELA PARA CRIAR A SETA
+        <div style="background: #111; padding: 10px; display: flex; justify-content: center; gap: 10px;">
+            <button class="btn-tool tool-select active" id="btn-tool-draw" onclick="window.setTool('draw')">✏️ DESENHAR</button>
+            <button class="btn-tool tool-select" id="btn-tool-move" onclick="window.setTool('move')">✋ MOVER</button>
         </div>
+        
         <div id="canvas-wrapper">
             <canvas id="editor-canvas"></canvas>
         </div>
+        
         <div class="draw-toolbar">
-            <button class="btn-tool btn-cancel" onclick="window.fecharEditor()">CANCELAR</button>
-            <button class="btn-tool btn-undo" onclick="window.desfazerUltimo()">↩ DESFAZER</button>
+            <div style="display:flex;">
+                <button class="btn-tool btn-cancel" onclick="window.fecharEditor()">CANCELAR</button>
+                <button class="btn-tool btn-undo" onclick="window.desfazerUltimo()">↩</button>
+            </div>
             <button class="btn-tool btn-confirm" onclick="window.salvarEditor()">SALVAR</button>
         </div>
     </div>
@@ -257,7 +267,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // VARIÁVEIS GLOBAIS (Acessíveis pelo HTML)
         let imagens = []; 
         let indiceAtual = 0;
         let idEdicao = null;
@@ -265,11 +274,17 @@
 
         // VARIÁVEIS EDITOR
         let canvas, ctx;
+        let editorTool = 'draw'; // 'draw' ou 'move'
         let isDrawing = false;
-        let startX, startY;
+        let isMoving = false;
+        let startX, startY; // Para desenho
         let arrows = [];
         let imgObj = null;
         let lastX, lastY;
+        
+        // Para ferramenta Mover
+        let selectedArrowIdx = -1; 
+        let selectedPointType = null; // 'start' ou 'end'
 
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
@@ -289,15 +304,13 @@
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
 
-            // Canvas Setup
             canvas = document.getElementById('editor-canvas');
             ctx = canvas.getContext('2d');
             
-            canvas.addEventListener('mousedown', startArrow);
-            canvas.addEventListener('mousemove', drawPreview);
-            canvas.addEventListener('mouseup', endArrow);
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
 
-            // Touch
             canvas.addEventListener('touchstart', (e) => {
                 const touch = e.touches[0];
                 const mouseEvent = new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY });
@@ -317,32 +330,35 @@
             });
         };
 
-        // --- FUNÇÕES EDITOR (GLOBAIS) ---
+        // --- FUNÇÕES EDITOR AVANÇADO ---
+        window.setTool = (tool) => {
+            editorTool = tool;
+            document.querySelectorAll('.tool-select').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-tool-${tool}`).classList.add('active');
+            redrawCanvas(); // Redesenha para mostrar/esconder as "bolinhas" de controle
+        }
+
         window.abrirEditor = () => {
             if (imagens.length === 0) return;
             const imgData = imagens[indiceAtual].url;
-            
             imgObj = new Image();
             imgObj.src = imgData;
             imgObj.onload = () => {
                 canvas.width = imgObj.width;
                 canvas.height = imgObj.height;
                 arrows = []; 
+                window.setTool('draw'); // Reseta ferramenta padrão
                 redrawCanvas();
                 document.getElementById('draw-modal').style.display = 'flex';
             };
         }
 
-        window.fecharEditor = () => {
-            document.getElementById('draw-modal').style.display = 'none';
-        }
-
-        window.desfazerUltimo = () => {
-            arrows.pop();
-            redrawCanvas();
-        }
-
+        window.fecharEditor = () => { document.getElementById('draw-modal').style.display = 'none'; }
+        window.desfazerUltimo = () => { arrows.pop(); redrawCanvas(); }
+        
         window.salvarEditor = () => {
+            window.setTool('draw'); // Tira os controles visuais antes de salvar
+            redrawCanvas(); 
             const novaUrl = canvas.toDataURL('image/jpeg', 0.8);
             imagens[indiceAtual].url = novaUrl;
             window.renderMiniaturas();
@@ -350,41 +366,110 @@
             window.fecharEditor();
         }
 
-        function startArrow(e) {
-            isDrawing = true;
+        function getCanvasCoords(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            startX = (e.clientX - rect.left) * scaleX;
-            startY = (e.clientY - rect.top) * scaleY;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
         }
 
-        function drawPreview(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            lastX = (e.clientX - rect.left) * scaleX;
-            lastY = (e.clientY - rect.top) * scaleY;
-
-            if (!isDrawing) return;
-            redrawCanvas();
-            drawArrow(ctx, startX, startY, lastX, lastY, null, "#32CD32");
-        }
-
-        function endArrow(e) {
-            if (!isDrawing) return;
-            isDrawing = false;
-            const medida = prompt("Digite a medida (ex: 2,50m):");
-            if(medida) {
-                arrows.push({ x1: startX, y1: startY, x2: lastX, y2: lastY, text: medida });
+        function handleMouseDown(e) {
+            const pos = getCanvasCoords(e);
+            
+            if (editorTool === 'draw') {
+                isDrawing = true;
+                startX = pos.x;
+                startY = pos.y;
+            } 
+            else if (editorTool === 'move') {
+                // Verificar se clicou perto de alguma ponta
+                const hitDist = 40 * (canvas.width / 800); // Área de clique
+                
+                for(let i = arrows.length - 1; i >= 0; i--) {
+                    const a = arrows[i];
+                    // Distancia Inicio
+                    if (Math.hypot(pos.x - a.x1, pos.y - a.y1) < hitDist) {
+                        isMoving = true;
+                        selectedArrowIdx = i;
+                        selectedPointType = 'start';
+                        return;
+                    }
+                    // Distancia Fim
+                    if (Math.hypot(pos.x - a.x2, pos.y - a.y2) < hitDist) {
+                        isMoving = true;
+                        selectedArrowIdx = i;
+                        selectedPointType = 'end';
+                        return;
+                    }
+                }
             }
-            redrawCanvas();
+        }
+
+        function handleMouseMove(e) {
+            const pos = getCanvasCoords(e);
+            lastX = pos.x;
+            lastY = pos.y;
+
+            if (editorTool === 'draw' && isDrawing) {
+                redrawCanvas();
+                drawArrow(ctx, startX, startY, lastX, lastY, null, "#32CD32"); // Preview Verde Limao
+            }
+            else if (editorTool === 'move' && isMoving && selectedArrowIdx !== -1) {
+                // Atualiza a coordenada da seta selecionada
+                if (selectedPointType === 'start') {
+                    arrows[selectedArrowIdx].x1 = pos.x;
+                    arrows[selectedArrowIdx].y1 = pos.y;
+                } else {
+                    arrows[selectedArrowIdx].x2 = pos.x;
+                    arrows[selectedArrowIdx].y2 = pos.y;
+                }
+                redrawCanvas();
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (editorTool === 'draw' && isDrawing) {
+                isDrawing = false;
+                const medida = prompt("Digite a medida:");
+                if(medida) {
+                    arrows.push({ x1: startX, y1: startY, x2: lastX, y2: lastY, text: medida });
+                }
+                redrawCanvas();
+            }
+            else if (editorTool === 'move') {
+                isMoving = false;
+                selectedArrowIdx = -1;
+                selectedPointType = null;
+            }
         }
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(imgObj, 0, 0);
-            arrows.forEach(a => drawArrow(ctx, a.x1, a.y1, a.x2, a.y2, a.text, "#00FF00"));
+            
+            arrows.forEach(a => {
+                drawArrow(ctx, a.x1, a.y1, a.x2, a.y2, a.text, "#00FF00");
+                
+                // Se estiver no modo MOVER, desenha bolinhas nas pontas
+                if (editorTool === 'move') {
+                    drawHandle(a.x1, a.y1);
+                    drawHandle(a.x2, a.y2);
+                }
+            });
+        }
+
+        function drawHandle(x, y) {
+            const r = 10 * (canvas.width / 800);
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
 
         function drawArrow(ctx, x1, y1, x2, y2, text, color) {
@@ -403,12 +488,14 @@
 
             ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 
+            // Ponta Fim
             ctx.beginPath();
             ctx.moveTo(x2, y2);
             ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
             ctx.lineTo(x2, y2); ctx.fill();
 
+            // Ponta Inicio
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x1 + headLength * Math.cos(angle - Math.PI / 6), y1 + headLength * Math.sin(angle - Math.PI / 6));
@@ -429,7 +516,7 @@
             }
         }
 
-        // --- SISTEMA GERAL ---
+        // --- SISTEMA GERAL (LÓGICA IGUAL AO ANTERIOR) ---
         window.alternarModo = (modo) => {
             modoAtual = modo;
             if (modo === 'view') {
@@ -452,7 +539,6 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // FORM
                     const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; }
                     document.getElementById('display-num-edit').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     setVal('in-cliente', data.cliente);
@@ -465,7 +551,6 @@
                     setVal('in-obs', data.observacoes);
                     document.getElementsByName('tipo').forEach(r => { if(r.value === data.tipo_servico_material) r.checked = true; });
 
-                    // VIEW
                     const setTxt = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val || '--'; }
                     setTxt('view-id', "#" + String(data.numero_solicitacao || 0).padStart(3, '0'));
                     setTxt('view-tipo', data.tipo_servico_material || 'GERAL');
