@@ -6,17 +6,21 @@
     <title>Solicitação de Orçamento</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --text: #eee; }
+        :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; --text: #eee; }
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
 
+        /* --- CONTAINER GERAL --- */
         .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
-        /* HEADER */
+        /* ========================
+           ESTILOS DO MODO EDIÇÃO (FORMULÁRIO)
+           ======================== */
+        #edit-mode { display: block; }
+        
         .header-form { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 10px; }
         h2 { margin: 0; color: var(--yellow); }
         .badge-num { background: var(--blue); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; }
 
-        /* FORM */
         .row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
         .col { flex: 1; min-width: 250px; }
         
@@ -24,12 +28,43 @@
         input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Montserrat'; }
         textarea { height: 100px; resize: none; }
 
-        /* RADIO CUSTOMIZADO */
         .radio-group { display: flex; gap: 20px; background: var(--input-bg); padding: 10px; border-radius: 5px; }
         .radio-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
         input[type="radio"] { width: auto; accent-color: var(--yellow); }
 
-        /* GALERIA DE FOTOS */
+        .btn-save { width: 100%; padding: 15px; background: var(--green); color: white; font-weight: 900; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .btn-save:disabled { background: #555; cursor: not-allowed; }
+
+        /* ========================
+           ESTILOS DO MODO VISUALIZAÇÃO (CARD BONITO)
+           ======================== */
+        #view-mode { display: none; }
+
+        .view-card { background: #2c3e50; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; }
+        
+        /* Cabeçalho do Card */
+        .view-header { background: #1a252f; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--yellow); }
+        .view-title { font-size: 12px; color: #aaa; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
+        .view-id { font-size: 24px; font-weight: 900; color: var(--yellow); }
+        .view-tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; background: #555; margin-left: 10px;}
+
+        /* Corpo do Card */
+        .view-body { padding: 25px; }
+        
+        .view-main-info { margin-bottom: 25px; border-bottom: 1px solid #444; padding-bottom: 20px; }
+        .view-servico-titulo { font-size: 28px; font-weight: 900; color: white; margin-bottom: 5px; line-height: 1.1; }
+        .view-cliente { font-size: 16px; color: var(--blue); font-weight: 600; margin-bottom: 2px; }
+        .view-empresa { font-size: 14px; color: #aaa; }
+
+        /* Grid de Detalhes */
+        .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .view-item label { color: var(--yellow); margin-bottom: 2px; font-size: 10px; }
+        .view-item div { font-size: 16px; font-weight: 600; color: #eee; }
+        .view-obs-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #ddd; border-left: 3px solid var(--blue); }
+
+        /* ========================
+           GALERIA (COMPARTILHADA/ADAPTADA)
+           ======================== */
         .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
         
@@ -37,115 +72,138 @@
         .btn-upload { background: #555; }
         .btn-cam { background: var(--blue); }
         
-        /* VISUALIZADOR DA FOTO */
-        .photo-viewer { background: #000; height: 300px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+        .photo-viewer { background: #000; height: 400px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
         .photo-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; border: none; padding: 15px; font-size: 20px; cursor: pointer; }
+        .nav-btn { position: absolute; top: 0; bottom: 0; width: 60px; background: rgba(0,0,0,0.3); color: white; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
+        .nav-btn:hover { background: rgba(0,0,0,0.6); }
         .prev { left: 0; }
         .next { right: 0; }
         
-        .photo-caption { margin-bottom: 20px; }
+        .photo-caption-display { text-align: center; font-size: 14px; padding: 10px; background: #222; border-radius: 5px; margin-top: 5px; font-style: italic; color: #ccc; }
         .photo-count { text-align: center; font-size: 12px; color: #aaa; margin-bottom: 5px; }
 
-        /* BOTÃO SALVAR */
-        .btn-save { width: 100%; padding: 15px; background: var(--green); color: white; font-weight: 900; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
-        .btn-save:disabled { background: #555; cursor: not-allowed; }
+        /* Botões Flutuantes View */
+        .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none;}
 
-        /* MODO VIEW (LEITURA) */
-        .readonly input, .readonly textarea, .readonly select { pointer-events: none; opacity: 0.7; border: 1px solid #555; }
-        .readonly .btn-save, .readonly .gallery-controls { display: none; }
-
+        @media (max-width: 600px) {
+            .view-grid { grid-template-columns: 1fr; }
+            .photo-viewer { height: 250px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container" id="main-container">
-        <div class="header-form">
-            <h2>Detalhes da Solicitação</h2>
-            <div class="badge-num" id="display-num">NOVO</div>
+        
+        <div id="edit-mode">
+            <div class="header-form">
+                <h2>Editar Solicitação</h2>
+                <div class="badge-num" id="display-num-edit">NOVO</div>
+            </div>
+
+            <form id="form-orcamento">
+                <label>O QUE ESTÁ SENDO SOLICITADO?</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="tipo" value="Serviço" checked> Serviço</label>
+                    <label class="radio-item"><input type="radio" name="tipo" value="Material"> Material</label>
+                </div>
+                <br>
+
+                <div class="row">
+                    <div class="col"><label>CLIENTE</label><input type="text" id="in-cliente" placeholder="Nome do Cliente"></div>
+                    <div class="col"><label>EMPRESA</label><input type="text" id="in-empresa" placeholder="Nome da Empresa"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col"><label>SERVIÇO SOLICITADO / TÍTULO</label><input type="text" id="in-servico" placeholder="Ex: Fachada ACM"></div>
+                    <div class="col"><label>TIPO DE MATERIAL</label><input type="text" id="in-material" placeholder="Ex: Adesivo Vinil"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col"><label>MEDIDAS (LxA)</label><input type="text" id="in-medidas" placeholder="Ex: 200x100cm"></div>
+                    <div class="col">
+                        <label>INSTALAÇÃO?</label>
+                        <select id="in-instalacao">
+                            <option value="Não">Não, apenas entrega/retirada</option>
+                            <option value="Sim">Sim, precisa instalar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col"><label>ENDEREÇO / LOCAL</label><input type="text" id="in-endereco" placeholder="Rua, Número, Bairro..."></div>
+                <br>
+                <label>OBSERVAÇÕES GERAIS</label>
+                <textarea id="in-obs" placeholder="Detalhes técnicos, cor, acabamento..."></textarea>
+
+                <div class="gallery-container">
+                    <label style="color: var(--yellow); text-align: center; margin-bottom: 10px;">ADICIONAR FOTOS</label>
+                    <div class="gallery-controls">
+                        <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
+                        <button type="button" class="btn-photo btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR</button>
+                        <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-salvar" class="btn-save" onclick="salvarSolicitacao()">SALVAR SOLICITAÇÃO</button>
+            </form>
         </div>
 
-        <form id="form-orcamento">
-            <label>O QUE ESTÁ SENDO SOLICITADO?</label>
-            <div class="radio-group">
-                <label class="radio-item"><input type="radio" name="tipo" value="Serviço" checked> Serviço</label>
-                <label class="radio-item"><input type="radio" name="tipo" value="Material"> Material</label>
-            </div>
-            <br>
+        <div id="view-mode">
+            <div class="view-card">
+                <div class="view-header">
+                    <div>
+                        <div class="view-title">Solicitação de Orçamento</div>
+                        <div style="display: flex; align-items: center;">
+                            <div class="view-id" id="view-id">#000</div>
+                            <span class="view-tag" id="view-tipo">TIPO</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-size: 10px; color: #888;">
+                        DATA<br><strong id="view-data" style="color: white; font-size: 12px;">--/--</strong>
+                    </div>
+                </div>
 
-            <div class="row">
-                <div class="col">
-                    <label>CLIENTE</label>
-                    <input type="text" id="in-cliente" placeholder="Nome do Cliente">
-                </div>
-                <div class="col">
-                    <label>EMPRESA</label>
-                    <input type="text" id="in-empresa" placeholder="Nome da Empresa">
-                </div>
-            </div>
+                <div class="view-body">
+                    <div class="view-main-info">
+                        <div class="view-servico-titulo" id="view-servico">Título do Serviço</div>
+                        <div class="view-cliente" id="view-cliente">Nome do Cliente</div>
+                        <div class="view-empresa" id="view-empresa">Nome da Empresa</div>
+                    </div>
 
-            <div class="row">
-                <div class="col">
-                    <label>SERVIÇO SOLICITADO / TÍTULO</label>
-                    <input type="text" id="in-servico" placeholder="Ex: Fachada ACM">
-                </div>
-                <div class="col">
-                    <label>TIPO DE MATERIAL</label>
-                    <input type="text" id="in-material" placeholder="Ex: Adesivo Vinil">
-                </div>
-            </div>
+                    <div class="view-grid">
+                        <div class="view-item"><label>MATERIAL</label><div id="view-material">--</div></div>
+                        <div class="view-item"><label>MEDIDAS</label><div id="view-medidas">--</div></div>
+                        <div class="view-item"><label>INSTALAÇÃO</label><div id="view-instalacao">--</div></div>
+                        <div class="view-item"><label>LOCAL</label><div id="view-endereco" style="font-size: 12px; font-weight: 400;">--</div></div>
+                    </div>
 
-            <div class="row">
-                <div class="col">
-                    <label>MEDIDAS (Largura x Altura)</label>
-                    <input type="text" id="in-medidas" placeholder="Ex: 200x100cm">
-                </div>
-                <div class="col">
-                    <label>PRECISA DE INSTALAÇÃO?</label>
-                    <select id="in-instalacao">
-                        <option value="Não">Não, apenas entrega/retirada</option>
-                        <option value="Sim">Sim, precisa instalar</option>
-                    </select>
+                    <div class="view-item">
+                        <label style="margin-bottom: 5px; display: block;">OBSERVAÇÕES</label>
+                        <div class="view-obs-box" id="view-obs">Sem observações.</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col">
-                <label>ENDEREÇO / LOCAL</label>
-                <input type="text" id="in-endereco" placeholder="Rua, Número, Bairro...">
-            </div>
-            <br>
-
-            <label>OBSERVAÇÕES GERAIS</label>
-            <textarea id="in-obs" placeholder="Detalhes técnicos, cor, acabamento..."></textarea>
-
-            <div class="gallery-container">
-                <label style="color: var(--yellow); text-align: center; margin-bottom: 10px;">FOTOS E ANEXOS</label>
-                
-                <div class="gallery-controls">
-                    <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
-                    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
-
-                    <button type="button" class="btn-photo btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR</button>
-                    <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
-                </div>
-
+            <div style="margin-top: 20px;">
                 <div class="photo-viewer">
                     <button type="button" class="nav-btn prev" onclick="mudarFoto(-1)">&#10094;</button>
                     <img id="img-display" src="" style="display:none;">
-                    <span id="no-photo-msg" style="color:#555; font-size:12px;">Nenhuma foto anexada</span>
+                    <span id="no-photo-msg" style="color:#555; font-size:12px;">Sem fotos anexadas</span>
                     <button type="button" class="nav-btn next" onclick="mudarFoto(1)">&#10095;</button>
                 </div>
-                
                 <div class="photo-count" id="photo-count">0 / 0</div>
-
-                <div class="photo-caption">
-                    <label>ANOTAÇÃO SOBRE ESTA FOTO:</label>
-                    <input type="text" id="in-foto-obs" placeholder="Ex: Parede com desnível..." oninput="atualizarLegendaFoto()">
+                <div class="photo-caption-display" id="caption-display" style="display: none;"></div>
+                
+                <div id="edit-caption-area" style="margin-top: 10px;">
+                    <label style="font-size: 10px;">EDITAR LEGENDA DA FOTO:</label>
+                    <input type="text" id="in-foto-obs" placeholder="Anotação..." oninput="atualizarLegendaFoto()">
                 </div>
             </div>
 
-            <button type="button" id="btn-salvar" class="btn-save" onclick="salvarSolicitacao()">SALVAR SOLICITAÇÃO</button>
-        </form>
+            <button class="fab-edit" id="btn-floating-edit" onclick="alternarModo('edit')">✏️</button>
+        </div>
+
     </div>
 
     <script type="module">
@@ -165,10 +223,10 @@
         const db = getFirestore(app);
 
         // VARIÁVEIS GLOBAIS
-        let imagens = []; // Array de objetos { url: 'base64...', obs: 'texto' }
+        let imagens = []; 
         let indiceAtual = 0;
         let idEdicao = null;
-        let modoView = false;
+        let modoAtual = 'edit'; // 'edit' ou 'view'
 
         // --- INICIALIZAÇÃO ---
         window.onload = async () => {
@@ -176,10 +234,10 @@
             idEdicao = params.get('id');
             const mode = params.get('mode');
 
-            if (mode === 'view') {
-                modoView = true;
-                document.getElementById('main-container').classList.add('readonly');
-                document.querySelector('h2').innerText = "Visualizar Solicitação";
+            if (mode === 'view' && idEdicao) {
+                alternarModo('view');
+            } else {
+                alternarModo('edit');
             }
 
             if (idEdicao) {
@@ -191,6 +249,29 @@
             document.getElementById('camera-input').addEventListener('change', processarImagens);
         };
 
+        // --- ALTERNAR MODOS (VISUAL vs FORMULÁRIO) ---
+        window.alternarModo = (modo) => {
+            modoAtual = modo;
+            const editContainer = document.getElementById('edit-mode');
+            const viewContainer = document.getElementById('view-mode');
+            const captionEditArea = document.getElementById('edit-caption-area');
+
+            if (modo === 'view') {
+                editContainer.style.display = 'none';
+                viewContainer.style.display = 'block';
+                document.body.style.backgroundColor = '#1a252f'; // Fundo mais escuro pra destacar o card
+                captionEditArea.style.display = 'none'; // Esconde edição de legenda no modo leitura
+            } else {
+                editContainer.style.display = 'block';
+                viewContainer.style.display = 'none';
+                document.body.style.backgroundColor = '#222';
+                captionEditArea.style.display = 'block'; // Mostra input de legenda
+                
+                // Se estiver criando novo, atualiza a galeria para mostrar input
+                atualizarVisualizador();
+            }
+        }
+
         // --- CARREGAR DADOS ---
         async function carregarDados(id) {
             try {
@@ -198,8 +279,8 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // Preencher campos
-                    document.getElementById('display-num').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
+                    // --- PREENCHE FORMULÁRIO (EDIT) ---
+                    document.getElementById('display-num-edit').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     document.getElementById('in-cliente').value = data.cliente || '';
                     document.getElementById('in-empresa').value = data.empresa || '';
                     document.getElementById('in-servico').value = data.servico_titulo || '';
@@ -208,12 +289,35 @@
                     document.getElementById('in-endereco').value = data.endereco || '';
                     document.getElementById('in-instalacao').value = data.precisa_instalacao || 'Não';
                     document.getElementById('in-obs').value = data.observacoes || '';
-
-                    // Radio Button
                     const radios = document.getElementsByName('tipo');
-                    radios.forEach(r => {
-                        if(r.value === data.tipo_servico_material) r.checked = true;
-                    });
+                    radios.forEach(r => { if(r.value === data.tipo_servico_material) r.checked = true; });
+
+                    // --- PREENCHE CARD (VIEW) ---
+                    document.getElementById('view-id').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
+                    document.getElementById('view-tipo').innerText = data.tipo_servico_material || 'GERAL';
+                    document.getElementById('view-cliente').innerText = data.cliente || 'Consumidor Final';
+                    document.getElementById('view-empresa').innerText = data.empresa || '';
+                    document.getElementById('view-servico').innerText = data.servico_titulo || 'Solicitação sem título';
+                    document.getElementById('view-material').innerText = data.tipo_material || '-';
+                    document.getElementById('view-medidas').innerText = data.medidas || '-';
+                    
+                    const inst = data.precisa_instalacao || 'Não';
+                    const elInst = document.getElementById('view-instalacao');
+                    elInst.innerText = inst;
+                    elInst.style.color = inst === 'Sim' ? '#f1c40f' : '#eee';
+
+                    document.getElementById('view-endereco').innerText = data.endereco || 'Retirada no local';
+                    document.getElementById('view-obs').innerText = data.observacoes || 'Nenhuma observação registrada.';
+                    
+                    if(data.data_criacao) {
+                        const d = data.data_criacao.toDate();
+                        document.getElementById('view-data').innerText = d.toLocaleDateString('pt-BR');
+                    }
+
+                    // Botão flutuante de edição (leva para a mesma pagina em mode edit)
+                    document.getElementById('btn-floating-edit').onclick = function() {
+                        window.location.href = `solicitacao.html?id=${id}&mode=edit`;
+                    };
 
                     // Imagens
                     if(data.imagens && data.imagens.length > 0) {
@@ -234,11 +338,8 @@
 
             for (let file of files) {
                 const base64 = await comprimirImagem(file);
-                // Adiciona nova imagem ao array
                 imagens.push({ url: base64, obs: '' });
             }
-            
-            // Vai para a última imagem adicionada
             indiceAtual = imagens.length - 1;
             atualizarVisualizador();
         }
@@ -255,14 +356,14 @@
             const imgEl = document.getElementById('img-display');
             const msgEl = document.getElementById('no-photo-msg');
             const countEl = document.getElementById('photo-count');
-            const obsInput = document.getElementById('in-foto-obs');
+            const obsInput = document.getElementById('in-foto-obs'); // Input Edit
+            const captionDisplay = document.getElementById('caption-display'); // Texto View
 
             if (imagens.length === 0) {
                 imgEl.style.display = 'none';
                 msgEl.style.display = 'block';
                 countEl.innerText = "0 / 0";
-                obsInput.value = '';
-                obsInput.disabled = true;
+                captionDisplay.style.display = 'none';
                 return;
             }
 
@@ -272,9 +373,18 @@
             msgEl.style.display = 'none';
             countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
             
-            // Exibir anotação salva
-            obsInput.value = imagens[indiceAtual].obs || '';
-            obsInput.disabled = modoView; // Trava se for modo leitura
+            const legenda = imagens[indiceAtual].obs || '';
+            
+            // Atualiza Input de Edição
+            obsInput.value = legenda;
+
+            // Atualiza Texto de Visualização
+            if(legenda.trim() !== "") {
+                captionDisplay.innerText = legenda;
+                captionDisplay.style.display = 'block';
+            } else {
+                captionDisplay.style.display = 'none';
+            }
         }
 
         window.atualizarLegendaFoto = () => {
@@ -283,7 +393,6 @@
             }
         }
 
-        // Reuso da função de compressão (Leve e Eficiente)
         function comprimirImagem(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -312,7 +421,6 @@
             btn.disabled = true;
 
             try {
-                // Montar Objeto
                 const dados = {
                     tipo_servico_material: document.querySelector('input[name="tipo"]:checked').value,
                     cliente: document.getElementById('in-cliente').value,
@@ -323,17 +431,16 @@
                     endereco: document.getElementById('in-endereco').value,
                     precisa_instalacao: document.getElementById('in-instalacao').value,
                     observacoes: document.getElementById('in-obs').value,
-                    imagens: imagens, // Salva o array com base64 e legendas
+                    imagens: imagens, 
                     data_atualizacao: new Date()
                 };
 
                 if (idEdicao) {
-                    // ATUALIZAR
                     await updateDoc(doc(db, "orcamentos", idEdicao), dados);
                     alert("Atualizado com sucesso!");
+                    // Recarrega em modo VIEW para ver o resultado bonito
+                    window.location.href = `solicitacao.html?id=${idEdicao}&mode=view`;
                 } else {
-                    // CRIAR NOVO
-                    // 1. Descobrir o número do orçamento (Contar quantos existem + 1)
                     const coll = collection(db, "orcamentos");
                     const snapshot = await getCountFromServer(coll);
                     const novoNumero = snapshot.data().count + 1;
@@ -341,17 +448,15 @@
                     dados.numero_solicitacao = novoNumero;
                     dados.data_criacao = new Date();
 
-                    await addDoc(coll, dados);
-                    alert(`Solicitação #${novoNumero} criada com sucesso!`);
+                    const docRef = await addDoc(coll, dados);
+                    alert(`Solicitação #${novoNumero} criada!`);
+                    // Abre o card criado em modo VIEW
+                    window.location.href = `solicitacao.html?id=${docRef.id}&mode=view`;
                 }
-                
-                // Fecha a aba ou recarrega se for edição
-                if(!idEdicao) window.close(); 
-                else location.reload();
 
             } catch (e) {
                 console.error(e);
-                alert("Erro ao salvar (verifique se as imagens não são muito grandes).");
+                alert("Erro ao salvar (verifique tamanho das fotos).");
                 btn.innerText = "Tentar Novamente";
                 btn.disabled = false;
             }
