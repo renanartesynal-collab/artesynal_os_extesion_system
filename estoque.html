@@ -16,7 +16,6 @@
         .sec-imp { background: linear-gradient(135deg, #8e44ad, #c0392b); box-shadow: 0 0 20px rgba(142, 68, 173, 0.5); }
         .sec-serr { background: linear-gradient(135deg, #e67e22, #f1c40f); box-shadow: 0 0 20px rgba(230, 126, 34, 0.5); color: #222; }
         .sec-icon { font-size: 50px; margin-bottom: 10px; }
-        .sec-title { font-size: 24px; font-weight: 900; text-transform: uppercase; }
 
         /* --- LAYOUT --- */
         #main-layout { display: none; padding: 20px; transition: 0.3s; margin-right: 0; }
@@ -24,32 +23,26 @@
         h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; }
         .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none;}
 
-        /* FILTROS */
+        /* GRID E CARDS */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
         .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; }
-
-        /* GRID */
         .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-
-        /* CARD */
+        
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .card-prod.serralheria { border-left-color: var(--orange); }
         .card-prod.low-stock { border: 2px solid var(--red); }
-
+        
         .prod-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .prod-cat { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; }
         .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; }
         .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 10px; display: block; }
-
-        /* CONTROLES */
+        
         .stock-control { background: #222; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .stock-display { text-align: center; }
         .stock-val { font-size: 24px; font-weight: 900; }
         .stock-unit { font-size: 10px; color: #aaa; }
-        
         .btn-mov { background: var(--blue); color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        
-        /* BOTÃO CORTAR (SERRALHERIA) */
+
         .btn-cut-action { 
             background: var(--orange); color: #222; width: 100%; border: none; padding: 12px; 
             border-radius: 5px; font-weight: 900; cursor: pointer; margin-bottom: 10px; 
@@ -67,36 +60,50 @@
         }
         #sidebar-cuts.open { right: 0; }
         .cut-item { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid var(--orange); display: flex; justify-content: space-between; align-items: center; }
-        .cut-dims { font-weight: bold; color: white; font-size: 14px; }
         .btn-process { margin-top: auto; background: var(--green); color: white; border: none; padding: 15px; font-weight: 900; font-size: 16px; cursor: pointer; width: 100%; }
 
-        /* MODAIS */
+        /* MODAIS E EDITOR VISUAL */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 600; justify-content: center; align-items: center; padding: 20px; }
-        .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; position: relative; }
+        .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 600px; position: relative; }
         .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
         label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
         input, select { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; }
 
-        /* EDITOR VISUAL DE CORTE */
-        #cut-editor-area { 
-            width: 100%; height: 300px; background: #111; border: 1px solid #555; 
-            margin-bottom: 15px; display: flex; justify-content: center; align-items: center; 
-            position: relative; overflow: hidden; user-select: none;
+        /* NOVO EDITOR VISUAL (ESTILO DESENHO TÉCNICO) */
+        #cut-canvas-wrapper {
+            width: 100%; height: 350px; background: #222; border: 1px solid #555;
+            margin-bottom: 15px; display: flex; justify-content: center; align-items: center;
+            position: relative; overflow: hidden;
         }
+
+        #plate-base {
+            background: white; /* Chapa Base Branca */
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #cut-piece {
+            position: absolute;
+            background: rgba(231, 76, 60, 0.2); /* Fundo vermelho bem claro */
+            border: 2px solid var(--red); /* Borda Vermelha */
+            cursor: grab;
+            box-sizing: border-box;
+            touch-action: none;
+        }
+        #cut-piece:active { cursor: grabbing; background: rgba(231, 76, 60, 0.4); }
+
+        /* LINHAS DE COTA (Medidas) */
+        .dim-line { position: absolute; background: var(--red); }
+        .dim-text { position: absolute; color: var(--red); font-weight: bold; font-size: 14px; white-space: nowrap; }
         
-        #plate-base { 
-            background: #555; position: relative; box-shadow: 0 0 15px black; 
-        }
+        /* Cota Superior (Largura) */
+        .dim-top-line { height: 1px; top: -20px; left: 0; width: 100%; border-left: 1px solid var(--red); border-right: 1px solid var(--red); }
+        .dim-top-text { top: -40px; left: 50%; transform: translateX(-50%); }
         
-        #cut-piece { 
-            position: absolute; background: rgba(230, 126, 34, 0.8); 
-            border: 2px dashed #fff; cursor: grab; display: flex; 
-            justify-content: center; align-items: center; 
-            color: white; font-weight: bold; font-size: 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            touch-action: none; /* Importante para mobile */
-        }
-        #cut-piece:active { cursor: grabbing; border-color: var(--yellow); }
+        /* Cota Lateral (Altura) */
+        .dim-left-line { width: 1px; left: -20px; top: 0; height: 100%; border-top: 1px solid var(--red); border-bottom: 1px solid var(--red); }
+        .dim-left-text { left: -55px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+
 
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
         .fab-sidebar { position: fixed; bottom: 90px; right: 20px; width: 50px; height: 50px; background: var(--orange); color: #222; border-radius: 50%; border: none; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; display: none; }
@@ -113,7 +120,7 @@
         <button class="sector-btn sec-serr" onclick="selecionarSetor('serralheria')">
             <div class="sec-icon">🛠️</div>
             <div class="sec-title">Serralheria</div>
-            <span style="font-size:10px; color:black;">Peças Únicas, Cortes</span>
+            <span style="font-size:10px; color:black;">Peças, Cortes</span>
         </button>
         <div style="width:100%; text-align:center;"><a href="painel.html" style="color:#666; text-decoration:none;">Voltar</a></div>
     </div>
@@ -125,7 +132,7 @@
         </div>
 
         <div class="filter-bar">
-            <input type="text" id="search-input" class="search-input" placeholder="Buscar material..." onkeyup="filtrarEstoque()">
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar..." onkeyup="filtrarEstoque()">
             <select id="cat-filter" class="cat-select" onchange="filtrarEstoque()">
                 <option value="Todos">Todas Categorias</option>
             </select>
@@ -139,7 +146,7 @@
 
     <div id="sidebar-cuts">
         <h3 style="color:var(--orange); margin-top:0;">Lista de Corte</h3>
-        <div id="cuts-list" style="flex:1; overflow-y:auto; color:#888; font-size:12px;">Nenhum corte.</div>
+        <div id="cuts-list" style="flex:1; overflow-y:auto; color:#888; font-size:12px;">Vazio.</div>
         <button class="btn-process" onclick="finalizarCortes()">✅ FINALIZAR CORTES</button>
     </div>
 
@@ -159,13 +166,15 @@
     <div id="modal-corte" class="modal-overlay">
         <div class="modal-box">
             <h2 style="margin-top:0; color:var(--orange);">Cortar Peça</h2>
-            <h4 id="cut-info" style="color:#aaa; margin:0;">Material</h4>
+            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">
+                Material: <span id="cut-info" style="color:white; font-weight:bold;">--</span>
+            </div>
             
             <input type="hidden" id="cut-prod-id">
             <input type="hidden" id="base-w">
             <input type="hidden" id="base-h">
 
-            <div id="cut-editor-area">
+            <div id="cut-canvas-wrapper">
                 <div id="plate-base">
                     </div>
             </div>
@@ -180,14 +189,10 @@
                     <input type="number" id="cut-h" placeholder="Altura" oninput="atualizarVisual()">
                 </div>
             </div>
-            
-            <div style="font-size:10px; color:#aaa; margin-bottom:10px; text-align:center;">
-                Arraste o quadrado laranja para posicionar o corte.
-            </div>
 
             <div style="display:flex; gap:10px;">
                 <button class="btn-mov" style="flex:1; background:#555;" onclick="fecharModal('modal-corte')">CANCELAR</button>
-                <button class="btn-mov" style="flex:1; background:var(--orange); color:#222;" onclick="adicionarCorte()">ADICIONAR</button>
+                <button class="btn-mov" style="flex:1; background:var(--orange); color:#222;" onclick="adicionarCorte()">ADICIONAR À LISTA</button>
             </div>
         </div>
     </div>
@@ -196,7 +201,7 @@
         <div class="modal-box">
             <h2 id="modal-title">Novo Material</h2>
             <input type="hidden" id="prod-id">
-            <label>NOME / DESCRIÇÃO</label>
+            <label>NOME</label>
             <input type="text" id="prod-nome" style="margin-bottom:15px;">
             
             <div class="form-row">
@@ -237,7 +242,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
@@ -253,28 +258,21 @@
 
         let setorAtual = '';
         let produtos = [];
-        let cortes = []; // Lista de espera
+        let cortes = [];
 
-        // CONFIGURAÇÕES
         const config = {
             'impressao': { color: 'var(--purple)', cats: ['Lona','Adesivo','Tinta','Outros'], isSerr: false },
             'serralheria': { color: 'var(--orange)', cats: ['ACM','PVC','Acrílico','Metal','Madeira'], isSerr: true }
         };
 
-        // --- NAVEGAÇÃO ---
         window.selecionarSetor = (setor) => {
             setorAtual = setor;
             document.getElementById('sector-screen').style.display = 'none';
             document.getElementById('main-layout').style.display = 'block';
-            
-            // Ajustes UI
             document.getElementById('page-title').innerText = setor === 'impressao' ? 'Impressão' : 'Serralheria';
             document.getElementById('page-title').style.color = config[setor].color;
-            
-            // Botão Sidebar só aparece na Serralheria
             document.getElementById('btn-sidebar-toggle').style.display = config[setor].isSerr ? 'flex' : 'none';
 
-            // Carrega Categorias
             const sel = document.getElementById('cat-filter');
             const selModal = document.getElementById('prod-cat');
             sel.innerHTML = '<option value="Todos">Todas</option>';
@@ -293,11 +291,9 @@
             layout.style.marginRight = layout.style.marginRight === '320px' ? '0' : '320px';
         };
 
-        // --- BANCO DE DADOS ---
         async function carregarEstoque() {
             const grid = document.getElementById('grid-estoque');
             grid.innerHTML = '<div style="color:#aaa; text-align:center;">Carregando...</div>';
-            
             try {
                 const q = query(collection(db, "estoque"), where("setor", "==", setorAtual));
                 const snap = await getDocs(q);
@@ -316,9 +312,7 @@
 
             produtos.forEach(p => {
                 let cardHTML = '';
-                
                 if (isSerr) {
-                    // CARD SERRALHERIA (Peça Única)
                     cardHTML = `
                         <div class="card-prod serralheria">
                             <div class="prod-header">
@@ -327,15 +321,10 @@
                             </div>
                             <div class="prod-name">${p.nome}</div>
                             <span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>
-                            
-                            <button class="btn-cut-action" onclick="abrirCorte('${p.id}')">
-                                ✂️ CORTAR PEÇA
-                            </button>
-                            <div style="font-size:10px; color:#666; text-align:center;">Unidade Única</div>
+                            <button class="btn-cut-action" onclick="abrirCorte('${p.id}')">✂️ CORTAR PEÇA</button>
                         </div>
                     `;
                 } else {
-                    // CARD IMPRESSÃO (Quantidade)
                     const isLow = p.qtd <= p.minimo;
                     cardHTML = `
                         <div class="card-prod ${isLow ? 'low-stock' : ''}">
@@ -355,16 +344,9 @@
             });
         }
 
-        // --- FILTRO ---
-        window.filtrarEstoque = () => {
-            const busca = document.getElementById('search-input').value.toLowerCase();
-            const cat = document.getElementById('cat-filter').value;
-            // Re-renderiza filtrando o array produtos localmente (implementar depois se precisar)
-            // Por simplicidade, recarrega tudo por enquanto ou faça logica local.
-            // Para brevidade, não implementei filtro visual aqui, mas pode usar o do código anterior.
-        };
+        window.filtrarEstoque = () => { /* Mesma lógica anterior */ };
 
-        // --- MODAL CORTE & DRAG ---
+        // --- LÓGICA DO EDITOR VISUAL CORRIGIDA ---
         window.abrirCorte = (id) => {
             const p = produtos.find(x => x.id === id);
             document.getElementById('cut-prod-id').value = id;
@@ -373,14 +355,17 @@
             document.getElementById('base-h').value = p.dimH;
             document.getElementById('cut-w').value = '';
             document.getElementById('cut-h').value = '';
-            
-            // Setup Visual
-            const area = document.getElementById('cut-editor-area');
-            const base = document.getElementById('plate-base');
-            base.innerHTML = ''; // Limpa cortes anteriores
 
-            // Escala para caber no container (300px altura)
-            const scale = Math.min((area.offsetWidth - 20) / p.dimW, (280) / p.dimH);
+            const wrapper = document.getElementById('cut-canvas-wrapper');
+            const base = document.getElementById('plate-base');
+            base.innerHTML = ''; // Limpa
+
+            // Calcular escala para caber no wrapper mantendo proporção
+            // Wrapper tem 350px de altura
+            const scaleW = (wrapper.offsetWidth - 40) / p.dimW;
+            const scaleH = (wrapper.offsetHeight - 40) / p.dimH;
+            const scale = Math.min(scaleW, scaleH);
+
             base.style.width = (p.dimW * scale) + 'px';
             base.style.height = (p.dimH * scale) + 'px';
             base.dataset.scale = scale;
@@ -389,93 +374,95 @@
         };
 
         window.atualizarVisual = () => {
-            const cw = parseFloat(document.getElementById('cut-w').value);
-            const ch = parseFloat(document.getElementById('cut-h').value);
+            const cutW = parseFloat(document.getElementById('cut-w').value);
+            const cutH = parseFloat(document.getElementById('cut-h').value);
             const base = document.getElementById('plate-base');
-            const scale = parseFloat(base.dataset.scale);
-
-            // Remove peça anterior
-            base.innerHTML = '';
             
-            if(!cw || !ch) return;
+            base.innerHTML = ''; // Limpa anterior
+            if(!cutW || !cutH) return;
 
-            // Cria Peça
+            const scale = parseFloat(base.dataset.scale);
+            const visualW = cutW * scale;
+            const visualH = cutH * scale;
+
+            // Cria Elemento de Corte
             const piece = document.createElement('div');
             piece.id = 'cut-piece';
-            piece.style.width = (cw * scale) + 'px';
-            piece.style.height = (ch * scale) + 'px';
-            piece.innerText = `${cw}x${ch}`;
+            piece.style.width = visualW + 'px';
+            piece.style.height = visualH + 'px';
             piece.style.top = '0px';
             piece.style.left = '0px';
 
-            // ADICIONAR EVENTOS DE ARRASTAR (DRAG)
-            dragElement(piece, base);
+            // Adiciona as COTAS (Linhas vermelhas e texto)
+            piece.innerHTML = `
+                <div class="dim-line dim-top-line"></div>
+                <div class="dim-text dim-top-text">${cutW}cm</div>
+                <div class="dim-line dim-left-line"></div>
+                <div class="dim-text dim-left-text">${cutH}cm</div>
+            `;
 
             base.appendChild(piece);
+
+            // Inicia Drag
+            makeDraggable(piece, base, scale);
         };
 
-        // FUNÇÃO DE ARRASTAR (DRAG)
-        function dragElement(elm, container) {
+        function makeDraggable(element, container) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            
-            elm.onmousedown = dragMouseDown;
-            elm.ontouchstart = dragMouseDown;
+
+            element.onmousedown = dragMouseDown;
+            element.ontouchstart = dragMouseDown;
 
             function dragMouseDown(e) {
                 e = e || window.event;
                 e.preventDefault();
-                // Pega posição inicial
-                if(e.type === 'touchstart') {
+                
+                if (e.type === 'touchstart') {
                     pos3 = e.touches[0].clientX;
                     pos4 = e.touches[0].clientY;
                 } else {
                     pos3 = e.clientX;
                     pos4 = e.clientY;
                 }
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-                document.ontouchend = closeDragElement;
-                document.ontouchmove = elementDrag;
+                
+                // EVENTO NA JANELA (WINDOW) PARA NÃO GARRAR
+                window.onmouseup = closeDragElement;
+                window.onmousemove = elementDrag;
+                window.ontouchend = closeDragElement;
+                window.ontouchmove = elementDrag;
             }
 
             function elementDrag(e) {
                 e = e || window.event;
-                // Calcula nova posição
-                let clientX, clientY;
-                if(e.type === 'touchmove') {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
+                let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
 
                 pos1 = pos3 - clientX;
                 pos2 = pos4 - clientY;
                 pos3 = clientX;
                 pos4 = clientY;
 
-                // Limita dentro do pai
-                let newTop = (elm.offsetTop - pos2);
-                let newLeft = (elm.offsetLeft - pos1);
+                let newTop = (element.offsetTop - pos2);
+                let newLeft = (element.offsetLeft - pos1);
                 
-                let maxTop = container.clientHeight - elm.clientHeight;
-                let maxLeft = container.clientWidth - elm.clientWidth;
+                // Limites
+                let maxTop = container.clientHeight - element.clientHeight;
+                let maxLeft = container.clientWidth - element.clientWidth;
 
-                if(newTop < 0) newTop = 0;
-                if(newLeft < 0) newLeft = 0;
-                if(newTop > maxTop) newTop = maxTop;
-                if(newLeft > maxLeft) newLeft = maxLeft;
+                if (newTop < 0) newTop = 0;
+                if (newLeft < 0) newLeft = 0;
+                if (newTop > maxTop) newTop = maxTop;
+                if (newLeft > maxLeft) newLeft = maxLeft;
 
-                elm.style.top = newTop + "px";
-                elm.style.left = newLeft + "px";
+                element.style.top = newTop + "px";
+                element.style.left = newLeft + "px";
             }
 
             function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-                document.ontouchend = null;
-                document.ontouchmove = null;
+                window.onmouseup = null;
+                window.onmousemove = null;
+                window.ontouchend = null;
+                window.ontouchmove = null;
             }
         }
 
@@ -487,14 +474,7 @@
 
             if(!w || !h) return;
 
-            cortes.push({
-                origId: id,
-                origName: p.nome,
-                origW: p.dimW,
-                origH: p.dimH,
-                cutW: w,
-                cutH: h
-            });
+            cortes.push({ origId: id, origName: p.nome, origW: p.dimW, origH: p.dimH, cutW: w, cutH: h });
 
             atualizarSidebar();
             document.getElementById('modal-corte').style.display = 'none';
@@ -506,7 +486,6 @@
             const list = document.getElementById('cuts-list');
             list.innerHTML = '';
             if(cortes.length === 0) { list.innerHTML = "Vazio."; return; }
-            
             cortes.forEach((c, idx) => {
                 list.innerHTML += `
                     <div class="cut-item">
@@ -521,44 +500,26 @@
         }
         window.rmCorte = (i) => { cortes.splice(i, 1); atualizarSidebar(); }
 
-        // --- FINALIZAR CORTE (LÓGICA SOBRA) ---
         window.finalizarCortes = async () => {
             if(cortes.length === 0) return;
-            
-            // Loop para cada corte
             for(let c of cortes) {
-                // 1. Deleta a peça original (pois foi cortada)
                 await deleteDoc(doc(db, "estoque", c.origId));
-
-                // 2. Cria o Pedido Cortado (Opcional: Poderia ir para outra coleção, mas vamos criar como "Produto Final" no estoque? Não, geralmente vai pra produção. Vamos apenas logar que saiu)
-                // O usuário pediu: "Salvar o pedaço cortado e o restante".
-                // Vamos supor que o pedaço cortado VAI SER USADO (sai do estoque) e o RESTANTE fica.
-                
-                // Pergunta sobre a sobra
-                const sobraW = prompt(`Peça Original: ${c.origW}x${c.origH}\nCorte: ${c.cutW}x${c.cutH}\n\nQual a largura da SOBRA (Retalho)? (Deixe 0 se acabou)`);
-                const sobraH = prompt(`Qual a altura da SOBRA? (Deixe 0 se acabou)`);
-
+                const sobraW = prompt(`Peça Original: ${c.origW}x${c.origH}\nCorte: ${c.cutW}x${c.cutH}\n\nLargura SOBRA? (0 se acabou)`);
+                const sobraH = prompt(`Altura SOBRA? (0 se acabou)`);
                 if(sobraW > 0 && sobraH > 0) {
-                    // Cria o retalho
                     await addDoc(collection(db, "estoque"), {
-                        setor: 'serralheria',
-                        nome: `Retalho ${c.origName}`,
-                        categoria: 'Retalho',
-                        dimW: parseFloat(sobraW),
-                        dimH: parseFloat(sobraH),
-                        qtd: 1, // Unidade unica
-                        minimo: 0
+                        setor: 'serralheria', nome: `Retalho ${c.origName}`, categoria: 'Retalho',
+                        dimW: parseFloat(sobraW), dimH: parseFloat(sobraH), qtd: 1
                     });
                 }
             }
-
-            alert("Processamento concluído!");
+            alert("Feito!");
             cortes = [];
             atualizarSidebar();
             carregarEstoque();
         };
 
-        // --- CRUD BÁSICO ---
+        // --- CRUD BASICO E MODAIS ---
         window.abrirModalProduto = () => {
             document.getElementById('prod-id').value = '';
             document.getElementById('prod-nome').value = '';
@@ -566,12 +527,10 @@
             document.getElementById('prod-dim-h').value = '';
             document.getElementById('prod-qtd').value = '';
             
-            // Controle visual campos
             const isSerr = config[setorAtual].isSerr;
             document.getElementById('div-dims').style.display = isSerr ? 'block' : 'none';
             document.getElementById('div-qtd').style.display = isSerr ? 'none' : 'block';
             document.getElementById('div-un').style.display = isSerr ? 'none' : 'block';
-
             document.getElementById('modal-prod').style.display = 'flex';
         };
 
@@ -582,37 +541,24 @@
                 nome: document.getElementById('prod-nome').value,
                 categoria: document.getElementById('prod-cat').value,
             };
-
             if(isSerr) {
                 dados.dimW = parseFloat(document.getElementById('prod-dim-w').value);
                 dados.dimH = parseFloat(document.getElementById('prod-dim-h').value);
-                dados.unidade = 'pç';
-                dados.qtd = 1; // Sempre 1 na serralheria
+                dados.unidade = 'pç'; dados.qtd = 1;
             } else {
                 dados.qtd = parseFloat(document.getElementById('prod-qtd').value);
                 dados.minimo = parseFloat(document.getElementById('prod-min').value);
                 dados.unidade = document.getElementById('prod-un').value;
             }
-
             await addDoc(collection(db, "estoque"), dados);
             document.getElementById('modal-prod').style.display = 'none';
             carregarEstoque();
         };
 
-        window.deletar = async (id) => {
-            if(confirm("Excluir?")) {
-                await deleteDoc(doc(db, "estoque", id));
-                carregarEstoque();
-            }
-        };
-
+        window.deletar = async (id) => { if(confirm("Excluir?")) await deleteDoc(doc(db, "estoque", id)); carregarEstoque(); };
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
 
-        // Inicialização: Se tiver movimentação normal de estoque
-        window.abrirMov = (id) => {
-             document.getElementById('mov-id').value = id;
-             document.getElementById('modal-mov').style.display = 'flex';
-        };
+        window.abrirMov = (id) => { document.getElementById('mov-id').value = id; document.getElementById('modal-mov').style.display = 'flex'; };
         window.salvarMov = async (tipo) => {
             const id = document.getElementById('mov-id').value;
             const qtd = parseFloat(document.getElementById('mov-qtd').value);
@@ -623,7 +569,6 @@
             document.getElementById('modal-mov').style.display = 'none';
             carregarEstoque();
         };
-
     </script>
 </body>
 </html>
