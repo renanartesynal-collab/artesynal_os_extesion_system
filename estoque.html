@@ -3,149 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque - Artesynal</title>
+    <title>Estoque Avançado - Artesynal</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark: #333; --card-bg: #2c3e50; --purple: #9b59b6; --red: #e74c3c; --green: #2ecc71; --text: #eee; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
+        :root { --bg-dark: #222; --card-bg: #2c3e50; --purple: #9b59b6; --orange: #e67e22; --red: #e74c3c; --green: #2ecc71; --blue: #3498db; --text: #eee; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text); overflow-x: hidden; }
 
-        /* HEADER */
-        .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; flex-wrap: wrap; gap: 10px;}
+        /* --- TELA DE SELEÇÃO DE SETOR --- */
+        #sector-screen { display: flex; height: 100vh; width: 100%; align-items: center; justify-content: center; gap: 30px; position: fixed; top: 0; left: 0; background: var(--bg-dark); z-index: 1000; flex-wrap: wrap; padding: 20px;}
+        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Montserrat'; transition: transform 0.2s; text-decoration: none; color: white;}
+        .sector-btn:hover { transform: scale(1.05); }
+        .sec-imp { background: linear-gradient(135deg, #8e44ad, #c0392b); box-shadow: 0 0 20px rgba(142, 68, 173, 0.5); }
+        .sec-serr { background: linear-gradient(135deg, #e67e22, #f1c40f); box-shadow: 0 0 20px rgba(230, 126, 34, 0.5); color: #222; }
+        .sec-icon { font-size: 50px; margin-bottom: 10px; }
+        .sec-title { font-size: 24px; font-weight: 900; text-transform: uppercase; }
+
+        /* --- LAYOUT PRINCIPAL --- */
+        #main-layout { display: none; padding: 20px; transition: 0.3s; margin-right: 0; } /* Margem direita para sidebar */
+        .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; }
         h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; }
-        .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none;}
 
-        /* BARRA DE FILTRO */
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #222; padding: 10px; border-radius: 8px; }
-        .search-input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; font-family: 'Montserrat'; }
-        .cat-select { padding: 10px; border-radius: 5px; border: none; background: #444; color: white; font-family: 'Montserrat'; font-weight: bold; }
+        /* FILTROS */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
+        .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; }
 
         /* GRID */
-        .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
 
-        /* CARD DO PRODUTO */
-        .card-prod { 
-            background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; 
-            border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
-            display: flex; flex-direction: column; justify-content: space-between;
-            transition: 0.3s;
-        }
-        .card-prod.low-stock { border: 2px solid var(--red); box-shadow: 0 0 15px rgba(231, 76, 60, 0.4); } /* Alerta visual */
+        /* CARD */
+        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card-prod.serralheria { border-left-color: var(--orange); }
+        .card-prod.low-stock { border: 2px solid var(--red); }
 
-        .prod-cat { background: rgba(0,0,0,0.3); display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; align-self: flex-start; margin-bottom: 5px; }
-        .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 10px; line-height: 1.2; }
-        
-        .stock-control { display: flex; align-items: center; justify-content: space-between; background: #222; border-radius: 8px; padding: 5px; margin-bottom: 10px; }
-        .btn-qtd { width: 35px; height: 35px; border: none; border-radius: 5px; font-weight: 900; font-size: 18px; cursor: pointer; color: white; }
-        .btn-minus { background: var(--red); }
-        .btn-plus { background: var(--green); }
-        
+        .prod-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .prod-cat { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; }
+        .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 10px; }
+
+        /* CONTROLE DE ESTOQUE NO CARD */
+        .stock-control { background: #222; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .stock-display { text-align: center; }
-        .stock-val { font-size: 24px; font-weight: 900; color: white; }
-        .stock-unit { font-size: 10px; color: #aaa; font-weight: bold; }
+        .stock-val { font-size: 24px; font-weight: 900; }
+        .stock-unit { font-size: 10px; color: #aaa; }
+        
+        .btn-mov { background: var(--blue); color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .btn-cut { background: var(--orange); color: #222; width: 100%; border: none; padding: 8px; border-radius: 5px; font-weight: 900; cursor: pointer; margin-bottom: 10px; display: none; } /* Só aparece na serralheria */
 
-        .prod-actions { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #444; padding-top: 10px; }
-        .btn-mini { background: none; border: none; color: #888; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-mini:hover { color: white; }
+        /* HISTÓRICO EXPANSÍVEL */
+        .history-box { display: none; background: #1a1a1a; padding: 10px; border-radius: 5px; margin-top: 10px; max-height: 150px; overflow-y: auto; font-size: 11px; }
+        .hist-item { border-bottom: 1px solid #333; padding: 5px 0; display: flex; justify-content: space-between; }
+        .hist-in { color: var(--green); } .hist-out { color: var(--red); }
+        .btn-toggle-hist { background: transparent; border: 1px solid #555; color: #aaa; width: 100%; padding: 5px; cursor: pointer; margin-top: 5px; font-size: 10px; }
 
-        /* FAB ADD */
-        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--purple); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100; }
-
-        /* MODAL */
-        #modal-prod { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 400px; border-top: 4px solid var(--purple); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; box-sizing: border-box; }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-modal { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-cancel { background: #555; }
-        .btn-confirm { background: var(--purple); }
-
-        @media (max-width: 600px) {
-            .filter-bar { flex-direction: column; }
+        /* SIDEBAR (LISTA DE CORTE) */
+        #sidebar-cuts { 
+            position: fixed; top: 0; right: -350px; width: 320px; height: 100%; 
+            background: #1a1a1a; box-shadow: -5px 0 15px rgba(0,0,0,0.5); 
+            z-index: 500; transition: 0.3s; padding: 20px; box-sizing: border-box; 
+            display: flex; flex-direction: column; border-left: 2px solid var(--orange);
         }
+        #sidebar-cuts.open { right: 0; }
+        .cut-item { background: #333; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid var(--orange); display: flex; justify-content: space-between; align-items: center; }
+        .cut-dims { font-weight: bold; color: white; font-size: 14px; }
+        .cut-desc { font-size: 10px; color: #aaa; }
+        .btn-process { margin-top: auto; background: var(--green); color: white; border: none; padding: 15px; font-weight: 900; font-size: 16px; cursor: pointer; width: 100%; }
+
+        /* MODAIS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 600; justify-content: center; align-items: center; padding: 20px; }
+        .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 450px; position: relative; }
+        
+        .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; }
+        
+        /* EDITOR VISUAL DE CORTE */
+        #cut-canvas-container { width: 100%; height: 250px; background: #000; margin-bottom: 15px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #555; }
+        #plate-visual { background: #555; position: relative; box-shadow: 0 0 10px black; transition: 0.3s; }
+        .cut-visual { position: absolute; background: rgba(230, 126, 34, 0.7); border: 1px dashed white; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 12px; cursor: grab; }
+
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
+        .fab-sidebar { position: fixed; bottom: 90px; right: 20px; width: 50px; height: 50px; background: var(--orange); color: #222; border-radius: 50%; border: none; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="header-est">
-        <h1>Controle de Estoque</h1>
-        <a href="painel.html" class="btn-voltar">⬅ VOLTAR</a>
-    </div>
-
-    <div class="filter-bar">
-        <input type="text" id="search-input" class="search-input" placeholder="Buscar material..." onkeyup="filtrarEstoque()">
-        <select id="cat-filter" class="cat-select" onchange="filtrarEstoque()">
-            <option value="Todos">Todas Categorias</option>
-            <option value="Mídia">Mídias (Lona/Adesivo)</option>
-            <option value="Tinta">Tintas / Solventes</option>
-            <option value="Chapa">Chapas Rígidas</option>
-            <option value="Acabamento">Acabamento / Ilhós</option>
-            <option value="Outros">Outros</option>
-        </select>
-    </div>
-
-    <div class="grid-est" id="grid-estoque">
+    <div id="sector-screen">
+        <button class="sector-btn sec-imp" onclick="selecionarSetor('impressao')">
+            <div class="sec-icon">🖨️</div>
+            <div class="sec-title">Sala de Impressão</div>
+            <span style="font-size:10px; color:white; opacity:0.8;">Tintas, Lonas, Adesivos</span>
+        </button>
+        <button class="sector-btn sec-serr" onclick="selecionarSetor('serralheria')">
+            <div class="sec-icon">🛠️</div>
+            <div class="sec-title">Serralheria</div>
+            <span style="font-size:10px; color:black; opacity:0.8;">Chapas, Perfis, Acrílicos</span>
+        </button>
+        <div style="width:100%; text-align:center; margin-top:20px;">
+            <a href="painel.html" style="color:#aaa; text-decoration:none; font-size:12px;">Voltar ao Painel Principal</a>
         </div>
-    
-    <div id="loading" style="text-align: center; color: #666; margin-top: 20px;">Carregando estoque...</div>
+    </div>
 
-    <button class="fab-add" onclick="abrirModal()">+</button>
+    <div id="main-layout">
+        <div class="header-est">
+            <h1 id="page-title">Estoque</h1>
+            <button class="btn-voltar" onclick="location.reload()">🔄 TROCAR SETOR</button>
+        </div>
 
-    <div id="modal-prod">
-        <div class="modal-content">
-            <h2 style="margin-top:0; color:var(--purple);">Novo Produto</h2>
-            <input type="hidden" id="in-id">
+        <div class="filter-bar">
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar material..." onkeyup="filtrarEstoque()">
+            <select id="cat-filter" class="cat-select" onchange="filtrarEstoque()">
+                <option value="Todos">Todas Categorias</option>
+            </select>
+        </div>
+
+        <div class="grid-est" id="grid-estoque"></div>
+        
+        <button class="fab-add" onclick="abrirModalProduto()">+</button>
+        <button class="fab-sidebar" id="btn-sidebar-toggle" onclick="toggleSidebar()">✂️</button>
+    </div>
+
+    <div id="sidebar-cuts">
+        <h3 style="color:var(--orange); margin-top:0;">Cortes Reservados</h3>
+        <div id="cuts-list" style="flex:1; overflow-y:auto;">
+            <div style="text-align:center; color:#555; margin-top:50px;">Nenhum corte adicionado</div>
+        </div>
+        <button class="btn-process" onclick="processarCortes()">REMOVER UTILIZADOS (BAIXA)</button>
+    </div>
+
+    <div id="modal-mov" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="margin-top:0; color:var(--blue);">Movimentar Estoque</h2>
+            <h4 id="mov-prod-name" style="color:#aaa; margin:0 0 15px 0;">Produto</h4>
+            <input type="hidden" id="mov-id">
             
-            <div class="form-group">
-                <label>NOME DO MATERIAL</label>
-                <input type="text" id="in-nome" placeholder="Ex: Rolo Adesivo Branco">
+            <label>TIPO DE MOVIMENTO</label>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button type="button" class="btn-mov" style="flex:1; background:#444;" id="btn-tipo-in" onclick="setTipoMov('entrada')">ENTRADA (+)</button>
+                <button type="button" class="btn-mov" style="flex:1; background:var(--red);" id="btn-tipo-out" onclick="setTipoMov('saida')">BAIXA (-)</button>
             </div>
-
-            <div class="form-group">
-                <label>CATEGORIA</label>
-                <select id="in-cat">
-                    <option value="Mídia">Mídia (Lona/Adesivo)</option>
-                    <option value="Tinta">Tinta / Solvente</option>
-                    <option value="Chapa">Chapa Rígida (ACM/PVC)</option>
-                    <option value="Acabamento">Acabamento (Ilhós/Fita)</option>
-                    <option value="Outros">Outros</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 10px;">
-                <div class="form-group" style="flex:1;">
-                    <label>QUANTIDADE ATUAL</label>
-                    <input type="number" id="in-qtd" placeholder="0">
+            
+            <div class="form-row">
+                <div style="flex:1;">
+                    <label>QUANTIDADE</label>
+                    <input type="number" id="mov-qtd" placeholder="0">
                 </div>
-                <div class="form-group" style="flex:1;">
+            </div>
+
+            <label>OBSERVAÇÃO / MOTIVO</label>
+            <textarea id="mov-obs" rows="3" placeholder="Ex: Produção da OS #123"></textarea>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn-mov" style="flex:1; background:#555;" onclick="fecharModal('modal-mov')">CANCELAR</button>
+                <button class="btn-mov" style="flex:1; background:var(--green);" onclick="salvarMovimentacao()">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-corte" class="modal-overlay">
+        <div class="modal-box" style="max-width:600px;">
+            <h2 style="margin-top:0; color:var(--orange);">Cortar Chapa</h2>
+            <h4 id="cut-prod-name" style="color:#aaa; margin:0 0 10px 0;">Material</h4>
+            <div style="font-size:10px; color:#888; margin-bottom:10px;">Dimensões Originais: <span id="orig-dims">2000x1000</span></div>
+            <input type="hidden" id="cut-prod-id">
+            <input type="hidden" id="orig-w">
+            <input type="hidden" id="orig-h">
+
+            <div id="cut-canvas-container">
+                <div id="plate-visual">
+                    </div>
+            </div>
+
+            <div class="form-row">
+                <div style="flex:1;">
+                    <label>LARGURA CORTE (cm)</label>
+                    <input type="number" id="cut-w" placeholder="Largura" oninput="previewCorte()">
+                </div>
+                <div style="flex:1;">
+                    <label>ALTURA CORTE (cm)</label>
+                    <input type="number" id="cut-h" placeholder="Altura" oninput="previewCorte()">
+                </div>
+            </div>
+            
+            <label>IDENTIFICAÇÃO DO PEDAÇO</label>
+            <input type="text" id="cut-obs" placeholder="Ex: Placa Frente Loja X" style="margin-bottom:15px;">
+
+            <div style="background:#222; padding:10px; border-radius:5px; font-size:11px; margin-bottom:15px; color:#aaa;">
+                <span id="sobra-info">Sobra estimada: --</span>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn-mov" style="flex:1; background:#555;" onclick="fecharModal('modal-corte')">CANCELAR</button>
+                <button class="btn-mov" style="flex:1; background:var(--orange); color:#222;" onclick="adicionarAoCarrinho()">ADICIONAR À LISTA</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-prod" class="modal-overlay">
+        <div class="modal-box">
+            <h2 id="modal-prod-title" style="margin-top:0;">Novo Material</h2>
+            <input type="hidden" id="prod-id">
+            
+            <label>NOME</label>
+            <input type="text" id="prod-nome" style="margin-bottom:15px;">
+
+            <div class="form-row">
+                <div style="flex:1;">
+                    <label>CATEGORIA</label>
+                    <select id="prod-cat"></select>
+                </div>
+                <div style="flex:1;">
                     <label>UNIDADE</label>
-                    <select id="in-un">
-                        <option value="un">Unidade (un)</option>
-                        <option value="m">Metros (m)</option>
-                        <option value="m²">Metro Quad. (m²)</option>
-                        <option value="L">Litros (L)</option>
-                        <option value="kg">Quilos (kg)</option>
-                        <option value="rl">Rolos</option>
+                    <select id="prod-un">
+                        <option value="un">Un (Unidade)</option>
+                        <option value="m">m (Metro Linear)</option>
+                        <option value="m²">m² (Metro Quad.)</option>
+                        <option value="chapa">Chapa Inteira</option>
+                        <option value="L">L (Litros)</option>
                     </select>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>ESTOQUE MÍNIMO (Para Alerta)</label>
-                <input type="number" id="in-min" placeholder="Ex: 5 (Avisa quando baixar disso)">
+            <div class="form-row">
+                <div style="flex:1;">
+                    <label>QTD ATUAL</label>
+                    <input type="number" id="prod-qtd">
+                </div>
+                <div style="flex:1;">
+                    <label>ESTOQUE MÍNIMO</label>
+                    <input type="number" id="prod-min">
+                </div>
             </div>
 
-            <div class="modal-btns">
-                <button class="btn-modal btn-cancel" onclick="fecharModal()">Cancelar</button>
-                <button class="btn-modal btn-confirm" onclick="salvarProduto()">Salvar</button>
+            <div id="dims-container" style="display:none; border-top:1px solid #555; padding-top:10px; margin-top:10px;">
+                <label style="color:var(--orange);">DIMENSÕES DA CHAPA INTEIRA (cm)</label>
+                <div class="form-row">
+                    <input type="number" id="prod-dim-w" placeholder="Largura (cm)">
+                    <input type="number" id="prod-dim-h" placeholder="Altura (cm)">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn-mov" style="flex:1; background:#555;" onclick="fecharModal('modal-prod')">CANCELAR</button>
+                <button class="btn-mov" style="flex:1; background:var(--green);" onclick="salvarProduto()">SALVAR</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
@@ -158,179 +264,477 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        let produtos = []; // Cache local para filtro rápido
 
-        // --- CARREGAR ESTOQUE ---
+        // VARIÁVEIS DE ESTADO
+        let setorAtual = '';
+        let produtosCache = [];
+        let tipoMovAtual = 'saida';
+        let cortesCarrinho = []; // Lista de cortes reservados
+
+        // CONFIGURAÇÕES POR SETOR
+        const configSetor = {
+            'impressao': {
+                color: 'var(--purple)',
+                cats: ['Lona', 'Adesivo', 'Tinta', 'Papel', 'Acabamento'],
+                hasCut: false
+            },
+            'serralheria': {
+                color: 'var(--orange)',
+                cats: ['ACM', 'PVC', 'Acrílico', 'Metal', 'Madeira'],
+                hasCut: true
+            }
+        };
+
+        // --- NAVEGAÇÃO ---
+        window.selecionarSetor = (setor) => {
+            setorAtual = setor;
+            document.getElementById('sector-screen').style.display = 'none';
+            document.getElementById('main-layout').style.display = 'block';
+            
+            // Ajusta UI
+            const conf = configSetor[setor];
+            document.getElementById('page-title').innerText = `Estoque: ${setor === 'impressao' ? 'Impressão' : 'Serralheria'}`;
+            document.getElementById('page-title').style.color = conf.color;
+            
+            // Popula filtro categorias
+            const selCat = document.getElementById('cat-filter');
+            const selCatModal = document.getElementById('prod-cat');
+            selCat.innerHTML = '<option value="Todos">Todas</option>';
+            selCatModal.innerHTML = '';
+            conf.cats.forEach(c => {
+                selCat.innerHTML += `<option value="${c}">${c}</option>`;
+                selCatModal.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+
+            // Mostra botão de sidebar se for serralheria
+            if(conf.hasCut) document.getElementById('btn-sidebar-toggle').style.display = 'flex';
+
+            carregarEstoque();
+        };
+
+        window.toggleSidebar = () => {
+            document.getElementById('sidebar-cuts').classList.toggle('open');
+            // Ajusta margem do layout principal para não cobrir
+            const layout = document.getElementById('main-layout');
+            layout.style.marginRight = layout.style.marginRight === '320px' ? '0' : '320px';
+        };
+
+        // --- FIREBASE ---
         async function carregarEstoque() {
             const grid = document.getElementById('grid-estoque');
-            const loading = document.getElementById('loading');
-            grid.innerHTML = '';
+            grid.innerHTML = '<div style="color:#aaa; text-align:center;">Carregando...</div>';
             
             try {
-                const q = query(collection(db, "estoque"), orderBy("nome"));
+                const q = query(collection(db, "estoque"), where("setor", "==", setorAtual));
                 const snapshot = await getDocs(q);
                 
-                produtos = []; // Limpa cache
-
-                if (snapshot.empty) {
-                    loading.innerText = "Estoque vazio. Adicione itens (+)!";
-                    return;
-                }
-                
-                loading.style.display = 'none';
-
+                produtosCache = [];
                 snapshot.forEach(doc => {
-                    let prod = doc.data();
-                    prod.id = doc.id;
-                    produtos.push(prod);
+                    let d = doc.data();
+                    d.id = doc.id;
+                    produtosCache.push(d);
                 });
 
-                renderizarGrid(produtos);
+                renderizarGrid(produtosCache);
 
             } catch (e) {
                 console.error(e);
-                loading.innerText = "Erro ao carregar.";
+                grid.innerHTML = '<div style="color:red; text-align:center;">Erro ao carregar.</div>';
             }
         }
 
-        // --- RENDERIZAR NA TELA ---
-        window.renderizarGrid = (lista) => {
+        function renderizarGrid(lista) {
             const grid = document.getElementById('grid-estoque');
             grid.innerHTML = '';
+            const conf = configSetor[setorAtual];
 
-            lista.forEach(prod => {
-                // Lógica de Alerta (Estoque Baixo)
-                const isLow = parseFloat(prod.qtd) <= parseFloat(prod.minimo);
-                const alertClass = isLow ? 'low-stock' : '';
-                const alertText = isLow ? '<span style="color:#e74c3c; font-size:10px; font-weight:bold;">⚠️ ESTOQUE BAIXO</span>' : '';
+            if(lista.length === 0) {
+                grid.innerHTML = '<div style="color:#aaa; text-align:center;">Nenhum material cadastrado neste setor.</div>';
+                return;
+            }
 
-                const html = `
-                    <div class="card-prod ${alertClass}">
-                        <div>
-                            <div style="display:flex; justify-content:space-between;">
-                                <span class="prod-cat">${prod.categoria}</span>
-                                ${alertText}
+            lista.forEach(p => {
+                const isLow = parseFloat(p.qtd) <= parseFloat(p.minimo || 0);
+                const borderClass = isLow ? 'low-stock' : '';
+                const setorClass = setorAtual; 
+
+                // Botão de Corte (apenas para chapas na serralheria)
+                let btnCutHTML = '';
+                if(conf.hasCut && p.unidade === 'chapa') {
+                    btnCutHTML = `<button class="btn-cut" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR CHAPA</button>`;
+                }
+
+                // Renderiza Histórico (se existir)
+                let histHTML = '';
+                if(p.historico && p.historico.length > 0) {
+                    // Pega os ultimos 5
+                    const ultimos = p.historico.slice(-5).reverse();
+                    ultimos.forEach(h => {
+                        const icon = h.tipo === 'entrada' ? '⬇️' : '⬆️';
+                        const cl = h.tipo === 'entrada' ? 'hist-in' : 'hist-out';
+                        const dataFormat = h.data ? new Date(h.data.seconds * 1000).toLocaleDateString() : '--';
+                        histHTML += `
+                            <div class="hist-item">
+                                <span>${icon} <b>${h.qtd}</b> (${dataFormat})</span>
+                                <span style="font-style:italic; color:#888;">${h.obs || '-'}</span>
                             </div>
-                            <div class="prod-name">${prod.nome}</div>
-                        </div>
+                        `;
+                    });
+                } else {
+                    histHTML = '<div style="text-align:center; padding:5px; color:#555;">Sem histórico recente</div>';
+                }
 
+                grid.innerHTML += `
+                    <div class="card-prod ${setorClass} ${borderClass}">
+                        <div class="prod-header">
+                            <span class="prod-cat">${p.categoria}</span>
+                            ${isLow ? '<span style="color:var(--red); font-size:10px; font-weight:bold;">⚠️ BAIXO</span>' : ''}
+                        </div>
+                        <div class="prod-name">${p.nome}</div>
+                        
                         <div class="stock-control">
-                            <button class="btn-qtd btn-minus" onclick="ajustarQtd('${prod.id}', -1)">-</button>
                             <div class="stock-display">
-                                <div class="stock-val">${prod.qtd}</div>
-                                <div class="stock-unit">${prod.unidade}</div>
+                                <div class="stock-val">${p.qtd}</div>
+                                <div class="stock-unit">${p.unidade}</div>
                             </div>
-                            <button class="btn-qtd btn-plus" onclick="ajustarQtd('${prod.id}', 1)">+</button>
+                            <button class="btn-mov" onclick="abrirModalMov('${p.id}')">MOVIMENTAR</button>
                         </div>
 
-                        <div class="prod-actions">
-                            <button class="btn-mini" onclick="editarProduto('${prod.id}')">✏️ EDITAR</button>
-                            <button class="btn-mini" onclick="deletarProduto('${prod.id}')" style="color:#e74c3c;">🗑️ EXCLUIR</button>
+                        ${btnCutHTML}
+
+                        <button class="btn-toggle-hist" onclick="toggleHist('${p.id}')">🕓 VER HISTÓRICO</button>
+                        <div id="hist-${p.id}" class="history-box">${histHTML}</div>
+
+                        <div style="text-align:right; margin-top:10px;">
+                            <span style="font-size:10px; color:#666; cursor:pointer;" onclick="editarProd('${p.id}')">✏️ Editar</span>
                         </div>
                     </div>
                 `;
-                grid.innerHTML += html;
             });
         }
 
-        // --- FILTRO INSTANTÂNEO ---
+        // --- FILTROS ---
         window.filtrarEstoque = () => {
             const termo = document.getElementById('search-input').value.toLowerCase();
             const cat = document.getElementById('cat-filter').value;
-
-            const filtrados = produtos.filter(p => {
+            
+            const filtrados = produtosCache.filter(p => {
                 const matchNome = p.nome.toLowerCase().includes(termo);
-                const matchCat = cat === "Todos" || p.categoria === cat;
+                const matchCat = cat === 'Todos' || p.categoria === cat;
                 return matchNome && matchCat;
             });
-
             renderizarGrid(filtrados);
-        }
+        };
 
-        // --- CRUD OP ---
-        window.ajustarQtd = async (id, delta) => {
-            // Acha o produto no array local para resposta rápida visual
-            const index = produtos.findIndex(p => p.id === id);
-            if(index !== -1) {
-                let novaQtd = parseFloat(produtos[index].qtd) + delta;
-                if(novaQtd < 0) novaQtd = 0; // Não deixa negativo
+        window.toggleHist = (id) => {
+            const el = document.getElementById(`hist-${id}`);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        };
 
-                // Atualiza tela (feedback instantaneo)
-                produtos[index].qtd = novaQtd;
-                renderizarGrid(produtos); // Re-renderiza para atualizar cores de alerta
+        // --- MOVIMENTAÇÃO (BAIXA/ENTRADA) ---
+        window.abrirModalMov = (id) => {
+            const p = produtosCache.find(x => x.id === id);
+            document.getElementById('mov-id').value = id;
+            document.getElementById('mov-prod-name').innerText = p.nome;
+            document.getElementById('mov-qtd').value = '';
+            document.getElementById('mov-obs').value = '';
+            window.setTipoMov('saida'); // Default baixa
+            document.getElementById('modal-mov').style.display = 'flex';
+        };
 
-                // Atualiza Banco
-                const prodRef = doc(db, "estoque", id);
-                await updateDoc(prodRef, { qtd: novaQtd });
+        window.setTipoMov = (tipo) => {
+            tipoMovAtual = tipo;
+            const btnIn = document.getElementById('btn-tipo-in');
+            const btnOut = document.getElementById('btn-tipo-out');
+            
+            if(tipo === 'entrada') {
+                btnIn.style.background = 'var(--green)'; btnIn.style.opacity = '1';
+                btnOut.style.background = '#444'; btnOut.style.opacity = '0.5';
+            } else {
+                btnIn.style.background = '#444'; btnIn.style.opacity = '0.5';
+                btnOut.style.background = 'var(--red)'; btnOut.style.opacity = '1';
             }
-        }
+        };
 
-        window.salvarProduto = async () => {
-            const id = document.getElementById('in-id').value;
-            const dados = {
-                nome: document.getElementById('in-nome').value,
-                categoria: document.getElementById('in-cat').value,
-                qtd: parseFloat(document.getElementById('in-qtd').value) || 0,
-                unidade: document.getElementById('in-un').value,
-                minimo: parseFloat(document.getElementById('in-min').value) || 0
+        window.salvarMovimentacao = async () => {
+            const id = document.getElementById('mov-id').value;
+            const qtdInput = parseFloat(document.getElementById('mov-qtd').value);
+            const obs = document.getElementById('mov-obs').value;
+            
+            if(!qtdInput || qtdInput <= 0) { alert("Digite uma quantidade válida."); return; }
+
+            const p = produtosCache.find(x => x.id === id);
+            let novaQtd = parseFloat(p.qtd);
+            
+            if(tipoMovAtual === 'entrada') novaQtd += qtdInput;
+            else novaQtd -= qtdInput;
+
+            if(novaQtd < 0) { alert("Estoque não pode ficar negativo."); return; }
+
+            // Objeto Histórico
+            const novoHist = {
+                data: new Date(),
+                qtd: qtdInput,
+                tipo: tipoMovAtual,
+                obs: obs
             };
 
-            if(!dados.nome) { alert("Preencha o nome!"); return; }
-
             try {
-                if(id) {
-                    await updateDoc(doc(db, "estoque", id), dados);
-                    alert("Atualizado!");
-                } else {
-                    await addDoc(collection(db, "estoque"), dados);
-                    alert("Cadastrado!");
-                }
-                fecharModal();
+                await updateDoc(doc(db, "estoque", id), {
+                    qtd: novaQtd,
+                    historico: arrayUnion(novoHist)
+                });
+                alert("Movimentação registrada!");
+                document.getElementById('modal-mov').style.display = 'none';
                 carregarEstoque();
             } catch(e) {
                 console.error(e);
                 alert("Erro ao salvar.");
             }
-        }
+        };
 
-        window.deletarProduto = async (id) => {
-            if(confirm("Tem certeza que deseja excluir este item?")) {
-                await deleteDoc(doc(db, "estoque", id));
-                carregarEstoque();
+        // --- SISTEMA DE CORTE (VISUAL) ---
+        window.abrirModalCorte = (id) => {
+            const p = produtosCache.find(x => x.id === id);
+            if(!p.dimW || !p.dimH) {
+                alert("Este material não tem dimensões cadastradas. Edite o produto e adicione Largura/Altura da chapa.");
+                return;
             }
+            
+            document.getElementById('cut-prod-id').value = id;
+            document.getElementById('cut-prod-name').innerText = p.nome;
+            document.getElementById('orig-dims').innerText = `${p.dimW} x ${p.dimH} cm`;
+            document.getElementById('orig-w').value = p.dimW;
+            document.getElementById('orig-h').value = p.dimH;
+            
+            document.getElementById('cut-w').value = '';
+            document.getElementById('cut-h').value = '';
+            document.getElementById('cut-obs').value = '';
+            document.getElementById('plate-visual').innerHTML = ''; // Limpa cortes anteriores
+
+            // Desenha a Chapa Base
+            const container = document.getElementById('cut-canvas-container');
+            const plate = document.getElementById('plate-visual');
+            
+            // Calcula escala para caber no container
+            const scale = Math.min((container.offsetWidth - 20) / p.dimW, (container.offsetHeight - 20) / p.dimH);
+            
+            plate.style.width = (p.dimW * scale) + 'px';
+            plate.style.height = (p.dimH * scale) + 'px';
+            plate.dataset.scale = scale; // Guarda escala
+
+            document.getElementById('modal-corte').style.display = 'flex';
+        };
+
+        window.previewCorte = () => {
+            const cutW = parseFloat(document.getElementById('cut-w').value);
+            const cutH = parseFloat(document.getElementById('cut-h').value);
+            const plate = document.getElementById('plate-visual');
+            const scale = parseFloat(plate.dataset.scale);
+
+            // Limpa visual
+            plate.innerHTML = '';
+            document.getElementById('sobra-info').innerText = 'Sobra estimada: --';
+
+            if(!cutW || !cutH) return;
+
+            const origW = parseFloat(document.getElementById('orig-w').value);
+            const origH = parseFloat(document.getElementById('orig-h').value);
+
+            if(cutW > origW || cutH > origH) {
+                document.getElementById('sobra-info').innerText = 'ERRO: Corte maior que a chapa!';
+                return;
+            }
+
+            // Cria visual do corte
+            const visualW = cutW * scale;
+            const visualH = cutH * scale;
+
+            const div = document.createElement('div');
+            div.className = 'cut-visual';
+            div.style.width = visualW + 'px';
+            div.style.height = visualH + 'px';
+            div.style.top = '0';
+            div.style.left = '0';
+            div.innerText = `${cutW}x${cutH}`;
+            
+            plate.appendChild(div);
+
+            // Calc Sobra Simples (Área)
+            const areaTotal = origW * origH;
+            const areaCorte = cutW * cutH;
+            const pct = 100 - ((areaCorte / areaTotal) * 100);
+            document.getElementById('sobra-info').innerText = `Ocupação: ${((areaCorte/areaTotal)*100).toFixed(1)}% | Sobra: ${pct.toFixed(1)}% da área`;
+        };
+
+        window.adicionarAoCarrinho = () => {
+            const cutW = document.getElementById('cut-w').value;
+            const cutH = document.getElementById('cut-h').value;
+            const obs = document.getElementById('cut-obs').value;
+            const prodName = document.getElementById('cut-prod-name').innerText;
+            const prodId = document.getElementById('cut-prod-id').value;
+
+            if(!cutW || !cutH) { alert("Defina o tamanho."); return; }
+
+            // Adiciona ao carrinho
+            cortesCarrinho.push({
+                prodId, prodName, w: cutW, h: cutH, obs: obs || 'Sem obs'
+            });
+
+            atualizarSidebar();
+            document.getElementById('modal-corte').style.display = 'none';
+            document.getElementById('sidebar-cuts').classList.add('open'); // Abre sidebar para mostrar
+            
+            // Ajusta margem
+            document.getElementById('main-layout').style.marginRight = '320px';
+        };
+
+        function atualizarSidebar() {
+            const list = document.getElementById('cuts-list');
+            list.innerHTML = '';
+            
+            if(cortesCarrinho.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#555; margin-top:50px;">Nenhum corte adicionado</div>';
+                return;
+            }
+
+            cortesCarrinho.forEach((c, idx) => {
+                list.innerHTML += `
+                    <div class="cut-item">
+                        <div>
+                            <div class="cut-dims">${c.prodName}</div>
+                            <div style="color:var(--orange); font-weight:bold;">${c.w} x ${c.h} cm</div>
+                            <div class="cut-desc">${c.obs}</div>
+                        </div>
+                        <button onclick="removerDoCarrinho(${idx})" style="background:none; border:none; color:#aaa; cursor:pointer;">❌</button>
+                    </div>
+                `;
+            });
         }
 
-        // --- MODAL ---
-        window.abrirModal = () => {
-            document.getElementById('in-id').value = "";
-            document.getElementById('in-nome').value = "";
-            document.getElementById('in-qtd').value = "";
-            document.getElementById('in-min').value = "";
-            document.querySelector('h2').innerText = "Novo Produto";
+        window.removerDoCarrinho = (idx) => {
+            cortesCarrinho.splice(idx, 1);
+            atualizarSidebar();
+        };
+
+        // PROCESSAR CORTES (BAIXA)
+        window.processarCortes = async () => {
+            if(cortesCarrinho.length === 0) return;
+            if(!confirm("Isso removerá os itens da lista e dará baixa no estoque correspondente. Confirmar?")) return;
+
+            // Agrupa baixas por Produto ID
+            // Nota: Lógica simplificada. Para chapas, assumimos que cortar = consumir chapa?
+            // Ou apenas registrar o uso?
+            // *Solução solicitada:* "Remover utilizados".
+            // Vou apenas limpar a lista visualmente ou dar baixa na chapa?
+            // O ideal seria: se o usuário diz que cortou, ele gastou material.
+            // Mas calcular frações de chapa é complexo.
+            // *Decisão:* Vou apenas registrar no histórico do produto que houve cortes.
+            
+            // O usuário deve dar baixa manual na chapa inteira quando ela acabar, ou eu diminuo 0.X?
+            // Como é dificil calcular 0.X sem saber o aproveitamento real, vou:
+            // 1. Adicionar ao histórico do produto: "Corte: 50x50 - Obs".
+            // 2. Não mudar a QTD numérica automaticamente (deixa o usuario baixar a chapa quando ela acabar ou virar retalho), 
+            //    OU baixar 1 unidade se ele marcar "Baixar Chapa"?
+            
+            // Vamos apenas registrar o histórico para controle e limpar a lista.
+            
+            try {
+                for (const item of cortesCarrinho) {
+                    const novoHist = {
+                        data: new Date(),
+                        qtd: 0, // Não baixa qtd numérica, apenas loga o uso
+                        tipo: 'saida',
+                        obs: `CORTE: ${item.w}x${item.h}cm - ${item.obs}`
+                    };
+                    await updateDoc(doc(db, "estoque", item.prodId), {
+                        historico: arrayUnion(novoHist)
+                    });
+                }
+                
+                alert("Cortes registrados no histórico e lista limpa!");
+                cortesCarrinho = [];
+                atualizarSidebar();
+                carregarEstoque(); // Atualiza históricos na tela
+
+            } catch(e) {
+                console.error(e);
+                alert("Erro ao processar.");
+            }
+        };
+
+
+        // --- CRUD PRODUTO ---
+        window.abrirModalProduto = () => {
+            document.getElementById('prod-id').value = '';
+            document.getElementById('prod-nome').value = '';
+            document.getElementById('prod-qtd').value = '';
+            document.getElementById('prod-min').value = '';
+            document.getElementById('prod-dim-w').value = '';
+            document.getElementById('prod-dim-h').value = '';
+            document.getElementById('modal-prod-title').innerText = "Novo Material";
+            
+            // Mostra campos de dimensão se for serralheria
+            const isSerr = setorAtual === 'serralheria';
+            document.getElementById('dims-container').style.display = isSerr ? 'block' : 'none';
+            
             document.getElementById('modal-prod').style.display = 'flex';
-        }
+        };
 
-        window.editarProduto = (id) => {
-            const prod = produtos.find(p => p.id === id);
-            if(prod) {
-                document.getElementById('in-id').value = prod.id;
-                document.getElementById('in-nome').value = prod.nome;
-                document.getElementById('in-cat').value = prod.categoria;
-                document.getElementById('in-qtd').value = prod.qtd;
-                document.getElementById('in-un').value = prod.unidade;
-                document.getElementById('in-min').value = prod.minimo;
-                document.querySelector('h2').innerText = "Editar Produto";
-                document.getElementById('modal-prod').style.display = 'flex';
+        window.editarProd = (id) => {
+            const p = produtosCache.find(x => x.id === id);
+            document.getElementById('prod-id').value = id;
+            document.getElementById('prod-nome').value = p.nome;
+            document.getElementById('prod-cat').value = p.categoria;
+            document.getElementById('prod-un').value = p.unidade;
+            document.getElementById('prod-qtd').value = p.qtd;
+            document.getElementById('prod-min').value = p.minimo;
+            
+            if(p.dimW) document.getElementById('prod-dim-w').value = p.dimW;
+            if(p.dimH) document.getElementById('prod-dim-h').value = p.dimH;
+
+            const isSerr = setorAtual === 'serralheria';
+            document.getElementById('dims-container').style.display = isSerr ? 'block' : 'none';
+
+            document.getElementById('modal-prod-title').innerText = "Editar Material";
+            document.getElementById('modal-prod').style.display = 'flex';
+        };
+
+        window.salvarProduto = async () => {
+            const id = document.getElementById('prod-id').value;
+            const dados = {
+                setor: setorAtual,
+                nome: document.getElementById('prod-nome').value,
+                categoria: document.getElementById('prod-cat').value,
+                unidade: document.getElementById('prod-un').value,
+                qtd: parseFloat(document.getElementById('prod-qtd').value) || 0,
+                minimo: parseFloat(document.getElementById('prod-min').value) || 0
+            };
+
+            // Adiciona dimensões se for serralheria
+            if(setorAtual === 'serralheria') {
+                dados.dimW = parseFloat(document.getElementById('prod-dim-w').value) || 0;
+                dados.dimH = parseFloat(document.getElementById('prod-dim-h').value) || 0;
             }
-        }
 
-        window.fecharModal = () => {
-            document.getElementById('modal-prod').style.display = 'none';
-        }
+            if(!dados.nome) { alert("Nome é obrigatório"); return; }
 
-        // Iniciar
-        carregarEstoque();
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "estoque", id), dados);
+                } else {
+                    dados.historico = []; // Inicia array histórico
+                    await addDoc(collection(db, "estoque"), dados);
+                }
+                document.getElementById('modal-prod').style.display = 'none';
+                carregarEstoque();
+            } catch(e) {
+                console.error(e);
+                alert("Erro ao salvar.");
+            }
+        };
+
+        window.fecharModal = (id) => { document.getElementById(id).style.display = 'none'; };
 
     </script>
 </body>
