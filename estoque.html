@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque - Artesynal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #333; --card-bg: #2c3e50; --purple: #9b59b6; --red: #e74c3c; --green: #2ecc71; --text: #eee; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
+
+        /* HEADER */
+        .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; flex-wrap: wrap; gap: 10px;}
+        h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; }
+        .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+
+        /* BARRA DE FILTRO */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #222; padding: 10px; border-radius: 8px; }
+        .search-input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; font-family: 'Montserrat'; }
+        .cat-select { padding: 10px; border-radius: 5px; border: none; background: #444; color: white; font-family: 'Montserrat'; font-weight: bold; }
+
+        /* GRID */
+        .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+
+        /* CARD DO PRODUTO */
+        .card-prod { 
+            background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; 
+            border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            display: flex; flex-direction: column; justify-content: space-between;
+            transition: 0.3s;
+        }
+        .card-prod.low-stock { border: 2px solid var(--red); box-shadow: 0 0 15px rgba(231, 76, 60, 0.4); } /* Alerta visual */
+
+        .prod-cat { background: rgba(0,0,0,0.3); display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; align-self: flex-start; margin-bottom: 5px; }
+        .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 10px; line-height: 1.2; }
+        
+        .stock-control { display: flex; align-items: center; justify-content: space-between; background: #222; border-radius: 8px; padding: 5px; margin-bottom: 10px; }
+        .btn-qtd { width: 35px; height: 35px; border: none; border-radius: 5px; font-weight: 900; font-size: 18px; cursor: pointer; color: white; }
+        .btn-minus { background: var(--red); }
+        .btn-plus { background: var(--green); }
+        
+        .stock-display { text-align: center; }
+        .stock-val { font-size: 24px; font-weight: 900; color: white; }
+        .stock-unit { font-size: 10px; color: #aaa; font-weight: bold; }
+
+        .prod-actions { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #444; padding-top: 10px; }
+        .btn-mini { background: none; border: none; color: #888; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-mini:hover { color: white; }
+
+        /* FAB ADD */
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--purple); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100; }
+
+        /* MODAL */
+        #modal-prod { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 400px; border-top: 4px solid var(--purple); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; box-sizing: border-box; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-modal { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-cancel { background: #555; }
+        .btn-confirm { background: var(--purple); }
+
+        @media (max-width: 600px) {
+            .filter-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-est">
+        <h1>Controle de Estoque</h1>
+        <a href="painel.html" class="btn-voltar">⬅ VOLTAR</a>
+    </div>
+
+    <div class="filter-bar">
+        <input type="text" id="search-input" class="search-input" placeholder="Buscar material..." onkeyup="filtrarEstoque()">
+        <select id="cat-filter" class="cat-select" onchange="filtrarEstoque()">
+            <option value="Todos">Todas Categorias</option>
+            <option value="Mídia">Mídias (Lona/Adesivo)</option>
+            <option value="Tinta">Tintas / Solventes</option>
+            <option value="Chapa">Chapas Rígidas</option>
+            <option value="Acabamento">Acabamento / Ilhós</option>
+            <option value="Outros">Outros</option>
+        </select>
+    </div>
+
+    <div class="grid-est" id="grid-estoque">
+        </div>
+    
+    <div id="loading" style="text-align: center; color: #666; margin-top: 20px;">Carregando estoque...</div>
+
+    <button class="fab-add" onclick="abrirModal()">+</button>
+
+    <div id="modal-prod">
+        <div class="modal-content">
+            <h2 style="margin-top:0; color:var(--purple);">Novo Produto</h2>
+            <input type="hidden" id="in-id">
+            
+            <div class="form-group">
+                <label>NOME DO MATERIAL</label>
+                <input type="text" id="in-nome" placeholder="Ex: Rolo Adesivo Branco">
+            </div>
+
+            <div class="form-group">
+                <label>CATEGORIA</label>
+                <select id="in-cat">
+                    <option value="Mídia">Mídia (Lona/Adesivo)</option>
+                    <option value="Tinta">Tinta / Solvente</option>
+                    <option value="Chapa">Chapa Rígida (ACM/PVC)</option>
+                    <option value="Acabamento">Acabamento (Ilhós/Fita)</option>
+                    <option value="Outros">Outros</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex:1;">
+                    <label>QUANTIDADE ATUAL</label>
+                    <input type="number" id="in-qtd" placeholder="0">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>UNIDADE</label>
+                    <select id="in-un">
+                        <option value="un">Unidade (un)</option>
+                        <option value="m">Metros (m)</option>
+                        <option value="m²">Metro Quad. (m²)</option>
+                        <option value="L">Litros (L)</option>
+                        <option value="kg">Quilos (kg)</option>
+                        <option value="rl">Rolos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>ESTOQUE MÍNIMO (Para Alerta)</label>
+                <input type="number" id="in-min" placeholder="Ex: 5 (Avisa quando baixar disso)">
+            </div>
+
+            <div class="modal-btns">
+                <button class="btn-modal btn-cancel" onclick="fecharModal()">Cancelar</button>
+                <button class="btn-modal btn-confirm" onclick="salvarProduto()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
+            authDomain: "artesynal-os-system.firebaseapp.com",
+            projectId: "artesynal-os-system",
+            storageBucket: "artesynal-os-system.firebasestorage.app",
+            messagingSenderId: "539958005846",
+            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let produtos = []; // Cache local para filtro rápido
+
+        // --- CARREGAR ESTOQUE ---
+        async function carregarEstoque() {
+            const grid = document.getElementById('grid-estoque');
+            const loading = document.getElementById('loading');
+            grid.innerHTML = '';
+            
+            try {
+                const q = query(collection(db, "estoque"), orderBy("nome"));
+                const snapshot = await getDocs(q);
+                
+                produtos = []; // Limpa cache
+
+                if (snapshot.empty) {
+                    loading.innerText = "Estoque vazio. Adicione itens (+)!";
+                    return;
+                }
+                
+                loading.style.display = 'none';
+
+                snapshot.forEach(doc => {
+                    let prod = doc.data();
+                    prod.id = doc.id;
+                    produtos.push(prod);
+                });
+
+                renderizarGrid(produtos);
+
+            } catch (e) {
+                console.error(e);
+                loading.innerText = "Erro ao carregar.";
+            }
+        }
+
+        // --- RENDERIZAR NA TELA ---
+        window.renderizarGrid = (lista) => {
+            const grid = document.getElementById('grid-estoque');
+            grid.innerHTML = '';
+
+            lista.forEach(prod => {
+                // Lógica de Alerta (Estoque Baixo)
+                const isLow = parseFloat(prod.qtd) <= parseFloat(prod.minimo);
+                const alertClass = isLow ? 'low-stock' : '';
+                const alertText = isLow ? '<span style="color:#e74c3c; font-size:10px; font-weight:bold;">⚠️ ESTOQUE BAIXO</span>' : '';
+
+                const html = `
+                    <div class="card-prod ${alertClass}">
+                        <div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span class="prod-cat">${prod.categoria}</span>
+                                ${alertText}
+                            </div>
+                            <div class="prod-name">${prod.nome}</div>
+                        </div>
+
+                        <div class="stock-control">
+                            <button class="btn-qtd btn-minus" onclick="ajustarQtd('${prod.id}', -1)">-</button>
+                            <div class="stock-display">
+                                <div class="stock-val">${prod.qtd}</div>
+                                <div class="stock-unit">${prod.unidade}</div>
+                            </div>
+                            <button class="btn-qtd btn-plus" onclick="ajustarQtd('${prod.id}', 1)">+</button>
+                        </div>
+
+                        <div class="prod-actions">
+                            <button class="btn-mini" onclick="editarProduto('${prod.id}')">✏️ EDITAR</button>
+                            <button class="btn-mini" onclick="deletarProduto('${prod.id}')" style="color:#e74c3c;">🗑️ EXCLUIR</button>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += html;
+            });
+        }
+
+        // --- FILTRO INSTANTÂNEO ---
+        window.filtrarEstoque = () => {
+            const termo = document.getElementById('search-input').value.toLowerCase();
+            const cat = document.getElementById('cat-filter').value;
+
+            const filtrados = produtos.filter(p => {
+                const matchNome = p.nome.toLowerCase().includes(termo);
+                const matchCat = cat === "Todos" || p.categoria === cat;
+                return matchNome && matchCat;
+            });
+
+            renderizarGrid(filtrados);
+        }
+
+        // --- CRUD OP ---
+        window.ajustarQtd = async (id, delta) => {
+            // Acha o produto no array local para resposta rápida visual
+            const index = produtos.findIndex(p => p.id === id);
+            if(index !== -1) {
+                let novaQtd = parseFloat(produtos[index].qtd) + delta;
+                if(novaQtd < 0) novaQtd = 0; // Não deixa negativo
+
+                // Atualiza tela (feedback instantaneo)
+                produtos[index].qtd = novaQtd;
+                renderizarGrid(produtos); // Re-renderiza para atualizar cores de alerta
+
+                // Atualiza Banco
+                const prodRef = doc(db, "estoque", id);
+                await updateDoc(prodRef, { qtd: novaQtd });
+            }
+        }
+
+        window.salvarProduto = async () => {
+            const id = document.getElementById('in-id').value;
+            const dados = {
+                nome: document.getElementById('in-nome').value,
+                categoria: document.getElementById('in-cat').value,
+                qtd: parseFloat(document.getElementById('in-qtd').value) || 0,
+                unidade: document.getElementById('in-un').value,
+                minimo: parseFloat(document.getElementById('in-min').value) || 0
+            };
+
+            if(!dados.nome) { alert("Preencha o nome!"); return; }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "estoque", id), dados);
+                    alert("Atualizado!");
+                } else {
+                    await addDoc(collection(db, "estoque"), dados);
+                    alert("Cadastrado!");
+                }
+                fecharModal();
+                carregarEstoque();
+            } catch(e) {
+                console.error(e);
+                alert("Erro ao salvar.");
+            }
+        }
+
+        window.deletarProduto = async (id) => {
+            if(confirm("Tem certeza que deseja excluir este item?")) {
+                await deleteDoc(doc(db, "estoque", id));
+                carregarEstoque();
+            }
+        }
+
+        // --- MODAL ---
+        window.abrirModal = () => {
+            document.getElementById('in-id').value = "";
+            document.getElementById('in-nome').value = "";
+            document.getElementById('in-qtd').value = "";
+            document.getElementById('in-min').value = "";
+            document.querySelector('h2').innerText = "Novo Produto";
+            document.getElementById('modal-prod').style.display = 'flex';
+        }
+
+        window.editarProduto = (id) => {
+            const prod = produtos.find(p => p.id === id);
+            if(prod) {
+                document.getElementById('in-id').value = prod.id;
+                document.getElementById('in-nome').value = prod.nome;
+                document.getElementById('in-cat').value = prod.categoria;
+                document.getElementById('in-qtd').value = prod.qtd;
+                document.getElementById('in-un').value = prod.unidade;
+                document.getElementById('in-min').value = prod.minimo;
+                document.querySelector('h2').innerText = "Editar Produto";
+                document.getElementById('modal-prod').style.display = 'flex';
+            }
+        }
+
+        window.fecharModal = () => {
+            document.getElementById('modal-prod').style.display = 'none';
+        }
+
+        // Iniciar
+        carregarEstoque();
+
+    </script>
+</body>
+</html>
