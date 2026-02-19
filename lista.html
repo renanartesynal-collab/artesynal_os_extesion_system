@@ -17,7 +17,7 @@
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Mitra LT', 'Montserrat', sans-serif;
             margin: 0; padding: 20px;
             background-color: var(--bg-dark);
             color: white;
@@ -40,7 +40,7 @@
         .btn-filtro {
             padding: 8px 15px; border: none; border-radius: 20px; cursor: pointer;
             font-weight: bold; font-size: 12px; background: #444; color: #ccc;
-            transition: all 0.2s;
+            transition: all 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;
         }
         .btn-filtro.ativo { background: var(--blue); color: white; transform: scale(1.05); }
 
@@ -74,6 +74,7 @@
         .actions { display: flex; gap: 10px; }
         .btn-acao {
             border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold;
+            font-family: 'Mitra LT', 'Montserrat', sans-serif;
         }
         .btn-abrir { background: var(--blue); color: white; }
         .btn-del { background: var(--red); color: white; }
@@ -93,7 +94,7 @@
 
     <div class="header-lista">
         <h1>Minhas O.S.</h1>
-        <a href="painel.html" class="btn-voltar">⬅ VOLTAR</a>
+        <a href="index.html" class="btn-voltar">⬅ VOLTAR</a>
     </div>
 
     <div class="filtros">
@@ -223,9 +224,9 @@
             }
         }
 
-        // FUNÇÃO ABRIR (Redireciona para o index.html com o ID na URL)
+        // FUNÇÃO ABRIR (Redireciona para o os.html com o ID na URL)
         window.abrirOS = function(id) {
-            window.location.href = `index.html?id=${id}`;
+            window.location.href = `os.html?id=${id}`;
         }
 
         // Inicia carregando
