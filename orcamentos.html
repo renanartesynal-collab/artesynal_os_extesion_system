@@ -15,25 +15,26 @@
         .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
 
         /* GRID */
-        .grid-orc { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .grid-orc { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
         /* CARD */
         .card-orc { background: var(--card-bg); border-radius: 10px; padding: 20px; position: relative; border-left: 5px solid var(--blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
         .card-orc:hover { transform: translateY(-5px); }
         
         .orc-num { font-size: 12px; color: #aaa; font-weight: bold; margin-bottom: 5px; }
-        .orc-cliente { font-size: 18px; font-weight: 800; color: white; margin-bottom: 2px; }
+        .orc-cliente { font-size: 18px; font-weight: 800; color: white; margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between;}
         .orc-empresa { font-size: 12px; color: var(--yellow); font-weight: 600; margin-bottom: 10px; text-transform: uppercase;}
         .orc-tipo { background: rgba(0,0,0,0.2); display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 15px; }
 
         /* BOTÕES DO CARD */
-        .actions { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-card { flex: 1; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px; text-transform: uppercase; color: white; transition: opacity 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
+        .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .btn-card { flex: 1; min-width: 60px; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 10px; text-transform: uppercase; color: white; transition: opacity 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .btn-card:hover { opacity: 0.8; }
         
         .btn-view { background: #555; }
         .btn-edit { background: var(--blue); }
         .btn-link { background: var(--green); }
+        .btn-whats { background: #25D366; } /* Verde do WhatsApp */
 
         /* FAB */
         .fab-add {
@@ -56,7 +57,7 @@
 
     <div class="header-orc">
         <h1>Solicitações</h1>
-        <a href="index.html" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
+        <a href="#" id="link-voltar" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
     </div>
 
     <div id="loading">A carregar solicitações...</div>
@@ -66,20 +67,12 @@
     <button class="fab-add" onclick="novaSolicitacao()">+</button>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // 1. IMPORTANDO O CÉREBRO (CONFIG.JS)
+        import { db, ROTAS } from "./config.js";
+        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
-            authDomain: "artesynal-os-system.firebaseapp.com",
-            projectId: "artesynal-os-system",
-            storageBucket: "artesynal-os-system.firebasestorage.app",
-            messagingSenderId: "539958005846",
-            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Ajustar botão voltar
+        document.getElementById('link-voltar').href = ROTAS.painel;
 
         async function carregarLista() {
             const grid = document.getElementById('grid-orc');
@@ -101,6 +94,11 @@
                     const id = doc.id;
                     const num = String(data.numero_solicitacao || 0).padStart(3, '0');
 
+                    // Lógica para mostrar ou esconder botão do WhatsApp
+                    const btnWhats = data.whatsapp 
+                        ? `<button class="btn-card btn-whats" onclick="chamarWhats('${data.whatsapp}')">💬 WHATS</button>` 
+                        : '';
+
                     const html = `
                         <div class="card-orc">
                             <div class="orc-num">SOLICITAÇÃO #${num}</div>
@@ -112,6 +110,7 @@
                             <div class="actions">
                                 <button class="btn-card btn-view" onclick="abrirGuia('${id}', 'view')">👁️ VER</button>
                                 <button class="btn-card btn-edit" onclick="abrirGuia('${id}', 'edit')">✏️ EDITAR</button>
+                                ${btnWhats}
                                 <button class="btn-card btn-link" onclick="gerarLink('${id}', '${num}')">🔗 LINK</button>
                             </div>
                         </div>
@@ -125,19 +124,31 @@
             }
         }
 
+        // FUNÇÃO DE ATALHO DO WHATSAPP
+        window.chamarWhats = (numero) => {
+            if(!numero) return;
+            // Remove tudo que não for número
+            let numLimpo = numero.replace(/\D/g, ''); 
+            // Adiciona o 55 do Brasil se tiver 10 ou 11 dígitos
+            if(numLimpo.length === 10 || numLimpo.length === 11) {
+                numLimpo = '55' + numLimpo;
+            }
+            window.open(`https://api.whatsapp.com/send?phone=${numLimpo}`, '_blank');
+        }
+
         window.novaSolicitacao = () => {
-            window.open('solicitacao.html', '_blank');
+            window.open(ROTAS.solicitacao, '_blank');
         }
 
         window.abrirGuia = (id, modo) => {
-            window.open(`solicitacao.html?id=${id}&mode=${modo}`, '_blank');
+            window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}`, '_blank');
         }
 
         window.gerarLink = (id, num) => {
             let baseUrl = window.location.href;
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
             
-            const urlFinal = `${baseUrl}/solicitacao.html?id=${id}&mode=view`;
+            const urlFinal = `${baseUrl}/${ROTAS.solicitacao}?id=${id}&mode=view`;
             const texto = `Solicitação de Orçamento #${num}: ${urlFinal}`;
             
             navigator.clipboard.writeText(texto).then(() => {
