@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visita Técnica - Artesynal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #1a1a1a; --card: #222; --yellow: #f1c40f; --text: #eee; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        .vt-card { background: var(--card); border-radius: 15px; border-top: 5px solid var(--yellow); padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .label { color: var(--yellow); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .value { font-size: 18px; margin-bottom: 20px; font-weight: 600; }
+        .info-box { background: #333; padding: 15px; border-radius: 8px; border-left: 4px solid var(--yellow); white-space: pre-wrap; }
+        .btn-mapa { display: block; background: #4285F4; color: white; text-align: center; padding: 15px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="vt-card" id="vt-content">
+        <h2 style="margin-top:0">Visita Técnica</h2>
+        <span class="label">Cliente</span>
+        <div class="value" id="v-cliente">Carregando...</div>
+        
+        <span class="label">Endereço</span>
+        <div class="value" id="v-endereco">Carregando...</div>
+        
+        <span class="label">O que fazer</span>
+        <div class="info-box" id="v-info">...</div>
+
+        <a href="#" id="btn-rota" class="btn-mapa" target="_blank">📍 ABRIR NO GPS</a>
+    </div>
+
+    <script type="module">
+        import { db } from "./config.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        if (id) {
+            const docSnap = await getDoc(doc(db, "visitas", id));
+            if (docSnap.exists()) {
+                const d = docSnap.data();
+                document.getElementById('v-cliente').innerText = d.cliente;
+                document.getElementById('v-endereco').innerText = d.endereco;
+                document.getElementById('v-info').innerText = d.info_adicional || "Nenhuma informação adicional.";
+                document.getElementById('btn-rota').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.endereco)}`;
+            } else {
+                document.body.innerHTML = "<h1>Visita não encontrada.</h1>";
+            }
+        }
+    </script>
+</body>
+</html>
