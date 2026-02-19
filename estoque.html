@@ -12,7 +12,7 @@
 
         /* --- TELA SELEÇÃO --- */
         #sector-screen { display: flex; height: 100vh; width: 100%; align-items: center; justify-content: center; gap: 30px; position: fixed; top: 0; left: 0; background: var(--bg-dark); z-index: 1000; flex-wrap: wrap; padding: 20px;}
-        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Mitra LT', 'Montserrat', sans-serif; transition: transform 0.2s; text-decoration: none; color: white;}
+        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; transition: transform 0.2s; text-decoration: none; color: white;}
         .sector-btn:hover { transform: scale(1.05); }
         .sec-imp { background: linear-gradient(135deg, #8e44ad, #c0392b); box-shadow: 0 0 20px rgba(142, 68, 173, 0.5); }
         .sec-serr { background: linear-gradient(135deg, #e67e22, #f1c40f); box-shadow: 0 0 20px rgba(230, 126, 34, 0.5); color: #222; }
@@ -22,19 +22,31 @@
         /* --- LAYOUT PRINCIPAL --- */
         #main-layout { display: none; padding: 20px; transition: 0.3s; margin-right: 0; }
         .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; }
-        h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; }
-        .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
+        h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none; font-family: inherit;}
 
         .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
-        .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
+        .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: inherit;}
         
-        .serr-section { margin-bottom: 30px; display: none; }
-        .serr-title { background: #222; padding: 10px; border-radius: 5px; border-left: 5px solid var(--orange); margin-bottom: 15px; font-weight: 900; text-transform: uppercase; font-size: 14px; color: var(--orange); }
-        .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        /* --- KANBAN SYSTEM --- */
+        .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
+        .kanban-col { background: #222; border-radius: 10px; padding: 10px; min-width: 320px; width: 320px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: white; text-transform: uppercase; text-align: center; }
+        
+        .hdr-adesivos { background: var(--purple); }
+        .hdr-lonas { background: #34495e; }
+        .hdr-recorte { background: var(--blue); }
+        .hdr-acm { background: var(--orange); color: #000; }
+        .hdr-pvc { background: #d35400; }
+        .hdr-acrilico { background: #f39c12; color: #000; }
+        .hdr-outros { background: #444; }
 
+        .grid-est { display: flex; flex-direction: column; gap: 15px; min-height: 100px; }
+
+        /* CARDS */
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: margin 0.2s, border 0.2s; }
         .card-prod.serralheria { border-left-color: var(--orange); cursor: grab; }
-        .card-prod.coupled { margin-left: -20px !important; border-left: 5px solid var(--green) !important; z-index: 10; box-shadow: -5px 0 10px rgba(0,0,0,0.5); }
+        .card-prod.coupled { margin-top: -10px !important; border-top: 3px solid var(--green) !important; z-index: 10; box-shadow: 0 -5px 10px rgba(0,0,0,0.5); }
         .card-prod.dragging { opacity: 0.5; }
 
         .prod-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
@@ -44,13 +56,14 @@
 
         .btn-open-peca { background: var(--blue); color: white; width: 100%; border: none; padding: 10px; border-radius: 5px; font-weight: 900; cursor: pointer; font-family: inherit; }
 
+        /* MODAIS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; position: relative; border: 1px solid #444; }
         .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
         label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
+        input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: inherit;}
 
-        /* --- LAYOUT DA ETIQUETA REVISADO (10x3cm) --- */
+        /* --- ETIQUETA PROFISSIONAL (10x3cm) --- */
         #etiqueta-print {
             display: none;
             width: 100mm;
@@ -59,57 +72,23 @@
             color: #000;
             padding: 1mm;
             box-sizing: border-box;
-            border: 0.5mm solid #333;
+            border: 0.5mm solid #000;
         }
+        .label-grid { display: flex; width: 100%; height: 100%; gap: 1mm; }
+        .qr-section { width: 28mm; height: 28mm; border: 0.3mm solid #999; display: flex; align-items: center; justify-content: center; flex-direction: column; box-sizing: border-box; }
+        .qr-section canvas, .qr-section img { width: 23mm !important; height: 23mm !important; }
+        .qr-label { font-size: 5pt; font-weight: 900; margin-top: 1px; }
 
-        .label-grid {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            gap: 1mm;
-        }
+        .info-section { flex: 1; display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 0.5mm; }
+        .row-grid { display: grid; gap: 0.5mm; }
+        .box-info { border: 0.2mm solid #000; padding: 1mm 2mm; display: flex; align-items: center; overflow: hidden; background: #fff; }
+        .txt-label { font-weight: 900; font-size: 6.5pt; margin-right: 1.5mm; white-space: nowrap; }
+        .txt-value { font-weight: 700; font-size: 8.5pt; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 
-        /* Lado esquerdo: QR Code */
-        .qr-section {
-            width: 28mm;
-            height: 28mm;
-            border: 0.3mm solid #999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            box-sizing: border-box;
-        }
-        .qr-section canvas, .qr-section img { width: 24mm !important; height: 24mm !important; }
-        .qr-label { font-size: 6pt; font-weight: 900; margin-top: 1px; }
-
-        /* Lado direito: Informações em Grade */
-        .info-section {
-            flex: 1;
-            display: grid;
-            grid-template-rows: 1fr 1fr 1fr;
-            gap: 1mm;
-        }
-
-        .row-grid { display: grid; gap: 1mm; }
-        .box-info { 
-            border: 0.3mm solid #999; 
-            padding: 1mm 2mm; 
-            display: flex; 
-            align-items: center; 
-            overflow: hidden;
-            background: #fdfdfd;
-        }
-
-        .txt-label { font-weight: 900; font-size: 7pt; margin-right: 2mm; white-space: nowrap; }
-        .txt-value { font-weight: 700; font-size: 9pt; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-
-        /* Estilos específicos das linhas */
         .line-1 { grid-template-columns: 2fr 1fr; }
         .line-2 { grid-template-columns: 1fr; }
         .line-3 { grid-template-columns: 1.2fr 1fr; }
 
-        /* --- IMPRESSÃO --- */
         @media print {
             body * { display: none !important; }
             #etiqueta-print, #etiqueta-print * { display: block !important; }
@@ -129,12 +108,12 @@
         <button class="sector-btn sec-imp" onclick="selecionarSetor('impressao')">
             <div class="sec-icon">🖨️</div>
             <div class="sec-title">Sala de Impressão</div>
-            <span style="font-size:10px; color:white;">Lonas, Tintas, Rolos</span>
+            <span style="font-size:10px; color:white;">Adesivos, Lonas, Recorte</span>
         </button>
         <button class="sector-btn sec-serr" onclick="selecionarSetor('serralheria')">
             <div class="sec-icon">🛠️</div>
             <div class="sec-title">Serralheria</div>
-            <span style="font-size:10px; color:black;">Chapas, Cortes, Peças</span>
+            <span style="font-size:10px; color:black;">ACM, PVC, Acrílico</span>
         </button>
         <div style="width:100%; text-align:center; margin-top: 20px;">
             <a href="#" id="link-voltar-setor" style="color:#aaa; text-decoration:none; font-weight:bold; padding: 10px;">⬅ VOLTAR AO PAINEL</a>
@@ -154,33 +133,36 @@
             </select>
         </div>
 
-        <div id="serr-sections">
-            <div class="serr-section" id="sec-ACM"><div class="serr-title">Chapas ACM</div><div class="grid-est" id="grid-ACM"></div></div>
-            <div class="serr-section" id="sec-PVC"><div class="serr-title">Chapas PVC</div><div class="grid-est" id="grid-PVC"></div></div>
-            <div class="serr-section" id="sec-ACRILICO"><div class="serr-title">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
-            <div class="serr-section" id="sec-OUTROS"><div class="serr-title">Outros Metais/Madeiras</div><div class="grid-est" id="grid-OUTROS"></div></div>
+        <div id="kanban-imp" class="kanban-container" style="display: none;">
+            <div class="kanban-col"><div class="kanban-header hdr-adesivos">Adesivos</div><div class="grid-est" id="grid-ADESIVO"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-lonas">Lonas</div><div class="grid-est" id="grid-LONA"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-recorte">Adesivos de Recorte</div><div class="grid-est" id="grid-RECORTE"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-outros">Outros</div><div class="grid-est" id="grid-OUTROS-IMP"></div></div>
         </div>
 
-        <div class="grid-est" id="grid-estoque-geral"></div>
+        <div id="kanban-serr" class="kanban-container" style="display: none;">
+            <div class="kanban-col"><div class="kanban-header hdr-acm">Chapas ACM</div><div class="grid-est" id="grid-ACM"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-pvc">Chapas PVC</div><div class="grid-est" id="grid-PVC"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-acrilico">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-outros">Outros</div><div class="grid-est" id="grid-OUTROS-SERR"></div></div>
+        </div>
+        
         <button class="fab-add" onclick="abrirModalProduto()">+</button>
     </div>
 
     <div id="modal-peca" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="m-nome" style="color:var(--orange); margin:0;">Nome da Peça</h2>
+            <h2 id="m-nome" style="color:var(--orange); margin:0;">Peça</h2>
             <p id="m-dim" style="font-size:20px; font-weight:900; margin:10px 0;"></p>
-            
             <div style="background:#222; padding:15px; border-radius:8px; margin:20px 0;">
                 <label>REALIZAR CORTE (cm)</label>
                 <div class="form-row">
-                    <input type="number" id="corte-w" placeholder="L">
-                    <input type="number" id="corte-h" placeholder="A">
+                    <input type="number" id="corte-w" placeholder="L"><input type="number" id="corte-h" placeholder="A">
                     <button onclick="executarCorte()" style="background:var(--orange); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">CORTAR</button>
                 </div>
             </div>
-
             <div style="display:flex; gap:10px;">
-                <button onclick="abrirPainelEtiqueta()" style="flex:1; background:var(--blue); color:white; border:none; padding:12px; border-radius:5px; font-weight:bold; cursor:pointer;">GERAR ETIQUETA</button>
+                <button onclick="abrirPainelEtiqueta()" style="flex:1; background:var(--blue); color:white; border:none; padding:12px; border-radius:5px; font-weight:bold; cursor:pointer;">ETIQUETA</button>
                 <button onclick="deletarPeca()" style="background:var(--red); border:none; padding:12px; border-radius:5px; cursor:pointer;">🗑️</button>
             </div>
             <button onclick="fecharModal('modal-peca')" style="width:100%; background:none; color:#666; border:none; margin-top:15px; cursor:pointer;">FECHAR</button>
@@ -189,19 +171,16 @@
 
     <div id="modal-etiqueta" class="modal-overlay">
         <div class="modal-box">
-            <h3 style="margin-top:0;">Configurar Etiqueta</h3>
-            <label>Nº DA O.S.</label>
-            <input type="text" id="et-os" placeholder="0000">
+            <h3>Configurar Etiqueta</h3>
+            <label>Nº DA O.S.</label><input type="text" id="et-os" placeholder="0000">
             <label>LOCAL DE CORTE</label>
             <select id="et-local">
                 <option value="Decorletras">Decorletras</option>
                 <option value="MD Corte">MD Corte</option>
                 <option value="W.A. Corte a Laser">W.A. Corte a Laser</option>
             </select>
-            <label>Nº DO CORTE</label>
-            <input type="number" id="et-num" value="1">
-            
-            <button onclick="imprimirEtiquetaFinal()" style="width:100%; background:var(--green); color:white; border:none; padding:15px; border-radius:5px; font-weight:900; margin-top:20px; cursor:pointer;">IMPRIMIR (10x3cm)</button>
+            <label>Nº DO CORTE</label><input type="number" id="et-num" value="1">
+            <button onclick="imprimirEtiquetaFinal()" style="width:100%; background:var(--green); color:white; border:none; padding:15px; border-radius:5px; font-weight:900; margin-top:20px; cursor:pointer;">IMPRIMIR</button>
             <button onclick="fecharModal('modal-etiqueta')" style="width:100%; background:none; color:#666; border:none; margin-top:10px; cursor:pointer;">CANCELAR</button>
         </div>
     </div>
@@ -211,8 +190,8 @@
             <h2 style="margin-top:0;">Ajustar Estoque</h2>
             <input type="hidden" id="mov-id">
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button style="flex:1; background:var(--green); border:none; padding:10px; color:white; font-weight:bold; border-radius:5px; cursor:pointer;" onclick="salvarMov('entrada')">ENTRADA (+)</button>
-                <button style="flex:1; background:var(--red); border:none; padding:10px; color:white; font-weight:bold; border-radius:5px; cursor:pointer;" onclick="salvarMov('saida')">BAIXA (-)</button>
+                <button style="flex:1; background:var(--green); color:white; padding:10px; border-radius:5px; border:none; cursor:pointer;" onclick="salvarMov('entrada')">ENTRADA (+)</button>
+                <button style="flex:1; background:var(--red); color:white; padding:10px; border-radius:5px; border:none; cursor:pointer;" onclick="salvarMov('saida')">BAIXA (-)</button>
             </div>
             <input type="number" id="mov-qtd" placeholder="Quantidade">
             <button onclick="fecharModal('modal-mov')" style="width:100%; background:none; color:#666; border:none; margin-top:15px; cursor:pointer;">Cancelar</button>
@@ -222,15 +201,14 @@
     <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
             <h2 id="modal-title">Novo Material</h2>
-            <label>NOME DO MATERIAL / CHAPA</label>
-            <input type="text" id="prod-nome">
+            <label>NOME DO MATERIAL</label><input type="text" id="prod-nome">
             <div class="form-row" style="margin-top:15px;">
                 <div style="flex:1;"><label>CATEGORIA</label><select id="prod-cat"></select></div>
                 <div style="flex:1;" id="div-un"><label>UNIDADE</label><select id="prod-un"><option value="un">Unidade</option><option value="m">Metros</option><option value="m²">m²</option><option value="L">Litros</option></select></div>
             </div>
             <div id="div-dims" style="display:none; background:#222; padding:10px; border-radius:5px; margin-top:15px;">
                 <label style="color:var(--orange);">DIMENSÕES (cm)</label>
-                <div class="form-row"><input type="number" id="prod-dim-w" placeholder="Largura"><input type="number" id="prod-dim-h" placeholder="Altura"></div>
+                <div class="form-row"><input type="number" id="prod-dim-w" placeholder="L"><input type="number" id="prod-dim-h" placeholder="A"></div>
             </div>
             <div id="div-qtd" style="margin-top:15px;">
                 <div class="form-row">
@@ -238,7 +216,7 @@
                     <div style="flex:1;"><label>MÍNIMO</label><input type="number" id="prod-min"></div>
                 </div>
             </div>
-            <button class="btn-open-peca" style="background:var(--green); margin-top:20px;" onclick="salvarProduto()">SALVAR NO ESTOQUE</button>
+            <button style="width:100%; padding:15px; background:var(--green); color:white; border:none; border-radius:5px; font-weight:bold; margin-top:20px; cursor:pointer;" onclick="salvarProduto()">SALVAR</button>
             <button onclick="fecharModal('modal-prod')" style="width:100%; background:none; color:#666; border:none; margin-top:10px; cursor:pointer;">CANCELAR</button>
         </div>
     </div>
@@ -255,10 +233,10 @@
                     <div class="box-info"><span class="txt-label">OS:</span><span class="txt-value" id="p-os">0000</span></div>
                 </div>
                 <div class="row-grid line-2">
-                    <div class="box-info"><span class="txt-label">DIMENSÕES:</span><span class="txt-value" id="p-dim">000 x 000 cm</span></div>
+                    <div class="box-info"><span class="txt-label">TAM:</span><span class="txt-value" id="p-dim">000 x 000 cm</span></div>
                 </div>
                 <div class="row-grid line-3">
-                    <div class="box-info"><span class="txt-label">LOCAL:</span><span class="txt-value" id="p-local">OPÇÃO</span></div>
+                    <div class="box-info"><span class="txt-label">LOCAL:</span><span class="txt-value" id="p-local">---</span></div>
                     <div class="box-info"><span class="txt-label">CORTE:</span><span class="txt-value" id="p-num">01</span></div>
                 </div>
             </div>
@@ -267,15 +245,13 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar-setor').href = ROTAS.painel;
-        let setorAtual = '';
-        let produtos = [];
-        let pecaSelecionada = null;
+        let setorAtual = '', produtos = [], pecaSelecionada = null;
 
         const config = {
-            'impressao': { color: 'var(--purple)', cats: ['Lona','Adesivo','Tinta','Outros'], isSerr: false },
+            'impressao': { color: 'var(--purple)', cats: ['Adesivo','Lona','Adesivo de Recorte','Tinta','Outros'], isSerr: false },
             'serralheria': { color: 'var(--orange)', cats: ['ACM','PVC','Acrílico','Outros'], isSerr: true }
         };
 
@@ -285,120 +261,87 @@
             document.getElementById('main-layout').style.display = 'block';
             document.getElementById('page-title').innerText = setor === 'impressao' ? 'Sala de Impressão' : 'Serralheria';
             document.getElementById('page-title').style.color = config[setor].color;
-            document.getElementById('serr-sections').style.display = config[setor].isSerr ? 'block' : 'none';
-            document.getElementById('grid-estoque-geral').style.display = config[setor].isSerr ? 'none' : 'grid';
-            const sel = document.getElementById('cat-filter');
-            const selModal = document.getElementById('prod-cat');
-            sel.innerHTML = '<option value="Todos">Todas</option>';
-            selModal.innerHTML = '';
-            config[setor].cats.forEach(c => {
-                sel.innerHTML += `<option value="${c}">${c}</option>`;
-                selModal.innerHTML += `<option value="${c}">${c}</option>`;
-            });
+
+            document.getElementById('kanban-imp').style.display = !config[setor].isSerr ? 'flex' : 'none';
+            document.getElementById('kanban-serr').style.display = config[setor].isSerr ? 'flex' : 'none';
+
+            const sel = document.getElementById('cat-filter'), selModal = document.getElementById('prod-cat');
+            sel.innerHTML = '<option value="Todos">Todas</option>'; selModal.innerHTML = '';
+            config[setor].cats.forEach(c => { sel.innerHTML += `<option value="${c}">${c}</option>`; selModal.innerHTML += `<option value="${c}">${c}</option>`; });
+
             ouvirEstoque();
         };
 
         function ouvirEstoque() {
             const q = query(collection(db, "estoque"), where("setor", "==", setorAtual));
-            onSnapshot(q, (snapshot) => {
-                produtos = [];
-                snapshot.forEach(d => { let item = d.data(); item.id = d.id; produtos.push(item); });
-                renderizar();
+            onSnapshot(q, (snapshot) => { 
+                produtos = []; 
+                snapshot.forEach(d => { let item = d.data(); item.id = d.id; produtos.push(item); }); 
+                renderizar(); 
             });
         }
 
         function renderizar() {
+            document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
             const isSerr = config[setorAtual].isSerr;
-            if(isSerr) {
-                document.querySelectorAll('.serr-section .grid-est').forEach(g => g.innerHTML = '');
-                document.querySelectorAll('.serr-section').forEach(s => s.style.display = 'none');
-                produtos.forEach(p => {
-                    const catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS';
+
+            produtos.forEach(p => {
+                const card = document.createElement('div');
+                const catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace("ADESIVO DE RECORTE", "RECORTE");
+                
+                if (isSerr) {
+                    const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-SERR';
                     const grid = document.getElementById(`grid-${gridID}`);
-                    document.getElementById(`sec-${gridID}`).style.display = 'block';
-                    const card = document.createElement('div');
                     card.className = `card-prod serralheria ${p.coupledTo ? 'coupled' : ''}`;
-                    card.draggable = true;
-                    card.id = p.id;
-                    card.innerHTML = `<div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><span class="prod-dims">${p.dimW} x ${p.dimH} cm</span><button class="btn-open-peca" onclick="abrirPeca('${p.id}')">ABRIR PEÇA</button>`;
+                    card.draggable = true; card.id = p.id;
+                    card.innerHTML = `<div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><span class="prod-dims">${p.dimW} x ${p.dimH} cm</span><button class="btn-open-peca" onclick="abrirPeca('${p.id}')">ABRIR</button>`;
+                    
                     card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('pecaID', p.id); card.classList.add('dragging'); });
-                    card.addEventListener('dragend', () => card.classList.remove('dragging'));
                     card.addEventListener('dragover', (e) => e.preventDefault());
                     card.addEventListener('drop', async (e) => {
                         e.preventDefault();
-                        const idArrastado = e.dataTransfer.getData('pecaID');
-                        if(idArrastado !== p.id) { await updateDoc(doc(db, "estoque", idArrastado), { coupledTo: p.id }); }
+                        const idArr = e.dataTransfer.getData('pecaID');
+                        if(idArr && idArr !== p.id) await updateDoc(doc(db, "estoque", idArr), { coupledTo: p.id });
                     });
-                    grid.appendChild(card);
-                });
-            } else {
-                const grid = document.getElementById('grid-estoque-geral');
-                grid.innerHTML = '';
-                produtos.forEach(p => {
-                    grid.innerHTML += `<div class="card-prod ${p.qtd <= p.minimo ? 'low-stock' : ''}"><div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><div style="background:#222; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div><b style="font-size:20px;">${p.qtd}</b> <small>${p.unidade}</small></div><button class="btn-voltar" style="background:var(--blue)" onclick="abrirMov('${p.id}')">AJUSTAR</button></div></div>`;
-                });
-            }
+                    if(grid) grid.appendChild(card);
+                } else {
+                    const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-IMP';
+                    const grid = document.getElementById(`grid-${gridID}`);
+                    card.className = `card-prod ${p.qtd <= p.minimo ? 'low-stock' : ''}`;
+                    card.innerHTML = `<div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><div style="background:#222; padding:8px; border-radius:5px; display:flex; justify-content:space-between; align-items:center;"><div><b>${p.qtd}</b> <small>${p.unidade}</small></div><button style="background:var(--blue); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="abrirMov('${p.id}')">AJUSTAR</button></div>`;
+                    if(grid) grid.appendChild(card);
+                }
+            });
         }
 
-        window.abrirPeca = (id) => {
-            pecaSelecionada = produtos.find(x => x.id === id);
-            document.getElementById('m-nome').innerText = pecaSelecionada.nome;
-            document.getElementById('m-dim').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
-            document.getElementById('modal-peca').style.display = 'flex';
+        window.abrirPeca = (id) => { 
+            pecaSelecionada = produtos.find(x => x.id === id); 
+            document.getElementById('m-nome').innerText = pecaSelecionada.nome; 
+            document.getElementById('m-dim').innerText = `${pecaSelecionada.dimW}x${pecaSelecionada.dimH} cm`; 
+            document.getElementById('modal-peca').style.display = 'flex'; 
         };
 
         window.executarCorte = async () => {
-            const cw = parseFloat(document.getElementById('corte-w').value);
-            const ch = parseFloat(document.getElementById('corte-h').value);
+            const cw = parseFloat(document.getElementById('corte-w').value), ch = parseFloat(document.getElementById('corte-h').value);
             if(!cw || !ch || cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) { alert("Medidas inválidas!"); return; }
-            if(confirm("Deseja realizar o corte? A peça original será reduzida.")){
-                const sobraW = pecaSelecionada.dimW - cw;
-                const sobraH = pecaSelecionada.dimH - ch;
-                await updateDoc(doc(db, "estoque", pecaSelecionada.id), {
-                    dimW: sobraW > 0 ? sobraW : pecaSelecionada.dimW,
-                    dimH: sobraH > 0 ? sobraH : pecaSelecionada.dimH,
-                    nome: pecaSelecionada.nome + " (Sobra)"
-                });
+            if(confirm("Confirmar corte?")){
+                const sW = pecaSelecionada.dimW - cw, sH = pecaSelecionada.dimH - ch;
+                await updateDoc(doc(db, "estoque", pecaSelecionada.id), { dimW: sW > 0 ? sW : pecaSelecionada.dimW, dimH: sH > 0 ? sH : pecaSelecionada.dimH, nome: pecaSelecionada.nome + " (Sobra)" });
                 await addDoc(collection(db, "estoque"), { setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)", categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç' });
-                alert("Corte realizado!");
                 fecharModal('modal-peca');
             }
         };
 
-        window.deletarPeca = async () => {
-            if(confirm("Excluir esta peça permanentemente?")) { await deleteDoc(doc(db, "estoque", pecaSelecionada.id)); fecharModal('modal-peca'); }
-        };
-
-        window.abrirPainelEtiqueta = () => { document.getElementById('modal-etiqueta').style.display = 'flex'; };
-
         window.imprimirEtiquetaFinal = () => {
-            const os = document.getElementById('et-os').value;
-            const local = document.getElementById('et-local').value;
-            const num = document.getElementById('et-num').value;
-
+            const os = document.getElementById('et-os').value, local = document.getElementById('et-local').value, num = document.getElementById('et-num').value;
             document.getElementById('p-nome').innerText = pecaSelecionada.nome.toUpperCase();
             document.getElementById('p-dim').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
             document.getElementById('p-os').innerText = os || '----';
             document.getElementById('p-local').innerText = local;
             document.getElementById('p-num').innerText = num.toString().padStart(2, '0');
-
-            const qrCont = document.getElementById('p-qrcode');
-            qrCont.innerHTML = '';
-            const baseUrl = window.location.href.split('?')[0];
-            const link = `${baseUrl}?id=${pecaSelecionada.id}`;
-            
-            new QRCode(qrCont, { text: link, width: 100, height: 100, correctLevel: QRCode.CorrectLevel.M });
-
+            const qrCont = document.getElementById('p-qrcode'); qrCont.innerHTML = '';
+            new QRCode(qrCont, { text: window.location.href.split('?')[0] + "?id=" + pecaSelecionada.id, width: 100, height: 100 });
             setTimeout(() => { window.print(); }, 800);
-        };
-
-        window.abrirModalProduto = () => {
-            const isSerr = config[setorAtual].isSerr;
-            document.getElementById('div-dims').style.display = isSerr ? 'block' : 'none';
-            document.getElementById('div-un').style.display = isSerr ? 'none' : 'block';
-            document.getElementById('div-qtd').style.display = isSerr ? 'none' : 'block';
-            document.getElementById('modal-prod').style.display = 'flex';
         };
 
         window.salvarProduto = async () => {
@@ -417,17 +360,18 @@
             fecharModal('modal-prod');
         };
 
+        window.deletarPeca = async () => { if(confirm("Excluir peça?")) { await deleteDoc(doc(db, "estoque", pecaSelecionada.id)); fecharModal('modal-peca'); } };
         window.abrirMov = (id) => { document.getElementById('mov-id').value = id; document.getElementById('modal-mov').style.display = 'flex'; };
         window.salvarMov = async (tipo) => {
-            const id = document.getElementById('mov-id').value;
-            const qtdAlt = parseFloat(document.getElementById('mov-qtd').value);
+            const id = document.getElementById('mov-id').value, qtdAlt = parseFloat(document.getElementById('mov-qtd').value);
             const p = produtos.find(x => x.id === id);
-            let novaQtd = tipo === 'entrada' ? p.qtd + qtdAlt : p.qtd - qtdAlt;
-            await updateDoc(doc(db, "estoque", id), { qtd: novaQtd });
+            let nova = tipo === 'entrada' ? p.qtd + qtdAlt : p.qtd - qtdAlt;
+            await updateDoc(doc(db, "estoque", id), { qtd: nova });
             fecharModal('modal-mov');
         };
 
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
+        window.abrirPainelEtiqueta = () => document.getElementById('modal-etiqueta').style.display = 'flex';
         window.filtrarEstoque = () => {};
     </script>
 </body>
