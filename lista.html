@@ -44,48 +44,63 @@
         }
         .btn-filtro.ativo { background: var(--blue); color: white; transform: scale(1.05); }
 
-        /* TABELA (Cards no Mobile / Tabela no PC) */
-        .lista-container { display: grid; gap: 10px; }
+        /* DIVISÓRIAS POR MÊS */
+        .mes-grupo { margin-bottom: 15px; }
+        .mes-header {
+            background: #1a252f; padding: 12px 15px; border-radius: 8px;
+            font-weight: 900; color: var(--yellow); cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            text-transform: uppercase; letter-spacing: 1px;
+            border-left: 4px solid var(--yellow);
+            transition: background 0.2s;
+        }
+        .mes-header:hover { background: #23313f; }
+        .mes-icon { font-size: 14px; color: white; }
+
+        /* TABELA E CARDS COMPACTOS */
+        .lista-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+            gap: 15px; 
+            padding-top: 15px;
+        }
 
         .os-card {
             background: var(--card-bg); border-radius: 8px; padding: 15px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-left: 5px solid #555; cursor: pointer; transition: transform 0.2s;
+            display: flex; flex-direction: column;
+            border-top: 4px solid #555; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s; position: relative;
         }
-        .os-card:hover { transform: translateX(5px); background: #34495e; }
+        .os-card:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
 
-        .status-pago { border-left-color: var(--green); }
-        .status-pendente { border-left-color: var(--red); }
-        .status-andamento { border-left-color: var(--blue); }
+        .status-pago { border-top-color: var(--green); }
+        .status-pendente { border-top-color: var(--red); }
+        .status-andamento { border-top-color: var(--blue); }
 
-        .os-info { flex: 1; }
-        .os-num { font-size: 12px; color: #999; font-weight: bold; }
-        .os-cliente { font-size: 16px; font-weight: 700; color: white; margin: 2px 0; }
-        .os-servico { font-size: 12px; color: var(--text-gray); }
-        .os-data { font-size: 10px; color: #777; margin-top: 5px;}
+        .os-header-card { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px;}
+        .os-num { font-size: 14px; color: white; font-weight: 900; background: #1a252f; padding: 2px 8px; border-radius: 4px;}
+        .os-data { font-size: 10px; color: #999; }
+        
+        .os-cliente { font-size: 18px; font-weight: 800; color: white; margin-bottom: 2px; line-height: 1.1;}
+        .os-servico { font-size: 12px; color: var(--text-gray); margin-bottom: 15px; flex-grow: 1; }
+        .os-valor { font-weight: 900; font-size: 18px; color: var(--yellow); margin-bottom: 15px; text-align: left; }
 
-        .os-valor { text-align: right; font-weight: 900; font-size: 14px; color: var(--yellow); margin-right: 15px; }
-
-        .actions { display: flex; gap: 10px; }
-        .btn-acao { border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: 'Mitra LT', 'Montserrat', sans-serif; }
+        .actions { display: flex; gap: 8px; width: 100%; mt-auto;}
+        .btn-acao {
+            flex: 1; border: none; padding: 10px; border-radius: 5px; cursor: pointer; 
+            font-weight: bold; font-family: 'Mitra LT', 'Montserrat', sans-serif; font-size: 11px;
+        }
         .btn-abrir { background: var(--blue); color: white; }
-        .btn-del { background: var(--red); color: white; }
+        .btn-del { background: var(--red); color: white; flex: 0.3; }
 
-        #loading { text-align: center; color: #aaa; margin-top: 50px; }
-
-        @media (max-width: 600px) {
-            .os-card { flex-direction: column; align-items: flex-start; }
-            .os-valor { text-align: left; margin: 10px 0; }
-            .actions { width: 100%; justify-content: space-between; }
-            .btn-acao { flex: 1; }
-        }
+        #loading { text-align: center; color: #aaa; margin-top: 50px; font-size: 14px;}
     </style>
 </head>
 <body>
 
     <div class="header-lista">
         <h1>Minhas O.S.</h1>
-        <a href="#" id="link-voltar" class="btn-voltar">⬅ VOLTAR</a>
+        <a href="#" id="link-voltar" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
     </div>
 
     <div class="filtros">
@@ -94,25 +109,22 @@
         <button class="btn-filtro" onclick="filtrar('pago', this)">PAGOS</button>
     </div>
 
-    <div id="loading">Carregando ordens de serviço...</div>
-    <div class="lista-container" id="lista-os"></div>
+    <div id="loading">A carregar ordens de serviço...</div>
+    <div id="lista-os-container"></div>
 
     <script type="module">
-        // 1. IMPORTAÇÕES GLOBAIS (O "CÉREBRO" DO SEU SISTEMA)
+        // 1. IMPORTAÇÕES DO CONFIG
         import { db, ROTAS } from "./config.js";
-        
-        // 2. IMPORTAÇÕES ESPECÍFICAS DESTA TELA
         import { collection, getDocs, doc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 3. APLICANDO AS ROTAS NOS BOTÕES
         document.getElementById('link-voltar').href = ROTAS.painel;
-        
         let todasOS = []; 
 
         async function carregarLista() {
-            const listaDiv = document.getElementById('lista-os');
+            const container = document.getElementById('lista-os-container');
             const loading = document.getElementById('loading');
-            listaDiv.innerHTML = '';
+            container.innerHTML = '';
+            loading.style.display = 'block';
             
             try {
                 const q = query(collection(db, "ordens_servico"), orderBy("data_criacao", "desc"));
@@ -130,57 +142,118 @@
 
             } catch (error) {
                 console.error("Erro:", error);
-                loading.innerText = "Erro ao carregar. Verifique o console.";
+                loading.innerText = "Erro ao carregar. Verifique a ligação ou a consola.";
             }
         }
 
         window.renderizar = function(lista) {
-            const container = document.getElementById('lista-os');
+            const container = document.getElementById('lista-os-container');
             container.innerHTML = '';
 
             if (lista.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#555;">Nenhuma O.S. encontrada.</div>';
+                container.innerHTML = '<div style="text-align:center; color:#555; margin-top: 20px;">Nenhuma O.S. encontrada.</div>';
                 return;
             }
 
-            lista.forEach(os => {
-                let statusClass = 'status-andamento';
-                if (os.status?.pago) statusClass = 'status-pago';
-                else if (!os.status?.pago && !os.status?.faturado) statusClass = 'status-pendente';
+            // Agrupar por Mês/Ano
+            const grupos = {};
+            const dataAtual = new Date();
+            const mesAtualSort = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
 
-                let dataFormatada = "Data desconhecida";
+            lista.forEach(os => {
+                let mesAnoSort = "0000-00";
+                let mesAnoExibicao = "Sem Data";
+
                 if (os.data_criacao && os.data_criacao.seconds) {
                     const d = new Date(os.data_criacao.seconds * 1000);
-                    dataFormatada = d.toLocaleDateString('pt-BR');
+                    const ano = d.getFullYear();
+                    const mes = String(d.getMonth() + 1).padStart(2, '0');
+                    mesAnoSort = `${ano}-${mes}`;
+                    
+                    const nomeMes = d.toLocaleString('pt-PT', { month: 'long' });
+                    mesAnoExibicao = `${nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1)} ${ano}`;
                 }
 
-                const html = `
-                    <div class="os-card ${statusClass}">
-                        <div class="os-info">
-                            <div class="os-num">OS #${os.os_numero || '???'}</div>
+                if (!grupos[mesAnoSort]) {
+                    grupos[mesAnoSort] = { titulo: mesAnoExibicao, itens: [] };
+                }
+                grupos[mesAnoSort].itens.push(os);
+            });
+
+            // Obter as chaves (ex: 2026-02) e ordenar de forma decrescente
+            const chavesOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
+
+            chavesOrdenadas.forEach((chave, index) => {
+                const grupo = grupos[chave];
+                
+                // Abre o mês se for o mês atual OU se for o primeiro mês da lista (caso não existam O.S. no mês atual)
+                const isAberto = (chave === mesAtualSort) || (index === 0 && !grupos[mesAtualSort]);
+                const displayEstilo = isAberto ? 'grid' : 'none';
+                const iconEstilo = isAberto ? '▼' : '▶';
+
+                let htmlGrupo = `
+                    <div class="mes-grupo">
+                        <div class="mes-header" onclick="toggleMes('grid-${chave}', 'icon-${chave}')">
+                            <span>📅 ${grupo.titulo} <span style="color:#888; font-size:10px; margin-left:10px;">(${grupo.itens.length} O.S.)</span></span>
+                            <span class="mes-icon" id="icon-${chave}">${iconEstilo}</span>
+                        </div>
+                        <div class="lista-grid" id="grid-${chave}" style="display: ${displayEstilo};">
+                `;
+
+                grupo.itens.forEach(os => {
+                    let statusClass = 'status-andamento';
+                    if (os.status?.pago) statusClass = 'status-pago';
+                    else if (!os.status?.pago && !os.status?.faturado) statusClass = 'status-pendente';
+
+                    let dataFormatada = "--/--/----";
+                    if (os.data_criacao && os.data_criacao.seconds) {
+                        const d = new Date(os.data_criacao.seconds * 1000);
+                        dataFormatada = d.toLocaleDateString('pt-PT');
+                    }
+
+                    htmlGrupo += `
+                        <div class="os-card ${statusClass}">
+                            <div class="os-header-card">
+                                <span class="os-num">#${os.os_numero || '???'}</span>
+                                <span class="os-data">${dataFormatada}</span>
+                            </div>
                             <div class="os-cliente">${os.cliente || 'Sem Nome'}</div>
                             <div class="os-servico">${os.servico_titulo || 'Serviço Genérico'}</div>
-                            <div class="os-data">Criado em: ${dataFormatada}</div>
+                            <div class="os-valor">${os.valor_restante || 'R$ 0,00'}</div>
+                            
+                            <div class="actions">
+                                <button class="btn-acao btn-abrir" onclick="abrirOS('${os.id}')">✏️ EDITAR</button>
+                                <button class="btn-acao btn-del" onclick="deletarOS('${os.id}')">🗑️</button>
+                            </div>
                         </div>
-                        <div class="os-valor">${os.valor_restante || 'R$ 0,00'}</div>
-                        <div class="actions">
-                            <button class="btn-acao btn-abrir" onclick="abrirOS('${os.id}')">✏️ EDITAR</button>
-                            <button class="btn-acao btn-del" onclick="deletarOS('${os.id}')">🗑️</button>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += html;
+                    `;
+                });
+
+                htmlGrupo += `</div></div>`;
+                container.innerHTML += htmlGrupo;
             });
         }
 
+        window.toggleMes = function(idContainer, idIcone) {
+            const cont = document.getElementById(idContainer);
+            const icon = document.getElementById(idIcone);
+            if (cont.style.display === 'none') {
+                cont.style.display = 'grid';
+                icon.innerHTML = '▼';
+            } else {
+                cont.style.display = 'none';
+                icon.innerHTML = '▶';
+            }
+        }
+
         window.deletarOS = async function(id) {
-            if (confirm("Tem certeza que deseja EXCLUIR essa O.S. permanentemente?")) {
+            if (confirm("Tem a certeza que deseja APAGAR esta O.S. permanentemente?")) {
                 try {
                     await deleteDoc(doc(db, "ordens_servico", id));
-                    alert("O.S. excluída!");
+                    alert("O.S. apagada!");
                     carregarLista(); 
                 } catch (e) {
-                    alert("Erro ao excluir: " + e);
+                    alert("Erro ao apagar: " + e);
                 }
             }
         }
@@ -200,7 +273,6 @@
             }
         }
 
-        // USANDO A ROTA DO CONFIG.JS AQUI:
         window.abrirOS = function(id) {
             window.location.href = `${ROTAS.os}?id=${id}`;
         }
