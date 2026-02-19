@@ -25,16 +25,13 @@
         h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; }
         .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
-        /* FILTROS E GRID */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
         .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         
-        /* GRIDS ESPECÍFICOS SERRALHERIA */
         .serr-section { margin-bottom: 30px; display: none; }
         .serr-title { background: #222; padding: 10px; border-radius: 5px; border-left: 5px solid var(--orange); margin-bottom: 15px; font-weight: 900; text-transform: uppercase; font-size: 14px; color: var(--orange); }
         .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
 
-        /* CARDS */
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: margin 0.2s, border 0.2s; }
         .card-prod.serralheria { border-left-color: var(--orange); cursor: grab; }
         .card-prod.coupled { margin-left: -20px !important; border-left: 5px solid var(--green) !important; z-index: 10; box-shadow: -5px 0 10px rgba(0,0,0,0.5); }
@@ -47,89 +44,80 @@
 
         .btn-open-peca { background: var(--blue); color: white; width: 100%; border: none; padding: 10px; border-radius: 5px; font-weight: 900; cursor: pointer; font-family: inherit; }
 
-        /* MODAIS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; position: relative; border: 1px solid #444; }
         .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
         label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
-        /* --- LAYOUT DA ETIQUETA (10x3cm) --- */
+        /* --- LAYOUT DA ETIQUETA REVISADO (10x3cm) --- */
         #etiqueta-print {
-            display: none; 
+            display: none;
             width: 100mm;
             height: 30mm;
             background: #fff;
             color: #000;
-            padding: 0;
+            padding: 1mm;
             box-sizing: border-box;
-            border: 1px solid #000;
-            position: absolute;
-            top: 0; left: 0;
+            border: 0.5mm solid #333;
         }
 
-        .et-wrapper {
+        .label-grid {
             display: flex;
             width: 100%;
             height: 100%;
-            padding: 2mm;
-            box-sizing: border-box;
+            gap: 1mm;
         }
 
-        .et-data {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .et-title {
-            font-size: 10pt;
-            font-weight: 900;
-            border-bottom: 1pt solid #000;
-            padding-bottom: 2pt;
-            margin-bottom: 2pt;
-            text-transform: uppercase;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .et-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 2pt;
-        }
-
-        .et-item { font-size: 7pt; line-height: 1.1; }
-        .et-label { font-weight: 900; color: #444; text-transform: uppercase; display: block; font-size: 6pt; }
-        .et-val { font-weight: 700; font-size: 8pt; display: block; }
-
-        .et-qr-side {
-            width: 26mm;
-            height: 26mm;
+        /* Lado esquerdo: QR Code */
+        .qr-section {
+            width: 28mm;
+            height: 28mm;
+            border: 0.3mm solid #999;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 0.5pt solid #eee;
-            margin-left: 2mm;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .qr-section canvas, .qr-section img { width: 24mm !important; height: 24mm !important; }
+        .qr-label { font-size: 6pt; font-weight: 900; margin-top: 1px; }
+
+        /* Lado direito: Informações em Grade */
+        .info-section {
+            flex: 1;
+            display: grid;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 1mm;
         }
 
-        /* --- REGRAS DE IMPRESSÃO --- */
+        .row-grid { display: grid; gap: 1mm; }
+        .box-info { 
+            border: 0.3mm solid #999; 
+            padding: 1mm 2mm; 
+            display: flex; 
+            align-items: center; 
+            overflow: hidden;
+            background: #fdfdfd;
+        }
+
+        .txt-label { font-weight: 900; font-size: 7pt; margin-right: 2mm; white-space: nowrap; }
+        .txt-value { font-weight: 700; font-size: 9pt; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+
+        /* Estilos específicos das linhas */
+        .line-1 { grid-template-columns: 2fr 1fr; }
+        .line-2 { grid-template-columns: 1fr; }
+        .line-3 { grid-template-columns: 1.2fr 1fr; }
+
+        /* --- IMPRESSÃO --- */
         @media print {
             body * { display: none !important; }
             #etiqueta-print, #etiqueta-print * { display: block !important; }
-            #etiqueta-print {
-                display: block !important;
-                width: 100mm;
-                height: 30mm;
-            }
-            .et-wrapper { display: flex !important; }
-            .et-qr-side canvas, .et-qr-side img { width: 24mm !important; height: 24mm !important; }
-            @page {
-                size: 100mm 30mm;
-                margin: 0;
-            }
+            #etiqueta-print { display: block !important; position: absolute; top: 0; left: 0; }
+            .label-grid { display: flex !important; }
+            .info-section { display: grid !important; }
+            .row-grid { display: grid !important; }
+            @page { size: 100mm 30mm; margin: 0; }
         }
 
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
@@ -174,7 +162,6 @@
         </div>
 
         <div class="grid-est" id="grid-estoque-geral"></div>
-        
         <button class="fab-add" onclick="abrirModalProduto()">+</button>
     </div>
 
@@ -237,53 +224,44 @@
             <h2 id="modal-title">Novo Material</h2>
             <label>NOME DO MATERIAL / CHAPA</label>
             <input type="text" id="prod-nome">
-            
             <div class="form-row" style="margin-top:15px;">
                 <div style="flex:1;"><label>CATEGORIA</label><select id="prod-cat"></select></div>
                 <div style="flex:1;" id="div-un"><label>UNIDADE</label><select id="prod-un"><option value="un">Unidade</option><option value="m">Metros</option><option value="m²">m²</option><option value="L">Litros</option></select></div>
             </div>
-
             <div id="div-dims" style="display:none; background:#222; padding:10px; border-radius:5px; margin-top:15px;">
                 <label style="color:var(--orange);">DIMENSÕES (cm)</label>
                 <div class="form-row"><input type="number" id="prod-dim-w" placeholder="Largura"><input type="number" id="prod-dim-h" placeholder="Altura"></div>
             </div>
-
             <div id="div-qtd" style="margin-top:15px;">
                 <div class="form-row">
                     <div style="flex:1;"><label>QTD ATUAL</label><input type="number" id="prod-qtd"></div>
                     <div style="flex:1;"><label>MÍNIMO</label><input type="number" id="prod-min"></div>
                 </div>
             </div>
-
             <button class="btn-open-peca" style="background:var(--green); margin-top:20px;" onclick="salvarProduto()">SALVAR NO ESTOQUE</button>
             <button onclick="fecharModal('modal-prod')" style="width:100%; background:none; color:#666; border:none; margin-top:10px; cursor:pointer;">CANCELAR</button>
         </div>
     </div>
 
     <div id="etiqueta-print">
-        <div class="et-wrapper">
-            <div class="et-data">
-                <div class="et-title" id="p-nome">MATERIAL</div>
-                <div class="et-grid">
-                    <div class="et-item">
-                        <span class="et-label">Dimensões</span>
-                        <span class="et-val" id="p-dim">00 x 00 cm</span>
-                    </div>
-                    <div class="et-item">
-                        <span class="et-label">Nº O.S.</span>
-                        <span class="et-val" id="p-os">0000</span>
-                    </div>
-                    <div class="et-item">
-                        <span class="et-label">Local</span>
-                        <span class="et-val" id="p-local">Decorletras</span>
-                    </div>
-                    <div class="et-item">
-                        <span class="et-label">Corte</span>
-                        <span class="et-val" id="p-num">01</span>
-                    </div>
+        <div class="label-grid">
+            <div class="qr-section">
+                <div id="p-qrcode"></div>
+                <div class="qr-label">QR CODE</div>
+            </div>
+            <div class="info-section">
+                <div class="row-grid line-1">
+                    <div class="box-info"><span class="txt-value" id="p-nome">MATERIAL</span></div>
+                    <div class="box-info"><span class="txt-label">OS:</span><span class="txt-value" id="p-os">0000</span></div>
+                </div>
+                <div class="row-grid line-2">
+                    <div class="box-info"><span class="txt-label">DIMENSÕES:</span><span class="txt-value" id="p-dim">000 x 000 cm</span></div>
+                </div>
+                <div class="row-grid line-3">
+                    <div class="box-info"><span class="txt-label">LOCAL:</span><span class="txt-value" id="p-local">OPÇÃO</span></div>
+                    <div class="box-info"><span class="txt-label">CORTE:</span><span class="txt-value" id="p-num">01</span></div>
                 </div>
             </div>
-            <div class="et-qr-side" id="p-qrcode"></div>
         </div>
     </div>
 
@@ -292,7 +270,6 @@
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar-setor').href = ROTAS.painel;
-
         let setorAtual = '';
         let produtos = [];
         let pecaSelecionada = null;
@@ -308,10 +285,8 @@
             document.getElementById('main-layout').style.display = 'block';
             document.getElementById('page-title').innerText = setor === 'impressao' ? 'Sala de Impressão' : 'Serralheria';
             document.getElementById('page-title').style.color = config[setor].color;
-
             document.getElementById('serr-sections').style.display = config[setor].isSerr ? 'block' : 'none';
             document.getElementById('grid-estoque-geral').style.display = config[setor].isSerr ? 'none' : 'grid';
-
             const sel = document.getElementById('cat-filter');
             const selModal = document.getElementById('prod-cat');
             sel.innerHTML = '<option value="Todos">Todas</option>';
@@ -320,7 +295,6 @@
                 sel.innerHTML += `<option value="${c}">${c}</option>`;
                 selModal.innerHTML += `<option value="${c}">${c}</option>`;
             });
-
             ouvirEstoque();
         };
 
@@ -338,24 +312,16 @@
             if(isSerr) {
                 document.querySelectorAll('.serr-section .grid-est').forEach(g => g.innerHTML = '');
                 document.querySelectorAll('.serr-section').forEach(s => s.style.display = 'none');
-
                 produtos.forEach(p => {
                     const catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                     const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS';
                     const grid = document.getElementById(`grid-${gridID}`);
                     document.getElementById(`sec-${gridID}`).style.display = 'block';
-
                     const card = document.createElement('div');
                     card.className = `card-prod serralheria ${p.coupledTo ? 'coupled' : ''}`;
                     card.draggable = true;
                     card.id = p.id;
-                    card.innerHTML = `
-                        <div class="prod-header"><span class="prod-cat">${p.categoria}</span></div>
-                        <div class="prod-name">${p.nome}</div>
-                        <span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>
-                        <button class="btn-open-peca" onclick="abrirPeca('${p.id}')">ABRIR PEÇA</button>
-                    `;
-
+                    card.innerHTML = `<div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><span class="prod-dims">${p.dimW} x ${p.dimH} cm</span><button class="btn-open-peca" onclick="abrirPeca('${p.id}')">ABRIR PEÇA</button>`;
                     card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('pecaID', p.id); card.classList.add('dragging'); });
                     card.addEventListener('dragend', () => card.classList.remove('dragging'));
                     card.addEventListener('dragover', (e) => e.preventDefault());
@@ -364,23 +330,13 @@
                         const idArrastado = e.dataTransfer.getData('pecaID');
                         if(idArrastado !== p.id) { await updateDoc(doc(db, "estoque", idArrastado), { coupledTo: p.id }); }
                     });
-
                     grid.appendChild(card);
                 });
             } else {
                 const grid = document.getElementById('grid-estoque-geral');
                 grid.innerHTML = '';
                 produtos.forEach(p => {
-                    grid.innerHTML += `
-                        <div class="card-prod ${p.qtd <= p.minimo ? 'low-stock' : ''}">
-                            <div class="prod-header"><span class="prod-cat">${p.categoria}</span></div>
-                            <div class="prod-name">${p.nome}</div>
-                            <div style="background:#222; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                                <div><b style="font-size:20px;">${p.qtd}</b> <small>${p.unidade}</small></div>
-                                <button class="btn-voltar" style="background:var(--blue)" onclick="abrirMov('${p.id}')">AJUSTAR</button>
-                            </div>
-                        </div>
-                    `;
+                    grid.innerHTML += `<div class="card-prod ${p.qtd <= p.minimo ? 'low-stock' : ''}"><div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><div style="background:#222; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><div><b style="font-size:20px;">${p.qtd}</b> <small>${p.unidade}</small></div><button class="btn-voltar" style="background:var(--blue)" onclick="abrirMov('${p.id}')">AJUSTAR</button></div></div>`;
                 });
             }
         }
@@ -396,7 +352,6 @@
             const cw = parseFloat(document.getElementById('corte-w').value);
             const ch = parseFloat(document.getElementById('corte-h').value);
             if(!cw || !ch || cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) { alert("Medidas inválidas!"); return; }
-
             if(confirm("Deseja realizar o corte? A peça original será reduzida.")){
                 const sobraW = pecaSelecionada.dimW - cw;
                 const sobraH = pecaSelecionada.dimH - ch;
@@ -405,20 +360,14 @@
                     dimH: sobraH > 0 ? sobraH : pecaSelecionada.dimH,
                     nome: pecaSelecionada.nome + " (Sobra)"
                 });
-                await addDoc(collection(db, "estoque"), {
-                    setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)",
-                    categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç'
-                });
+                await addDoc(collection(db, "estoque"), { setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)", categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç' });
                 alert("Corte realizado!");
                 fecharModal('modal-peca');
             }
         };
 
         window.deletarPeca = async () => {
-            if(confirm("Excluir esta peça permanentemente?")) {
-                await deleteDoc(doc(db, "estoque", pecaSelecionada.id));
-                fecharModal('modal-peca');
-            }
+            if(confirm("Excluir esta peça permanentemente?")) { await deleteDoc(doc(db, "estoque", pecaSelecionada.id)); fecharModal('modal-peca'); }
         };
 
         window.abrirPainelEtiqueta = () => { document.getElementById('modal-etiqueta').style.display = 'flex'; };
@@ -428,7 +377,6 @@
             const local = document.getElementById('et-local').value;
             const num = document.getElementById('et-num').value;
 
-            // Preenche dados (forçando uppercase no título)
             document.getElementById('p-nome').innerText = pecaSelecionada.nome.toUpperCase();
             document.getElementById('p-dim').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
             document.getElementById('p-os').innerText = os || '----';
@@ -437,23 +385,12 @@
 
             const qrCont = document.getElementById('p-qrcode');
             qrCont.innerHTML = '';
-            
-            // Link limpo
             const baseUrl = window.location.href.split('?')[0];
             const link = `${baseUrl}?id=${pecaSelecionada.id}`;
             
-            // Gerar QR - Tamanho fixo para caber em 3cm
-            new QRCode(qrCont, { 
-                text: link, 
-                width: 90, 
-                height: 90, 
-                correctLevel: QRCode.CorrectLevel.M 
-            });
+            new QRCode(qrCont, { text: link, width: 100, height: 100, correctLevel: QRCode.CorrectLevel.M });
 
-            // Delay maior (800ms) para garantir que o QR apareça e o CSS aplique
-            setTimeout(() => { 
-                window.print(); 
-            }, 800);
+            setTimeout(() => { window.print(); }, 800);
         };
 
         window.abrirModalProduto = () => {
@@ -466,11 +403,7 @@
 
         window.salvarProduto = async () => {
             const isSerr = config[setorAtual].isSerr;
-            const dados = {
-                setor: setorAtual,
-                nome: document.getElementById('prod-nome').value,
-                categoria: document.getElementById('prod-cat').value,
-            };
+            const dados = { setor: setorAtual, nome: document.getElementById('prod-nome').value, categoria: document.getElementById('prod-cat').value };
             if(isSerr) {
                 dados.dimW = parseFloat(document.getElementById('prod-dim-w').value);
                 dados.dimH = parseFloat(document.getElementById('prod-dim-h').value);
