@@ -3,282 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Serralheria Inteligente - Artesynal</title>
+    <title>Serralheria Pro - Artesynal</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --bg: #1a1a1a; --card: #2c3e50; --acm: #e67e22; --pvc: #3498db; --acrilico: #9b59b6; --text: #eee; }
-        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; background: var(--bg); color: var(--text); padding: 20px; }
-
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #444; padding-bottom: 15px; margin-bottom: 20px; }
-        .btn-voltar { text-decoration: none; color: white; background: #444; padding: 10px 15px; border-radius: 5px; font-weight: bold; font-size: 12px; }
-
-        /* SEÇÕES */
-        .setor-container { margin-bottom: 40px; }
-        .setor-title { font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .grid-pecas { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; min-height: 100px; padding: 10px; border: 2px dashed transparent; }
-        .grid-pecas.drag-over { border-color: var(--acm); background: rgba(255,255,255,0.05); }
-
-        /* CARDS */
-        .card-peca { 
-            background: var(--card); border-radius: 10px; padding: 15px; position: relative; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: grab; transition: 0.2s;
-            border-top: 5px solid #555;
+        :root { 
+            --bg-dark: #121212; --card-bg: #1e1e1e; --orange: #e67e22; 
+            --blue: #3498db; --red: #e74c3c; --green: #2ecc71; --text: #eee;
         }
-        .card-peca:active { cursor: grabbing; transform: scale(0.98); }
-        .card-acm { border-top-color: var(--acm); }
-        .card-pvc { border-top-color: var(--pvc); }
-        .card-acrilico { border-top-color: var(--acrilico); }
+        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; background: var(--bg-dark); color: var(--text); }
 
-        .peca-nome { font-size: 18px; font-weight: 900; margin-bottom: 5px; color: #fff; }
-        .peca-dim { font-size: 22px; font-weight: 900; color: var(--acm); margin-bottom: 10px; }
-        .card-footer { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-card { flex: 1; border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: 'Mitra LT'; font-size: 11px; }
-        .btn-open { background: var(--blue); color: white; }
-        .btn-del { background: var(--red); color: white; max-width: 40px; }
+        /* TELA SELEÇÃO */
+        #sector-screen { display: flex; height: 100vh; align-items: center; justify-content: center; gap: 20px; flex-direction: column; }
+        .sector-btn { width: 280px; padding: 40px; border-radius: 15px; border: none; cursor: pointer; font-weight: 900; font-size: 20px; transition: 0.3s; }
+        .sec-serr { background: var(--orange); color: #000; }
+
+        /* LAYOUT SERRALHERIA */
+        #main-layout { display: none; padding: 20px; }
+        .header-est { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--orange); padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* DIVISÓRIAS */
+        .material-section { margin-bottom: 40px; }
+        .section-title { 
+            background: #333; padding: 10px 20px; border-radius: 5px; 
+            color: var(--orange); font-weight: 900; text-transform: uppercase;
+            margin-bottom: 15px; border-left: 5px solid var(--orange);
+            display: flex; justify-content: space-between;
+        }
+
+        /* GRID E CARDS */
+        .grid-serr { 
+            display: flex; flex-wrap: wrap; gap: 15px; min-height: 100px;
+            padding: 10px; border: 1px dashed #333; border-radius: 10px;
+        }
+
+        .card-peca { 
+            background: var(--card-bg); width: 220px; border-radius: 8px; 
+            padding: 15px; border: 1px solid #333; cursor: grab;
+            position: relative; transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card-peca.dragging { opacity: 0.5; transform: scale(0.9); }
+        .card-peca.coupled { margin-left: -10px; border-left: 3px solid var(--green); }
+
+        .peca-name { font-weight: 900; font-size: 14px; margin-bottom: 5px; color: var(--orange); }
+        .peca-dim { font-size: 18px; font-weight: 900; margin-bottom: 10px; }
+        
+        .btn-card-action { 
+            width: 100%; padding: 8px; margin-top: 5px; border: none; 
+            border-radius: 4px; font-weight: bold; cursor: pointer; font-family: inherit;
+        }
+        .btn-open { background: #444; color: white; }
 
         /* MODAIS */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
-        .modal-content { background: #333; padding: 25px; border-radius: 15px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #444; color: white; font-family: 'Mitra LT'; box-sizing: border-box; }
-        .btn-save { background: var(--green); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; margin-top: 10px; }
-
-        /* ETIQUETA IMPRESSÃO (10x3cm) */
-        #print-area { display: none; }
-        @media print {
-            body * { display: none; }
-            #print-area { display: block; width: 10cm; height: 3cm; padding: 2mm; background: white; color: black; font-family: sans-serif; }
-            .etiq-grid { display: grid; grid-template-columns: 1fr 2.5cm; height: 100%; }
-            .etiq-info { font-size: 10px; font-weight: bold; }
-            .etiq-qr { display: flex; align-items: center; justify-content: center; }
-            .etiq-qr img { width: 2.2cm; height: 2.2cm; }
-            .etiq-row { border-bottom: 1px solid #000; padding: 2px 0; }
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; 
+        }
+        .modal-box { 
+            background: #222; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; 
+            border: 1px solid #444;
         }
 
-        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--acm); color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        /* ETIQUETA */
+        #etiqueta-print {
+            width: 10cm; height: 3cm; background: white; color: black;
+            padding: 5px; display: none; grid-template-columns: 1fr 80px;
+            font-size: 10px; border: 1px solid #000; box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        .etiqueta-info span { display: block; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 2px; }
+
+        @media print {
+            body * { display: none; }
+            #etiqueta-print { display: grid !important; position: absolute; top: 0; left: 0; }
+        }
+
+        .fab-add { 
+            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; 
+            background: var(--orange); border-radius: 50%; border: none; font-size: 30px; 
+            cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Estoque Serralheria</h1>
-        <a href="#" id="link-voltar" class="btn-voltar">⬅ VOLTAR</a>
+    <div id="sector-screen">
+        <h2 style="color:var(--orange)">ESTOQUE ARTESYNAL</h2>
+        <button class="sector-btn sec-serr" onclick="ativarSerralheria()">🛠️ SERRALHERIA</button>
+        <a href="index.html" style="color:#666; text-decoration:none">VOLTAR AO PAINEL</a>
     </div>
 
-    <div class="setor-container">
-        <div class="setor-title" style="color:var(--acm)">🟠 CHAPAS DE ACM</div>
-        <div class="grid-pecas" id="grid-ACM" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-    </div>
+    <div id="main-layout">
+        <div class="header-est">
+            <h1 style="color:var(--orange)">ESTOQUE SERRALHERIA</h1>
+            <button onclick="location.reload()" style="background:#333; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer">VOLTAR</button>
+        </div>
 
-    <div class="setor-container">
-        <div class="setor-title" style="color:var(--pvc)">🔵 CHAPAS DE PVC</div>
-        <div class="grid-pecas" id="grid-PVC" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-    </div>
-
-    <div class="setor-container">
-        <div class="setor-title" style="color:var(--acrilico)">🟣 ACRÍLICO</div>
-        <div class="grid-pecas" id="grid-ACRILICO" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-    </div>
-
-    <button class="fab-add" onclick="abrirModalAdd()">+</button>
-
-    <div id="modal-peca" class="modal">
-        <div class="modal-content">
-            <h2 id="m-nome" style="margin-top:0;">Nome da Peça</h2>
-            <div id="m-tipo" style="font-weight:bold; color:var(--acm);">Tipo: ACM</div>
-            <div id="m-tamanho" style="font-size:30px; font-weight:900; margin: 15px 0;">200 x 100 cm</div>
-            <hr>
-            <h3>SISTEMA DE CORTE</h3>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="corte-w" placeholder="Largura (cm)">
-                <input type="number" id="corte-h" placeholder="Altura (cm)">
+        <div id="sections-container">
+            <div class="material-section">
+                <div class="section-title"><span>CHAPA ACM</span> <small id="count-acm">0 peças</small></div>
+                <div class="grid-serr" id="grid-ACM" ondragover="allowDrop(event)" ondrop="drop(event, 'ACM')"></div>
             </div>
-            <button class="btn-save" style="background:var(--acm)" onclick="executarCorte()">CORTAR PEÇA AGORA</button>
-            <hr>
-            <h3>ETIQUETA E QR CODE</h3>
-            <div id="qr-display" style="text-align:center; margin-bottom:15px;"></div>
-            <div class="form-row">
-                <label>Local de Corte:</label>
-                <select id="etiq-local">
-                    <option value="Decorletras">Decorletras</option>
-                    <option value="MD Corte">MD Corte</option>
-                    <option value="W.A. Corte a Laser">W.A. Corte a Laser</option>
-                </select>
-                <input type="text" id="etiq-os" placeholder="Nº da OS">
-                <input type="number" id="etiq-num" placeholder="Nº do Corte (ex: 1)">
+
+            <div class="material-section">
+                <div class="section-title"><span>CHAPA PVC</span> <small id="count-pvc">0 peças</small></div>
+                <div class="grid-serr" id="grid-PVC" ondragover="allowDrop(event)" ondrop="drop(event, 'PVC')"></div>
             </div>
-            <button class="btn-save" style="background:#444" onclick="imprimirEtiqueta()">🖨️ GERAR ETIQUETA (10x3)</button>
-            <button class="btn-save" style="background:none; color:#aaa;" onclick="fecharModais()">Fechar</button>
+
+            <div class="material-section">
+                <div class="section-title"><span>CHAPA ACRÍLICO</span> <small id="count-acrilico">0 peças</small></div>
+                <div class="grid-serr" id="grid-ACRILICO" ondragover="allowDrop(event)" ondrop="drop(event, 'ACRILICO')"></div>
+            </div>
         </div>
     </div>
 
-    <div id="modal-add" class="modal">
-        <div class="modal-content">
-            <h2>Nova Chapa Individual</h2>
-            <input type="text" id="add-nome" placeholder="Identificação (Ex: ACM Preto Brilho)">
-            <select id="add-tipo">
-                <option value="ACM">ACM</option>
-                <option value="PVC">PVC</option>
-                <option value="ACRILICO">Acrílico</option>
+    <div id="modal-peca" class="modal-overlay">
+        <div class="modal-box">
+            <h2 id="m-nome" style="color:var(--orange); margin-top:0;">Nome da Peça</h2>
+            <p id="m-dim" style="font-size:24px; font-weight:900; margin: 10px 0;"></p>
+            <p id="m-tipo" style="color:#888;"></p>
+            
+            <hr style="border:0; border-top:1px solid #444;">
+            
+            <div style="background:#111; padding:15px; border-radius:8px; margin-top:15px;">
+                <label>NOVO CORTE (cm):</label>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <input type="number" id="corte-w" placeholder="L">
+                    <input type="number" id="corte-h" placeholder="A">
+                    <button onclick="realizarCorte()" style="background:var(--orange); border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer">CORTAR</button>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button onclick="abrirPainelEtiqueta()" style="flex:1; background:var(--blue); border:none; padding:12px; color:white; font-weight:bold; border-radius:5px; cursor:pointer">GERAR ETIQUETA</button>
+                <button onclick="deletarPecaConfirmada()" style="background:var(--red); border:none; padding:12px; color:white; border-radius:5px; cursor:pointer">🗑️</button>
+            </div>
+            
+            <button onclick="fecharModal()" style="width:100%; margin-top:10px; background:none; color:#666; border:none; cursor:pointer">FECHAR</button>
+        </div>
+    </div>
+
+    <div id="modal-etiqueta" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Gerar Etiqueta Técnica</h3>
+            <label>Nº OS do Serviço</label>
+            <input type="text" id="e-os" placeholder="0000">
+            <label>Local de Corte</label>
+            <select id="e-local">
+                <option value="Decorletras">Decorletras</option>
+                <option value="MD Corte">MD Corte</option>
+                <option value="W.A. Corte a Laser">W.A. Corte a Laser</option>
             </select>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="add-w" placeholder="Largura (cm)">
-                <input type="number" id="add-h" placeholder="Altura (cm)">
-            </div>
-            <button class="btn-save" onclick="salvarNovaPeça()">CADASTRAR PEÇA</button>
-            <button class="btn-save" style="background:none; color:#aaa;" onclick="fecharModais()">Cancelar</button>
+            <label>Nº do Corte</label>
+            <input type="number" id="e-num" value="1">
+            
+            <div id="qrcode-temp" style="display:none"></div>
+
+            <button onclick="imprimirEtiqueta()" style="width:100%; background:var(--green); border:none; padding:15px; color:white; font-weight:bold; border-radius:5px; margin-top:15px; cursor:pointer">🖨️ IMPRIMIR ETIQUETA</button>
+            <button onclick="fecharModalEtiqueta()" style="width:100%; margin-top:10px; background:none; color:#666; border:none; cursor:pointer">CANCELAR</button>
         </div>
     </div>
 
-    <div id="print-area"></div>
+    <div id="etiqueta-print">
+        <div class="etiqueta-info">
+            <span id="p-tipo-label">TIPO: ---</span>
+            <span id="p-dim-label">TAM: ---</span>
+            <span id="p-os-label">OS: ---</span>
+            <span id="p-local-label">LOCAL: ---</span>
+            <span id="p-num-label">CORTE: ---</span>
+        </div>
+        <div id="p-qrcode" style="display:flex; align-items:center; justify-content:center;"></div>
+    </div>
+
+    <button class="fab-add" onclick="abrirNovoCadastro()">+</button>
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        document.getElementById('link-voltar').href = ROTAS.painel;
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let pecas = [];
         let pecaSelecionada = null;
 
-        // --- CARREGAMENTO EM TEMPO REAL ---
-        onSnapshot(collection(db, "serralheria_v2"), (snapshot) => {
-            pecas = [];
-            snapshot.forEach(doc => pecas.push({ id: doc.id, ...doc.data() }));
-            renderizarPecas();
-        });
+        window.ativarSerralheria = () => {
+            document.getElementById('sector-screen').style.display = 'none';
+            document.getElementById('main-layout').style.display = 'block';
+            ouvirBanco();
+        };
+
+        function ouvirBanco() {
+            const q = query(collection(db, "estoque_serralheria"));
+            onSnapshot(q, (snapshot) => {
+                pecas = [];
+                snapshot.forEach(doc => pecas.push({id: doc.id, ...doc.data()}));
+                renderizarPecas();
+            });
+        }
 
         function renderizarPecas() {
-            const grids = { 'ACM': document.getElementById('grid-ACM'), 'PVC': document.getElementById('grid-PVC'), 'ACRILICO': document.getElementById('grid-ACRILICO') };
+            const grids = {
+                'ACM': document.getElementById('grid-ACM'),
+                'PVC': document.getElementById('grid-PVC'),
+                'ACRILICO': document.getElementById('grid-ACRILICO')
+            };
+
             Object.values(grids).forEach(g => g.innerHTML = '');
 
             pecas.forEach(p => {
                 const card = document.createElement('div');
-                card.className = `card-peca card-${p.tipo.toLowerCase()}`;
-                card.id = `peca-${p.id}`;
+                card.className = `card-peca ${p.coupled ? 'coupled' : ''}`;
                 card.draggable = true;
-                card.ondragstart = (e) => e.dataTransfer.setData("id", p.id);
-
+                card.id = p.id;
+                card.dataset.tipo = p.tipo;
+                
                 card.innerHTML = `
-                    <div class="peca-nome">${p.nome}</div>
-                    <div class="peca-dim">${p.w} x ${p.h} <span style="font-size:12px;">cm</span></div>
-                    <div class="card-footer">
-                        <button class="btn-card btn-open" onclick="abrirDetalhes('${p.id}')">ABRIR / CORTAR</button>
-                        <button class="btn-card btn-del" onclick="deletarPeca('${p.id}')">🗑️</button>
-                    </div>
+                    <div class="peca-name">${p.nome}</div>
+                    <div class="peca-dim">${p.w}x${p.h}<small>cm</small></div>
+                    <button class="btn-card-action btn-open" onclick="abrirPeca('${p.id}')">ABRIR</button>
                 `;
+
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', p.id);
+                    card.classList.add('dragging');
+                });
+
+                card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
                 grids[p.tipo].appendChild(card);
             });
+
+            // Atualiza contadores
+            document.getElementById('count-acm').innerText = pecas.filter(x => x.tipo === 'ACM').length + ' peças';
+            document.getElementById('count-pvc').innerText = pecas.filter(x => x.tipo === 'PVC').length + ' peças';
+            document.getElementById('count-acrilico').innerText = pecas.filter(x => x.tipo === 'ACRILICO').length + ' peças';
         }
 
-        // --- FUNÇÕES DE MODAL ---
-        window.abrirModalAdd = () => document.getElementById('modal-add').style.display = 'flex';
-        window.fecharModais = () => { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); pecaSelecionada = null; };
+        // Lógica de Acoplar
+        window.allowDrop = (e) => e.preventDefault();
+        window.drop = async (e, tipoAlvo) => {
+            e.preventDefault();
+            const idArrastado = e.dataTransfer.getData('text/plain');
+            const target = e.target.closest('.card-peca');
 
-        window.abrirDetalhes = (id) => {
-            pecaSelecionada = pecas.find(p => p.id === id);
+            if (target && target.id !== idArrastado) {
+                // Se soltou em cima de outro card, acopla
+                await updateDoc(doc(db, "estoque_serralheria", idArrastado), { coupled: true });
+            } else {
+                // Se soltou no grid vazio, desacopla
+                await updateDoc(doc(db, "estoque_serralheria", idArrastado), { coupled: false });
+            }
+        };
+
+        window.abrirPeca = (id) => {
+            pecaSelecionada = pecas.find(x => x.id === id);
             document.getElementById('m-nome').innerText = pecaSelecionada.nome;
-            document.getElementById('m-tipo').innerText = "Tipo: " + pecaSelecionada.tipo;
-            document.getElementById('m-tamanho').innerText = `${pecaSelecionada.w} x ${pecaSelecionada.h} cm`;
-            
-            // Gerar QR Code (URL da peça)
-            const urlPeca = window.location.href.split('?')[0] + "?id=" + id;
-            const qrUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(urlPeca)}`;
-            document.getElementById('qr-display').innerHTML = `<img src="${qrUrl}" width="120">`;
-
+            document.getElementById('m-dim').innerText = `${pecaSelecionada.w} x ${pecaSelecionada.h} cm`;
+            document.getElementById('m-tipo').innerText = `Material: ${pecaSelecionada.tipo}`;
             document.getElementById('modal-peca').style.display = 'flex';
         };
 
-        // --- SISTEMA DE CORTE ---
-        window.executarCorte = async () => {
-            const cutW = parseFloat(document.getElementById('corte-w').value);
-            const cutH = parseFloat(document.getElementById('corte-h').value);
+        window.realizarCorte = async () => {
+            const cw = parseFloat(document.getElementById('corte-w').value);
+            const ch = parseFloat(document.getElementById('corte-h').value);
 
-            if (!cutW || !cutH || cutW > pecaSelecionada.w || cutH > pecaSelecionada.h) {
-                alert("Medidas inválidas ou maiores que a peça original!");
+            if (!cw || !ch || cw > pecaSelecionada.w || ch > pecaSelecionada.h) {
+                alert("Medidas inválidas ou maiores que a peça!");
                 return;
             }
 
-            if (!confirm(`Confirmar corte de ${cutW}x${cutH}cm? O restante da peça será atualizado.`)) return;
+            const sobraW = pecaSelecionada.w - cw;
+            const sobraH = pecaSelecionada.h - ch;
 
-            try {
-                // 1. Criar o novo card para o pedaço cortado
-                await addDoc(collection(db, "serralheria_v2"), {
-                    nome: "Corte de " + pecaSelecionada.nome,
-                    tipo: pecaSelecionada.tipo,
-                    w: cutW,
-                    h: cutH,
-                    data: new Date()
-                });
+            // 1. Atualiza peça atual (vira o retalho maior ou sobra)
+            await updateDoc(doc(db, "estoque_serralheria", pecaSelecionada.id), {
+                w: sobraW > 0 ? sobraW : pecaSelecionada.w,
+                h: sobraH > 0 ? sobraH : pecaSelecionada.h,
+                nome: pecaSelecionada.nome + " (Sobra)"
+            });
 
-                // 2. Atualizar a peça original (Subtrai a área do corte de forma simples: reduz a largura)
-                // Nota: Em serralheria real o corte pode ser complexo, aqui reduziremos a largura por padrão
-                const novaW = pecaSelecionada.w - cutW;
-                if (novaW <= 0) {
-                    await deleteDoc(doc(db, "serralheria_v2", pecaSelecionada.id));
-                } else {
-                    await updateDoc(doc(db, "serralheria_v2", pecaSelecionada.id), { w: novaW });
-                }
-
-                alert("Corte realizado com sucesso!");
-                fecharModais();
-            } catch (e) { console.error(e); }
-        };
-
-        // --- CADASTRO E DELETE ---
-        window.salvarNovaPeça = async () => {
-            const dados = {
-                nome: document.getElementById('add-nome').value,
-                tipo: document.getElementById('add-tipo').value,
-                w: parseFloat(document.getElementById('add-w').value),
-                h: parseFloat(document.getElementById('add-h').value),
+            // 2. Cria nova peça (o corte)
+            await addDoc(collection(db, "estoque_serralheria"), {
+                nome: pecaSelecionada.nome + " (Corte)",
+                tipo: pecaSelecionada.tipo,
+                w: cw,
+                h: ch,
+                coupled: false,
                 data: new Date()
-            };
-            await addDoc(collection(db, "serralheria_v2"), dados);
-            fecharModais();
+            });
+
+            alert("Corte realizado! Nova peça gerada.");
+            fecharModal();
         };
 
-        window.deletarPeca = async (id) => {
-            if (confirm("Deletar esta peça permanentemente?")) await deleteDoc(doc(db, "serralheria_v2", id));
-        };
+        window.abrirNovoCadastro = async () => {
+            const nome = prompt("Nome da chapa:");
+            const tipo = prompt("Tipo (ACM, PVC ou ACRILICO):").toUpperCase();
+            const w = prompt("Largura (cm):");
+            const h = prompt("Altura (cm):");
 
-        // --- IMPRESSÃO DE ETIQUETA ---
-        window.imprimirEtiqueta = () => {
-            const local = document.getElementById('etiq-local').value;
-            const os = document.getElementById('etiq-os').value || "---";
-            const nCorte = document.getElementById('etiq-num').value || "01";
-            const qrUrl = document.getElementById('qr-display').querySelector('img').src;
-
-            const html = `
-                <div class="etiq-grid">
-                    <div class="etiq-info">
-                        <div class="etiq-row" style="font-size:14px;">Tamanho: ${pecaSelecionada.w}x${pecaSelecionada.h} cm</div>
-                        <div class="etiq-row">Material: ${pecaSelecionada.tipo}</div>
-                        <div class="etiq-row">Local: ${local}</div>
-                        <div class="etiq-row">OS: ${os} | Corte: #${nCorte}</div>
-                    </div>
-                    <div class="etiq-qr">
-                        <img src="${qrUrl}">
-                    </div>
-                </div>
-            `;
-            document.getElementById('print-area').innerHTML = html;
-            window.print();
-        };
-
-        // --- DRAG AND DROP (ACOPLAR VISUALMENTE) ---
-        window.allowDrop = (e) => e.preventDefault();
-        window.drop = (e) => {
-            e.preventDefault();
-            const id = e.dataTransfer.getData("id");
-            const draggedElement = document.getElementById(`peca-${id}`);
-            const dropTarget = e.target.closest('.card-peca');
-            
-            if (dropTarget && dropTarget.id !== `peca-${id}`) {
-                // Efeito de "acoplar": move o card para logo após o alvo
-                dropTarget.parentNode.insertBefore(draggedElement, dropTarget.nextSibling);
-                draggedElement.style.marginLeft = "-5px"; // Efeito visual de colado
+            if (nome && w && h) {
+                await addDoc(collection(db, "estoque_serralheria"), {
+                    nome, tipo, w: parseFloat(w), h: parseFloat(h), coupled: false, data: new Date()
+                });
             }
         };
+
+        window.deletarPecaConfirmada = async () => {
+            if (confirm("Deseja realmente excluir esta peça do estoque?")) {
+                await deleteDoc(doc(db, "estoque_serralheria", pecaSelecionada.id));
+                fecharModal();
+            }
+        };
+
+        window.abrirPainelEtiqueta = () => {
+            document.getElementById('modal-etiqueta').style.display = 'flex';
+        };
+
+        window.imprimirEtiqueta = () => {
+            const os = document.getElementById('e-os').value;
+            const local = document.getElementById('e-local').value;
+            const num = document.getElementById('e-num').value;
+
+            document.getElementById('p-tipo-label').innerText = "TIPO: " + pecaSelecionada.tipo;
+            document.getElementById('p-dim-label').innerText = `TAM: ${pecaSelecionada.w}x${pecaSelecionada.h}cm`;
+            document.getElementById('p-os-label').innerText = "OS: " + os;
+            document.getElementById('p-local-label').innerText = "LOCAL: " + local;
+            document.getElementById('p-num-label').innerText = "CORTE: " + num;
+
+            // Gera QR Code
+            const qrContainer = document.getElementById('p-qrcode');
+            qrContainer.innerHTML = '';
+            // Link que aponta para o sistema filtrando pelo ID da peça
+            const link = window.location.href.split('?')[0] + "?pecaId=" + pecaSelecionada.id;
+            
+            new QRCode(qrContainer, {
+                text: link,
+                width: 70,
+                height: 70
+            });
+
+            setTimeout(() => { window.print(); }, 500);
+        };
+
+        window.fecharModal = () => document.getElementById('modal-peca').style.display = 'none';
+        window.fecharModalEtiqueta = () => document.getElementById('modal-etiqueta').style.display = 'none';
 
     </script>
 </body>
