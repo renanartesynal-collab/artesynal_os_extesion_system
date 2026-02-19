@@ -7,34 +7,74 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg-dark: #333; --card-bg: #2c3e50; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; }
-        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: white; }
+        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: white; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box;}
         
         /* HEADER */
-        .header-orc { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #555; padding-bottom: 15px; }
+        .header-orc { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; flex-shrink: 0;}
         h1 { margin: 0; color: var(--yellow); font-size: 24px; text-transform: uppercase; }
         .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
 
-        /* GRID */
-        .grid-orc { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        /* KANBAN BOARD */
+        .kanban-board { 
+            display: flex; gap: 20px; flex-grow: 1; overflow-x: auto; padding-bottom: 20px; align-items: flex-start;
+        }
+        .kanban-board::-webkit-scrollbar { height: 10px; }
+        .kanban-board::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
+
+        .kanban-col {
+            background: #222; border-radius: 10px; padding: 10px;
+            display: flex; flex-direction: column; min-width: 320px; width: 320px;
+            max-height: 100%; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .kanban-header {
+            text-align: center; padding: 12px; font-weight: 900; font-size: 14px;
+            border-radius: 6px; margin-bottom: 15px; color: white; text-transform: uppercase;
+            letter-spacing: 1px; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .hdr-pendente { background: var(--red); }
+        .hdr-enviado { background: var(--blue); }
+        .hdr-finalizado { background: var(--green); }
+
+        .kanban-cards-container {
+            flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+            min-height: 150px; padding-right: 5px;
+        }
+        .kanban-cards-container::-webkit-scrollbar { width: 6px; }
+        .kanban-cards-container::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
 
         /* CARD */
-        .card-orc { background: var(--card-bg); border-radius: 10px; padding: 20px; position: relative; border-left: 5px solid var(--blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .card-orc:hover { transform: translateY(-5px); }
+        .card-orc { 
+            background: var(--card-bg); border-radius: 8px; padding: 15px; position: relative; 
+            border-left: 5px solid var(--blue); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            cursor: grab; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-orc:active { cursor: grabbing; transform: scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .card-orc.dragged { opacity: 0.5; }
         
-        .orc-num { font-size: 12px; color: #aaa; font-weight: bold; margin-bottom: 5px; }
-        .orc-cliente { font-size: 18px; font-weight: 800; color: white; margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between;}
-        .orc-empresa { font-size: 12px; color: var(--yellow); font-weight: 600; margin-bottom: 10px; text-transform: uppercase;}
-        .orc-tipo { background: rgba(0,0,0,0.2); display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-bottom: 15px; }
+        .card-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+        .orc-num { font-size: 11px; color: #aaa; font-weight: bold; }
+        
+        /* Select de status para mobile */
+        .select-status-mobile {
+            background: #111; color: white; border: 1px solid #555; border-radius: 4px;
+            font-size: 10px; padding: 2px 5px; font-weight: bold; cursor: pointer;
+            font-family: 'Mitra LT', 'Montserrat', sans-serif;
+        }
+
+        .orc-cliente { font-size: 16px; font-weight: 800; color: white; margin-bottom: 2px; }
+        .orc-empresa { font-size: 11px; color: var(--yellow); font-weight: 600; margin-bottom: 10px; text-transform: uppercase;}
+        .orc-tipo { background: rgba(0,0,0,0.3); display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-bottom: 10px; }
 
         /* BOTÕES DO CARD */
         .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .btn-card { flex: 1; min-width: 60px; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 10px; text-transform: uppercase; color: white; transition: opacity 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
+        .btn-card { flex: 1; min-width: 50px; border: none; padding: 6px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 10px; text-transform: uppercase; color: white; transition: opacity 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .btn-card:hover { opacity: 0.8; }
         
         .btn-view { background: #555; }
         .btn-edit { background: var(--blue); }
-        .btn-link { background: var(--green); }
-        .btn-whats { background: #25D366; } /* Verde do WhatsApp */
+        .btn-link { background: var(--yellow); color: #333; }
+        .btn-whats { background: #25D366; }
 
         /* FAB */
         .fab-add {
@@ -45,67 +85,111 @@
             display: flex; align-items: center; justify-content: center; z-index: 100;
         }
 
-        #loading { text-align: center; color: #999; margin-top: 50px; }
+        #loading { text-align: center; color: #999; margin-top: 50px; width: 100%;}
 
         @media (max-width: 600px) {
             .header-orc { flex-direction: column; align-items: flex-start; gap: 10px; }
             .btn-voltar { align-self: flex-end; }
+            .kanban-col { min-width: 85vw; } /* Ocupa quase a tela toda no celular */
         }
     </style>
 </head>
 <body>
 
     <div class="header-orc">
-        <h1>Solicitações</h1>
+        <h1>Orçamentos</h1>
         <a href="#" id="link-voltar" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
     </div>
 
-    <div id="loading">A carregar solicitações...</div>
-    <div class="grid-orc" id="grid-orc">
+    <div id="loading">A carregar o quadro Kanban...</div>
+    
+    <div class="kanban-board" id="kanban-board" style="display: none;">
+        
+        <div class="kanban-col">
+            <div class="kanban-header hdr-pendente">Pendente</div>
+            <div class="kanban-cards-container" id="col-pendente" ondrop="drop(event, 'pendente')" ondragover="allowDrop(event)">
+                </div>
         </div>
+
+        <div class="kanban-col">
+            <div class="kanban-header hdr-enviado">Enviado</div>
+            <div class="kanban-cards-container" id="col-enviado" ondrop="drop(event, 'enviado')" ondragover="allowDrop(event)">
+                </div>
+        </div>
+
+        <div class="kanban-col">
+            <div class="kanban-header hdr-finalizado">Finalizado</div>
+            <div class="kanban-cards-container" id="col-finalizado" ondrop="drop(event, 'finalizado')" ondragover="allowDrop(event)">
+                </div>
+        </div>
+
+    </div>
 
     <button class="fab-add" onclick="novaSolicitacao()">+</button>
 
     <script type="module">
-        // 1. IMPORTANDO O CÉREBRO (CONFIG.JS)
         import { db, ROTAS } from "./config.js";
-        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Ajustar botão voltar
         document.getElementById('link-voltar').href = ROTAS.painel;
 
         async function carregarLista() {
-            const grid = document.getElementById('grid-orc');
-            grid.innerHTML = '';
+            const colPendente = document.getElementById('col-pendente');
+            const colEnviado = document.getElementById('col-enviado');
+            const colFinalizado = document.getElementById('col-finalizado');
+            
+            colPendente.innerHTML = '';
+            colEnviado.innerHTML = '';
+            colFinalizado.innerHTML = '';
             
             try {
                 const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"));
                 const snapshot = await getDocs(q);
                 
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('kanban-board').style.display = 'flex';
+
                 if(snapshot.empty) {
-                    document.getElementById('loading').innerText = "Nenhuma solicitação encontrada.";
+                    colPendente.innerHTML = '<div style="color:#777; font-size:12px; text-align:center;">Vazio</div>';
                     return;
                 }
 
-                document.getElementById('loading').style.display = 'none';
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const id = doc.id;
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
                     const num = String(data.numero_solicitacao || 0).padStart(3, '0');
+                    
+                    // Pega o status do banco, ou define 'pendente' como padrão
+                    const statusAtual = data.status || 'pendente'; 
 
-                    // Lógica para mostrar ou esconder botão do WhatsApp
                     const btnWhats = data.whatsapp 
                         ? `<button class="btn-card btn-whats" onclick="chamarWhats('${data.whatsapp}')">💬 WHATS</button>` 
                         : '';
 
+                    // Menu dropdown para ajudar no celular
+                    const selectStatus = `
+                        <select class="select-status-mobile" onchange="mudarStatusViaSelect('${id}', this.value)">
+                            <option value="pendente" ${statusAtual === 'pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="enviado" ${statusAtual === 'enviado' ? 'selected' : ''}>Enviado</option>
+                            <option value="finalizado" ${statusAtual === 'finalizado' ? 'selected' : ''}>Finalizado</option>
+                        </select>
+                    `;
+
+                    // Define a cor da borda do card dependendo de onde ele está
+                    let bordaCor = "var(--red)";
+                    if(statusAtual === 'enviado') bordaCor = "var(--blue)";
+                    if(statusAtual === 'finalizado') bordaCor = "var(--green)";
+
                     const html = `
-                        <div class="card-orc">
-                            <div class="orc-num">SOLICITAÇÃO #${num}</div>
+                        <div class="card-orc" id="card-${id}" draggable="true" ondragstart="drag(event, '${id}')" style="border-left-color: ${bordaCor};">
+                            <div class="card-top-row">
+                                <span class="orc-num">#${num}</span>
+                                ${selectStatus}
+                            </div>
                             <div class="orc-cliente">${data.cliente || 'Sem Cliente'}</div>
                             <div class="orc-empresa">${data.empresa || 'Sem Empresa'}</div>
                             <div class="orc-tipo">${data.tipo_servico_material || 'Geral'}</div>
-                            <div style="font-size: 11px; color: #ccc; margin-bottom: 10px;">${data.servico_titulo || '...'}</div>
+                            <div style="font-size: 11px; color: #ccc; margin-bottom: 10px;">${data.servico_titulo || 'Sem título'}</div>
                             
                             <div class="actions">
                                 <button class="btn-card btn-view" onclick="abrirGuia('${id}', 'view')">👁️ VER</button>
@@ -115,46 +199,103 @@
                             </div>
                         </div>
                     `;
-                    grid.innerHTML += html;
+
+                    // Injeta na coluna correta
+                    if(statusAtual === 'pendente') colPendente.innerHTML += html;
+                    else if(statusAtual === 'enviado') colEnviado.innerHTML += html;
+                    else if(statusAtual === 'finalizado') colFinalizado.innerHTML += html;
                 });
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('loading').innerText = "Erro ao carregar lista.";
+                document.getElementById('loading').innerText = "Erro ao carregar os dados.";
             }
         }
 
-        // FUNÇÃO DE ATALHO DO WHATSAPP
+        // --- LÓGICA DE DRAG AND DROP (ARRASTAR) ---
+        window.allowDrop = (ev) => {
+            ev.preventDefault(); // Permite que a coluna receba o elemento
+        }
+
+        window.drag = (ev, id) => {
+            ev.dataTransfer.setData("text_id", id);
+            setTimeout(() => { document.getElementById(`card-${id}`).classList.add('dragged'); }, 0);
+        }
+
+        window.drop = async (ev, novoStatus) => {
+            ev.preventDefault();
+            const id = ev.dataTransfer.getData("text_id");
+            if(!id) return;
+            
+            const card = document.getElementById(`card-${id}`);
+            card.classList.remove('dragged');
+
+            // Move fisicamente o HTML para a nova coluna
+            const colDestino = document.getElementById(`col-${novoStatus}`);
+            colDestino.appendChild(card);
+
+            // Atualiza a cor e o select para bater com a nova coluna
+            let bordaCor = "var(--red)";
+            if(novoStatus === 'enviado') bordaCor = "var(--blue)";
+            if(novoStatus === 'finalizado') bordaCor = "var(--green)";
+            card.style.borderLeftColor = bordaCor;
+            card.querySelector('.select-status-mobile').value = novoStatus;
+
+            // Salva a alteração no Firebase
+            try {
+                await updateDoc(doc(db, "orcamentos", id), { status: novoStatus });
+            } catch (e) {
+                console.error("Erro ao atualizar status", e);
+                alert("Erro ao guardar alteração no banco de dados.");
+            }
+        }
+
+        // --- LÓGICA DO MENU DROPDOWN (PARA MOBILE) ---
+        window.mudarStatusViaSelect = async (id, novoStatus) => {
+            const card = document.getElementById(`card-${id}`);
+            const colDestino = document.getElementById(`col-${novoStatus}`);
+            
+            // Move o card para a nova coluna visualmente
+            colDestino.appendChild(card);
+            
+            // Altera a cor
+            let bordaCor = "var(--red)";
+            if(novoStatus === 'enviado') bordaCor = "var(--blue)";
+            if(novoStatus === 'finalizado') bordaCor = "var(--green)";
+            card.style.borderLeftColor = bordaCor;
+
+            // Salva no Firebase
+            try {
+                await updateDoc(doc(db, "orcamentos", id), { status: novoStatus });
+            } catch (e) {
+                console.error("Erro", e);
+            }
+        }
+
+        // OUTRAS FUNÇÕES
         window.chamarWhats = (numero) => {
             if(!numero) return;
-            // Remove tudo que não for número
             let numLimpo = numero.replace(/\D/g, ''); 
-            // Adiciona o 55 do Brasil se tiver 10 ou 11 dígitos
-            if(numLimpo.length === 10 || numLimpo.length === 11) {
-                numLimpo = '55' + numLimpo;
-            }
+            if(numLimpo.length === 10 || numLimpo.length === 11) numLimpo = '55' + numLimpo;
             window.open(`https://api.whatsapp.com/send?phone=${numLimpo}`, '_blank');
         }
 
-        window.novaSolicitacao = () => {
-            window.open(ROTAS.solicitacao, '_blank');
-        }
-
-        window.abrirGuia = (id, modo) => {
-            window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}`, '_blank');
-        }
-
+        window.novaSolicitacao = () => { window.open(ROTAS.solicitacao, '_blank'); }
+        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}`, '_blank'); }
+        
         window.gerarLink = (id, num) => {
             let baseUrl = window.location.href;
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
-            
             const urlFinal = `${baseUrl}/${ROTAS.solicitacao}?id=${id}&mode=view`;
-            const texto = `Solicitação de Orçamento #${num}: ${urlFinal}`;
-            
-            navigator.clipboard.writeText(texto).then(() => {
-                alert("Link copiado para a área de transferência!\n\n" + urlFinal);
+            navigator.clipboard.writeText(`Solicitação de Orçamento #${num}: ${urlFinal}`).then(() => {
+                alert("Link copiado!\n\n" + urlFinal);
             });
         }
+
+        // Evento para remover a transparência se cancelar o drag
+        document.addEventListener('dragend', (e) => {
+            if(e.target.classList) e.target.classList.remove('dragged');
+        });
 
         carregarLista();
     </script>
