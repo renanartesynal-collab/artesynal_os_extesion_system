@@ -45,9 +45,7 @@
         .btn-filtro.ativo { background: var(--blue); color: white; transform: scale(1.05); }
 
         /* TABELA (Cards no Mobile / Tabela no PC) */
-        .lista-container {
-            display: grid; gap: 10px;
-        }
+        .lista-container { display: grid; gap: 10px; }
 
         .os-card {
             background: var(--card-bg); border-radius: 8px; padding: 15px;
@@ -56,7 +54,6 @@
         }
         .os-card:hover { transform: translateX(5px); background: #34495e; }
 
-        /* Cores da borda lateral baseada no status */
         .status-pago { border-left-color: var(--green); }
         .status-pendente { border-left-color: var(--red); }
         .status-andamento { border-left-color: var(--blue); }
@@ -67,19 +64,13 @@
         .os-servico { font-size: 12px; color: var(--text-gray); }
         .os-data { font-size: 10px; color: #777; margin-top: 5px;}
 
-        .os-valor { 
-            text-align: right; font-weight: 900; font-size: 14px; color: var(--yellow); margin-right: 15px;
-        }
+        .os-valor { text-align: right; font-weight: 900; font-size: 14px; color: var(--yellow); margin-right: 15px; }
 
         .actions { display: flex; gap: 10px; }
-        .btn-acao {
-            border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold;
-            font-family: 'Mitra LT', 'Montserrat', sans-serif;
-        }
+        .btn-acao { border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: 'Mitra LT', 'Montserrat', sans-serif; }
         .btn-abrir { background: var(--blue); color: white; }
         .btn-del { background: var(--red); color: white; }
 
-        /* MENSAGEM DE CARREGANDO */
         #loading { text-align: center; color: #aaa; margin-top: 50px; }
 
         @media (max-width: 600px) {
@@ -94,7 +85,7 @@
 
     <div class="header-lista">
         <h1>Minhas O.S.</h1>
-        <a href="index.html" class="btn-voltar">⬅ VOLTAR</a>
+        <a href="#" id="link-voltar" class="btn-voltar">⬅ VOLTAR</a>
     </div>
 
     <div class="filtros">
@@ -104,42 +95,33 @@
     </div>
 
     <div id="loading">Carregando ordens de serviço...</div>
-    <div class="lista-container" id="lista-os">
-        </div>
+    <div class="lista-container" id="lista-os"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
-            authDomain: "artesynal-os-system.firebaseapp.com",
-            projectId: "artesynal-os-system",
-            storageBucket: "artesynal-os-system.firebasestorage.app",
-            messagingSenderId: "539958005846",
-            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // 1. IMPORTAÇÕES GLOBAIS (O "CÉREBRO" DO SEU SISTEMA)
+        import { db, ROTAS } from "./config.js";
         
-        let todasOS = []; // Armazena localmente para filtrar sem gastar leitura
+        // 2. IMPORTAÇÕES ESPECÍFICAS DESTA TELA
+        import { collection, getDocs, doc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CARREGAR DADOS
+        // 3. APLICANDO AS ROTAS NOS BOTÕES
+        document.getElementById('link-voltar').href = ROTAS.painel;
+        
+        let todasOS = []; 
+
         async function carregarLista() {
             const listaDiv = document.getElementById('lista-os');
             const loading = document.getElementById('loading');
             listaDiv.innerHTML = '';
             
             try {
-                // Busca ordenado por data (mais recente primeiro)
                 const q = query(collection(db, "ordens_servico"), orderBy("data_criacao", "desc"));
                 const querySnapshot = await getDocs(q);
                 
                 todasOS = [];
                 querySnapshot.forEach((doc) => {
                     let dados = doc.data();
-                    dados.id = doc.id; // Salva o ID do documento
+                    dados.id = doc.id; 
                     todasOS.push(dados);
                 });
 
@@ -152,7 +134,6 @@
             }
         }
 
-        // RENDERIZAR NA TELA
         window.renderizar = function(lista) {
             const container = document.getElementById('lista-os');
             container.innerHTML = '';
@@ -163,12 +144,10 @@
             }
 
             lista.forEach(os => {
-                // Define status para cor da borda
                 let statusClass = 'status-andamento';
                 if (os.status?.pago) statusClass = 'status-pago';
                 else if (!os.status?.pago && !os.status?.faturado) statusClass = 'status-pendente';
 
-                // Formata Data
                 let dataFormatada = "Data desconhecida";
                 if (os.data_criacao && os.data_criacao.seconds) {
                     const d = new Date(os.data_criacao.seconds * 1000);
@@ -194,22 +173,19 @@
             });
         }
 
-        // FUNÇÃO DELETAR
         window.deletarOS = async function(id) {
             if (confirm("Tem certeza que deseja EXCLUIR essa O.S. permanentemente?")) {
                 try {
                     await deleteDoc(doc(db, "ordens_servico", id));
                     alert("O.S. excluída!");
-                    carregarLista(); // Recarrega
+                    carregarLista(); 
                 } catch (e) {
                     alert("Erro ao excluir: " + e);
                 }
             }
         }
 
-        // FUNÇÃO FILTRAR
         window.filtrar = function(tipo, btn) {
-            // Atualiza botões
             document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
             btn.classList.add('ativo');
 
@@ -224,12 +200,11 @@
             }
         }
 
-        // FUNÇÃO ABRIR (Redireciona para o os.html com o ID na URL)
+        // USANDO A ROTA DO CONFIG.JS AQUI:
         window.abrirOS = function(id) {
-            window.location.href = `os.html?id=${id}`;
+            window.location.href = `${ROTAS.os}?id=${id}`;
         }
 
-        // Inicia carregando
         carregarLista();
     </script>
 </body>
