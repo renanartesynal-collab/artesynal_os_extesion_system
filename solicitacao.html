@@ -11,7 +11,6 @@
 
         .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
-        /* BOTOES DE NAVEGAÇÃO */
         .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
 
         /* MODO EDIÇÃO */
@@ -21,7 +20,7 @@
         .badge-num { background: var(--blue); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; }
         
         .row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
-        .col { flex: 1; min-width: 250px; }
+        .col { flex: 1; min-width: 200px; }
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #ccc; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif; }
         textarea { height: 100px; resize: none; }
@@ -49,6 +48,8 @@
         .view-item div { font-size: 16px; font-weight: 600; color: #eee; }
         .view-obs-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #ddd; border-left: 3px solid var(--blue); }
 
+        .btn-whats-action { background: #25D366; color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: 'Mitra LT', 'Montserrat', sans-serif; font-size: 11px;}
+
         /* GALERIA GERAL */
         .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
@@ -67,7 +68,6 @@
         .photo-caption-display { text-align: center; font-size: 14px; padding: 10px; background: #222; border-radius: 5px; margin-top: 5px; font-style: italic; color: #ccc; }
         .photo-count { text-align: center; font-size: 12px; color: #aaa; margin-bottom: 5px; }
 
-        /* GRID DE MINIATURAS */
         .mini-gallery-grid { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #444; min-height: 90px; align-items: center; }
         .mini-gallery-grid::-webkit-scrollbar { height: 8px; }
         .mini-gallery-grid::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
@@ -133,7 +133,7 @@
                 <h2>Editar Solicitação</h2>
                 <div style="display:flex; align-items:center; gap: 15px;">
                     <div class="badge-num" id="display-num-edit">NOVO</div>
-                    <a href="orcamentos.html" class="btn-voltar">⬅ VOLTAR</a>
+                    <a href="#" id="link-voltar-1" class="btn-voltar">⬅ VOLTAR</a>
                 </div>
             </div>
 
@@ -147,6 +147,7 @@
 
                 <div class="row">
                     <div class="col"><label>CLIENTE</label><input type="text" id="in-cliente" placeholder="Nome do Cliente"></div>
+                    <div class="col"><label>WHATSAPP</label><input type="text" id="in-whatsapp" placeholder="(00) 00000-0000"></div>
                     <div class="col"><label>EMPRESA</label><input type="text" id="in-empresa" placeholder="Nome da Empresa"></div>
                 </div>
 
@@ -213,7 +214,7 @@
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <a href="orcamentos.html" class="btn-voltar" style="margin-bottom:10px; display:inline-block;">⬅ VOLTAR</a>
+                        <a href="#" id="link-voltar-2" class="btn-voltar" style="margin-bottom:10px; display:inline-block;">⬅ VOLTAR</a>
                         <br>
                         <span style="font-size: 10px; color: #888;">DATA</span><br>
                         <strong id="view-data" style="color: white; font-size: 12px;">--/--</strong>
@@ -228,6 +229,14 @@
                     </div>
 
                     <div class="view-grid">
+                        <div class="view-item" style="grid-column: 1 / -1; margin-bottom: 10px;">
+                            <label>WHATSAPP DE CONTATO</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div id="view-whatsapp" style="font-size: 20px;">--</div>
+                                <button id="btn-whats-view" class="btn-whats-action" style="display: none;" onclick="window.chamarWhatsView()">💬 CONVERSAR</button>
+                            </div>
+                        </div>
+
                         <div class="view-item"><label>MATERIAL</label><div id="view-material">--</div></div>
                         <div class="view-item"><label>MEDIDAS</label><div id="view-medidas">--</div></div>
                         <div class="view-item"><label>INSTALAÇÃO</label><div id="view-instalacao">--</div></div>
@@ -258,20 +267,12 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, doc, updateDoc, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { db, ROTAS } from "./config.js";
+        import { collection, addDoc, getDoc, doc, updateDoc, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
-            authDomain: "artesynal-os-system.firebaseapp.com",
-            projectId: "artesynal-os-system",
-            storageBucket: "artesynal-os-system.firebasestorage.app",
-            messagingSenderId: "539958005846",
-            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Ajustar botões voltar
+        document.getElementById('link-voltar-1').href = ROTAS.orcamentos;
+        document.getElementById('link-voltar-2').href = ROTAS.orcamentos;
 
         let imagens = []; 
         let indiceAtual = 0;
@@ -321,6 +322,21 @@
                 canvas.dispatchEvent(new MouseEvent("mouseup", {}));
             });
         };
+
+        // FUNÇÃO DE ATALHO DO WHATSAPP
+        window.chamarWhats = (numero) => {
+            if(!numero) return;
+            let numLimpo = numero.replace(/\D/g, ''); 
+            if(numLimpo.length === 10 || numLimpo.length === 11) {
+                numLimpo = '55' + numLimpo;
+            }
+            window.open(`https://api.whatsapp.com/send?phone=${numLimpo}`, '_blank');
+        }
+
+        window.chamarWhatsView = () => {
+            const num = document.getElementById('btn-whats-view').dataset.num;
+            window.chamarWhats(num);
+        }
 
         // FUNÇÕES DO EDITOR DE MEDIDAS (SETAS)
         window.setTool = (tool) => {
@@ -464,6 +480,7 @@
                     const setVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ''; }
                     document.getElementById('display-num-edit').innerText = "#" + String(data.numero_solicitacao || 0).padStart(3, '0');
                     setVal('in-cliente', data.cliente);
+                    setVal('in-whatsapp', data.whatsapp);
                     setVal('in-empresa', data.empresa);
                     setVal('in-servico', data.servico_titulo);
                     setVal('in-material', data.tipo_material);
@@ -478,6 +495,16 @@
                     setTxt('view-tipo', data.tipo_servico_material || 'GERAL');
                     setTxt('view-cliente', data.cliente || 'Cliente');
                     setTxt('view-empresa', data.empresa || '');
+                    
+                    // Configuração da visualização do WhatsApp
+                    setTxt('view-whatsapp', data.whatsapp || 'Não informado');
+                    if(data.whatsapp) {
+                        document.getElementById('btn-whats-view').style.display = 'block';
+                        document.getElementById('btn-whats-view').dataset.num = data.whatsapp;
+                    } else {
+                        document.getElementById('btn-whats-view').style.display = 'none';
+                    }
+
                     setTxt('view-servico', data.servico_titulo || 'Sem título');
                     setTxt('view-material', data.tipo_material);
                     setTxt('view-medidas', data.medidas);
@@ -629,6 +656,7 @@
                 const dados = {
                     tipo_servico_material: document.querySelector('input[name="tipo"]:checked').value,
                     cliente: document.getElementById('in-cliente').value,
+                    whatsapp: document.getElementById('in-whatsapp').value, // SALVANDO O WHATSAPP
                     empresa: document.getElementById('in-empresa').value,
                     servico_titulo: document.getElementById('in-servico').value,
                     tipo_material: document.getElementById('in-material').value,
@@ -643,7 +671,7 @@
                 if (idEdicao) {
                     await updateDoc(doc(db, "orcamentos", idEdicao), dados);
                     alert("Salvo!");
-                    window.location.href = `solicitacao.html?id=${idEdicao}&mode=view`;
+                    window.location.href = `${ROTAS.solicitacao}?id=${idEdicao}&mode=view`;
                 } else {
                     const coll = collection(db, "orcamentos");
                     const snapshot = await getCountFromServer(coll);
@@ -652,7 +680,7 @@
                     dados.data_criacao = new Date();
                     const docRef = await addDoc(coll, dados);
                     alert("Criado!");
-                    window.location.href = `solicitacao.html?id=${docRef.id}&mode=view`;
+                    window.location.href = `${ROTAS.solicitacao}?id=${docRef.id}&mode=view`;
                 }
             } catch (e) {
                 console.error(e);
