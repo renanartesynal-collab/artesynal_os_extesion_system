@@ -3,34 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitação de Orçamento</title>
+    <title>Solicitação de Orçamento - Artesynal</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; --text: #eee; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
+        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
 
         .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
+        /* BOTOES DE NAVEGAÇÃO */
+        .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+
         /* MODO EDIÇÃO */
         #edit-mode { display: block; }
-        .header-form { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 10px; }
+        .header-form { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #555; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         h2 { margin: 0; color: var(--yellow); }
         .badge-num { background: var(--blue); padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; }
+        
         .row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
         .col { flex: 1; min-width: 250px; }
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #ccc; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Montserrat'; }
+        input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif; }
         textarea { height: 100px; resize: none; }
         .radio-group { display: flex; gap: 20px; background: var(--input-bg); padding: 10px; border-radius: 5px; }
         .radio-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
         input[type="radio"] { width: auto; accent-color: var(--yellow); }
-        .btn-save { width: 100%; padding: 15px; background: var(--green); color: white; font-weight: 900; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        
+        .btn-save { width: 100%; padding: 15px; background: var(--green); color: white; font-weight: 900; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .btn-save:disabled { background: #555; cursor: not-allowed; }
 
         /* MODO VISUALIZAÇÃO */
         #view-mode { display: none; }
         .view-card { background: #2c3e50; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; }
-        .view-header { background: #1a252f; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--yellow); }
+        .view-header { background: #1a252f; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--yellow); flex-wrap: wrap; gap: 10px;}
         .view-title { font-size: 12px; color: #aaa; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
         .view-id { font-size: 24px; font-weight: 900; color: var(--yellow); }
         .view-tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; background: #555; margin-left: 10px;}
@@ -47,7 +52,7 @@
         /* GALERIA GERAL */
         .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
-        .btn-photo { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; color: white; }
+        .btn-photo { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; color: white; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .btn-upload { background: #555; }
         .btn-cam { background: var(--blue); }
         .btn-measure { background: transparent; border: 1px solid var(--green); color: var(--green); width: 100%; margin-top: 5px; justify-content: center;}
@@ -66,6 +71,7 @@
         .mini-gallery-grid { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #444; min-height: 90px; align-items: center; }
         .mini-gallery-grid::-webkit-scrollbar { height: 8px; }
         .mini-gallery-grid::-webkit-scrollbar-thumb { background: #666; border-radius: 4px; }
+        
         .thumb-card { min-width: 80px; width: 80px; height: 80px; position: relative; border: 2px solid transparent; border-radius: 5px; overflow: hidden; background: #000; flex-shrink: 0; cursor: pointer; }
         .thumb-card.selected { border-color: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
         .thumb-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
@@ -85,23 +91,17 @@
         }
         #canvas-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; touch-action: none; }
         canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 20px #000; }
-        
-        .draw-toolbar { 
-            height: 70px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-top: 2px solid var(--yellow);
-        }
-        .btn-tool { padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; margin-right: 5px; }
+        .draw-toolbar { height: 70px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-top: 2px solid var(--yellow); overflow-x: auto;}
+        .btn-tool { padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; margin-right: 5px; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .btn-cancel { background: #555; color: white; }
         .btn-undo { background: var(--blue); color: white; }
         .btn-confirm { background: var(--green); color: white; }
-        
-        /* Botões de Seleção de Ferramenta */
         .tool-select { background: #333; color: #aaa; border: 1px solid #555; }
         .tool-select.active { background: var(--yellow); color: black; border-color: var(--yellow); }
 
         @media (max-width: 600px) {
             .view-grid { grid-template-columns: 1fr; }
             .photo-viewer { height: 250px; }
-            .draw-toolbar { padding: 0 10px; overflow-x: auto;}
         }
     </style>
 </head>
@@ -131,7 +131,10 @@
         <div id="edit-mode">
             <div class="header-form">
                 <h2>Editar Solicitação</h2>
-                <div class="badge-num" id="display-num-edit">NOVO</div>
+                <div style="display:flex; align-items:center; gap: 15px;">
+                    <div class="badge-num" id="display-num-edit">NOVO</div>
+                    <a href="orcamentos.html" class="btn-voltar">⬅ VOLTAR</a>
+                </div>
             </div>
 
             <form id="form-orcamento">
@@ -209,8 +212,11 @@
                             <span class="view-tag" id="view-tipo">TIPO</span>
                         </div>
                     </div>
-                    <div style="text-align: right; font-size: 10px; color: #888;">
-                        DATA<br><strong id="view-data" style="color: white; font-size: 12px;">--/--</strong>
+                    <div style="text-align: right;">
+                        <a href="orcamentos.html" class="btn-voltar" style="margin-bottom:10px; display:inline-block;">⬅ VOLTAR</a>
+                        <br>
+                        <span style="font-size: 10px; color: #888;">DATA</span><br>
+                        <strong id="view-data" style="color: white; font-size: 12px;">--/--</strong>
                     </div>
                 </div>
 
@@ -272,19 +278,10 @@
         let idEdicao = null;
         let modoAtual = 'edit'; 
 
-        // VARIÁVEIS EDITOR
-        let canvas, ctx;
-        let editorTool = 'draw'; // 'draw' ou 'move'
-        let isDrawing = false;
-        let isMoving = false;
-        let startX, startY; // Para desenho
-        let arrows = [];
-        let imgObj = null;
+        let canvas, ctx, editorTool = 'draw', isDrawing = false, isMoving = false;
+        let startX, startY, arrows = [], imgObj = null;
+        let selectedArrowIdx = -1, selectedPointType = null;
         let lastX, lastY;
-        
-        // Para ferramenta Mover
-        let selectedArrowIdx = -1; 
-        let selectedPointType = null; // 'start' ou 'end'
 
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
@@ -297,9 +294,7 @@
                 window.alternarModo('edit');
             }
 
-            if (idEdicao) {
-                await carregarDados(idEdicao);
-            }
+            if (idEdicao) await carregarDados(idEdicao);
 
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
@@ -312,42 +307,38 @@
             canvas.addEventListener('mouseup', handleMouseUp);
 
             canvas.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent("mousedown", { clientX: touch.clientX, clientY: touch.clientY });
-                canvas.dispatchEvent(mouseEvent);
+                const t = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: t.clientX, clientY: t.clientY }));
             }, {passive: false});
 
             canvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
-                const touch = e.touches[0];
-                const mouseEvent = new MouseEvent("mousemove", { clientX: touch.clientX, clientY: touch.clientY });
-                canvas.dispatchEvent(mouseEvent);
+                const t = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent("mousemove", { clientX: t.clientX, clientY: t.clientY }));
             }, {passive: false});
 
-            canvas.addEventListener('touchend', (e) => {
-                const mouseEvent = new MouseEvent("mouseup", {});
-                canvas.dispatchEvent(mouseEvent);
+            canvas.addEventListener('touchend', () => {
+                canvas.dispatchEvent(new MouseEvent("mouseup", {}));
             });
         };
 
-        // --- FUNÇÕES EDITOR AVANÇADO ---
+        // FUNÇÕES DO EDITOR DE MEDIDAS (SETAS)
         window.setTool = (tool) => {
             editorTool = tool;
             document.querySelectorAll('.tool-select').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-tool-${tool}`).classList.add('active');
-            redrawCanvas(); // Redesenha para mostrar/esconder as "bolinhas" de controle
+            redrawCanvas(); 
         }
 
         window.abrirEditor = () => {
             if (imagens.length === 0) return;
-            const imgData = imagens[indiceAtual].url;
             imgObj = new Image();
-            imgObj.src = imgData;
+            imgObj.src = imagens[indiceAtual].url;
             imgObj.onload = () => {
                 canvas.width = imgObj.width;
                 canvas.height = imgObj.height;
                 arrows = []; 
-                window.setTool('draw'); // Reseta ferramenta padrão
+                window.setTool('draw'); 
                 redrawCanvas();
                 document.getElementById('draw-modal').style.display = 'flex';
             };
@@ -357,10 +348,9 @@
         window.desfazerUltimo = () => { arrows.pop(); redrawCanvas(); }
         
         window.salvarEditor = () => {
-            window.setTool('draw'); // Tira os controles visuais antes de salvar
+            window.setTool('draw'); 
             redrawCanvas(); 
-            const novaUrl = canvas.toDataURL('image/jpeg', 0.8);
-            imagens[indiceAtual].url = novaUrl;
+            imagens[indiceAtual].url = canvas.toDataURL('image/jpeg', 0.8);
             window.renderMiniaturas();
             window.atualizarVisualizadorEdit();
             window.fecharEditor();
@@ -370,62 +360,32 @@
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
+            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
         }
 
         function handleMouseDown(e) {
             const pos = getCanvasCoords(e);
-            
             if (editorTool === 'draw') {
-                isDrawing = true;
-                startX = pos.x;
-                startY = pos.y;
-            } 
-            else if (editorTool === 'move') {
-                // Verificar se clicou perto de alguma ponta
-                const hitDist = 40 * (canvas.width / 800); // Área de clique
-                
+                isDrawing = true; startX = pos.x; startY = pos.y;
+            } else if (editorTool === 'move') {
+                const hitDist = 40 * (canvas.width / 800); 
                 for(let i = arrows.length - 1; i >= 0; i--) {
                     const a = arrows[i];
-                    // Distancia Inicio
-                    if (Math.hypot(pos.x - a.x1, pos.y - a.y1) < hitDist) {
-                        isMoving = true;
-                        selectedArrowIdx = i;
-                        selectedPointType = 'start';
-                        return;
-                    }
-                    // Distancia Fim
-                    if (Math.hypot(pos.x - a.x2, pos.y - a.y2) < hitDist) {
-                        isMoving = true;
-                        selectedArrowIdx = i;
-                        selectedPointType = 'end';
-                        return;
-                    }
+                    if (Math.hypot(pos.x - a.x1, pos.y - a.y1) < hitDist) { isMoving = true; selectedArrowIdx = i; selectedPointType = 'start'; return; }
+                    if (Math.hypot(pos.x - a.x2, pos.y - a.y2) < hitDist) { isMoving = true; selectedArrowIdx = i; selectedPointType = 'end'; return; }
                 }
             }
         }
 
         function handleMouseMove(e) {
             const pos = getCanvasCoords(e);
-            lastX = pos.x;
-            lastY = pos.y;
-
+            lastX = pos.x; lastY = pos.y;
             if (editorTool === 'draw' && isDrawing) {
                 redrawCanvas();
-                drawArrow(ctx, startX, startY, lastX, lastY, null, "#32CD32"); // Preview Verde Limao
-            }
-            else if (editorTool === 'move' && isMoving && selectedArrowIdx !== -1) {
-                // Atualiza a coordenada da seta selecionada
-                if (selectedPointType === 'start') {
-                    arrows[selectedArrowIdx].x1 = pos.x;
-                    arrows[selectedArrowIdx].y1 = pos.y;
-                } else {
-                    arrows[selectedArrowIdx].x2 = pos.x;
-                    arrows[selectedArrowIdx].y2 = pos.y;
-                }
+                drawArrow(ctx, startX, startY, lastX, lastY, null, "#32CD32");
+            } else if (editorTool === 'move' && isMoving && selectedArrowIdx !== -1) {
+                if (selectedPointType === 'start') { arrows[selectedArrowIdx].x1 = pos.x; arrows[selectedArrowIdx].y1 = pos.y; } 
+                else { arrows[selectedArrowIdx].x2 = pos.x; arrows[selectedArrowIdx].y2 = pos.y; }
                 redrawCanvas();
             }
         }
@@ -434,89 +394,51 @@
             if (editorTool === 'draw' && isDrawing) {
                 isDrawing = false;
                 const medida = prompt("Digite a medida:");
-                if(medida) {
-                    arrows.push({ x1: startX, y1: startY, x2: lastX, y2: lastY, text: medida });
-                }
+                if(medida) arrows.push({ x1: startX, y1: startY, x2: lastX, y2: lastY, text: medida });
                 redrawCanvas();
-            }
-            else if (editorTool === 'move') {
-                isMoving = false;
-                selectedArrowIdx = -1;
-                selectedPointType = null;
+            } else if (editorTool === 'move') {
+                isMoving = false; selectedArrowIdx = -1; selectedPointType = null;
             }
         }
 
         function redrawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(imgObj, 0, 0);
-            
             arrows.forEach(a => {
                 drawArrow(ctx, a.x1, a.y1, a.x2, a.y2, a.text, "#00FF00");
-                
-                // Se estiver no modo MOVER, desenha bolinhas nas pontas
-                if (editorTool === 'move') {
-                    drawHandle(a.x1, a.y1);
-                    drawHandle(a.x2, a.y2);
-                }
+                if (editorTool === 'move') { drawHandle(a.x1, a.y1); drawHandle(a.x2, a.y2); }
             });
         }
 
         function drawHandle(x, y) {
             const r = 10 * (canvas.width / 800);
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, 2 * Math.PI);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = "white"; ctx.fill(); ctx.strokeStyle = "black"; ctx.lineWidth = 2; ctx.stroke();
         }
 
         function drawArrow(ctx, x1, y1, x2, y2, text, color) {
             const headLength = 20 * (canvas.width / 800);
             const lineWidth = 5 * (canvas.width / 800);
             const fontSize = 24 * (canvas.width / 800);
-            
-            const dx = x2 - x1;
-            const dy = y2 - y1;
+            const dx = x2 - x1, dy = y2 - y1;
             const angle = Math.atan2(dy, dx);
             
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.lineCap = "round";
+            ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lineWidth; ctx.lineCap = "round";
 
             ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-
-            // Ponta Fim
-            ctx.beginPath();
-            ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
-            ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
-            ctx.lineTo(x2, y2); ctx.fill();
-
-            // Ponta Inicio
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x1 + headLength * Math.cos(angle - Math.PI / 6), y1 + headLength * Math.sin(angle - Math.PI / 6));
-            ctx.lineTo(x1 + headLength * Math.cos(angle + Math.PI / 6), y1 + headLength * Math.sin(angle + Math.PI / 6));
-            ctx.lineTo(x1, y1); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6)); ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6)); ctx.lineTo(x2, y2); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 + headLength * Math.cos(angle - Math.PI / 6), y1 + headLength * Math.sin(angle - Math.PI / 6)); ctx.lineTo(x1 + headLength * Math.cos(angle + Math.PI / 6), y1 + headLength * Math.sin(angle + Math.PI / 6)); ctx.lineTo(x1, y1); ctx.fill();
 
             if (text) {
-                const midX = (x1 + x2) / 2;
-                const midY = (y1 + y2) / 2;
-                ctx.font = `bold ${fontSize}px Arial`;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
+                const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
+                ctx.font = `bold ${fontSize}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                 const textWidth = ctx.measureText(text).width;
-                ctx.fillStyle = "rgba(0,0,0,0.7)";
-                ctx.fillRect(midX - textWidth/2 - 5, midY - fontSize/2 - 5, textWidth + 10, fontSize + 10);
-                ctx.fillStyle = "#fff";
-                ctx.fillText(text, midX, midY);
+                ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(midX - textWidth/2 - 5, midY - fontSize/2 - 5, textWidth + 10, fontSize + 10);
+                ctx.fillStyle = "#fff"; ctx.fillText(text, midX, midY);
             }
         }
 
-        // --- SISTEMA GERAL (LÓGICA IGUAL AO ANTERIOR) ---
+        // --- SISTEMA GERAL ---
         window.alternarModo = (modo) => {
             modoAtual = modo;
             if (modo === 'view') {
@@ -564,8 +486,6 @@
                     setTxt('view-obs', data.observacoes || 'Nenhuma observação.');
                     if(data.data_criacao) setTxt('view-data', data.data_criacao.toDate().toLocaleDateString('pt-BR'));
                     
-                    document.getElementById('btn-floating-edit').onclick = () => window.location.href = `solicitacao.html?id=${id}&mode=edit`;
-
                     if(data.imagens && data.imagens.length > 0) {
                         imagens = data.imagens;
                         indiceAtual = 0;
@@ -574,9 +494,7 @@
                         window.renderVisualizadorView();
                     }
                 }
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         window.processarImagens = async (event) => {
@@ -611,11 +529,7 @@
             });
         }
 
-        window.selecionarFoto = (idx) => {
-            indiceAtual = idx;
-            window.renderMiniaturas();
-            window.atualizarVisualizadorEdit();
-        }
+        window.selecionarFoto = (idx) => { indiceAtual = idx; window.renderMiniaturas(); window.atualizarVisualizadorEdit(); }
 
         window.deletarFoto = (e, idx) => {
             e.stopPropagation();
@@ -623,8 +537,7 @@
                 imagens.splice(idx, 1);
                 if (indiceAtual >= imagens.length) indiceAtual = imagens.length - 1;
                 if (indiceAtual < 0) indiceAtual = 0;
-                window.renderMiniaturas();
-                window.atualizarVisualizadorEdit();
+                window.renderMiniaturas(); window.atualizarVisualizadorEdit();
             }
         }
 
@@ -635,8 +548,7 @@
             [imagens[idx], imagens[novoIdx]] = [imagens[novoIdx], imagens[idx]];
             if (indiceAtual === idx) indiceAtual = novoIdx;
             else if (indiceAtual === novoIdx) indiceAtual = idx;
-            window.renderMiniaturas();
-            window.atualizarVisualizadorEdit();
+            window.renderMiniaturas(); window.atualizarVisualizadorEdit();
         }
 
         window.atualizarVisualizadorEdit = () => {
@@ -652,7 +564,6 @@
                 if(btnMedidas) btnMedidas.style.display = 'none';
                 return;
             }
-
             if(imgEl) { imgEl.src = imagens[indiceAtual].url; imgEl.style.display = 'block'; }
             if(msgEl) msgEl.style.display = 'none';
             if(obsInput) { obsInput.value = imagens[indiceAtual].obs || ''; obsInput.disabled = false; }
@@ -680,20 +591,14 @@
                 if(captionEl) captionEl.style.display = 'none';
                 return;
             }
-            
             if(imgEl) { imgEl.src = imagens[indiceAtual].url; imgEl.style.display = 'block'; }
             if(msgEl) msgEl.style.display = 'none';
             if(countEl) countEl.innerText = `${indiceAtual + 1} / ${imagens.length}`;
             const legenda = imagens[indiceAtual].obs || '';
-            if(captionEl) {
-                captionEl.innerText = legenda;
-                captionEl.style.display = legenda ? 'block' : 'none';
-            }
+            if(captionEl) { captionEl.innerText = legenda; captionEl.style.display = legenda ? 'block' : 'none'; }
         }
 
-        window.atualizarLegendaFoto = () => {
-            if (imagens.length > 0) imagens[indiceAtual].obs = document.getElementById('in-foto-obs').value;
-        }
+        window.atualizarLegendaFoto = () => { if (imagens.length > 0) imagens[indiceAtual].obs = document.getElementById('in-foto-obs').value; }
 
         function comprimirImagem(file) {
             return new Promise((resolve) => {
