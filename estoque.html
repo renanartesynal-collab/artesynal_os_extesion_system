@@ -26,9 +26,9 @@
         .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none; font-family: inherit;}
 
         .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
-        .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: inherit;}
+        .search-input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: inherit;}
         
-        /* --- KANBAN SYSTEM --- */
+        /* --- KANBAN --- */
         .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
         .kanban-col { background: #222; border-radius: 10px; padding: 10px; min-width: 320px; width: 320px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: white; text-transform: uppercase; text-align: center; }
@@ -41,20 +41,19 @@
         .hdr-acrilico { background: #f39c12; color: #000; }
         .hdr-outros { background: #444; }
 
-        .grid-est { display: flex; flex-direction: column; gap: 15px; min-height: 100px; }
+        .grid-est { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
 
         /* CARDS */
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: margin 0.2s, border 0.2s; }
+        .card-prod.low-stock { border-right: 4px solid var(--red); }
         .card-prod.serralheria { border-left-color: var(--orange); cursor: grab; }
         .card-prod.coupled { margin-top: -10px !important; border-top: 3px solid var(--green) !important; z-index: 10; box-shadow: 0 -5px 10px rgba(0,0,0,0.5); }
         .card-prod.dragging { opacity: 0.5; }
 
         .prod-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .prod-cat { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; }
-        .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; }
-        .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 10px; display: block; }
-
-        .btn-open-peca { background: var(--blue); color: white; width: 100%; border: none; padding: 10px; border-radius: 5px; font-weight: 900; cursor: pointer; font-family: inherit; }
+        .prod-cat { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-size: 9px; color: #ccc; }
+        .prod-name { font-size: 16px; font-weight: 800; color: white; margin-bottom: 5px; }
+        .prod-dims { font-size: 13px; color: var(--orange); font-weight: bold; margin-bottom: 10px; display: block; }
 
         /* MODAIS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
@@ -63,31 +62,21 @@
         label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: inherit;}
 
-        /* --- ETIQUETA PROFISSIONAL (10x3cm) --- */
+        /* ETIQUETA (10x3cm) */
         #etiqueta-print {
-            display: none;
-            width: 100mm;
-            height: 30mm;
-            background: #fff;
-            color: #000;
-            padding: 1mm;
-            box-sizing: border-box;
-            border: 0.5mm solid #000;
+            display: none; width: 100mm; height: 30mm; background: #fff; color: #000;
+            padding: 1mm; box-sizing: border-box; border: 0.5mm solid #000; position: absolute; top: 0; left: 0;
         }
         .label-grid { display: flex; width: 100%; height: 100%; gap: 1mm; }
-        .qr-section { width: 28mm; height: 28mm; border: 0.3mm solid #999; display: flex; align-items: center; justify-content: center; flex-direction: column; box-sizing: border-box; }
+        .qr-section { width: 28mm; height: 28mm; border: 0.3mm solid #999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         .qr-section canvas, .qr-section img { width: 23mm !important; height: 23mm !important; }
         .qr-label { font-size: 5pt; font-weight: 900; margin-top: 1px; }
-
         .info-section { flex: 1; display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 0.5mm; }
         .row-grid { display: grid; gap: 0.5mm; }
-        .box-info { border: 0.2mm solid #000; padding: 1mm 2mm; display: flex; align-items: center; overflow: hidden; background: #fff; }
+        .box-info { border: 0.2mm solid #000; padding: 1mm 2mm; display: flex; align-items: center; background: #fff; }
         .txt-label { font-weight: 900; font-size: 6.5pt; margin-right: 1.5mm; white-space: nowrap; }
-        .txt-value { font-weight: 700; font-size: 8.5pt; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-
-        .line-1 { grid-template-columns: 2fr 1fr; }
-        .line-2 { grid-template-columns: 1fr; }
-        .line-3 { grid-template-columns: 1.2fr 1fr; }
+        .txt-value { font-weight: 700; font-size: 8.5pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .line-1 { grid-template-columns: 2fr 1fr; } .line-2 { grid-template-columns: 1fr; } .line-3 { grid-template-columns: 1.2fr 1fr; }
 
         @media print {
             body * { display: none !important; }
@@ -128,9 +117,6 @@
 
         <div class="filter-bar">
             <input type="text" id="search-input" class="search-input" placeholder="Buscar material..." onkeyup="filtrarEstoque()">
-            <select id="cat-filter" class="cat-select" onchange="filtrarEstoque()">
-                <option value="Todos">Todas Categorias</option>
-            </select>
         </div>
 
         <div id="kanban-imp" class="kanban-container" style="display: none;">
@@ -223,18 +209,13 @@
 
     <div id="etiqueta-print">
         <div class="label-grid">
-            <div class="qr-section">
-                <div id="p-qrcode"></div>
-                <div class="qr-label">QR CODE</div>
-            </div>
+            <div class="qr-section"><div id="p-qrcode"></div><div class="qr-label">QR CODE</div></div>
             <div class="info-section">
                 <div class="row-grid line-1">
-                    <div class="box-info"><span class="txt-value" id="p-nome">MATERIAL</span></div>
+                    <div class="box-info"><span class="txt-value" id="p-nome-et">MATERIAL</span></div>
                     <div class="box-info"><span class="txt-label">OS:</span><span class="txt-value" id="p-os">0000</span></div>
                 </div>
-                <div class="row-grid line-2">
-                    <div class="box-info"><span class="txt-label">TAM:</span><span class="txt-value" id="p-dim">000 x 000 cm</span></div>
-                </div>
+                <div class="row-grid line-2"><div class="box-info"><span class="txt-label">TAM:</span><span class="txt-value" id="p-dim-et">000 x 000 cm</span></div></div>
                 <div class="row-grid line-3">
                     <div class="box-info"><span class="txt-label">LOCAL:</span><span class="txt-value" id="p-local">---</span></div>
                     <div class="box-info"><span class="txt-label">CORTE:</span><span class="txt-value" id="p-num">01</span></div>
@@ -245,7 +226,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar-setor').href = ROTAS.painel;
         let setorAtual = '', produtos = [], pecaSelecionada = null;
@@ -259,15 +240,15 @@
             setorAtual = setor;
             document.getElementById('sector-screen').style.display = 'none';
             document.getElementById('main-layout').style.display = 'block';
-            document.getElementById('page-title').innerText = setor === 'impressao' ? 'Sala de Impressão' : 'Serralheria';
+            document.getElementById('page-title').innerText = config[setor].isSerr ? 'Serralheria' : 'Sala de Impressão';
             document.getElementById('page-title').style.color = config[setor].color;
 
             document.getElementById('kanban-imp').style.display = !config[setor].isSerr ? 'flex' : 'none';
             document.getElementById('kanban-serr').style.display = config[setor].isSerr ? 'flex' : 'none';
 
-            const sel = document.getElementById('cat-filter'), selModal = document.getElementById('prod-cat');
-            sel.innerHTML = '<option value="Todos">Todas</option>'; selModal.innerHTML = '';
-            config[setor].cats.forEach(c => { sel.innerHTML += `<option value="${c}">${c}</option>`; selModal.innerHTML += `<option value="${c}">${c}</option>`; });
+            const selModal = document.getElementById('prod-cat');
+            selModal.innerHTML = '';
+            config[setor].cats.forEach(c => { selModal.innerHTML += `<option value="${c}">${c}</option>`; });
 
             ouvirEstoque();
         };
@@ -300,7 +281,7 @@
                     card.addEventListener('dragover', (e) => e.preventDefault());
                     card.addEventListener('drop', async (e) => {
                         e.preventDefault();
-                        const idArr = e.dataTransfer.getData('pecaID');
+                        const idArr = e.dataTransfer.setData('pecaID');
                         if(idArr && idArr !== p.id) await updateDoc(doc(db, "estoque", idArr), { coupledTo: p.id });
                     });
                     if(grid) grid.appendChild(card);
@@ -314,6 +295,30 @@
             });
         }
 
+        window.abrirModalProduto = () => {
+            const isSerr = config[setorAtual].isSerr;
+            document.getElementById('div-dims').style.display = isSerr ? 'block' : 'none';
+            document.getElementById('div-un').style.display = isSerr ? 'none' : 'block';
+            document.getElementById('div-qtd').style.display = isSerr ? 'none' : 'block';
+            document.getElementById('modal-prod').style.display = 'flex';
+        };
+
+        window.salvarProduto = async () => {
+            const isSerr = config[setorAtual].isSerr;
+            const dados = { setor: setorAtual, nome: document.getElementById('prod-nome').value, categoria: document.getElementById('prod-cat').value };
+            if(isSerr) {
+                dados.dimW = parseFloat(document.getElementById('prod-dim-w').value || 0);
+                dados.dimH = parseFloat(document.getElementById('prod-dim-h').value || 0);
+                dados.qtd = 1; dados.unidade = 'pç';
+            } else {
+                dados.qtd = parseFloat(document.getElementById('prod-qtd').value || 0);
+                dados.minimo = parseFloat(document.getElementById('prod-min').value || 0);
+                dados.unidade = document.getElementById('prod-un').value;
+            }
+            await addDoc(collection(db, "estoque"), dados);
+            fecharModal('modal-prod');
+        };
+
         window.abrirPeca = (id) => { 
             pecaSelecionada = produtos.find(x => x.id === id); 
             document.getElementById('m-nome').innerText = pecaSelecionada.nome; 
@@ -322,57 +327,47 @@
         };
 
         window.executarCorte = async () => {
-            const cw = parseFloat(document.getElementById('corte-w').value), ch = parseFloat(document.getElementById('corte-h').value);
-            if(!cw || !ch || cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) { alert("Medidas inválidas!"); return; }
-            if(confirm("Confirmar corte?")){
-                const sW = pecaSelecionada.dimW - cw, sH = pecaSelecionada.dimH - ch;
-                await updateDoc(doc(db, "estoque", pecaSelecionada.id), { dimW: sW > 0 ? sW : pecaSelecionada.dimW, dimH: sH > 0 ? sH : pecaSelecionada.dimH, nome: pecaSelecionada.nome + " (Sobra)" });
-                await addDoc(collection(db, "estoque"), { setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)", categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç' });
-                fecharModal('modal-peca');
-            }
+            const cw = parseFloat(document.getElementById('corte-w').value || 0);
+            const ch = parseFloat(document.getElementById('corte-h').value || 0);
+            if(cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) { alert("Corte maior que a peça!"); return; }
+            const sW = pecaSelecionada.dimW - cw;
+            const sH = pecaSelecionada.dimH - ch;
+            await updateDoc(doc(db, "estoque", pecaSelecionada.id), { dimW: sW > 0 ? sW : pecaSelecionada.dimW, dimH: sH > 0 ? sH : pecaSelecionada.dimH, nome: pecaSelecionada.nome + " (Sobra)" });
+            await addDoc(collection(db, "estoque"), { setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)", categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç' });
+            fecharModal('modal-peca');
         };
 
         window.imprimirEtiquetaFinal = () => {
             const os = document.getElementById('et-os').value, local = document.getElementById('et-local').value, num = document.getElementById('et-num').value;
-            document.getElementById('p-nome').innerText = pecaSelecionada.nome.toUpperCase();
-            document.getElementById('p-dim').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
+            document.getElementById('p-nome-et').innerText = pecaSelecionada.nome.toUpperCase();
+            document.getElementById('p-dim-et').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
             document.getElementById('p-os').innerText = os || '----';
             document.getElementById('p-local').innerText = local;
             document.getElementById('p-num').innerText = num.toString().padStart(2, '0');
             const qrCont = document.getElementById('p-qrcode'); qrCont.innerHTML = '';
-            new QRCode(qrCont, { text: window.location.href.split('?')[0] + "?id=" + pecaSelecionada.id, width: 100, height: 100 });
+            new QRCode(qrCont, { text: window.location.origin + window.location.pathname + "?id=" + pecaSelecionada.id, width: 100, height: 100 });
             setTimeout(() => { window.print(); }, 800);
         };
 
-        window.salvarProduto = async () => {
-            const isSerr = config[setorAtual].isSerr;
-            const dados = { setor: setorAtual, nome: document.getElementById('prod-nome').value, categoria: document.getElementById('prod-cat').value };
-            if(isSerr) {
-                dados.dimW = parseFloat(document.getElementById('prod-dim-w').value);
-                dados.dimH = parseFloat(document.getElementById('prod-dim-h').value);
-                dados.qtd = 1; dados.unidade = 'pç';
-            } else {
-                dados.qtd = parseFloat(document.getElementById('prod-qtd').value);
-                dados.minimo = parseFloat(document.getElementById('prod-min').value);
-                dados.unidade = document.getElementById('prod-un').value;
-            }
-            await addDoc(collection(db, "estoque"), dados);
-            fecharModal('modal-prod');
-        };
-
-        window.deletarPeca = async () => { if(confirm("Excluir peça?")) { await deleteDoc(doc(db, "estoque", pecaSelecionada.id)); fecharModal('modal-peca'); } };
         window.abrirMov = (id) => { document.getElementById('mov-id').value = id; document.getElementById('modal-mov').style.display = 'flex'; };
         window.salvarMov = async (tipo) => {
-            const id = document.getElementById('mov-id').value, qtdAlt = parseFloat(document.getElementById('mov-qtd').value);
+            const id = document.getElementById('mov-id').value, qtdAlt = parseFloat(document.getElementById('mov-qtd').value || 0);
             const p = produtos.find(x => x.id === id);
             let nova = tipo === 'entrada' ? p.qtd + qtdAlt : p.qtd - qtdAlt;
             await updateDoc(doc(db, "estoque", id), { qtd: nova });
             fecharModal('modal-mov');
         };
 
+        window.deletarPeca = async () => { if(confirm("Excluir?")) { await deleteDoc(doc(db, "estoque", pecaSelecionada.id)); fecharModal('modal-peca'); } };
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
         window.abrirPainelEtiqueta = () => document.getElementById('modal-etiqueta').style.display = 'flex';
-        window.filtrarEstoque = () => {};
+        window.filtrarEstoque = () => {
+            const termo = document.getElementById('search-input').value.toLowerCase();
+            document.querySelectorAll('.card-prod').forEach(card => {
+                const nome = card.querySelector('.prod-name').innerText.toLowerCase();
+                card.style.display = nome.includes(termo) ? 'block' : 'none';
+            });
+        };
     </script>
 </body>
 </html>
