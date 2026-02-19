@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg-dark: #333; --card-bg: #2c3e50; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: white; }
+        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: white; }
         
         /* HEADER */
         .header-orc { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #555; padding-bottom: 15px; }
@@ -28,7 +28,7 @@
 
         /* BOTÕES DO CARD */
         .actions { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-card { flex: 1; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px; text-transform: uppercase; color: white; transition: opacity 0.2s; }
+        .btn-card { flex: 1; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px; text-transform: uppercase; color: white; transition: opacity 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .btn-card:hover { opacity: 0.8; }
         
         .btn-view { background: #555; }
@@ -56,10 +56,10 @@
 
     <div class="header-orc">
         <h1>Solicitações</h1>
-        <a href="painel.html" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
+        <a href="index.html" class="btn-voltar">⬅ VOLTAR AO PAINEL</a>
     </div>
 
-    <div id="loading">Carregando solicitações...</div>
+    <div id="loading">A carregar solicitações...</div>
     <div class="grid-orc" id="grid-orc">
         </div>
 
@@ -133,10 +133,7 @@
             window.open(`solicitacao.html?id=${id}&mode=${modo}`, '_blank');
         }
 
-        // --- CORREÇÃO DO LINK ---
         window.gerarLink = (id, num) => {
-            // Pega a URL atual inteira e remove o nome do arquivo atual (orcamentos.html)
-            // Isso garante que se estiver em github.io/projeto/, ele mantenha o /projeto/
             let baseUrl = window.location.href;
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
             
