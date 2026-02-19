@@ -7,11 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg-dark: #1a1a1a; --card-bg: #2c3e50; --purple: #9b59b6; --orange: #e67e22; --red: #e74c3c; --green: #2ecc71; --blue: #3498db; --text: #eee; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text); overflow-x: hidden; }
+        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text); overflow-x: hidden; }
 
         /* --- TELA SELEÇÃO --- */
         #sector-screen { display: flex; height: 100vh; width: 100%; align-items: center; justify-content: center; gap: 30px; position: fixed; top: 0; left: 0; background: var(--bg-dark); z-index: 1000; flex-wrap: wrap; padding: 20px;}
-        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Montserrat'; transition: transform 0.2s; text-decoration: none; color: white;}
+        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Mitra LT', 'Montserrat', sans-serif; transition: transform 0.2s; text-decoration: none; color: white;}
         .sector-btn:hover { transform: scale(1.05); }
         .sec-imp { background: linear-gradient(135deg, #8e44ad, #c0392b); box-shadow: 0 0 20px rgba(142, 68, 173, 0.5); }
         .sec-serr { background: linear-gradient(135deg, #e67e22, #f1c40f); box-shadow: 0 0 20px rgba(230, 126, 34, 0.5); color: #222; }
@@ -22,11 +22,11 @@
         #main-layout { display: none; padding: 20px; transition: 0.3s; margin-right: 0; }
         .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; }
         h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; }
-        .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none;}
+        .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
         /* FILTROS E GRID */
         .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
-        .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; }
+        .search-input, .cat-select { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
         .grid-est { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
 
         /* CARDS */
@@ -43,13 +43,13 @@
         .stock-display { text-align: center; }
         .stock-val { font-size: 24px; font-weight: 900; }
         .stock-unit { font-size: 10px; color: #aaa; }
-        .btn-mov { background: var(--blue); color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .btn-mov { background: var(--blue); color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
         .btn-cut-action { 
             background: var(--orange); color: #222; width: 100%; border: none; padding: 12px; 
             border-radius: 5px; font-weight: 900; cursor: pointer; margin-bottom: 10px; 
             font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 0 #d35400; transition: 0.1s;
+            box-shadow: 0 4px 0 #d35400; transition: 0.1s; font-family: 'Mitra LT', 'Montserrat', sans-serif;
         }
         .btn-cut-action:active { transform: translateY(4px); box-shadow: 0 0 0; }
 
@@ -62,14 +62,14 @@
         }
         #sidebar-cuts.open { right: 0; }
         .cut-item { background: #222; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid var(--orange); display: flex; justify-content: space-between; align-items: center; }
-        .btn-process { margin-top: auto; background: var(--green); color: white; border: none; padding: 15px; font-weight: 900; font-size: 16px; cursor: pointer; width: 100%; }
+        .btn-process { margin-top: auto; background: var(--green); color: white; border: none; padding: 15px; font-weight: 900; font-size: 16px; cursor: pointer; width: 100%; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
         /* MODAIS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 600; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 650px; position: relative; }
         .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
         label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; }
+        input, select { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
         /* =========================================
            NOVO EDITOR VISUAL (AREA DE CORTE)
@@ -78,49 +78,35 @@
             width: 100%; height: 350px; background: #222; border: 1px solid #555;
             margin-bottom: 15px; display: flex; justify-content: center; align-items: center;
             overflow: hidden; position: relative;
-            /* Grade de fundo para referência */
             background-image: linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px);
             background-size: 20px 20px;
         }
 
         #plate-visual {
-            background: white; /* Cor da Chapa Original */
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            /* O tamanho será definido via JS */
+            background: white; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
         
-        /* Label da Chapa Original */
         #plate-label {
             position: absolute; bottom: 5px; right: 5px; 
             color: #ccc; font-size: 10px; font-weight: bold; pointer-events: none;
         }
 
-        /* Peça de Corte (Arrastável) */
         #cut-rect {
-            position: absolute; 
-            top: 0; left: 0;
-            border: 2px solid var(--red); /* Borda Vermelha Técnica */
-            background: rgba(231, 76, 60, 0.15); /* Vermelho Transparente */
-            cursor: move;
-            box-sizing: border-box;
-            touch-action: none; /* Vital para mobile */
-            z-index: 10;
+            position: absolute; top: 0; left: 0; border: 2px solid var(--red); 
+            background: rgba(231, 76, 60, 0.15); cursor: move; box-sizing: border-box;
+            touch-action: none; z-index: 10;
         }
         #cut-rect:active { background: rgba(231, 76, 60, 0.3); border-color: #fff; }
 
         /* LINHAS DE COTA (Técnicas) */
         .dim-line { position: absolute; background: var(--red); pointer-events: none; }
-        .dim-text { position: absolute; color: var(--red); font-weight: bold; font-size: 16px; white-space: nowrap; pointer-events: none; text-shadow: 0 0 3px black; }
+        .dim-text { position: absolute; color: var(--red); font-weight: bold; font-size: 16px; white-space: nowrap; pointer-events: none; text-shadow: 0 0 3px black; font-family: 'Montserrat', sans-serif;}
 
-        /* Cota Superior (Largura) */
         .dim-top-h { height: 10px; border-left: 1px solid var(--red); border-right: 1px solid var(--red); position: absolute; top: -15px; width: 100%; left: 0; }
         .dim-top-text { top: -35px; width: 100%; text-align: center; left: 0; }
 
-        /* Cota Lateral (Altura) */
         .dim-left-v { width: 10px; border-top: 1px solid var(--red); border-bottom: 1px solid var(--red); position: absolute; left: -15px; height: 100%; top: 0; }
         .dim-left-text { left: -60px; top: 50%; transform: translateY(-50%) rotate(-90deg); text-align: center; }
-
 
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
         .fab-sidebar { position: fixed; bottom: 90px; right: 20px; width: 50px; height: 50px; background: var(--orange); color: #222; border-radius: 50%; border: none; font-size: 20px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; display: none; }
@@ -139,13 +125,15 @@
             <div class="sec-title">Serralheria</div>
             <span style="font-size:10px; color:black;">Chapas, Cortes, Peças</span>
         </button>
-        <div style="width:100%; text-align:center;"><a href="painel.html" style="color:#666; text-decoration:none;">Voltar</a></div>
+        <div style="width:100%; text-align:center; margin-top: 20px;">
+            <a href="#" id="link-voltar-setor" style="color:#aaa; text-decoration:none; font-weight:bold; padding: 10px;">⬅ VOLTAR AO PAINEL</a>
+        </div>
     </div>
 
     <div id="main-layout">
         <div class="header-est">
             <h1 id="page-title">Estoque</h1>
-            <button class="btn-voltar" onclick="location.reload()">🔄 SETOR</button>
+            <button class="btn-voltar" onclick="location.reload()">🔄 TROCAR SETOR</button>
         </div>
 
         <div class="filter-bar">
@@ -194,7 +182,7 @@
             <div id="editor-wrapper">
                 <div id="plate-visual">
                     <div id="plate-label">CHAPA ORIGINAL</div>
-                    </div>
+                </div>
             </div>
 
             <div class="form-row">
@@ -263,25 +251,17 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // 1. IMPORTANDO O CÉREBRO (CONFIG.JS)
+        import { db, ROTAS } from "./config.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
-            authDomain: "artesynal-os-system.firebaseapp.com",
-            projectId: "artesynal-os-system",
-            storageBucket: "artesynal-os-system.firebasestorage.app",
-            messagingSenderId: "539958005846",
-            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Ajustar botão voltar da tela de seleção
+        document.getElementById('link-voltar-setor').href = ROTAS.painel;
 
         let setorAtual = '';
         let produtos = [];
         let cortes = [];
-        let scaleFactor = 1; // Fator de conversão CM -> Pixel
+        let scaleFactor = 1; 
 
         const config = {
             'impressao': { color: 'var(--purple)', cats: ['Lona','Adesivo','Tinta','Outros'], isSerr: false },
@@ -342,7 +322,7 @@
                         <div class="card-prod serralheria">
                             <div class="prod-header">
                                 <span class="prod-cat">${p.categoria}</span>
-                                <button onclick="deletar('${p.id}')" style="background:none; border:none; color:#555;">🗑️</button>
+                                <button onclick="deletar('${p.id}')" style="background:none; border:none; color:#555; cursor:pointer;">🗑️</button>
                             </div>
                             <div class="prod-name">${p.nome}</div>
                             <span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>
@@ -353,7 +333,10 @@
                     const isLow = p.qtd <= p.minimo;
                     cardHTML = `
                         <div class="card-prod ${isLow ? 'low-stock' : ''}">
-                            <div class="prod-header"><span class="prod-cat">${p.categoria}</span></div>
+                            <div class="prod-header">
+                                <span class="prod-cat">${p.categoria}</span>
+                                <button onclick="deletar('${p.id}')" style="background:none; border:none; color:#555; cursor:pointer;">🗑️</button>
+                            </div>
                             <div class="prod-name">${p.nome}</div>
                             <div class="stock-control">
                                 <div class="stock-display">
@@ -371,35 +354,29 @@
 
         window.filtrarEstoque = () => { /* Implementar se necessário */ };
 
-        // --- LÓGICA DO EDITOR DE CORTE (CORRIGIDA E REFEITA) ---
+        // --- LÓGICA DO EDITOR DE CORTE ---
         window.abrirCorte = (id) => {
             const p = produtos.find(x => x.id === id);
             
-            // Dados ocultos
             document.getElementById('cut-prod-id').value = id;
             document.getElementById('orig-w').value = p.dimW;
             document.getElementById('orig-h').value = p.dimH;
             
-            // UI
             document.getElementById('cut-info').innerText = `${p.nome} (${p.dimW}x${p.dimH} cm)`;
             document.getElementById('cut-w').value = '';
             document.getElementById('cut-h').value = '';
 
-            // Configurar o Canvas (Chapa Original)
             const wrapper = document.getElementById('editor-wrapper');
             const plate = document.getElementById('plate-visual');
-            plate.innerHTML = '<div id="plate-label">CHAPA ORIGINAL</div>'; // Limpa e põe label
+            plate.innerHTML = '<div id="plate-label">CHAPA ORIGINAL</div>'; 
 
-            // CÁLCULO DE ESCALA (Para caber na tela mantendo proporção)
-            // wrapper tem 350px altura e ~600px largura
             const maxW = wrapper.clientWidth - 40;
             const maxH = wrapper.clientHeight - 40;
             
             const ratioW = maxW / p.dimW;
             const ratioH = maxH / p.dimH;
-            scaleFactor = Math.min(ratioW, ratioH); // Usa a menor escala para caber tudo
+            scaleFactor = Math.min(ratioW, ratioH); 
 
-            // Aplica tamanho visual na chapa branca
             plate.style.width = (p.dimW * scaleFactor) + 'px';
             plate.style.height = (p.dimH * scaleFactor) + 'px';
 
@@ -408,8 +385,6 @@
 
         window.atualizarCorteVisual = () => {
             const plate = document.getElementById('plate-visual');
-            
-            // Remove corte anterior se houver
             const oldCut = document.getElementById('cut-rect');
             if(oldCut) oldCut.remove();
 
@@ -419,18 +394,13 @@
             const origH = parseFloat(document.getElementById('orig-h').value);
 
             if(!cutW || !cutH) return;
-            if(cutW > origW || cutH > origH) { 
-                // Alerta visual simples
-                return; 
-            }
+            if(cutW > origW || cutH > origH) return; 
 
-            // Cria o elemento de corte
             const piece = document.createElement('div');
             piece.id = 'cut-rect';
             piece.style.width = (cutW * scaleFactor) + 'px';
             piece.style.height = (cutH * scaleFactor) + 'px';
             
-            // INJETA AS LINHAS DE COTA TÉCNICAS
             piece.innerHTML = `
                 <div class="dim-top-h"></div>
                 <div class="dim-text dim-top-text">${cutW}cm</div>
@@ -439,12 +409,9 @@
             `;
 
             plate.appendChild(piece);
-
-            // ATIVA O DRAG (ARRASTAR)
             iniciarArrasto(piece, plate);
         };
 
-        // FUNÇÃO DE ARRASTAR CORRIGIDA (Usa eventos na Window para não travar)
         function iniciarArrasto(elemento, container) {
             let posInicialX = 0, posInicialY = 0, posMouseX = 0, posMouseY = 0;
 
@@ -455,7 +422,6 @@
                 e = e || window.event;
                 e.preventDefault();
                 
-                // Pega posição inicial do mouse
                 if (e.type === 'touchstart') {
                     posMouseX = e.touches[0].clientX;
                     posMouseY = e.touches[0].clientY;
@@ -464,7 +430,6 @@
                     posMouseY = e.clientY;
                 }
 
-                // Liga os eventos de movimento na JANELA (não no elemento)
                 document.onmouseup = closeDragElement;
                 document.onmousemove = elementDrag;
                 document.ontouchend = closeDragElement;
@@ -477,17 +442,14 @@
                 let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
                 let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
 
-                // Calcula deslocamento
                 posInicialX = posMouseX - clientX;
                 posInicialY = posMouseY - clientY;
                 posMouseX = clientX;
                 posMouseY = clientY;
 
-                // Calcula nova posição (Top/Left)
                 let newTop = (elemento.offsetTop - posInicialY);
                 let newLeft = (elemento.offsetLeft - posInicialX);
 
-                // Limites (Colisão com a borda da chapa)
                 let maxTop = container.clientHeight - elemento.clientHeight;
                 let maxLeft = container.clientWidth - elemento.clientWidth;
 
@@ -496,13 +458,11 @@
                 if (newTop > maxTop) newTop = maxTop;
                 if (newLeft > maxLeft) newLeft = maxLeft;
 
-                // Aplica
                 elemento.style.top = newTop + "px";
                 elemento.style.left = newLeft + "px";
             }
 
             function closeDragElement() {
-                // Desliga eventos
                 document.onmouseup = null;
                 document.onmousemove = null;
                 document.ontouchend = null;
@@ -538,7 +498,7 @@
                             <div style="font-weight:bold; color:white;">CORTE: ${c.cutW}x${c.cutH}</div>
                             <div style="font-size:10px;">Origem: ${c.origName}</div>
                         </div>
-                        <button onclick="rmCorte(${idx})" style="color:red; background:none; border:none;">X</button>
+                        <button onclick="rmCorte(${idx})" style="color:red; background:none; border:none; cursor:pointer;">X</button>
                     </div>
                 `;
             });
@@ -548,10 +508,8 @@
         window.finalizarCortes = async () => {
             if(cortes.length === 0) return;
             for(let c of cortes) {
-                // 1. Remove peça original
                 await deleteDoc(doc(db, "estoque", c.origId));
                 
-                // 2. Pergunta sobra
                 const sobraW = prompt(`Peça Original: ${c.origW}x${c.origH}\nCorte: ${c.cutW}x${c.cutH}\n\nLargura SOBRA? (0 se acabou)`);
                 const sobraH = prompt(`Altura SOBRA? (0 se acabou)`);
                 
