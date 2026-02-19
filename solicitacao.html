@@ -444,35 +444,61 @@
         };
 
         window.fecharModalVisita = () => document.getElementById('visita-modal').style.display = 'none';
-
-        window.finalizarVisita = async () => {
-            const btn = document.getElementById('btn-finalizar-visita');
-            btn.disabled = true; btn.innerText = "GERANDO...";
-            try {
-                const vtDados = {
-                    cliente: document.getElementById('v-cliente').value,
-                    endereco: document.getElementById('v-endereco').value,
-                    info_adicional: document.getElementById('v-info').value,
-                    orcamento_id: idEdicao,
-                    status: "Pendente",
-                    data_criacao: serverTimestamp()
-                };
-                const docRef = await addDoc(collection(db, "visitas"), vtDados);
-                await updateDoc(doc(db, "orcamentos", idEdicao), { visita_id: docRef.id });
-                alert("Visita Técnica gerada!");
-                location.reload();
-            } catch(e) { console.error(e); }
+window.finalizarVisita = async () => {
+    const btn = document.getElementById('btn-finalizar-visita');
+    if (!idEdicao) { alert("Salve a solicitação antes de gerar uma visita!"); return; }
+    
+    btn.disabled = true; 
+    btn.innerText = "GERANDO...";
+    
+    try {
+        const vtDados = {
+            cliente: document.getElementById('v-cliente').value,
+            endereco: document.getElementById('v-endereco').value,
+            info_adicional: document.getElementById('v-info').value,
+            orcamento_id: idEdicao,
+            status: "Pendente",
+            data_criacao: serverTimestamp()
         };
+        
+        // Linha importante: Capturamos o ID gerado pelo Firebase
+        const docRef = await addDoc(collection(db, "visitas"), vtDados);
+        idVisitaTecnicaGerada = docRef.id; 
+        
+        await updateDoc(doc(db, "orcamentos", idEdicao), { visita_id: docRef.id });
+        
+        alert("Visita Técnica gerada com sucesso!");
+        
+        // Fecha o modal e atualiza os botões na tela sem precisar de reload
+        document.getElementById('visita-modal').style.display = 'none';
+        document.getElementById('btn-acao-gerar-vt').style.display = 'none';
+        document.getElementById('area-vt-gerada').style.display = 'flex';
+        
+    } catch(e) { 
+        console.error("Erro ao gerar visita:", e); 
+        alert("Erro ao gerar visita técnica.");
+    } finally {
+        btn.disabled = false; 
+        btn.innerText = "FINALIZAR";
+    }
+};
 
-        window.verVisitaAtual = () => {
-            window.location.href = `detalhes-visita.html?id=${idVisitaTecnicaGerada}`;
-        };
+window.verVisitaAtual = () => {
+    if (idVisitaTecnicaGerada) {
+        window.location.href = `detalhes-visita.html?id=${idVisitaTecnicaGerada}`;
+    } else {
+        alert("Erro: ID da visita não encontrado. Tente recarregar a página.");
+    }
+};
 
-        window.copiarLinkVisita = () => {
-            const link = window.location.origin + `/detalhes-visita.html?id=${idVisitaTecnicaGerada}`;
-            navigator.clipboard.writeText(link).then(() => alert("Link da visita copiado!"));
-        };
-
+window.copiarLinkVisita = () => {
+    if (!idVisitaTecnicaGerada) return;
+    const link = window.location.origin + window.location.pathname.replace('solicitacao.html', 'detalhes-visita.html') + `?id=${idVisitaTecnicaGerada}`;
+    
+    navigator.clipboard.writeText(link).then(() => {
+        alert("Link da visita copiado para o WhatsApp!");
+    });
+};
         // EDITOR DE MEDIDAS (Simples)
         window.abrirEditor = () => {
             if(!imagens[indiceAtual]) return;
