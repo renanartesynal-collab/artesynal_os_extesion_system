@@ -37,7 +37,7 @@
         /* CARDS */
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: margin 0.2s, border 0.2s; }
         .card-prod.serralheria { border-left-color: var(--orange); cursor: grab; }
-        .card-prod.coupled { margin-left: -20px; border-left: 5px solid var(--green); z-index: 10; }
+        .card-prod.coupled { margin-left: -20px !important; border-left: 5px solid var(--green) !important; z-index: 10; box-shadow: -5px 0 10px rgba(0,0,0,0.5); }
         .card-prod.dragging { opacity: 0.5; }
 
         .prod-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
@@ -54,19 +54,102 @@
         label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
 
-        /* ETIQUETA 10x3cm */
+        /* --- LAYOUT DA ETIQUETA (10x3cm) --- */
         #etiqueta-print {
-            width: 10cm; height: 3cm; background: white; color: black;
-            display: none; padding: 5px; box-sizing: border-box;
-            grid-template-columns: 1fr 80px; font-family: Arial, sans-serif;
+            display: none; /* Escondido no navegador */
+            width: 100mm;
+            height: 30mm;
+            background: #fff;
+            color: #000;
+            padding: 2mm;
+            box-sizing: border-box;
             border: 1px solid #000;
+            position: relative;
+            overflow: hidden;
         }
-        .et-info { font-size: 10px; line-height: 1.2; }
-        .et-info b { font-size: 11px; display: block; border-bottom: 1px solid #ddd; margin-bottom: 2px; }
-        
+
+        .et-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .et-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .et-header {
+            font-size: 12pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-bottom: 1.5pt solid #000;
+            margin-bottom: 2pt;
+            padding-bottom: 1pt;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .et-main-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2pt;
+        }
+
+        .et-field {
+            font-size: 8pt;
+            margin-bottom: 1pt;
+        }
+
+        .et-label {
+            font-weight: 900;
+            font-size: 7pt;
+            color: #333;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        .et-value {
+            font-size: 9pt;
+            font-weight: 700;
+        }
+
+        .et-qrcode-area {
+            width: 26mm;
+            height: 26mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            margin-left: 2mm;
+        }
+
+        /* --- CONFIGURAÇÃO DE IMPRESSÃO --- */
         @media print {
-            body * { display: none; }
-            #etiqueta-print { display: grid !important; position: absolute; top: 0; left: 0; }
+            body * { display: none !important; }
+            #etiqueta-print, #etiqueta-print * { display: block !important; }
+            #etiqueta-print {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100mm;
+                height: 30mm;
+            }
+            .et-container { display: flex !important; }
+            .et-qrcode-area canvas, .et-qrcode-area img { 
+                width: 24mm !important; 
+                height: 24mm !important; 
+            }
+            @page {
+                size: 100mm 30mm;
+                margin: 0;
+            }
         }
 
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
@@ -127,7 +210,6 @@
                     <input type="number" id="corte-h" placeholder="A">
                     <button onclick="executarCorte()" style="background:var(--orange); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">CORTAR</button>
                 </div>
-                <small style="color:#888;">Isso atualizará esta peça e criará um novo retalho.</small>
             </div>
 
             <div style="display:flex; gap:10px;">
@@ -199,14 +281,32 @@
     </div>
 
     <div id="etiqueta-print">
-        <div class="et-info">
-            <b id="p-nome">MATERIAL</b>
-            <span id="p-dim">TAM: 00x00cm</span>
-            <span id="p-os">OS: 0000</span>
-            <span id="p-local">LOCAL: Decorletras</span>
-            <span id="p-num">CORTE: 01</span>
+        <div class="et-container">
+            <div class="et-content">
+                <div class="et-header">
+                    <span id="p-nome">MATERIAL</span>
+                </div>
+                <div class="et-main-info">
+                    <div class="et-field">
+                        <span class="et-label">Dimensões</span>
+                        <span class="et-value" id="p-dim">00 x 00 cm</span>
+                    </div>
+                    <div class="et-field">
+                        <span class="et-label">Nº O.S.</span>
+                        <span class="et-value" id="p-os">0000</span>
+                    </div>
+                    <div class="et-field">
+                        <span class="et-label">Local</span>
+                        <span class="et-value" id="p-local">Decorletras</span>
+                    </div>
+                    <div class="et-field">
+                        <span class="et-label">Corte</span>
+                        <span class="et-value" id="p-num">01</span>
+                    </div>
+                </div>
+            </div>
+            <div class="et-qrcode-area" id="p-qrcode"></div>
         </div>
-        <div id="p-qrcode" style="display:flex; align-items:center; justify-content:center;"></div>
     </div>
 
     <script type="module">
@@ -231,11 +331,9 @@
             document.getElementById('page-title').innerText = setor === 'impressao' ? 'Sala de Impressão' : 'Serralheria';
             document.getElementById('page-title').style.color = config[setor].color;
 
-            // Ajusta visibilidade dos containers
             document.getElementById('serr-sections').style.display = config[setor].isSerr ? 'block' : 'none';
             document.getElementById('grid-estoque-geral').style.display = config[setor].isSerr ? 'none' : 'grid';
 
-            // Carrega categorias no filtro e no modal
             const sel = document.getElementById('cat-filter');
             const selModal = document.getElementById('prod-cat');
             sel.innerHTML = '<option value="Todos">Todas</option>';
@@ -259,15 +357,13 @@
 
         function renderizar() {
             const isSerr = config[setorAtual].isSerr;
-            
             if(isSerr) {
-                // Limpa grids da serralheria
                 document.querySelectorAll('.serr-section .grid-est').forEach(g => g.innerHTML = '');
                 document.querySelectorAll('.serr-section').forEach(s => s.style.display = 'none');
 
                 produtos.forEach(p => {
-                    const catID = p.categoria.toUpperCase().replace('Í','I');
-                    const gridID = document.getElementById(`grid-${catID}`) ? catID : 'OUTROS';
+                    const catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS';
                     const grid = document.getElementById(`grid-${gridID}`);
                     document.getElementById(`sec-${gridID}`).style.display = 'block';
 
@@ -282,16 +378,13 @@
                         <button class="btn-open-peca" onclick="abrirPeca('${p.id}')">ABRIR PEÇA</button>
                     `;
 
-                    // Lógica de Arrasto e Acoplamento
                     card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('pecaID', p.id); card.classList.add('dragging'); });
                     card.addEventListener('dragend', () => card.classList.remove('dragging'));
                     card.addEventListener('dragover', (e) => e.preventDefault());
                     card.addEventListener('drop', async (e) => {
                         e.preventDefault();
                         const idArrastado = e.dataTransfer.getData('pecaID');
-                        if(idArrastado !== p.id) {
-                            await updateDoc(doc(db, "estoque", idArrastado), { coupledTo: p.id });
-                        }
+                        if(idArrastado !== p.id) { await updateDoc(doc(db, "estoque", idArrastado), { coupledTo: p.id }); }
                     });
 
                     grid.appendChild(card);
@@ -314,7 +407,6 @@
             }
         }
 
-        // --- FUNÇÕES SERRALHERIA ---
         window.abrirPeca = (id) => {
             pecaSelecionada = produtos.find(x => x.id === id);
             document.getElementById('m-nome').innerText = pecaSelecionada.nome;
@@ -325,30 +417,20 @@
         window.executarCorte = async () => {
             const cw = parseFloat(document.getElementById('corte-w').value);
             const ch = parseFloat(document.getElementById('corte-h').value);
-
-            if(!cw || !ch || cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) {
-                alert("Medidas inválidas!"); return;
-            }
+            if(!cw || !ch || cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) { alert("Medidas inválidas!"); return; }
 
             if(confirm("Deseja realizar o corte? A peça original será reduzida.")){
                 const sobraW = pecaSelecionada.dimW - cw;
                 const sobraH = pecaSelecionada.dimH - ch;
-
-                // Atualiza a original (sobra)
                 await updateDoc(doc(db, "estoque", pecaSelecionada.id), {
                     dimW: sobraW > 0 ? sobraW : pecaSelecionada.dimW,
                     dimH: sobraH > 0 ? sobraH : pecaSelecionada.dimH,
                     nome: pecaSelecionada.nome + " (Sobra)"
                 });
-
-                // Cria o corte
                 await addDoc(collection(db, "estoque"), {
-                    setor: 'serralheria',
-                    nome: pecaSelecionada.nome + " (Corte)",
-                    categoria: pecaSelecionada.categoria,
-                    dimW: cw, dimH: ch, qtd: 1, unidade: 'pç'
+                    setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)",
+                    categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç'
                 });
-
                 alert("Corte realizado!");
                 fecharModal('modal-peca');
             }
@@ -368,22 +450,24 @@
             const local = document.getElementById('et-local').value;
             const num = document.getElementById('et-num').value;
 
+            // Preenche dados
             document.getElementById('p-nome').innerText = pecaSelecionada.nome;
-            document.getElementById('p-dim').innerText = `TAM: ${pecaSelecionada.dimW}x${pecaSelecionada.dimH}cm`;
-            document.getElementById('p-os').innerText = "OS: " + (os || '----');
-            document.getElementById('p-local').innerText = "LOCAL: " + local;
-            document.getElementById('p-num').innerText = "CORTE: " + num;
+            document.getElementById('p-dim').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
+            document.getElementById('p-os').innerText = os || '----';
+            document.getElementById('p-local').innerText = local;
+            document.getElementById('p-num').innerText = num.padStart(2, '0');
 
             const qrCont = document.getElementById('p-qrcode');
             qrCont.innerHTML = '';
-            // Gera QR Code que aponta para o estoque com o ID da peça
             const link = window.location.href.split('?')[0] + "?id=" + pecaSelecionada.id;
-            new QRCode(qrCont, { text: link, width: 70, height: 70 });
+            
+            // Gerar QR
+            new QRCode(qrCont, { text: link, width: 128, height: 128, correctLevel: QRCode.CorrectLevel.H });
 
-            setTimeout(() => { window.print(); }, 500);
+            // Pequeno delay para o QR Code renderizar antes de abrir o print
+            setTimeout(() => { window.print(); }, 400);
         };
 
-        // --- FUNÇÕES IMPRESSÃO & GERAL ---
         window.abrirModalProduto = () => {
             const isSerr = config[setorAtual].isSerr;
             document.getElementById('div-dims').style.display = isSerr ? 'block' : 'none';
@@ -399,7 +483,6 @@
                 nome: document.getElementById('prod-nome').value,
                 categoria: document.getElementById('prod-cat').value,
             };
-
             if(isSerr) {
                 dados.dimW = parseFloat(document.getElementById('prod-dim-w').value);
                 dados.dimH = parseFloat(document.getElementById('prod-dim-h').value);
@@ -409,7 +492,6 @@
                 dados.minimo = parseFloat(document.getElementById('prod-min').value);
                 dados.unidade = document.getElementById('prod-un').value;
             }
-
             await addDoc(collection(db, "estoque"), dados);
             fecharModal('modal-prod');
         };
@@ -425,8 +507,7 @@
         };
 
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
-        window.filtrarEstoque = () => { /* Implementar busca simples por texto */ };
-
+        window.filtrarEstoque = () => {};
     </script>
 </body>
 </html>
