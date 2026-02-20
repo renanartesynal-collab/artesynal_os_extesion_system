@@ -48,8 +48,6 @@
         .view-item div { font-size: 16px; font-weight: 600; color: #eee; }
         .view-obs-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #ddd; border-left: 3px solid var(--blue); }
 
-        .btn-whats-action { background: #25D366; color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 11px;}
-
         /* GALERIA GERAL (COMPARTILHADA) */
         #shared-gallery { display: none; margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
@@ -79,23 +77,23 @@
         .thumb-actions { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 2px; pointer-events: none; }
         .thumb-btn { width: 20px; height: 20px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 3px; font-size: 10px; font-weight: bold; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;}
         .btn-del-thumb { background: var(--red); align-self: flex-end; }
-        .btn-move-thumb { background: var(--blue); }
 
-        /* BOTOES FLUTUANTES (FABs) */
+        /* BOTOES FLUTUANTES */
         .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
         .fab-vt { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: none; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
 
-        /* MODAL DE DESENHO */
+        /* MODAL DE DESENHO (ROBUSTO) */
         #draw-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; 
+            background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; 
         }
         #canvas-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; touch-action: none; }
-        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 20px #000; }
-        .draw-toolbar { height: 70px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-top: 2px solid var(--yellow); overflow-x: auto;}
-        .btn-tool { padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; margin-right: 5px; font-family: 'Montserrat', sans-serif;}
+        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 20px #000; touch-action: none; cursor: crosshair; }
+        
+        .draw-toolbar { height: 75px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-top: 2px solid var(--yellow); overflow-x: auto; flex-shrink: 0;}
+        .btn-tool { padding: 10px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; margin-right: 5px; font-family: 'Montserrat', sans-serif;}
         .btn-cancel { background: #555; color: white; }
-        .btn-undo { background: var(--blue); color: white; }
+        .btn-undo { background: var(--blue); color: white; font-size: 16px;}
         .btn-confirm { background: var(--green); color: white; }
         .tool-select { background: #333; color: #aaa; border: 1px solid #555; }
         .tool-select.active { background: var(--yellow); color: black; border-color: var(--yellow); }
@@ -139,30 +137,31 @@
             .view-grid { grid-template-columns: 1fr; }
             .photo-viewer { height: 250px; }
             .vt-actions-row { flex-direction: column; }
+            .tool-select { padding: 10px 8px; font-size: 10px; }
         }
     </style>
 </head>
 <body>
 
     <div id="draw-modal">
-        <div style="background: #111; padding: 10px; display: flex; justify-content: center; gap: 10px;">
+        <div style="background: #111; padding: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
             <button class="btn-tool tool-select active" id="btn-tool-draw" onclick="window.setTool('draw')">✏️ DESENHAR</button>
-            <button class="btn-tool tool-select" id="btn-tool-move" onclick="window.setTool('move')">✋ MOVER</button>
+            <button class="btn-tool tool-select" id="btn-tool-move" onclick="window.setTool('move')">✋ MOVER / EDITAR</button>
+            <button class="btn-tool tool-select" id="btn-tool-del" onclick="window.setTool('del')">🗑️ APAGAR</button>
         </div>
         <div id="canvas-wrapper"><canvas id="editor-canvas"></canvas></div>
         <div class="draw-toolbar">
-            <div>
+            <div style="display: flex; gap: 5px;">
                 <button class="btn-tool btn-cancel" onclick="window.fecharEditor()">CANCELAR</button>
                 <button class="btn-tool btn-undo" onclick="window.desfazerUltimo()">↩</button>
             </div>
-            <button class="btn-tool btn-confirm" onclick="window.salvarEditor()">SALVAR MEDIDA</button>
+            <button class="btn-tool btn-confirm" onclick="window.salvarEditor()">SALVAR MEDIDAS</button>
         </div>
     </div>
 
     <div id="visita-modal">
         <div class="visita-box">
             <h3>Gerar Visita Técnica</h3>
-            
             <div class="row" style="margin-bottom: 10px;">
                 <div class="col" style="margin-bottom: 0;">
                     <label>CLIENTE</label>
@@ -173,13 +172,11 @@
                     <input type="text" id="v-empresa">
                 </div>
             </div>
-            
             <label>ENDEREÇO</label>
             <div style="display:flex; gap:5px; margin-bottom: 10px;">
                 <input type="text" id="v-endereco">
                 <button class="copy-end-btn" onclick="window.copiarEnderecoModal()">COPIAR</button>
             </div>
-            
             <label>INFORMAÇÕES E OBJETIVO DA VISITA</label>
             <textarea id="v-info" placeholder="O que será feito na visita?"></textarea>
             
@@ -269,9 +266,9 @@
             
             <div style="margin-top: 20px;" id="view-gallery-readonly">
                 <div class="photo-viewer">
-                    <button class="nav-btn prev" onclick="window.mudarFoto(-1)">&#10094;</button>
+                    <button class="nav-btn prev" onclick="window.mudarFoto(-1)">❮</button>
                     <img id="img-display" src="" style="display:none;">
-                    <button class="nav-btn next" onclick="window.mudarFoto(1)">&#10095;</button>
+                    <button class="nav-btn next" onclick="window.mudarFoto(1)">❯</button>
                 </div>
                 <div class="photo-count" id="photo-count">0/0</div>
                 <div class="photo-caption-display" id="caption-display"></div>
@@ -309,7 +306,6 @@
                     <span class="vt-label">Instruções para a Visita</span>
                     <div class="vt-obs-box" id="vt-info">Sem instruções adicionais registradas.</div>
                 </div>
-                
             </div>
             <p style="text-align: center; color: var(--yellow); font-size: 12px; margin-top: 20px; font-weight: bold;">ADICIONE FOTOS E MEDIDAS ABAIXO</p>
         </div>
@@ -353,10 +349,17 @@
         let modoAtual = 'edit';
         let idVisitaTecnicaGerada = null;
 
-        // Canvas Vars
+        // ==========================================
+        // VARIÁVEIS DO CANVAS ROBUSTO
+        // ==========================================
         let canvas = document.getElementById('editor-canvas');
         let ctx = canvas.getContext('2d');
-        let arrows = [], isDrawing = false, editorTool = 'draw', startX, startY;
+        let arrows = []; // Armazena as setas matematicamente
+        let editorTool = 'draw';
+        let isDrawing = false, isDragging = false, didDrag = false;
+        let startX, startY, currentX, currentY;
+        let dragTarget = null; // Para saber o que estamos movendo (ponta 1, ponta 2 ou centro)
+        let currentEditorImg = null;
 
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
@@ -368,21 +371,26 @@
 
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
+            
+            // Eventos do Canvas (Mouse + Touch)
+            canvas.addEventListener('mousedown', handleDown);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('mouseup', handleUp);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDown(e); }, {passive: false});
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive: false});
+            canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, {passive: false});
         };
 
         window.alternarModo = (modo) => {
             modoAtual = modo;
             
-            // Controle de painéis principais
             document.getElementById('edit-mode').style.display = modo === 'edit' ? 'block' : 'none';
             document.getElementById('view-mode').style.display = modo === 'view' ? 'block' : 'none';
             document.getElementById('vt-mode').style.display = modo === 'vt' ? 'block' : 'none';
 
-            // Controle da Galeria Compartilhada (Aparece no EDIT e no VT)
             document.getElementById('shared-gallery').style.display = (modo === 'edit' || modo === 'vt') ? 'block' : 'none';
             document.getElementById('view-gallery-readonly').style.display = modo === 'view' ? 'block' : 'none';
 
-            // Controle dos Botões Flutuantes (FABs)
             document.getElementById('fab-edit').style.display = (modo === 'view' || modo === 'vt') ? 'flex' : 'none';
             document.getElementById('fab-vt').style.display = (idVisitaTecnicaGerada && (modo === 'view' || modo === 'edit')) ? 'flex' : 'none';
 
@@ -392,7 +400,6 @@
                 window.renderVisualizadorView();
             }
 
-            // Se for VT, preencher os dados visuais puxando dos inputs do Orçamento e da Visita
             if (modo === 'vt') {
                 document.getElementById('vt-servico').innerText = document.getElementById('in-servico').value || 'Serviço Sem Título';
                 document.getElementById('vt-cliente').innerText = document.getElementById('v-cliente').value || document.getElementById('in-cliente').value || 'Cliente não informado';
@@ -407,7 +414,6 @@
             if (docSnap.exists()) {
                 const d = docSnap.data();
                 
-                // Preenche modo Edição
                 document.getElementById('display-num-edit').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
                 document.getElementById('in-cliente').value = d.cliente || '';
                 document.getElementById('in-whatsapp').value = d.whatsapp || '';
@@ -418,7 +424,6 @@
                 document.getElementById('in-obs').value = d.observacoes || '';
                 if(d.tipo_servico_material) { document.querySelector(`input[name="tipo"][value="${d.tipo_servico_material}"]`).checked = true; }
                 
-                // Preenche modo Visualização
                 document.getElementById('view-id').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
                 document.getElementById('view-cliente').innerText = d.cliente || '--';
                 document.getElementById('view-empresa').innerText = d.empresa || '--';
@@ -428,14 +433,12 @@
                 document.getElementById('view-medidas').innerText = d.medidas || '--';
                 document.getElementById('view-obs').innerText = d.observacoes || 'Sem observações.';
                 
-                // Verifica se já existe uma visita técnica vinculada
                 if(d.visita_id) {
                     idVisitaTecnicaGerada = d.visita_id;
                     document.getElementById('btn-acao-gerar-vt').style.display = 'none';
                     document.getElementById('area-vt-gerada').style.display = 'flex';
                     document.getElementById('fab-vt').style.display = 'flex';
                     
-                    // Buscar os detalhes da visita para manter sincronizado
                     const visitaSnap = await getDoc(doc(db, "visitas", idVisitaTecnicaGerada));
                     if(visitaSnap.exists()) {
                         const vData = visitaSnap.data();
@@ -446,7 +449,15 @@
                     }
                 }
 
-                imagens = d.imagens || [];
+                // Migração de imagens antigas para suportar o novo canvas
+                let dbImgs = d.imagens || [];
+                dbImgs.forEach(img => {
+                    if (!img.originalUrl) {
+                        img.originalUrl = img.url; // Salva o backup caso seja imagem antiga
+                        img.arrows = [];
+                    }
+                });
+                imagens = dbImgs;
                 window.renderMiniaturas();
             }
         }
@@ -459,7 +470,12 @@
             for(let file of files) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    imagens.push({ url: event.target.result, obs: "" });
+                    imagens.push({ 
+                        url: event.target.result, 
+                        originalUrl: event.target.result, // A mágica: guarda a foto original intacta
+                        obs: "", 
+                        arrows: [] // Histórico de setas
+                    });
                     window.renderMiniaturas();
                 };
                 reader.readAsDataURL(file);
@@ -532,7 +548,6 @@
         // SALVAR SISTEMA PRINCIPAL E FOTOS
         // ==========================================
         window.salvarSolicitacao = async () => {
-            // Este botão é usado tanto no Modo Edit quanto no Modo VT para salvar as imagens novas
             const btnEdit = document.getElementById('btn-salvar-orcamento');
             const btnVt = document.getElementById('btn-salvar-fotos-vt');
             
@@ -582,7 +597,6 @@
         // VISITA TÉCNICA (CARD DO TÉCNICO)
         // ==========================================
         window.abrirModalVisita = () => {
-            // Se os campos da visita estiverem vazios, puxa os dados atuais do formulário base
             if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
             if (!document.getElementById('v-empresa').value) document.getElementById('v-empresa').value = document.getElementById('in-empresa').value;
             if (!document.getElementById('v-endereco').value) document.getElementById('v-endereco').value = document.getElementById('in-endereco').value;
@@ -597,8 +611,7 @@
             const btn = document.getElementById('btn-finalizar-visita');
             if (!idEdicao) { alert("Salve a solicitação base antes de gerar/salvar os dados da visita!"); return; }
             
-            btn.disabled = true; 
-            btn.innerText = "SALVANDO...";
+            btn.disabled = true; btn.innerText = "SALVANDO...";
             
             try {
                 const vtDados = {
@@ -612,10 +625,8 @@
                 };
                 
                 if (idVisitaTecnicaGerada) {
-                    // Atualiza visita existente
                     await updateDoc(doc(db, "visitas", idVisitaTecnicaGerada), vtDados);
                 } else {
-                    // Cria nova visita
                     vtDados.data_criacao = serverTimestamp();
                     const docRef = await addDoc(collection(db, "visitas"), vtDados);
                     idVisitaTecnicaGerada = docRef.id; 
@@ -623,49 +634,43 @@
                 }
                 
                 alert("Dados da Visita Técnica salvos com sucesso!");
-                
                 document.getElementById('visita-modal').style.display = 'none';
                 document.getElementById('btn-acao-gerar-vt').style.display = 'none';
                 document.getElementById('area-vt-gerada').style.display = 'flex';
-                document.getElementById('fab-vt').style.display = 'flex'; // Mostra o Carro 🚗
+                document.getElementById('fab-vt').style.display = 'flex';
                 
-            } catch(e) { 
-                console.error("Erro ao salvar visita:", e); 
-                alert("Erro ao salvar visita técnica.");
-            } finally {
-                btn.disabled = false; 
-                btn.innerText = "SALVAR VISITA";
-            }
+            } catch(e) { console.error("Erro:", e); alert("Erro ao salvar visita."); } 
+            finally { btn.disabled = false; btn.innerText = "SALVAR VISITA"; }
         };
 
         window.copiarEnderecoModal = () => {
-            const end = document.getElementById('v-endereco').value;
-            navigator.clipboard.writeText(end).then(() => alert("Endereço copiado!"));
+            navigator.clipboard.writeText(document.getElementById('v-endereco').value).then(() => alert("Endereço copiado!"));
         };
-
         window.copiarEnderecoVT = () => {
-            const end = document.getElementById('vt-endereco').innerText;
-            navigator.clipboard.writeText(end).then(() => alert("Endereço copiado para a área de transferência!"));
+            navigator.clipboard.writeText(document.getElementById('vt-endereco').innerText).then(() => alert("Copiado!"));
         };
-
         window.abrirMapsVT = () => {
-            const end = document.getElementById('vt-endereco').innerText;
-            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`;
-            window.open(url, '_blank');
+            window.open(`https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
         };
 
         // ==========================================
-        // EDITOR DE MEDIDAS EM FOTOS
+        // EDITOR DE MEDIDAS (ROBUSTO E ORIENTADO A OBJETO)
         // ==========================================
         window.abrirEditor = () => {
             if(!imagens[indiceAtual]) return;
             document.getElementById('draw-modal').style.display = 'flex';
+            
+            // Clona o array de setas para não afetar o original até que o usuário clique em SALVAR
+            arrows = JSON.parse(JSON.stringify(imagens[indiceAtual].arrows || []));
+            window.setTool('draw');
+
             const img = new Image();
             img.onload = () => {
                 canvas.width = img.width; canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+                currentEditorImg = img;
+                redrawCanvas();
             };
-            img.src = imagens[indiceAtual].url;
+            img.src = imagens[indiceAtual].originalUrl; // Abre SEMPRE a imagem original limpa
         };
 
         window.fecharEditor = () => document.getElementById('draw-modal').style.display = 'none';
@@ -676,36 +681,170 @@
             document.getElementById(`btn-tool-${t}`).classList.add('active');
         };
 
-        canvas.onmousedown = (e) => {
-            if(editorTool !== 'draw') return;
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            startX = (e.clientX - rect.left) * scaleX;
-            startY = (e.clientY - rect.top) * scaleY;
-        };
-
-        canvas.onmouseup = (e) => {
-            if(!isDrawing) return;
-            isDrawing = false;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const endX = (e.clientX - rect.left) * scaleX;
-            const endY = (e.clientY - rect.top) * scaleY;
-            
-            const txt = prompt("Medida (Ex: 150cm):");
-            if(txt) {
-                ctx.strokeStyle = "red"; ctx.lineWidth = 5;
-                ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY); ctx.stroke();
-                ctx.fillStyle = "red"; ctx.font = "bold 40px Montserrat";
-                ctx.fillText(txt, (startX + endX)/2, (startY + endY)/2 - 10);
+        window.desfazerUltimo = () => {
+            if (arrows.length > 0) {
+                arrows.pop();
+                redrawCanvas();
             }
         };
 
+        function dist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let cx = e.clientX, cy = e.clientY;
+            
+            if(e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } 
+            else if (e.changedTouches && e.changedTouches.length > 0) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+            
+            return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
+        }
+
+        function handleDown(e) {
+            const pos = getPos(e);
+            
+            if (editorTool === 'draw') {
+                isDrawing = true;
+                startX = pos.x; startY = pos.y;
+                currentX = pos.x; currentY = pos.y;
+            } 
+            else if (editorTool === 'move') {
+                let closest = null; let minDist = Number.MAX_VALUE;
+                const hitR = 50; // Raio grande para o dedo no celular acertar fácil
+
+                arrows.forEach((a, i) => {
+                    let d1 = dist(pos.x, pos.y, a.x1, a.y1);
+                    let d2 = dist(pos.x, pos.y, a.x2, a.y2);
+                    let d3 = dist(pos.x, pos.y, (a.x1+a.x2)/2, (a.y1+a.y2)/2);
+
+                    if (d1 < hitR && d1 < minDist) { minDist = d1; closest = {i, p: 'start'}; }
+                    if (d2 < hitR && d2 < minDist) { minDist = d2; closest = {i, p: 'end'}; }
+                    if (d3 < hitR && d3 < minDist) { minDist = d3; closest = {i, p: 'center'}; }
+                });
+
+                if (closest) { isDragging = true; didDrag = false; dragTarget = closest; }
+            } 
+            else if (editorTool === 'del') {
+                let hitIndex = -1; let minDist = 60;
+                arrows.forEach((a, i) => {
+                    let d = dist(pos.x, pos.y, (a.x1+a.x2)/2, (a.y1+a.y2)/2);
+                    if (d < minDist) { minDist = d; hitIndex = i; }
+                });
+                if (hitIndex !== -1) { arrows.splice(hitIndex, 1); redrawCanvas(); }
+            }
+        }
+
+        function handleMove(e) {
+            if (isDrawing && editorTool === 'draw') {
+                const pos = getPos(e);
+                currentX = pos.x; currentY = pos.y;
+                redrawCanvas();
+            } else if (isDragging && editorTool === 'move' && dragTarget) {
+                didDrag = true;
+                const pos = getPos(e);
+                let a = arrows[dragTarget.i];
+                if (dragTarget.p === 'start') { a.x1 = pos.x; a.y1 = pos.y; } 
+                else if (dragTarget.p === 'end') { a.x2 = pos.x; a.y2 = pos.y; } 
+                else if (dragTarget.p === 'center') {
+                    if (!a.lastX) { a.lastX = pos.x; a.lastY = pos.y; }
+                    let dx = pos.x - a.lastX; let dy = pos.y - a.lastY;
+                    a.x1 += dx; a.x2 += dx; a.y1 += dy; a.y2 += dy;
+                    a.lastX = pos.x; a.lastY = pos.y;
+                }
+                redrawCanvas();
+            }
+        }
+
+        function handleUp(e) {
+            if (isDrawing && editorTool === 'draw') {
+                isDrawing = false;
+                if (dist(startX, startY, currentX, currentY) > 20) {
+                    setTimeout(() => {
+                        const txt = prompt("Digite a medida (Ex: 150cm):");
+                        if (txt) { arrows.push({ x1: startX, y1: startY, x2: currentX, y2: currentY, text: txt }); }
+                        redrawCanvas();
+                    }, 50); // Delay pro prompt não travar o mobile no touchEnd
+                } else { redrawCanvas(); }
+            } else if (isDragging && editorTool === 'move' && dragTarget) {
+                isDragging = false;
+                let a = arrows[dragTarget.i];
+                delete a.lastX; delete a.lastY;
+
+                // Se clicou no centro da seta mas NÃO arrastou, edita o texto!
+                if (!didDrag && dragTarget.p === 'center') {
+                    setTimeout(() => {
+                        const txt = prompt("Editar medida:", a.text);
+                        if (txt) a.text = txt;
+                        redrawCanvas();
+                    }, 50);
+                }
+                dragTarget = null;
+            }
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (currentEditorImg) ctx.drawImage(currentEditorImg, 0, 0);
+
+            arrows.forEach(a => drawArrow(a.x1, a.y1, a.x2, a.y2, a.text));
+
+            if (isDrawing && editorTool === 'draw') {
+                drawArrow(startX, startY, currentX, currentY, "...");
+            }
+        }
+
+        function drawArrow(x1, y1, x2, y2, text) {
+            const headlen = 25; 
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            
+            ctx.strokeStyle = "#00a651"; // Verde 
+            ctx.fillStyle = "#00a651";
+            ctx.lineWidth = 6;
+
+            // Linha Principal
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+            // Ponta Final
+            ctx.beginPath(); ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Ponta Inicial (Seta Bidirecional)
+            ctx.beginPath(); ctx.moveTo(x1, y1);
+            ctx.lineTo(x1 + headlen * Math.cos(angle - Math.PI / 6), y1 + headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x1 + headlen * Math.cos(angle + Math.PI / 6), y1 + headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Texto com Fundo
+            if (text && text !== "...") {
+                const midX = (x1 + x2) / 2; const midY = (y1 + y2) / 2;
+                ctx.save(); ctx.translate(midX, midY);
+                
+                ctx.font = "bold 32px Montserrat, sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                const metrics = ctx.measureText(text);
+                const pad = 12;
+
+                ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                ctx.fillRect(-metrics.width/2 - pad, -16 - pad, metrics.width + pad*2, 32 + pad*2);
+
+                ctx.fillStyle = "#fff";
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            }
+        }
+
         window.salvarEditor = () => {
+            // Salva o estado real na memória para uso futuro
+            imagens[indiceAtual].arrows = JSON.parse(JSON.stringify(arrows));
+            
+            // Desenha a versão final e sobrescreve a URL de preview
+            redrawCanvas();
             imagens[indiceAtual].url = canvas.toDataURL("image/jpeg", 0.8);
+            
             window.renderMiniaturas();
             window.fecharEditor();
         };
