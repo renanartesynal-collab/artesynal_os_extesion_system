@@ -3,370 +3,668 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque & Corte - Artesynal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Gerenciador de Materiais - Pro</title>
     <style>
-        :root { --bg-dark: #1a1a1a; --card-bg: #2c3e50; --purple: #9b59b6; --orange: #e67e22; --red: #e74c3c; --green: #2ecc71; --blue: #3498db; --text: #eee; }
-        body { font-family: 'Mitra LT', 'Montserrat', sans-serif; margin: 0; padding: 0; background-color: var(--bg-dark); color: var(--text); overflow-x: hidden; }
-
-        /* --- TELA SELEÇÃO --- */
-        #sector-screen { display: flex; height: 100vh; width: 100%; align-items: center; justify-content: center; gap: 30px; position: fixed; top: 0; left: 0; background: var(--bg-dark); z-index: 1000; flex-wrap: wrap; padding: 20px;}
-        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; transition: transform 0.2s; text-decoration: none; color: white;}
-        .sector-btn:hover { transform: scale(1.05); }
-        .sec-imp { background: linear-gradient(135deg, #8e44ad, #c0392b); box-shadow: 0 0 20px rgba(142, 68, 173, 0.5); }
-        .sec-serr { background: linear-gradient(135deg, #e67e22, #f1c40f); box-shadow: 0 0 20px rgba(230, 126, 34, 0.5); color: #222; }
-        .sec-icon { font-size: 50px; margin-bottom: 10px; }
-        .sec-title { font-size: 24px; font-weight: 900; text-transform: uppercase; }
-
-        /* --- LAYOUT PRINCIPAL --- */
-        #main-layout { display: none; padding: 20px; transition: 0.3s; margin-right: 0; }
-        .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #555; padding-bottom: 15px; }
-        h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
-        .btn-voltar { cursor: pointer; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; border:none; font-family: inherit;}
-
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
-        .search-input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #444; color: white; min-width: 150px; font-family: inherit;}
-        
-        /* --- KANBAN --- */
-        .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
-        .kanban-col { background: #222; border-radius: 10px; padding: 10px; min-width: 320px; width: 320px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: white; text-transform: uppercase; text-align: center; }
-        
-        .hdr-adesivos { background: var(--purple); }
-        .hdr-lonas { background: #34495e; }
-        .hdr-recorte { background: var(--blue); }
-        .hdr-acm { background: var(--orange); color: #000; }
-        .hdr-pvc { background: #d35400; }
-        .hdr-acrilico { background: #f39c12; color: #000; }
-        .hdr-outros { background: #444; }
-
-        .grid-est { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
-
-        /* CARDS */
-        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: margin 0.2s, border 0.2s; }
-        .card-prod.low-stock { border-right: 4px solid var(--red); }
-        .card-prod.serralheria { border-left-color: var(--orange); cursor: grab; }
-        .card-prod.coupled { margin-top: -10px !important; border-top: 3px solid var(--green) !important; z-index: 10; box-shadow: 0 -5px 10px rgba(0,0,0,0.5); }
-        .card-prod.dragging { opacity: 0.5; }
-
-        .prod-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .prod-cat { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-size: 9px; color: #ccc; }
-        .prod-name { font-size: 16px; font-weight: 800; color: white; margin-bottom: 5px; }
-        .prod-dims { font-size: 13px; color: var(--orange); font-weight: bold; margin-bottom: 10px; display: block; }
-
-        /* MODAIS */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-box { background: #333; padding: 25px; border-radius: 10px; width: 100%; max-width: 500px; position: relative; border: 1px solid #444; }
-        .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        label { display: block; font-size: 11px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; background: #444; border: none; border-radius: 5px; color: white; box-sizing: border-box; font-family: inherit;}
-
-        /* ETIQUETA (10x3cm) */
-        #etiqueta-print {
-            display: none; width: 100mm; height: 30mm; background: #fff; color: #000;
-            padding: 1mm; box-sizing: border-box; border: 0.5mm solid #000; position: absolute; top: 0; left: 0;
-        }
-        .label-grid { display: flex; width: 100%; height: 100%; gap: 1mm; }
-        .qr-section { width: 28mm; height: 28mm; border: 0.3mm solid #999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .qr-section canvas, .qr-section img { width: 23mm !important; height: 23mm !important; }
-        .qr-label { font-size: 5pt; font-weight: 900; margin-top: 1px; }
-        .info-section { flex: 1; display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 0.5mm; }
-        .row-grid { display: grid; gap: 0.5mm; }
-        .box-info { border: 0.2mm solid #000; padding: 1mm 2mm; display: flex; align-items: center; background: #fff; }
-        .txt-label { font-weight: 900; font-size: 6.5pt; margin-right: 1.5mm; white-space: nowrap; }
-        .txt-value { font-weight: 700; font-size: 8.5pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .line-1 { grid-template-columns: 2fr 1fr; } .line-2 { grid-template-columns: 1fr; } .line-3 { grid-template-columns: 1.2fr 1fr; }
-
-        @media print {
-            body * { display: none !important; }
-            #etiqueta-print, #etiqueta-print * { display: block !important; }
-            #etiqueta-print { display: block !important; position: absolute; top: 0; left: 0; }
-            .label-grid { display: flex !important; }
-            .info-section { display: grid !important; }
-            .row-grid { display: grid !important; }
-            @page { size: 100mm 30mm; margin: 0; }
+        :root {
+            --orange: #ff6b00;
+            --dark-bg: #0a0a0a;
+            --card-bg: #121212;
+            --input-bg: #1a1a1a;
+            --text-gray: #a0a0a0;
+            --white: #ffffff;
+            --red-cancel: #ff3b3b;
+            --green-new: #22c55e;
+            --blue-used: #3b82f6;
+            --line-color: #ff6b00; /* Cor das linhas de cota */
         }
 
-        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 30px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* [CSS] REMOVER SETINHAS PADRÃO DOS INPUTS DE NÚMERO */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* [CSS] BOTÃO PRINCIPAL DA TELA (ADICIONAR MATERIAL) */
+        .main-button {
+            background-color: var(--orange);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s;
+        }
+
+        /* [CSS] FUNDO ESCURO DO MODAL (OVERLAY) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none; 
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        /* [CSS] CAIXA CENTRAL DO MODAL */
+        .modal-box {
+            background: var(--card-bg);
+            width: 95%;
+            max-width: 500px;
+            max-height: 90vh;
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid #333;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* [CSS] BOTÃO DE VOLTAR NO TOPO DO MODAL */
+        .btn-voltar-top {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: transparent;
+            color: var(--red-cancel);
+            border: 1px solid var(--red-cancel);
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        /* [CSS] TÍTULO E BOTÃO DE STATUS (NOVO/USADO) */
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .title-material {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 0;
+            color: #fff;
+            line-height: 1;
+        }
+        .btn-status-toggle {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        .status-novo { background-color: var(--green-new); color: white; }
+        .status-usado { background-color: var(--blue-used); color: white; }
+
+        /* [CSS] ESTILO DAS LABELS E CAMPOS DE ENTRADA */
+        .label-standard {
+            display: block;
+            font-size: 13px;
+            color: var(--orange);
+            font-weight: bold;
+        }
+        .sub-label-right {
+            display: block;
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+            text-align: right;
+            width: 100%;
+        }
+
+        /* [CSS] BOTÕES DE AÇÃO COM ÍCONE (+) */
+        .btn-icon-action {
+            background: #222;
+            color: var(--orange);
+            border: 1px solid #444;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        /* [CSS] SUFIXO "cm" NOS INPUTS DE MEDIDA */
+        .input-suffix-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-suffix-wrapper::after {
+            content: "cm";
+            position: absolute;
+            right: 12px;
+            color: var(--text-gray);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        /* [CSS] ESTRUTURA DE LINHAS E COLUNAS DO FORMULÁRIO */
+        .form-row { display: flex; gap: 12px; margin-bottom: 15px; }
+        .align-bottom { align-items: flex-end; }
+        .field-group { flex: 1; }
+
+        /* [CSS] CONTAINER DA REFERÊNCIA VISUAL */
+        #div-visual-corte {
+            margin-top: 15px;
+            padding: 20px;
+            background: #000;
+            border-radius: 8px;
+            border: 1px solid #333;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .canvas-title {
+            font-size: 10px;
+            color: var(--orange);
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+            text-align: center;
+            width: 100%;
+        }
+        .chapa-container {
+            width: 100%;
+            height: 180px;
+            background: #080808;
+            position: relative;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* [CSS] PEÇA E COTAS TÉCNICAS (COM RESPIRO) */
+        #corte-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #corte-fill {
+            background: var(--orange);
+            border: 1px solid var(--white);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 5px;
+        }
+
+        /* [CSS] ESTILO DAS LINHAS DE COTA (LARANJA TÉCNICO) */
+        .cota-label {
+            position: absolute;
+            color: var(--orange);
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Cota Superior (Medida Maior - Horizontal) */
+        .cota-w-box {
+            position: absolute;
+            top: -35px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .linha-cota-w {
+            height: 1px;
+            background-color: var(--orange);
+            width: 100%;
+            margin-top: 2px;
+            position: relative;
+        }
+        .linha-cota-w::before, .linha-cota-w::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            width: 1px;
+            height: 9px;
+            background-color: var(--orange);
+        }
+        .linha-cota-w::before { left: 0; }
+        .linha-cota-w::after { right: 0; }
+
+        /* Cota Lateral (Medida Menor - Vertical) */
+        .cota-h-box {
+            position: absolute;
+            left: -55px;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        .linha-cota-h {
+            width: 1px;
+            background-color: var(--orange);
+            height: 100%;
+            margin-right: 5px;
+            position: relative;
+        }
+        .linha-cota-h::before, .linha-cota-h::after {
+            content: '';
+            position: absolute;
+            left: -4px;
+            width: 9px;
+            height: 1px;
+            background-color: var(--orange);
+        }
+        .linha-cota-h::before { top: 0; }
+        .linha-cota-h::after { bottom: 0; }
+
+        /* [CSS] BOTÃO FINAL DE SALVAR */
+        .btn-salvar {
+            width: 100%;
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-weight: 900;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        #log-area { margin-top: 20px; font-family: monospace; font-size: 12px; color: #4ade80; text-align: center; }
+        .icon-refresh { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; }
     </style>
 </head>
 <body>
 
-    <div id="sector-screen">
-        <button class="sector-btn sec-imp" onclick="selecionarSetor('impressao')">
-            <div class="sec-icon">🖨️</div>
-            <div class="sec-title">Sala de Impressão</div>
-            <span style="font-size:10px; color:white;">Adesivos, Lonas, Recorte</span>
-        </button>
-        <button class="sector-btn sec-serr" onclick="selecionarSetor('serralheria')">
-            <div class="sec-icon">🛠️</div>
-            <div class="sec-title">Serralheria</div>
-            <span style="font-size:10px; color:black;">ACM, PVC, Acrílico</span>
-        </button>
-        <div style="width:100%; text-align:center; margin-top: 20px;">
-            <a href="#" id="link-voltar-setor" style="color:#aaa; text-decoration:none; font-weight:bold; padding: 10px;">⬅ VOLTAR AO PAINEL</a>
-        </div>
-    </div>
+    <!-- [ELEMENTO] Botão Principal de Adição -->
+    <button class="main-button" onclick="abrirModalProd()">+ Adicionar Material</button>
+    
+    <!-- [ELEMENTO] Área de mensagens de log/sucesso -->
+    <div id="log-area"></div>
 
-    <div id="main-layout">
-        <div class="header-est">
-            <h1 id="page-title">Estoque</h1>
-            <button class="btn-voltar" onclick="location.reload()">🔄 TROCAR SETOR</button>
-        </div>
-
-        <div class="filter-bar">
-            <input type="text" id="search-input" class="search-input" placeholder="Buscar material..." onkeyup="filtrarEstoque()">
-        </div>
-
-        <div id="kanban-imp" class="kanban-container" style="display: none;">
-            <div class="kanban-col"><div class="kanban-header hdr-adesivos">Adesivos</div><div class="grid-est" id="grid-ADESIVO"></div></div>
-            <div class="kanban-col"><div class="kanban-header hdr-lonas">Lonas</div><div class="grid-est" id="grid-LONA"></div></div>
-            <div class="kanban-col"><div class="kanban-header hdr-recorte">Adesivos de Recorte</div><div class="grid-est" id="grid-RECORTE"></div></div>
-            <div class="kanban-col"><div class="kanban-header hdr-outros">Outros</div><div class="grid-est" id="grid-OUTROS-IMP"></div></div>
-        </div>
-
-        <div id="kanban-serr" class="kanban-container" style="display: none;">
-            <div class="kanban-col"><div class="kanban-header hdr-acm">Chapas ACM</div><div class="grid-est" id="grid-ACM"></div></div>
-            <div class="kanban-col"><div class="kanban-header hdr-pvc">Chapas PVC</div><div class="grid-est" id="grid-PVC"></div></div>
-            <div class="kanban-col"><div class="kanban-header hdr-acrilico">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
-            <div class="kanban-col"><div class="kanban-header hdr-outros">Outros</div><div class="grid-est" id="grid-OUTROS-SERR"></div></div>
-        </div>
-        
-        <button class="fab-add" onclick="abrirModalProduto()">+</button>
-    </div>
-
-    <div id="modal-peca" class="modal-overlay">
-        <div class="modal-box">
-            <h2 id="m-nome" style="color:var(--orange); margin:0;">Peça</h2>
-            <p id="m-dim" style="font-size:20px; font-weight:900; margin:10px 0;"></p>
-            <div style="background:#222; padding:15px; border-radius:8px; margin:20px 0;">
-                <label>REALIZAR CORTE (cm)</label>
-                <div class="form-row">
-                    <input type="number" id="corte-w" placeholder="L"><input type="number" id="corte-h" placeholder="A">
-                    <button onclick="executarCorte()" style="background:var(--orange); color:white; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">CORTAR</button>
-                </div>
-            </div>
-            <div style="display:flex; gap:10px;">
-                <button onclick="abrirPainelEtiqueta()" style="flex:1; background:var(--blue); color:white; border:none; padding:12px; border-radius:5px; font-weight:bold; cursor:pointer;">ETIQUETA</button>
-                <button onclick="deletarPeca()" style="background:var(--red); border:none; padding:12px; border-radius:5px; cursor:pointer;">🗑️</button>
-            </div>
-            <button onclick="fecharModal('modal-peca')" style="width:100%; background:none; color:#666; border:none; margin-top:15px; cursor:pointer;">FECHAR</button>
-        </div>
-    </div>
-
-    <div id="modal-etiqueta" class="modal-overlay">
-        <div class="modal-box">
-            <h3>Configurar Etiqueta</h3>
-            <label>Nº DA O.S.</label><input type="text" id="et-os" placeholder="0000">
-            <label>LOCAL DE CORTE</label>
-            <select id="et-local">
-                <option value="Decorletras">Decorletras</option>
-                <option value="MD Corte">MD Corte</option>
-                <option value="W.A. Corte a Laser">W.A. Corte a Laser</option>
-            </select>
-            <label>Nº DO CORTE</label><input type="number" id="et-num" value="1">
-            <button onclick="imprimirEtiquetaFinal()" style="width:100%; background:var(--green); color:white; border:none; padding:15px; border-radius:5px; font-weight:900; margin-top:20px; cursor:pointer;">IMPRIMIR</button>
-            <button onclick="fecharModal('modal-etiqueta')" style="width:100%; background:none; color:#666; border:none; margin-top:10px; cursor:pointer;">CANCELAR</button>
-        </div>
-    </div>
-
-    <div id="modal-mov" class="modal-overlay">
-        <div class="modal-box">
-            <h2 style="margin-top:0;">Ajustar Estoque</h2>
-            <input type="hidden" id="mov-id">
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button style="flex:1; background:var(--green); color:white; padding:10px; border-radius:5px; border:none; cursor:pointer;" onclick="salvarMov('entrada')">ENTRADA (+)</button>
-                <button style="flex:1; background:var(--red); color:white; padding:10px; border-radius:5px; border:none; cursor:pointer;" onclick="salvarMov('saida')">BAIXA (-)</button>
-            </div>
-            <input type="number" id="mov-qtd" placeholder="Quantidade">
-            <button onclick="fecharModal('modal-mov')" style="width:100%; background:none; color:#666; border:none; margin-top:15px; cursor:pointer;">Cancelar</button>
-        </div>
-    </div>
-
+    <!-- [MODAL] Janela de Cadastro de Material -->
     <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="modal-title">Novo Material</h2>
-            <label>NOME DO MATERIAL</label><input type="text" id="prod-nome">
-            <div class="form-row" style="margin-top:15px;">
-                <div style="flex:1;"><label>CATEGORIA</label><select id="prod-cat"></select></div>
-                <div style="flex:1;" id="div-un"><label>UNIDADE</label><select id="prod-un"><option value="un">Unidade</option><option value="m">Metros</option><option value="m²">m²</option><option value="L">Litros</option></select></div>
+            <!-- [ELEMENTO] Botão de fechar modal -->
+            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')">Voltar</button>
+
+            <!-- [ELEMENTO] Cabeçalho com Título e Status Novo/Usado -->
+            <div class="header-row">
+                <h2 class="title-material">Material</h2>
+                <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatus()">Novo</button>
             </div>
-            <div id="div-dims" style="display:none; background:#222; padding:10px; border-radius:5px; margin-top:15px;">
-                <label style="color:var(--orange);">DIMENSÕES (cm)</label>
-                <div class="form-row"><input type="number" id="prod-dim-w" placeholder="L"><input type="number" id="prod-dim-h" placeholder="A"></div>
+            
+            <!-- [GRUPO] Matéria Prima e Acabamento -->
+            <div class="form-row align-bottom">
+                <div style="flex: 3;">
+                    <div class="label-row" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="label-cat" class="label-standard">Matéria Prima</label>
+                        <!-- [ELEMENTO] Botão para adicionar nova categoria customizada -->
+                        <button class="btn-icon-action" id="btn-toggle-cat" onclick="ativarNovaCategoria()">+</button>
+                    </div>
+                    <div id="cat-container">
+                        <!-- [ELEMENTO] Seleção da Matéria Prima -->
+                        <select id="prod-cat" onchange="handleCategoryChange()">
+                            <option value="">Selecione...</option>
+                            <option value="acm">ACM</option>
+                            <option value="pvc">PVC</option>
+                            <option value="ps">PS</option>
+                            <option value="acrilico">Acrílico</option>
+                            <option value="mdf">MDF</option>
+                            <option value="galvanizada">Galvanizada</option>
+                            <option value="policarbonato">Policarbonato</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1.5;">
+                    <!-- [ELEMENTO] Seleção do Acabamento -->
+                    <label class="label-standard" style="margin-bottom: 8px; display: block;">Acabamento</label>
+                    <select id="prod-acabamento">
+                        <option value="">Selecione...</option>
+                        <option value="brilho">Brilho</option>
+                        <option value="fosco">Fosco</option>
+                    </select>
+                </div>
             </div>
-            <div id="div-qtd" style="margin-top:15px;">
+            
+            <!-- [GRUPO] Espessura e Cor -->
+            <div class="form-row">
+                <div class="field-group">
+                    <div class="label-row" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="label-espessura" class="label-standard">Espessura</label>
+                        <!-- [ELEMENTO] Botão para adicionar nova espessura customizada -->
+                        <button class="btn-icon-action" id="btn-toggle-esp" onclick="ativarNovaEspessura()">+</button>
+                    </div>
+                    <div id="esp-container">
+                        <!-- [ELEMENTO] Seleção da Espessura -->
+                        <select id="prod-espessura">
+                            <option value="">Selecione Matéria...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="label-row" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="label-cor" class="label-standard">Cor</label>
+                        <!-- [ELEMENTO] Botão para adicionar nova cor customizada -->
+                        <button class="btn-icon-action" id="btn-toggle-cor" onclick="ativarNovaCor()">+</button>
+                    </div>
+                    <div id="cor-container">
+                        <!-- [ELEMENTO] Seleção da Cor -->
+                        <select id="prod-cor">
+                            <option value="">Selecione...</option>
+                            <option value="preto">Preto</option>
+                            <option value="branco">Branco</option>
+                            <option value="azul">Azul</option>
+                            <option value="vermelho">Vermelho</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [GRUPO] Dimensões (Exibido apenas para chapas) -->
+            <div id="div-dims" style="display:none; background:#1a1a1a; padding:15px; border-radius:8px; margin-top:5px; border: 1px solid #333;">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label class="label-standard">Medida</label>
+                    <!-- [ELEMENTO] Botão para navegar por medidas padrão de fábrica -->
+                    <button id="btn-refresh-dims" class="btn-icon-action" onclick="alternarMedidaPadrao()" title="Navegar Medidas de Fábrica">
+                        <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                </div>
+                <div class="form-row" style="margin-bottom: 0;">
+                    <div class="field-group">
+                        <label class="sub-label-right">Largura</label>
+                        <div class="input-suffix-wrapper">
+                            <!-- [ELEMENTO] Campo de Largura -->
+                            <input type="number" id="prod-dim-w" placeholder="0" oninput="atualizarPlanoCorte()">
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="sub-label-right">Altura</label>
+                        <div class="input-suffix-wrapper">
+                            <!-- [ELEMENTO] Campo de Altura -->
+                            <input type="number" id="prod-dim-h" placeholder="0" oninput="atualizarPlanoCorte()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- [ELEMENTO] Área de Referência Visual com Peça Horizontal e Cotas -->
+                <div id="div-visual-corte">
+                    <div class="canvas-title">APRECIAÇÃO DA REFERÊNCIA VISUAL</div>
+                    <div class="chapa-container">
+                        <div id="corte-wrapper">
+                            <!-- [COTAS] Medida Maior (Sempre Horizontal) -->
+                            <div class="cota-w-box">
+                                <span class="cota-label" id="txt-cota-maior">0cm</span>
+                                <div class="linha-cota-w"></div>
+                            </div>
+                            <!-- [COTAS] Medida Menor (Sempre Vertical) -->
+                            <div class="cota-h-box">
+                                <div class="linha-cota-h"></div>
+                                <span class="cota-label" id="txt-cota-menor" style="writing-mode: vertical-lr; transform: rotate(180deg);">0cm</span>
+                            </div>
+                            <!-- [PEÇA] Representação visual da chapa -->
+                            <div id="corte-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [GRUPO] Quantidade e Estoque Mínimo (Exibido para outros itens) -->
+            <div id="div-qtd" style="margin-top:5px; display: none;">
                 <div class="form-row">
-                    <div style="flex:1;"><label>QTD ATUAL</label><input type="number" id="prod-qtd"></div>
-                    <div style="flex:1;"><label>MÍNIMO</label><input type="number" id="prod-min"></div>
+                    <div class="field-group">
+                        <label class="label-standard">Qtd Atual</label>
+                        <!-- [ELEMENTO] Estoque Atual -->
+                        <input type="number" id="prod-qtd" value="1">
+                    </div>
+                    <div class="field-group">
+                        <label class="label-standard">Mínimo</label>
+                        <!-- [ELEMENTO] Alerta de Estoque Mínimo -->
+                        <input type="number" id="prod-min" value="0">
+                    </div>
                 </div>
             </div>
-            <button style="width:100%; padding:15px; background:var(--green); color:white; border:none; border-radius:5px; font-weight:bold; margin-top:20px; cursor:pointer;" onclick="salvarProduto()">SALVAR</button>
-            <button onclick="fecharModal('modal-prod')" style="width:100%; background:none; color:#666; border:none; margin-top:10px; cursor:pointer;">CANCELAR</button>
+
+            <!-- [ELEMENTO] Botão Final de Cadastro -->
+            <button class="btn-salvar" id="btn-salvar-final" onclick="salvarProduto()">SALVAR MATERIAL</button>
         </div>
     </div>
 
-    <div id="etiqueta-print">
-        <div class="label-grid">
-            <div class="qr-section"><div id="p-qrcode"></div><div class="qr-label">QR CODE</div></div>
-            <div class="info-section">
-                <div class="row-grid line-1">
-                    <div class="box-info"><span class="txt-value" id="p-nome-et">MATERIAL</span></div>
-                    <div class="box-info"><span class="txt-label">OS:</span><span class="txt-value" id="p-os">0000</span></div>
-                </div>
-                <div class="row-grid line-2"><div class="box-info"><span class="txt-label">TAM:</span><span class="txt-value" id="p-dim-et">000 x 000 cm</span></div></div>
-                <div class="row-grid line-3">
-                    <div class="box-info"><span class="txt-label">LOCAL:</span><span class="txt-value" id="p-local">---</span></div>
-                    <div class="box-info"><span class="txt-label">CORTE:</span><span class="txt-value" id="p-num">01</span></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script>
+        // Variáveis de controle de estado
+        let materialStatus = "Novo";
+        let isNewCategory = false;
+        let indiceMedidaPadrao = 0;
 
-    <script type="module">
-        import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        document.getElementById('link-voltar-setor').href = ROTAS.painel;
-        let setorAtual = '', produtos = [], pecaSelecionada = null;
-
-        const config = {
-            'impressao': { color: 'var(--purple)', cats: ['Adesivo','Lona','Adesivo de Recorte','Tinta','Outros'], isSerr: false },
-            'serralheria': { color: 'var(--orange)', cats: ['ACM','PVC','Acrílico','Outros'], isSerr: true }
+        // Base de dados simulada para preenchimento automático
+        const CONFIG_FABRICA = {
+            'acm': { medidas: [{w: 122, h: 500}, {w: 152, h: 500}], espessuras: ['3mm', '4mm'] },
+            'pvc': { medidas: [{w: 122, h: 244}], espessuras: ['2mm', '3mm', '5mm', '10mm', '20mm'] },
+            'ps': { medidas: [{w: 100, h: 200}, {w: 120, h: 240}], espessuras: ['1mm', '2mm'] },
+            'acrilico': { medidas: [{w: 100, h: 200}, {w: 120, h: 240}], espessuras: ['2mm', '3mm', '5mm', '10mm'] },
+            'mdf': { medidas: [{w: 183, h: 275}], espessuras: ['3mm', '6mm', '15mm', '18mm'] },
+            'galvanizada': { medidas: [{w: 120, h: 200}, {w: 120, h: 300}], espessuras: ['#28', '#26', '#24','#22','#20'] },
+            'policarbonato': { medidas: [{w: 105, h: 600}, {w: 210, h: 600}], espessuras: ['4mm', '6mm', '10mm'] }
         };
 
-        window.selecionarSetor = (setor) => {
-            setorAtual = setor;
-            document.getElementById('sector-screen').style.display = 'none';
-            document.getElementById('main-layout').style.display = 'block';
-            document.getElementById('page-title').innerText = config[setor].isSerr ? 'Serralheria' : 'Sala de Impressão';
-            document.getElementById('page-title').style.color = config[setor].color;
-
-            document.getElementById('kanban-imp').style.display = !config[setor].isSerr ? 'flex' : 'none';
-            document.getElementById('kanban-serr').style.display = config[setor].isSerr ? 'flex' : 'none';
-
-            const selModal = document.getElementById('prod-cat');
-            selModal.innerHTML = '';
-            config[setor].cats.forEach(c => { selModal.innerHTML += `<option value="${c}">${c}</option>`; });
-
-            ouvirEstoque();
+        // Função para alternar entre material Novo ou Usado (Retalho)
+        window.toggleStatus = () => {
+            const btn = document.getElementById('btn-status');
+            materialStatus = (materialStatus === "Novo") ? "Usado" : "Novo";
+            btn.innerText = materialStatus;
+            btn.className = `btn-status-toggle status-${materialStatus.toLowerCase()}`;
+            if (materialStatus === "Novo") aplicarMedidasAutomaticas();
         };
 
-        function ouvirEstoque() {
-            const q = query(collection(db, "estoque"), where("setor", "==", setorAtual));
-            onSnapshot(q, (snapshot) => { 
-                produtos = []; 
-                snapshot.forEach(d => { let item = d.data(); item.id = d.id; produtos.push(item); }); 
-                renderizar(); 
-            });
-        }
-
-        function renderizar() {
-            document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
-            const isSerr = config[setorAtual].isSerr;
-
-            produtos.forEach(p => {
-                const card = document.createElement('div');
-                const catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace("ADESIVO DE RECORTE", "RECORTE");
-                
-                if (isSerr) {
-                    const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-SERR';
-                    const grid = document.getElementById(`grid-${gridID}`);
-                    card.className = `card-prod serralheria ${p.coupledTo ? 'coupled' : ''}`;
-                    card.draggable = true; card.id = p.id;
-                    card.innerHTML = `<div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><span class="prod-dims">${p.dimW} x ${p.dimH} cm</span><button class="btn-open-peca" onclick="abrirPeca('${p.id}')">ABRIR</button>`;
-                    
-                    card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('pecaID', p.id); card.classList.add('dragging'); });
-                    card.addEventListener('dragover', (e) => e.preventDefault());
-                    card.addEventListener('drop', async (e) => {
-                        e.preventDefault();
-                        const idArr = e.dataTransfer.setData('pecaID');
-                        if(idArr && idArr !== p.id) await updateDoc(doc(db, "estoque", idArr), { coupledTo: p.id });
-                    });
-                    if(grid) grid.appendChild(card);
-                } else {
-                    const gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-IMP';
-                    const grid = document.getElementById(`grid-${gridID}`);
-                    card.className = `card-prod ${p.qtd <= p.minimo ? 'low-stock' : ''}`;
-                    card.innerHTML = `<div class="prod-header"><span class="prod-cat">${p.categoria}</span></div><div class="prod-name">${p.nome}</div><div style="background:#222; padding:8px; border-radius:5px; display:flex; justify-content:space-between; align-items:center;"><div><b>${p.qtd}</b> <small>${p.unidade}</small></div><button style="background:var(--blue); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="abrirMov('${p.id}')">AJUSTAR</button></div>`;
-                    if(grid) grid.appendChild(card);
-                }
-            });
-        }
-
-        window.abrirModalProduto = () => {
-            const isSerr = config[setorAtual].isSerr;
-            document.getElementById('div-dims').style.display = isSerr ? 'block' : 'none';
-            document.getElementById('div-un').style.display = isSerr ? 'none' : 'block';
-            document.getElementById('div-qtd').style.display = isSerr ? 'none' : 'block';
+        // Abre o modal e limpa os campos para um novo registro
+        window.abrirModalProd = () => {
             document.getElementById('modal-prod').style.display = 'flex';
+            resetarModal();
         };
 
-        window.salvarProduto = async () => {
-            const isSerr = config[setorAtual].isSerr;
-            const dados = { setor: setorAtual, nome: document.getElementById('prod-nome').value, categoria: document.getElementById('prod-cat').value };
-            if(isSerr) {
-                dados.dimW = parseFloat(document.getElementById('prod-dim-w').value || 0);
-                dados.dimH = parseFloat(document.getElementById('prod-dim-h').value || 0);
-                dados.qtd = 1; dados.unidade = 'pç';
-            } else {
-                dados.qtd = parseFloat(document.getElementById('prod-qtd').value || 0);
-                dados.minimo = parseFloat(document.getElementById('prod-min').value || 0);
-                dados.unidade = document.getElementById('prod-un').value;
+        // Fecha o modal de cadastro
+        window.fecharModal = (id) => {
+            document.getElementById(id).style.display = 'none';
+        };
+
+        // Reseta todos os campos do formulário
+        const resetarModal = () => {
+            materialStatus = "Novo";
+            document.getElementById('prod-cat').value = '';
+            document.getElementById('prod-dim-w').value = '';
+            document.getElementById('prod-dim-h').value = '';
+            document.getElementById('div-dims').style.display = 'none';
+            document.getElementById('div-qtd').style.display = 'none';
+            document.getElementById('prod-espessura').innerHTML = '<option value="">Selecione Matéria...</option>';
+            atualizarPlanoCorte();
+        };
+
+        // Gerencia a interface conforme a categoria (chapa vs item unitário)
+        window.handleCategoryChange = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            const divDims = document.getElementById('div-dims');
+            const divQtd = document.getElementById('div-qtd');
+            const espSelect = document.getElementById('prod-espessura');
+            indiceMedidaPadrao = 0;
+            
+            if (CONFIG_FABRICA[cat]) {
+                const espessuras = CONFIG_FABRICA[cat].espessuras;
+                espSelect.innerHTML = espessuras.map(e => `<option value="${e}">${e}</option>`).join('');
+                divDims.style.display = 'block';
+                divQtd.style.display = 'none';
+                if (materialStatus === "Novo") aplicarMedidasAutomaticas();
+            } else if (cat !== "") {
+                espSelect.innerHTML = '<option value="outra">Outra</option>';
+                divDims.style.display = 'none';
+                divQtd.style.display = 'block';
             }
-            await addDoc(collection(db, "estoque"), dados);
-            fecharModal('modal-prod');
+            atualizarPlanoCorte();
         };
 
-        window.abrirPeca = (id) => { 
-            pecaSelecionada = produtos.find(x => x.id === id); 
-            document.getElementById('m-nome').innerText = pecaSelecionada.nome; 
-            document.getElementById('m-dim').innerText = `${pecaSelecionada.dimW}x${pecaSelecionada.dimH} cm`; 
-            document.getElementById('modal-peca').style.display = 'flex'; 
+        // Preenche medidas com base no padrão de fábrica da categoria
+        const aplicarMedidasAutomaticas = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            if (CONFIG_FABRICA[cat]) {
+                const medidas = CONFIG_FABRICA[cat].medidas;
+                const medida = medidas[indiceMedidaPadrao];
+                document.getElementById('prod-dim-w').value = medida.w;
+                document.getElementById('prod-dim-h').value = medida.h;
+                atualizarPlanoCorte();
+            }
         };
 
-        window.executarCorte = async () => {
-            const cw = parseFloat(document.getElementById('corte-w').value || 0);
-            const ch = parseFloat(document.getElementById('corte-h').value || 0);
-            if(cw > pecaSelecionada.dimW || ch > pecaSelecionada.dimH) { alert("Corte maior que a peça!"); return; }
-            const sW = pecaSelecionada.dimW - cw;
-            const sH = pecaSelecionada.dimH - ch;
-            await updateDoc(doc(db, "estoque", pecaSelecionada.id), { dimW: sW > 0 ? sW : pecaSelecionada.dimW, dimH: sH > 0 ? sH : pecaSelecionada.dimH, nome: pecaSelecionada.nome + " (Sobra)" });
-            await addDoc(collection(db, "estoque"), { setor: 'serralheria', nome: pecaSelecionada.nome + " (Corte)", categoria: pecaSelecionada.categoria, dimW: cw, dimH: ch, qtd: 1, unidade: 'pç' });
-            fecharModal('modal-peca');
+        // Navega entre as opções de medidas padrão (Ex: Chapa de 2, 3 ou 6 metros)
+        window.alternarMedidaPadrao = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            if (CONFIG_FABRICA[cat]) {
+                const lista = CONFIG_FABRICA[cat].medidas;
+                indiceMedidaPadrao = (indiceMedidaPadrao + 1) % lista.length;
+                aplicarMedidasAutomaticas();
+            }
         };
 
-        window.imprimirEtiquetaFinal = () => {
-            const os = document.getElementById('et-os').value, local = document.getElementById('et-local').value, num = document.getElementById('et-num').value;
-            document.getElementById('p-nome-et').innerText = pecaSelecionada.nome.toUpperCase();
-            document.getElementById('p-dim-et').innerText = `${pecaSelecionada.dimW} x ${pecaSelecionada.dimH} cm`;
-            document.getElementById('p-os').innerText = os || '----';
-            document.getElementById('p-local').innerText = local;
-            document.getElementById('p-num').innerText = num.toString().padStart(2, '0');
-            const qrCont = document.getElementById('p-qrcode'); qrCont.innerHTML = '';
-            new QRCode(qrCont, { text: window.location.origin + window.location.pathname + "?id=" + pecaSelecionada.id, width: 100, height: 100 });
-            setTimeout(() => { window.print(); }, 800);
+        // LÓGICA DE ATUALIZAÇÃO DA REFERÊNCIA VISUAL (Regra da Peça sempre Horizontal)
+        window.atualizarPlanoCorte = () => {
+            const wReal = parseFloat(document.getElementById('prod-dim-w').value) || 0;
+            const hReal = parseFloat(document.getElementById('prod-dim-h').value) || 0;
+            const fill = document.getElementById('corte-fill');
+            const area = document.getElementById('div-visual-corte');
+            const labelMaior = document.getElementById('txt-cota-maior');
+            const labelMenor = document.getElementById('txt-cota-menor');
+            
+            if (wReal > 0 && hReal > 0) {
+                area.style.display = 'flex';
+
+                // REGRA: Maior medida na horizontal, menor na vertical
+                const maior = Math.max(wReal, hReal);
+                const menor = Math.min(wReal, hReal);
+
+                const CONTAINER_MAX = 150; 
+                let ratio = menor / maior; // Proporção da altura em relação à largura (sempre horizontal)
+
+                // A largura será sempre o máximo do container
+                let finalW = CONTAINER_MAX;
+                let finalH = CONTAINER_MAX * ratio;
+
+                // Aplica dimensões no visual
+                fill.style.width = finalW + 'px';
+                fill.style.height = finalH + 'px';
+                
+                // Texto de conferência mostra a entrada real do usuário
+                fill.innerText = `${wReal} x ${hReal}`;
+                
+                // Cotas técnicas baseadas na regra visual
+                labelMaior.innerText = maior + 'cm';
+                labelMenor.innerText = menor + 'cm';
+            } else {
+                area.style.display = 'none';
+            }
         };
 
-        window.abrirMov = (id) => { document.getElementById('mov-id').value = id; document.getElementById('modal-mov').style.display = 'flex'; };
-        window.salvarMov = async (tipo) => {
-            const id = document.getElementById('mov-id').value, qtdAlt = parseFloat(document.getElementById('mov-qtd').value || 0);
-            const p = produtos.find(x => x.id === id);
-            let nova = tipo === 'entrada' ? p.qtd + qtdAlt : p.qtd - qtdAlt;
-            await updateDoc(doc(db, "estoque", id), { qtd: nova });
-            fecharModal('modal-mov');
+        // Funções para troca dinâmica de Select por Input de Texto (Novo Item)
+        window.ativarNovaCategoria = () => {
+            const container = document.getElementById('cat-container');
+            isNewCategory = true;
+            document.getElementById('label-cat').innerText = "Nova Matéria Prima";
+            const btn = document.getElementById('btn-toggle-cat');
+            btn.innerHTML = '×'; btn.onclick = resetarCategoriaField;
+            container.innerHTML = `<input type="text" id="prod-cat-new" placeholder="Nome da Matéria Prima..." autofocus>`;
+        };
+        window.resetarCategoriaField = () => {
+            isNewCategory = false;
+            document.getElementById('label-cat').innerText = "Matéria Prima";
+            const btn = document.getElementById('btn-toggle-cat');
+            btn.innerText = "+"; btn.onclick = ativarNovaCategoria;
+            document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange="handleCategoryChange()"><option value="">Selecione...</option><option value="acm">ACM</option><option value="pvc">PVC</option><option value="ps">PS</option><option value="acrilico">Acrílico</option><option value="mdf">MDF</option><option value="galvanizada">Galvanizada</option><option value="policarbonato">Policarbonato</option><option value="outros">Outros</option></select>`;
         };
 
-        window.deletarPeca = async () => { if(confirm("Excluir?")) { await deleteDoc(doc(db, "estoque", pecaSelecionada.id)); fecharModal('modal-peca'); } };
-        window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
-        window.abrirPainelEtiqueta = () => document.getElementById('modal-etiqueta').style.display = 'flex';
-        window.filtrarEstoque = () => {
-            const termo = document.getElementById('search-input').value.toLowerCase();
-            document.querySelectorAll('.card-prod').forEach(card => {
-                const nome = card.querySelector('.prod-name').innerText.toLowerCase();
-                card.style.display = nome.includes(termo) ? 'block' : 'none';
-            });
+        window.ativarNovaEspessura = () => {
+            document.getElementById('label-espessura').innerText = "Nova Espessura";
+            const b = document.getElementById('btn-toggle-esp');
+            b.innerHTML = '×'; b.onclick = resetarEspessuraField;
+            document.getElementById('esp-container').innerHTML = `<input type="text" id="prod-esp-new" placeholder="Ex: 15mm" autofocus>`;
+        };
+        window.resetarEspessuraField = () => {
+            document.getElementById('label-espessura').innerText = "Espessura";
+            const b = document.getElementById('btn-toggle-esp');
+            b.innerText = "+"; b.onclick = ativarNovaEspessura;
+            document.getElementById('esp-container').innerHTML = `<select id="prod-espessura"><option value="">Selecione Matéria...</option></select>`;
+            handleCategoryChange();
+        };
+
+        window.ativarNovaCor = () => {
+            document.getElementById('label-cor').innerText = "Nova Cor";
+            const b = document.getElementById('btn-toggle-cor');
+            b.innerHTML = '×'; b.onclick = resetarCorField;
+            document.getElementById('cor-container').innerHTML = `<input type="text" id="prod-cor-new" placeholder="Ex: Prata" autofocus>`;
+        };
+        window.resetarCorField = () => {
+            document.getElementById('label-cor').innerText = "Cor";
+            const b = document.getElementById('btn-toggle-cor');
+            b.innerText = "+"; b.onclick = ativarNovaCor;
+            document.getElementById('cor-container').innerHTML = `<select id="prod-cor"><option value="">Selecione...</option><option value="preto">Preto</option><option value="branco">Branco</option><option value="azul">Azul</option><option value="vermelho">Vermelho</option></select>`;
+        };
+
+        // Simula o salvamento dos dados no sistema
+        window.salvarProduto = () => {
+            const cat = isNewCategory ? document.getElementById('prod-cat-new').value : document.getElementById('prod-cat').value;
+            const log = document.getElementById('log-area');
+            if (!cat) { log.style.color = "#ff4444"; log.innerText = "Matéria Prima obrigatória!"; return; }
+            log.style.color = "#4ade80";
+            log.innerText = `Sucesso: Material salvo!`;
+            setTimeout(() => { fecharModal('modal-prod'); log.innerText = ""; }, 1500);
         };
     </script>
 </body>
