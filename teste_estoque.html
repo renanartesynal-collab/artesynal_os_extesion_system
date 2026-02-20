@@ -636,7 +636,7 @@
             document.getElementById('label-cor').innerText = "Cor";
             const b = document.getElementById('btn-toggle-cor'); b.innerText = "+"; b.onclick = window.ativarNovaCor;
             
-            const todasCores = [...new Set([...CORES_BASE, ...coresDinamicas])].sort(); // Junta fabrica e banco
+            const todasCores = [...new Set([...CORES_BASE, ...coresDinamicas])]; // Junta fabrica e banco mantendo a ordem
             
             document.getElementById('cor-container').innerHTML = `<select id="prod-cor"><option value="">Selecione...</option>${todasCores.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
         };
