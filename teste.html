@@ -31,7 +31,6 @@
             overflow-x: hidden;
         }
 
-        /* Remover setinhas padrão dos inputs de número */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
@@ -80,12 +79,11 @@
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
 
-        /* Botão flutuante de adicionar (+) */
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: var(--orange); color: white; border-radius: 50%; border: none; font-size: 35px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.5); cursor: pointer; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center;}
         .fab-add:hover { transform: scale(1.1); }
 
         /* ==========================================================================
-           5. ESTILOS DOS MODAIS (JANELAS POP-UP)
+           5. ESTILOS DOS MODAIS E INPUTS
            ========================================================================== */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-box { background: var(--card-bg); width: 95%; max-width: 500px; max-height: 90vh; padding: 25px; border-radius: 16px; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow-y: auto; position: relative; }
@@ -102,7 +100,8 @@
         .sub-label-right { display: block; font-size: 12px; color: var(--text-gray); margin-bottom: 4px; text-align: right; width: 100%; }
         .btn-icon-action { background: #222; color: var(--orange); border: 1px solid #444; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: bold;}
         
-        input, select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; outline: none; font-size: 14px; font-family: inherit; box-sizing: border-box;}
+        input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; outline: none; font-size: 14px; font-family: inherit; box-sizing: border-box;}
+        textarea { resize: vertical; min-height: 100px; }
         
         .input-suffix-wrapper { position: relative; display: flex; align-items: center; }
         .input-suffix-wrapper::after { content: "cm"; position: absolute; right: 12px; color: var(--text-gray); font-size: 12px; pointer-events: none; }
@@ -329,20 +328,32 @@
         </div>
     </div>
 
+    <div id="modal-detalhes" class="modal-overlay">
+        <div class="modal-box" style="max-width: 450px;">
+            <button class="btn-voltar-top" onclick="fecharModal('modal-detalhes')">Fechar</button>
+            <h2 style="margin-top:0; color:var(--purple); border-bottom:1px solid #333; padding-bottom:10px;">Informações do Material</h2>
+            
+            <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
+            <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px;"></pre>
+
+            <label class="label-standard" style="margin-top:20px; margin-bottom: 8px;">Anotações e Observações</label>
+            <textarea id="detalhes-anotacoes" placeholder="Digite aqui se o material tem algum defeito, se está reservado para um cliente..."></textarea>
+
+            <button class="btn-salvar" id="btn-salvar-anotacoes" onclick="salvarAnotacoes()" style="margin-top:15px; background:#444; border: 1px solid #666;">💾 SALVAR ANOTAÇÕES</button>
+        </div>
+    </div>
+
     <script type="module">
         import { db, ROTAS } from "./config.js";
         import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ---------------------------------------------------
-        // SESSÃO 1: VARIÁVEIS GLOBAIS E CONFIGURAÇÕES
-        // ---------------------------------------------------
+        // SESSÃO 1: VARIÁVEIS GLOBAIS
         window.setorAtual = '';
         window.materialStatus = "Novo";
         window.isNewCategory = false;
         window.indiceMedidaPadrao = 0;
         let produtos = [];
 
-        // Base de dados para preenchimento de medidas de fábrica (Serralheria)
         const CONFIG_FABRICA = {
             'acm': { medidas: [{w: 122, h: 500}, {w: 152, h: 500}], espessuras: ['3mm', '4mm'] },
             'pvc': { medidas: [{w: 122, h: 244}], espessuras: ['5mm', '10mm', '20mm'] },
@@ -356,9 +367,7 @@
         const CATS_IMP = ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Tinta', 'Outros'];
         const CATS_SERR = ['ACM', 'PVC', 'PS', 'Acrilico', 'MDF', 'Galvanizada', 'Policarbonato'];
 
-        // ---------------------------------------------------
-        // SESSÃO 2: NAVEGAÇÃO E CONSULTA AO FIREBASE
-        // ---------------------------------------------------
+        // SESSÃO 2: NAVEGAÇÃO
         window.selecionarSetor = (setor) => {
             window.setorAtual = setor;
             document.getElementById('sector-screen').style.display = 'none';
@@ -383,9 +392,7 @@
             });
         }
 
-        // ---------------------------------------------------
         // SESSÃO 3: DESENHAR OS CARDS NA TELA
-        // ---------------------------------------------------
         function renderizarCards() {
             document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
             const isSerr = window.setorAtual === 'serralheria';
@@ -400,7 +407,10 @@
                     card.className = `card-prod`;
                     card.style.borderLeftColor = isSerr ? 'var(--orange)' : 'var(--purple)';
 
-                    let conteudo = `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
+                    // Mostra um ícone de "Tem Anotação" se houver alguma nota salva
+                    let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--purple); color:white; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
+
+                    let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
                     conteudo += `<span class="prod-cat">${p.categoria}</span>`;
                     
                     if (isSerr) {
@@ -411,14 +421,23 @@
                         const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
                         conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white">${p.status}</span>`;
                         
-                        // BOTÃO DE CORTAR CHAPA
-                        conteudo += `<button class="btn-adj" style="margin-top:10px; width:100%; display:block; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR CHAPA</button>`;
+                        // BOTÕES SERRALHERIA (CORTAR E NOTAS)
+                        conteudo += `
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button class="btn-adj" style="flex:1; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR</button>
+                                <button class="btn-adj" style="flex:1; background:#222; border:1px solid #444;" onclick="abrirModalDetalhes('${p.id}')">📋 INFO</button>
+                            </div>
+                        `;
                     } else {
                         conteudo += `<div class="prod-name">${p.nome || p.categoria}</div>`;
+                        // BOTÕES IMPRESSÃO (AJUSTAR E NOTAS)
                         conteudo += `
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; background:#222; padding:10px; border-radius:8px;">
                                 <div><b style="font-size:24px;">${p.qtd}</b> <small style="color:#aaa">${p.unidade}</small></div>
-                                <button class="btn-adj" onclick="abrirAjuste('${p.id}')">AJUSTAR</button>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn-adj" style="background:#444; padding:8px 10px;" onclick="abrirModalDetalhes('${p.id}')" title="Anotações">📋</button>
+                                    <button class="btn-adj" onclick="abrirAjuste('${p.id}')">AJUSTAR</button>
+                                </div>
                             </div>
                         `;
                     }
@@ -434,9 +453,7 @@
             }
         };
 
-        // ---------------------------------------------------
         // SESSÃO 4: LÓGICA DO MODAL DE CADASTRO GERAL
-        // ---------------------------------------------------
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
 
         window.abrirModalProd = () => {
@@ -502,9 +519,7 @@
             window.atualizarPlanoCorte();
         };
 
-        // ---------------------------------------------------
-        // SESSÃO 5: PREVIEW VISUAL DE CORTE (QUADRADO LARANJA)
-        // ---------------------------------------------------
+        // SESSÃO 5: PREVIEW VISUAL DO NOVO MATERIAL
         window.toggleStatus = () => {
             const btn = document.getElementById('btn-status');
             window.materialStatus = (window.materialStatus === "Novo") ? "Usado" : "Novo";
@@ -554,9 +569,7 @@
             }
         };
 
-        // ---------------------------------------------------
         // SESSÃO 6: INPUTS CUSTOMIZADOS (ADD NOVAS CORES/ESP)
-        // ---------------------------------------------------
         window.ativarNovaCategoria = () => {
             window.isNewCategory = true;
             document.getElementById('label-cat').innerText = "Nova Categoria";
@@ -597,9 +610,7 @@
             document.getElementById('cor-container').innerHTML = `<select id="prod-cor"><option value="">Selecione...</option><option value="preto">Preto</option><option value="branco">Branco</option><option value="transparente">Transparente</option><option value="amarelo">Amarelo</option><option value="vermelho">Vermelho</option></select>`;
         };
 
-        // ---------------------------------------------------
         // SESSÃO 7: SALVAR MATERIAL NO FIREBASE
-        // ---------------------------------------------------
         window.salvarProduto = async () => {
             const btn = document.getElementById('btn-salvar-final');
             const isSerr = window.setorAtual === 'serralheria';
@@ -640,9 +651,7 @@
             btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE";
         };
 
-        // ---------------------------------------------------
         // SESSÃO 8: AJUSTE RÁPIDO DE QTD (IMPRESSÃO)
-        // ---------------------------------------------------
         let idParaAjuste = null;
         window.abrirAjuste = (id) => {
             idParaAjuste = id;
@@ -661,9 +670,7 @@
             await updateDoc(doc(db, "estoque", idParaAjuste), { qtd: novaQtd });
         };
 
-        // ---------------------------------------------------
         // SESSÃO 9: SISTEMA DE CORTE DE CHAPA E PREVIEW VISUAL
-        // ---------------------------------------------------
         let pecaParaCorte = null;
 
         window.abrirModalCorte = (id) => {
@@ -673,12 +680,9 @@
             document.getElementById('corte-w').value = '';
             document.getElementById('corte-h').value = '';
             document.getElementById('modal-corte').style.display = 'flex';
-            
-            // Renderiza o quadrado visual ao abrir o modal
             window.atualizarPreviewCorte();
         };
 
-        // Função que desenha a sobra e a área de corte
         window.atualizarPreviewCorte = () => {
             if (!pecaParaCorte) return;
 
@@ -690,7 +694,6 @@
             const bgOriginal = document.getElementById('corte-original-bg');
             const boxCorte = document.getElementById('corte-pedaco-box');
 
-            // Calcula proporção para caber na tela (container max 120px)
             const maiorOriginal = Math.max(wOriginal, hOriginal);
             const menorOriginal = Math.min(wOriginal, hOriginal);
             const ratioOriginal = menorOriginal / maiorOriginal;
@@ -699,26 +702,18 @@
             let finalW = wOriginal >= hOriginal ? basePx : basePx * ratioOriginal;
             let finalH = wOriginal >= hOriginal ? basePx * ratioOriginal : basePx;
 
-            // Aplica tamanho da chapa base
             bgOriginal.style.width = finalW + 'px';
             bgOriginal.style.height = finalH + 'px';
 
-            // Verifica se o corte é válido (não excede o tamanho original)
             if (wCorte > 0 && hCorte > 0 && wCorte <= wOriginal && hCorte <= hOriginal) {
                 boxCorte.style.display = 'flex';
-                
-                // Regra de três para o pedaço vermelho
                 const percentW = wCorte / wOriginal;
                 const percentH = hCorte / hOriginal;
-                
                 boxCorte.style.width = (finalW * percentW) + 'px';
                 boxCorte.style.height = (finalH * percentH) + 'px';
                 boxCorte.innerText = `${wCorte}x${hCorte}`;
-                
-                // Escurece o fundo para mostrar que virou "Sobra"
                 bgOriginal.style.background = '#333';
             } else {
-                // Se não tem corte válido, deixa apenas a chapa laranja
                 boxCorte.style.display = 'none';
                 bgOriginal.style.background = 'var(--orange)';
             }
@@ -743,7 +738,6 @@
                 const sobraH = pecaParaCorte.dimH - ch;
                 const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
                 
-                // Atualiza a chapa atual transformando ela na sobra
                 await updateDoc(doc(db, "estoque", pecaParaCorte.id), { 
                     dimW: sobraW > 0 ? sobraW : pecaParaCorte.dimW, 
                     dimH: sobraH > 0 ? sobraH : pecaParaCorte.dimH,
@@ -751,7 +745,6 @@
                     nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)"
                 });
 
-                // Cria o card do corte novo
                 const novaPeca = { ...pecaParaCorte };
                 delete novaPeca.id;
                 novaPeca.dimW = cw;
@@ -771,6 +764,60 @@
                 btn.disabled = false; btn.innerText = "✂️ CONFIRMAR CORTE";
             }
         };
+
+        // SESSÃO 10: SISTEMA DE INFORMAÇÕES E ANOTAÇÕES (NOVO)
+        let itemParaDetalhes = null;
+
+        window.abrirModalDetalhes = (id) => {
+            itemParaDetalhes = produtos.find(x => x.id === id);
+            
+            const isSerr = window.setorAtual === 'serralheria';
+            const nome = isSerr ? `${itemParaDetalhes.categoria} ${itemParaDetalhes.espessura || ''}` : (itemParaDetalhes.nome || itemParaDetalhes.categoria);
+            
+            document.getElementById('detalhes-nome').innerText = nome;
+            
+            // Monta o resumo das informações para mostrar na tela
+            let info = '';
+            info += `📝 Cadastrado no setor: ${itemParaDetalhes.setor.toUpperCase()}\n`;
+            
+            if (isSerr) {
+                info += `📊 Status: ${itemParaDetalhes.status}\n`;
+                info += `📐 Dimensões: ${itemParaDetalhes.dimW} x ${itemParaDetalhes.dimH} cm\n`;
+                if(itemParaDetalhes.cor) info += `🎨 Cor: ${itemParaDetalhes.cor}\n`;
+                if(itemParaDetalhes.acabamento) info += `✨ Acabamento: ${itemParaDetalhes.acabamento}\n`;
+            } else {
+                info += `📦 Quantidade: ${itemParaDetalhes.qtd} ${itemParaDetalhes.unidade}\n`;
+            }
+            
+            document.getElementById('detalhes-info').innerText = info;
+            
+            // Puxa as anotações antigas se existirem
+            document.getElementById('detalhes-anotacoes').value = itemParaDetalhes.anotacoes || '';
+            
+            document.getElementById('modal-detalhes').style.display = 'flex';
+        };
+
+        window.salvarAnotacoes = async () => {
+            if (!itemParaDetalhes) return;
+            const btn = document.getElementById('btn-salvar-anotacoes');
+            const texto = document.getElementById('detalhes-anotacoes').value;
+            
+            btn.disabled = true; btn.innerText = "SALVANDO...";
+            
+            try {
+                // Atualiza APENAS o campo de anotações no Firebase
+                await updateDoc(doc(db, "estoque", itemParaDetalhes.id), { 
+                    anotacoes: texto 
+                });
+                window.fecharModal('modal-detalhes');
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao salvar anotações.");
+            } finally {
+                btn.disabled = false; btn.innerText = "💾 SALVAR ANOTAÇÕES";
+            }
+        };
+
     </script>
 </body>
 </html>
