@@ -246,6 +246,7 @@
                     <button id="btn-acao-gerar-vt" class="btn-v-action btn-gerar-vt" onclick="window.abrirModalVisita()">📋 VISITA TÉCNICA</button>
                     <div id="area-vt-gerada" class="botoes-pos-vt">
                         <button class="btn-v-action b-ver" onclick="window.alternarModo('vt')">🚗 ABRIR CARD TÉCNICO</button>
+                        <button class="btn-v-action b-link" onclick="window.copiarLinkVT()">🔗 COPIAR LINK</button>
                         <button class="btn-v-action b-edit" onclick="window.abrirModalVisita()">✏️ EDITAR INFO VISITA</button>
                     </div>
                 </div>
@@ -594,7 +595,7 @@
         };
 
         // ==========================================
-        // VISITA TÉCNICA (CARD DO TÉCNICO)
+        // VISITA TÉCNICA (CARD DO TÉCNICO) E COPIAR LINK
         // ==========================================
         window.abrirModalVisita = () => {
             if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
@@ -641,6 +642,18 @@
                 
             } catch(e) { console.error("Erro:", e); alert("Erro ao salvar visita."); } 
             finally { btn.disabled = false; btn.innerText = "SALVAR VISITA"; }
+        };
+
+        // NOVA FUNÇÃO: Copiar link forçando o modo VT
+        window.copiarLinkVT = () => {
+            if (!idEdicao) return;
+            const link = `${window.location.origin}${window.location.pathname}?id=${idEdicao}&mode=vt`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert("Link do Card Técnico copiado! Envie para o técnico.");
+            }).catch(err => {
+                console.error("Erro ao copiar link:", err);
+                alert("Erro ao copiar link.");
+            });
         };
 
         window.copiarEnderecoModal = () => {
