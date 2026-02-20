@@ -3,394 +3,609 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque Artesynal - Pro</title>
+    <title>Gerenciador de Materiais - Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --orange: #ff6b00; --dark-bg: #0a0a0a; --card-bg: #121212;
-            --input-bg: #1a1a1a; --text-gray: #a0a0a0; --white: #ffffff;
-            --red-cancel: #ff3b3b; --green-new: #22c55e; --blue-used: #3b82f6;
-            --purple: #9b59b6; --blue-action: #3498db;
+            --orange: #ff6b00;
+            --dark-bg: #0a0a0a;
+            --card-bg: #121212;
+            --input-bg: #1a1a1a;
+            --text-gray: #a0a0a0;
+            --white: #ffffff;
+            --red-cancel: #ff3b3b;
+            --green-new: #22c55e;
+            --blue-used: #3b82f6;
+            --purple: #9b59b6;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--dark-bg); color: var(--white);
-            margin: 0; padding: 0; overflow-x: hidden;
+            background-color: var(--dark-bg);
+            color: var(--white);
+            margin: 0; padding: 0;
+            overflow-x: hidden;
         }
 
-        /* --- TELA SELEÇÃO --- */
-        #sector-screen { 
-            display: flex; height: 100vh; align-items: center; justify-content: center; 
-            gap: 30px; background: var(--dark-bg); flex-wrap: wrap; padding: 20px;
-        }
-        .sector-btn { 
-            width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            transition: transform 0.2s; color: white;
-        }
+        /* [CSS] TELA DE SELEÇÃO */
+        #sector-screen { display: flex; height: 100vh; width: 100%; align-items: center; justify-content: center; gap: 30px; position: fixed; top: 0; left: 0; background: var(--dark-bg); z-index: 1000; flex-wrap: wrap; padding: 20px;}
+        .sector-btn { width: 300px; height: 200px; border-radius: 15px; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; transition: transform 0.2s; color: white;}
         .sector-btn:hover { transform: scale(1.05); }
-        .sec-imp { background: linear-gradient(135deg, #8e44ad, #2980b9); }
-        .sec-serr { background: linear-gradient(135deg, #e67e22, #d35400); }
-        .sec-title { font-size: 24px; font-weight: 900; text-transform: uppercase; margin-top: 10px; }
+        .sec-imp { background: linear-gradient(135deg, #8e44ad, #2980b9); box-shadow: 0 0 20px rgba(142, 68, 173, 0.4); }
+        .sec-serr { background: linear-gradient(135deg, var(--orange), #d35400); box-shadow: 0 0 20px rgba(255, 107, 0, 0.4); }
+        .sec-icon { font-size: 50px; margin-bottom: 10px; }
+        .sec-title { font-size: 24px; font-weight: 900; text-transform: uppercase; }
 
-        /* --- LAYOUT PRINCIPAL --- */
+        /* [CSS] LAYOUT PRINCIPAL E KANBAN */
         #main-layout { display: none; padding: 20px; }
         .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
-        
-        /* --- KANBAN --- */
+        h1 { margin: 0; color: var(--white); font-size: 24px; text-transform: uppercase; font-weight: 900; }
+        .btn-voltar { cursor: pointer; color: white; background: #333; padding: 10px 20px; border-radius: 8px; font-size: 12px; font-weight: bold; border:none; transition: 0.2s; }
+        .btn-voltar:hover { background: #555; }
+
         .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
-        .kanban-col { background: #161616; border-radius: 10px; padding: 15px; min-width: 320px; width: 320px; border: 1px solid #333; }
-        .kanban-header { 
-            padding: 10px; font-weight: 900; font-size: 14px; border-radius: 6px; 
-            margin-bottom: 15px; text-transform: uppercase; text-align: center; color: #fff;
-        }
+        .kanban-col { background: #161616; border-radius: 10px; padding: 15px; min-width: 320px; width: 320px; border: 1px solid #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: white; text-transform: uppercase; text-align: center; }
         
-        /* Cores Colunas */
-        .col-imp { background: var(--purple); }
-        .col-serr { background: var(--orange); color: #000; }
+        .hdr-imp { background: var(--purple); }
+        .hdr-serr { background: var(--orange); color: #000; }
 
-        /* --- CARDS --- */
-        .card-prod { 
-            background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 15px;
-            border-left: 5px solid var(--orange); position: relative; transition: 0.2s;
-        }
+        .grid-est { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
+
+        /* [CSS] CARDS DE ESTOQUE */
+        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid #555; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .card-prod.low-stock { border-right: 4px solid var(--red-cancel); }
-        .card-prod .btn-del { 
-            position: absolute; top: 10px; right: 10px; background: none; border: none; 
-            color: #444; cursor: pointer; font-size: 18px; 
-        }
-        .card-prod .btn-del:hover { color: var(--red-cancel); }
-        .prod-name { font-size: 16px; font-weight: 800; margin-bottom: 5px; color: #fff; }
-        .prod-info { font-size: 13px; color: var(--text-gray); margin-bottom: 10px; }
-        .badge-status { font-size: 9px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+        .btn-del-card { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #555; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-del-card:hover { color: var(--red-cancel); }
+        
+        .prod-cat { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; margin-bottom: 8px; display: inline-block; }
+        .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1.1; }
+        .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 5px; display: block; }
+        .prod-details { font-size: 11px; color: var(--text-gray); display: block; margin-bottom: 10px;}
+        .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
 
-        /* --- MODAL (ESTILO DO SEU CÓDIGO) --- */
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; 
-        }
-        .modal-box { 
-            background: var(--card-bg); width: 95%; max-width: 500px; max-height: 90vh; 
-            padding: 25px; border-radius: 16px; border: 1px solid #333; overflow-y: auto; position: relative;
-        }
-        .btn-voltar-top { position: absolute; top: 25px; right: 25px; background: none; color: var(--red-cancel); border: 1px solid var(--red-cancel); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
+        .btn-adj:hover { background: var(--blue-used); }
 
-        input, select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; margin-top: 5px; box-sizing: border-box; }
-        .form-row { display: flex; gap: 12px; margin-bottom: 15px; }
-        .label-standard { font-size: 13px; color: var(--orange); font-weight: bold; margin-top: 10px; display: block; }
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: var(--orange); color: white; border-radius: 50%; border: none; font-size: 35px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.5); cursor: pointer; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center;}
+        .fab-add:hover { transform: scale(1.1); }
 
-        /* --- REFERÊNCIA VISUAL CORTE --- */
-        #div-visual-corte { 
-            margin-top: 15px; padding: 20px; background: #000; border-radius: 8px; border: 1px solid #333; 
-            display: none; flex-direction: column; align-items: center; 
-        }
-        .chapa-container { width: 100%; height: 160px; background: #080808; position: relative; display: flex; align-items: center; justify-content: center; }
-        #corte-fill { background: var(--orange); border: 1px solid white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
-        .cota-label { position: absolute; color: var(--orange); font-size: 10px; font-weight: bold; }
+        /* [CSS] REMOVER SETINHAS PADRÃO DOS INPUTS DE NÚMERO */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
 
-        .fab-add { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--orange); border-radius: 50%; border: none; color: white; font-size: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        /* [CSS] MODAL E ELEMENTOS (DO SEU CÓDIGO) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { background: var(--card-bg); width: 95%; max-width: 500px; max-height: 90vh; padding: 25px; border-radius: 16px; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow-y: auto; position: relative; }
+        .btn-voltar-top { position: absolute; top: 25px; right: 25px; background: transparent; color: var(--red-cancel); border: 1px solid var(--red-cancel); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s; }
+        .btn-voltar-top:hover { background: rgba(255, 59, 59, 0.1); }
+        
+        .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .title-material { font-size: 32px; font-weight: 900; margin: 0; color: #fff; line-height: 1; }
+        .btn-status-toggle { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: all 0.3s ease; }
+        .status-novo { background-color: var(--green-new); color: white; }
+        .status-usado { background-color: var(--blue-used); color: white; }
 
-        /* BOTÕES DE AJUSTE RÁPIDO (IMPRESSÃO) */
-        .btn-adj { background: #333; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-adj:hover { background: var(--orange); }
+        .label-standard { display: block; font-size: 13px; color: var(--orange); font-weight: bold; }
+        .sub-label-right { display: block; font-size: 12px; color: var(--text-gray); margin-bottom: 4px; text-align: right; width: 100%; }
+        .btn-icon-action { background: #222; color: var(--orange); border: 1px solid #444; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: bold;}
+        
+        input, select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; outline: none; font-size: 14px; font-family: inherit; box-sizing: border-box;}
+        
+        .input-suffix-wrapper { position: relative; display: flex; align-items: center; }
+        .input-suffix-wrapper::after { content: "cm"; position: absolute; right: 12px; color: var(--text-gray); font-size: 12px; pointer-events: none; }
+        
+        .form-row { display: flex; gap: 12px; margin-bottom: 15px; width: 100%;}
+        .align-bottom { align-items: flex-end; }
+        .field-group { flex: 1; min-width: 0; }
 
-        @media (max-width: 600px) { .kanban-col { min-width: 280px; } }
+        /* [CSS] REFERÊNCIA VISUAL DO CORTE */
+        #div-visual-corte { margin-top: 15px; padding: 20px; background: #000; border-radius: 8px; border: 1px solid #333; display: none; flex-direction: column; align-items: center; }
+        .canvas-title { font-size: 10px; color: var(--orange); text-transform: uppercase; font-weight: bold; margin-bottom: 40px; letter-spacing: 1px; text-align: center; width: 100%; }
+        .chapa-container { width: 100%; height: 180px; background: #080808; position: relative; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        #corte-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+        #corte-fill { background: var(--orange); border: 1px solid var(--white); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; text-align: center; padding: 5px; }
+        
+        .cota-label { position: absolute; color: var(--orange); font-size: 11px; font-weight: bold; white-space: nowrap; }
+        .cota-w-box { position: absolute; top: -35px; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .linha-cota-w { height: 1px; background-color: var(--orange); width: 100%; margin-top: 2px; position: relative; }
+        .linha-cota-w::before, .linha-cota-w::after { content: ''; position: absolute; top: -4px; width: 1px; height: 9px; background-color: var(--orange); }
+        .linha-cota-w::before { left: 0; } .linha-cota-w::after { right: 0; }
+        
+        .cota-h-box { position: absolute; left: -55px; top: 0; height: 100%; display: flex; flex-direction: row; align-items: center; }
+        .linha-cota-h { width: 1px; background-color: var(--orange); height: 100%; margin-right: 5px; position: relative; }
+        .linha-cota-h::before, .linha-cota-h::after { content: ''; position: absolute; left: -4px; width: 9px; height: 1px; background-color: var(--orange); }
+        .linha-cota-h::before { top: 0; } .linha-cota-h::after { bottom: 0; }
+
+        .btn-salvar { width: 100%; background: var(--orange); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 900; margin-top: 20px; cursor: pointer; font-size: 16px; text-transform: uppercase; font-family: inherit;}
+        .icon-refresh { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; }
     </style>
 </head>
 <body>
 
     <div id="sector-screen">
         <button class="sector-btn sec-imp" onclick="selecionarSetor('impressao')">
+            <div class="sec-icon">🖨️</div>
             <div class="sec-title">Sala de Impressão</div>
-            <span style="font-size:11px">Adesivo, Lona, Recorte</span>
+            <span style="font-size:12px; margin-top:5px; opacity:0.8;">Adesivo, Lona, Recorte</span>
         </button>
         <button class="sector-btn sec-serr" onclick="selecionarSetor('serralheria')">
+            <div class="sec-icon">🛠️</div>
             <div class="sec-title">Serralheria</div>
-            <span style="font-size:11px">ACM, PVC, Acrílico</span>
+            <span style="font-size:12px; margin-top:5px; opacity:0.8;">Chapas e Retalhos</span>
         </button>
     </div>
 
     <div id="main-layout">
         <div class="header-est">
-            <h2 id="page-title" style="margin:0; text-transform:uppercase; letter-spacing:1px">Estoque</h2>
-            <button class="btn-voltar-top" style="position:static" onclick="location.reload()">Sair</button>
+            <div>
+                <h1 id="page-title">Estoque</h1>
+            </div>
+            <button class="btn-voltar" onclick="location.reload()">🔄 TROCAR SETOR</button>
         </div>
 
         <div id="kanban-impressao" class="kanban-container" style="display: none;">
-            <div class="kanban-col"><div class="kanban-header col-imp">Adesivos</div><div id="grid-ADESIVO" class="grid-est"></div></div>
-            <div class="kanban-col"><div class="kanban-header col-imp">Lonas</div><div id="grid-LONA" class="grid-est"></div></div>
-            <div class="kanban-col"><div class="kanban-header col-imp">Adesivos de Recorte</div><div id="grid-RECORTE" class="grid-est"></div></div>
-            <div class="kanban-col"><div class="kanban-header col-imp">Outros</div><div id="grid-OUTROS-IMP" class="grid-est"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-imp">Adesivos</div><div class="grid-est" id="grid-ADESIVO"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-imp">Lonas</div><div class="grid-est" id="grid-LONA"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-imp">Adesivos de Recorte</div><div class="grid-est" id="grid-RECORTE"></div></div>
+            <div class="kanban-col"><div class="kanban-header" style="background:#444">Outros</div><div class="grid-est" id="grid-OUTROS-IMP"></div></div>
         </div>
 
         <div id="kanban-serralheria" class="kanban-container" style="display: none;">
-            <div class="kanban-col"><div class="kanban-header col-serr">ACM</div><div id="grid-ACM" class="grid-est"></div></div>
-            <div class="kanban-col"><div class="kanban-header col-serr">PVC</div><div id="grid-PVC" class="grid-est"></div></div>
-            <div class="kanban-col"><div class="kanban-header col-serr">Acrílico</div><div id="grid-ACRILICO" class="grid-est"></div></div>
-            <div class="kanban-col"><div class="kanban-header col-serr">Outros</div><div id="grid-OUTROS-SERR" class="grid-est"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-serr">ACM</div><div class="grid-est" id="grid-ACM"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-serr">PVC</div><div class="grid-est" id="grid-PVC"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-serr">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
+            <div class="kanban-col"><div class="kanban-header" style="background:#444">Outros Metais/MDF</div><div class="grid-est" id="grid-OUTROS-SERR"></div></div>
         </div>
 
-        <button class="fab-add" onclick="abrirModalAdd()">+</button>
+        <button class="fab-add" onclick="abrirModalProd()">+</button>
     </div>
 
-    <div id="modal-add" class="modal-overlay">
+    <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-add')">Fechar</button>
-            <h2 id="modal-title" style="margin:0 0 20px 0">Novo Material</h2>
-            
-            <div id="header-serr-only" style="display:none; margin-bottom: 20px;">
-                <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatusSerr()" 
-                    style="padding:8px 20px; border-radius:6px; border:none; font-weight:bold; cursor:pointer; background:var(--green-new); color:white">NOVO</button>
+            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')">Cancelar</button>
+
+            <div class="header-row">
+                <h2 class="title-material" id="modal-main-title">Material</h2>
+                <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatus()" style="display: none;">Novo</button>
             </div>
-
-            <label class="label-standard">Matéria Prima</label>
-            <select id="in-cat" onchange="handleUIChange()"></select>
-
-            <div id="fields-serralheria" style="display: none;">
-                <div class="form-row">
-                    <div style="flex:1">
-                        <label class="label-standard">Espessura</label>
-                        <input type="text" id="in-espessura" placeholder="Ex: 3mm">
+            
+            <div class="form-row align-bottom">
+                <div style="flex: 3;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="label-cat" class="label-standard">Categoria / Matéria</label>
+                        <button class="btn-icon-action" id="btn-toggle-cat" onclick="ativarNovaCategoria()">+</button>
                     </div>
-                    <div style="flex:1">
-                        <label class="label-standard">Cor</label>
-                        <input type="text" id="in-cor" placeholder="Ex: Branco">
+                    <div id="cat-container">
+                        <select id="prod-cat" onchange="handleCategoryChange()"></select>
                     </div>
                 </div>
-                
-                <div style="background:#1a1a1a; padding:15px; border-radius:8px; margin-top:15px">
-                    <div style="display:flex; justify-content:space-between">
-                        <label class="label-standard">Medidas (cm)</label>
-                        <button class="btn-adj" onclick="navegarPadroesSerr()">Padrão</button>
+                <div id="div-acabamento" style="flex: 1.5; display:none;">
+                    <label class="label-standard" style="margin-bottom: 8px;">Acabamento</label>
+                    <select id="prod-acabamento">
+                        <option value="">Selecione...</option>
+                        <option value="brilho">Brilho</option>
+                        <option value="fosco">Fosco</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="div-nome-imp" style="display:none; margin-bottom: 15px;">
+                <label class="label-standard" style="margin-bottom: 8px;">Nome / Descrição</label>
+                <input type="text" id="prod-nome" placeholder="Ex: Adesivo Brilho 1.22m">
+            </div>
+            
+            <div class="form-row" id="div-esp-cor" style="display:none;">
+                <div class="field-group">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="label-espessura" class="label-standard">Espessura</label>
+                        <button class="btn-icon-action" id="btn-toggle-esp" onclick="ativarNovaEspessura()">+</button>
                     </div>
-                    <div class="form-row">
-                        <input type="number" id="in-w" placeholder="Largura" oninput="atualizarPreview()">
-                        <input type="number" id="in-h" placeholder="Altura" oninput="atualizarPreview()">
+                    <div id="esp-container"><select id="prod-espessura"><option value="">Selecione...</option></select></div>
+                </div>
+                <div class="field-group">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label id="label-cor" class="label-standard">Cor</label>
+                        <button class="btn-icon-action" id="btn-toggle-cor" onclick="ativarNovaCor()">+</button>
                     </div>
-                    <div id="div-visual-corte">
-                        <div class="chapa-container">
+                    <div id="cor-container">
+                        <select id="prod-cor">
+                            <option value="">Selecione...</option>
+                            <option value="preto">Preto</option>
+                            <option value="branco">Branco</option>
+                            <option value="transparente">Transparente</option>
+                            <option value="amarelo">Amarelo</option>
+                            <option value="vermelho">Vermelho</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="div-dims" style="display:none; background:#1a1a1a; padding:15px; border-radius:8px; margin-top:5px; border: 1px solid #333;">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label class="label-standard" style="margin-top:0;">Dimensões</label>
+                    <button id="btn-refresh-dims" class="btn-icon-action" onclick="alternarMedidaPadrao()" title="Navegar Medidas">
+                        <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                </div>
+                <div class="form-row" style="margin-bottom: 0;">
+                    <div class="field-group">
+                        <label class="sub-label-right">Largura</label>
+                        <div class="input-suffix-wrapper"><input type="number" id="prod-dim-w" placeholder="0" oninput="atualizarPlanoCorte()"></div>
+                    </div>
+                    <div class="field-group">
+                        <label class="sub-label-right">Altura</label>
+                        <div class="input-suffix-wrapper"><input type="number" id="prod-dim-h" placeholder="0" oninput="atualizarPlanoCorte()"></div>
+                    </div>
+                </div>
+
+                <div id="div-visual-corte">
+                    <div class="canvas-title">APRECIAÇÃO DA REFERÊNCIA VISUAL</div>
+                    <div class="chapa-container">
+                        <div id="corte-wrapper">
+                            <div class="cota-w-box"><span class="cota-label" id="txt-cota-maior">0cm</span><div class="linha-cota-w"></div></div>
+                            <div class="cota-h-box"><div class="linha-cota-h"></div><span class="cota-label" id="txt-cota-menor" style="writing-mode: vertical-lr; transform: rotate(180deg);">0cm</span></div>
                             <div id="corte-fill"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="fields-impressao" style="display: none;">
-                <label class="label-standard">Nome / Descrição</label>
-                <input type="text" id="in-nome-imp" placeholder="Ex: Adesivo Brilho 1.22">
+            <div id="div-qtd" style="margin-top:15px; display: none;">
                 <div class="form-row">
-                    <div style="flex:1">
-                        <label class="label-standard">Quantidade</label>
-                        <input type="number" id="in-qtd" value="1">
+                    <div class="field-group">
+                        <label class="label-standard" style="margin-bottom: 8px;">Quantidade Atual</label>
+                        <input type="number" id="prod-qtd" value="1">
                     </div>
-                    <div style="flex:1">
-                        <label class="label-standard">Unidade</label>
-                        <select id="in-un">
+                    <div class="field-group" id="div-minimo">
+                        <label class="label-standard" style="margin-bottom: 8px;">Unidade</label>
+                        <select id="prod-unidade">
+                            <option value="un">Unidade (Rolos/Pçs)</option>
                             <option value="m">Metros</option>
-                            <option value="un">Unidade</option>
                             <option value="L">Litros</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <button class="btn-salvar" style="margin-top:25px" onclick="salvarNovoMaterial()">Salvar no Estoque</button>
+            <button class="btn-salvar" id="btn-salvar-final" onclick="salvarProduto()">SALVAR NO ESTOQUE</button>
         </div>
     </div>
 
-    <div id="modal-ajuste" class="modal-overlay">
-        <div class="modal-box" style="text-align: center;">
-            <h3 id="adj-nome">Material</h3>
-            <div style="font-size: 30px; font-weight: 900; margin: 20px 0;" id="adj-qtd">0</div>
-            <div class="form-row">
-                <button class="btn-salvar" style="background:var(--green-new)" onclick="alterarQtd(1)">+ Entrada</button>
-                <button class="btn-salvar" style="background:var(--red-cancel)" onclick="alterarQtd(-1)">- Saída</button>
+    <div id="modal-mov" class="modal-overlay">
+        <div class="modal-box" style="text-align: center; max-width: 400px;">
+            <h2 style="margin-top:0; color:var(--orange)">Ajustar Quantidade</h2>
+            <p id="mov-nome" style="color:#ccc; font-weight:bold; margin-bottom: 20px;">Item</p>
+            <input type="hidden" id="mov-id">
+            
+            <div style="display:flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 25px;">
+                <button style="background:var(--red-cancel); color:white; border:none; width:50px; height:50px; border-radius:10px; font-size:24px; font-weight:bold; cursor:pointer;" onclick="ajustarQtdRapido(-1)">-</button>
+                <div id="mov-qtd-atual" style="font-size: 40px; font-weight: 900; min-width: 60px;">0</div>
+                <button style="background:var(--green-new); color:white; border:none; width:50px; height:50px; border-radius:10px; font-size:24px; font-weight:bold; cursor:pointer;" onclick="ajustarQtdRapido(1)">+</button>
             </div>
-            <button class="btn-voltar-top" style="position:static; margin-top: 20px;" onclick="fecharModal('modal-ajuste')">Fechar</button>
+            
+            <button class="btn-salvar" style="background:#444" onclick="fecharModal('modal-mov')">FECHAR</button>
         </div>
     </div>
 
     <script type="module">
-        import { db } from "./config.js";
-        import { collection, addDoc, onSnapshot, query, where, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { db, ROTAS } from "./config.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        let setorAtual = '';
-        let statusSerr = 'Novo';
+        // Variáveis Globais
+        window.setorAtual = '';
+        window.materialStatus = "Novo";
+        window.isNewCategory = false;
+        window.indiceMedidaPadrao = 0;
         let produtos = [];
-        let itemAjusteId = null;
 
-        const CONFIG_SERR = {
-            'ACM': { padroes: [{w:122,h:500}, {w:152,h:500}] },
-            'PVC': { padroes: [{w:122,h:244}] },
-            'Acrílico': { padroes: [{w:100,h:200}, {w:120,h:240}] }
+        // Base de dados para preenchimento de medidas de fábrica (Serralheria)
+        const CONFIG_FABRICA = {
+            'acm': { medidas: [{w: 122, h: 500}, {w: 152, h: 500}], espessuras: ['3mm', '4mm'] },
+            'pvc': { medidas: [{w: 122, h: 244}], espessuras: ['2mm', '3mm', '5mm', '10mm', '20mm'] },
+            'ps': { medidas: [{w: 100, h: 200}, {w: 120, h: 240}], espessuras: ['1mm', '2mm'] },
+            'acrilico': { medidas: [{w: 100, h: 200}, {w: 120, h: 240}], espessuras: ['2mm', '3mm', '5mm', '10mm'] },
+            'mdf': { medidas: [{w: 183, h: 275}], espessuras: ['3mm', '6mm', '15mm', '18mm'] },
+            'galvanizada': { medidas: [{w: 120, h: 200}, {w: 120, h: 300}], espessuras: ['#28', '#26', '#24','#22','#20'] },
+            'policarbonato': { medidas: [{w: 105, h: 600}, {w: 210, h: 600}], espessuras: ['4mm', '6mm', '10mm'] }
         };
+
+        // Categorias Padrões por Setor
+        const CATS_IMP = ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Tinta', 'Outros'];
+        const CATS_SERR = ['ACM', 'PVC', 'PS', 'Acrílico', 'MDF', 'Galvanizada', 'Policarbonato', 'Outros'];
+
+        // ======= NAVEGAÇÃO E LISTAGEM ======= //
 
         window.selecionarSetor = (setor) => {
-            setorAtual = setor;
+            window.setorAtual = setor;
             document.getElementById('sector-screen').style.display = 'none';
             document.getElementById('main-layout').style.display = 'block';
-            document.getElementById('page-title').innerText = setor === 'impressao' ? 'Sala de Impressão' : 'Serralheria';
             
-            document.getElementById('kanban-impressao').style.display = setor === 'impressao' ? 'flex' : 'none';
-            document.getElementById('kanban-serralheria').style.display = setor === 'serralheria' ? 'flex' : 'none';
+            const isSerr = setor === 'serralheria';
+            document.getElementById('page-title').innerText = isSerr ? 'Estoque Serralheria' : 'Sala de Impressão';
+            document.getElementById('page-title').style.color = isSerr ? 'var(--orange)' : 'var(--purple)';
+            
+            document.getElementById('kanban-impressao').style.display = isSerr ? 'none' : 'flex';
+            document.getElementById('kanban-serralheria').style.display = isSerr ? 'flex' : 'none';
 
-            carregarDados();
+            ouvirEstoque();
         };
 
-        function carregarDados() {
-            const q = query(collection(db, "estoque"), where("setor", "==", setorAtual));
+        function ouvirEstoque() {
+            const q = query(collection(db, "estoque"), where("setor", "==", window.setorAtual));
             onSnapshot(q, (snapshot) => {
-                produtos = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-                renderizar();
+                produtos = [];
+                snapshot.forEach(d => { let item = d.data(); item.id = d.id; produtos.push(item); });
+                renderizarCards();
             });
         }
 
-        function renderizar() {
+        function renderizarCards() {
             document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
-            
+            const isSerr = window.setorAtual === 'serralheria';
+
             produtos.forEach(p => {
-                const colId = `grid-${p.categoria.toUpperCase().replace("ADESIVO DE RECORTE", "RECORTE")}`;
-                const grid = document.getElementById(colId) || (setorAtual === 'impressao' ? document.getElementById('grid-OUTROS-IMP') : document.getElementById('grid-OUTROS-SERR'));
-                
-                if(!grid) return;
+                // Identifica em qual coluna o card deve cair
+                let catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace("ADESIVO DE RECORTE", "RECORTE");
+                let gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : (isSerr ? 'OUTROS-SERR' : 'OUTROS-IMP');
+                const grid = document.getElementById(`grid-${gridID}`);
 
-                const card = document.createElement('div');
-                card.className = `card-prod ${p.qtd <= (p.minimo || 0) ? 'low-stock' : ''}`;
-                card.style.borderLeftColor = setorAtual === 'impressao' ? 'var(--purple)' : 'var(--orange)';
-                
-                let html = `
-                    <button class="btn-del" onclick="deletarItem('${p.id}')">×</button>
-                    <div class="prod-name">${p.nome || p.categoria}</div>
-                `;
+                if(grid) {
+                    const card = document.createElement('div');
+                    card.className = `card-prod`;
+                    card.style.borderLeftColor = isSerr ? 'var(--orange)' : 'var(--purple)';
 
-                if(setorAtual === 'serralheria') {
-                    html += `
-                        <div class="prod-info">${p.dimW}x${p.dimH}cm | ${p.espessura}</div>
-                        <span class="badge-status" style="background:${p.status==='Novo'?'var(--green-new)':'var(--blue-used)'}">${p.status}</span>
-                        <div style="margin-top:10px; font-size:10px; color:#555">${p.cor}</div>
-                    `;
-                } else {
-                    html += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px">
-                            <div style="font-size:20px; font-weight:900">${p.qtd}<small style="font-size:10px">${p.unidade}</small></div>
-                            <button class="btn-adj" onclick="abrirAjuste('${p.id}')">Ajustar</button>
-                        </div>
-                    `;
+                    let conteudo = `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
+                    conteudo += `<span class="prod-cat">${p.categoria}</span>`;
+                    
+                    if (isSerr) {
+                        conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
+                        conteudo += `<span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>`;
+                        conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
+                        const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
+                        conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white">${p.status}</span>`;
+                    } else {
+                        conteudo += `<div class="prod-name">${p.nome || p.categoria}</div>`;
+                        conteudo += `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; background:#222; padding:10px; border-radius:8px;">
+                                <div><b style="font-size:24px;">${p.qtd}</b> <small style="color:#aaa">${p.unidade}</small></div>
+                                <button class="btn-adj" onclick="abrirAjuste('${p.id}')">AJUSTAR</button>
+                            </div>
+                        `;
+                    }
+                    card.innerHTML = conteudo;
+                    grid.appendChild(card);
                 }
-
-                card.innerHTML = html;
-                grid.appendChild(card);
             });
         }
-
-        window.abrirModalAdd = () => {
-            document.getElementById('modal-add').style.display = 'flex';
-            const select = document.getElementById('in-cat');
-            select.innerHTML = '<option value="">Selecione...</option>';
-            
-            const cats = setorAtual === 'impressao' 
-                ? ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Outros']
-                : ['ACM', 'PVC', 'Acrílico', 'Outros'];
-            
-            cats.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
-            handleUIChange();
-        };
-
-        window.handleUIChange = () => {
-            const isSerr = setorAtual === 'serralheria';
-            document.getElementById('fields-serralheria').style.display = isSerr ? 'block' : 'none';
-            document.getElementById('fields-impressao').style.display = isSerr ? 'none' : 'block';
-            document.getElementById('header-serr-only').style.display = isSerr ? 'block' : 'none';
-        };
-
-        window.toggleStatusSerr = () => {
-            statusSerr = statusSerr === 'Novo' ? 'Usado' : 'Novo';
-            const btn = document.getElementById('btn-status');
-            btn.innerText = statusSerr.toUpperCase();
-            btn.style.background = statusSerr === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
-        };
-
-        window.atualizarPreview = () => {
-            const w = parseFloat(document.getElementById('in-w').value) || 0;
-            const h = parseFloat(document.getElementById('in-h').value) || 0;
-            const fill = document.getElementById('corte-fill');
-            const div = document.getElementById('div-visual-corte');
-
-            if(w > 0 && h > 0) {
-                div.style.display = 'flex';
-                const maior = Math.max(w, h);
-                const menor = Math.min(w, h);
-                const ratio = menor / maior;
-                fill.style.width = '120px';
-                fill.style.height = (120 * ratio) + 'px';
-                fill.innerText = `${w}x${h}`;
-            } else {
-                div.style.display = 'none';
-            }
-        };
-
-        window.salvarNovoMaterial = async () => {
-            const cat = document.getElementById('in-cat').value;
-            if(!cat) return alert("Selecione a categoria");
-
-            const dados = {
-                setor: setorAtual,
-                categoria: cat,
-                data: serverTimestamp()
-            };
-
-            if(setorAtual === 'serralheria') {
-                dados.status = statusSerr;
-                dados.cor = document.getElementById('in-cor').value;
-                dados.espessura = document.getElementById('in-espessura').value;
-                dados.dimW = parseFloat(document.getElementById('in-w').value);
-                dados.dimH = parseFloat(document.getElementById('in-h').value);
-                dados.nome = `${cat} ${dados.cor} ${dados.espessura}`;
-                dados.qtd = 1;
-            } else {
-                dados.nome = document.getElementById('in-nome-imp').value;
-                dados.qtd = parseFloat(document.getElementById('in-qtd').value);
-                dados.unidade = document.getElementById('in-un').value;
-                dados.minimo = 5; // Padrão
-            }
-
-            await addDoc(collection(db, "estoque"), dados);
-            fecharModal('modal-add');
-        };
 
         window.deletarItem = async (id) => {
-            if(confirm("Tem certeza que deseja excluir permanentemente este item?")) {
+            if(confirm("Tem certeza que deseja apagar este material do estoque permanentemente?")) {
                 await deleteDoc(doc(db, "estoque", id));
             }
         };
 
-        window.abrirAjuste = (id) => {
-            const p = produtos.find(x => x.id === id);
-            itemAjusteId = id;
-            document.getElementById('adj-nome').innerText = p.nome;
-            document.getElementById('adj-qtd').innerText = p.qtd;
-            document.getElementById('modal-ajuste').style.display = 'flex';
-        };
-
-        window.alterarQtd = async (val) => {
-            const p = produtos.find(x => x.id === itemAjusteId);
-            const novaQtd = Math.max(0, p.qtd + val);
-            await updateDoc(doc(db, "estoque", itemAjusteId), { qtd: novaQtd });
-            document.getElementById('adj-qtd').innerText = novaQtd;
-        };
+        // ======= LÓGICA DO MODAL DE CADASTRO ======= //
 
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
-        
-        window.navegarPadroesSerr = () => {
-            const cat = document.getElementById('in-cat').value;
-            if(CONFIG_SERR[cat]) {
-                const padrao = CONFIG_SERR[cat].padroes[0];
-                document.getElementById('in-w').value = padrao.w;
-                document.getElementById('in-h').value = padrao.h;
-                atualizarPreview();
+
+        window.abrirModalProd = () => {
+            document.getElementById('modal-prod').style.display = 'flex';
+            window.isNewCategory = false;
+            window.materialStatus = "Novo";
+            
+            const isSerr = window.setorAtual === 'serralheria';
+            document.getElementById('modal-main-title').innerText = isSerr ? "Nova Chapa/Retalho" : "Novo Material";
+            
+            // Alterna visibilidade de blocos por setor
+            document.getElementById('btn-status').style.display = isSerr ? 'block' : 'none';
+            document.getElementById('div-acabamento').style.display = isSerr ? 'block' : 'none';
+            document.getElementById('div-esp-cor').style.display = isSerr ? 'flex' : 'none';
+            document.getElementById('div-nome-imp').style.display = isSerr ? 'none' : 'block';
+            
+            const selectCat = document.getElementById('prod-cat');
+            const btnCat = document.getElementById('btn-toggle-cat');
+            document.getElementById('label-cat').innerText = "Categoria";
+            btnCat.innerText = "+"; btnCat.onclick = window.ativarNovaCategoria;
+            
+            // Popula Categorias
+            const catsToUse = isSerr ? CATS_SERR : CATS_IMP;
+            selectCat.innerHTML = '<option value="">Selecione...</option>' + catsToUse.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            // Reseta campos
+            document.getElementById('prod-nome').value = '';
+            document.getElementById('prod-qtd').value = '1';
+            document.getElementById('prod-dim-w').value = '';
+            document.getElementById('prod-dim-h').value = '';
+            document.getElementById('div-dims').style.display = 'none';
+            document.getElementById('div-qtd').style.display = 'none';
+            
+            if(isSerr) {
+                document.getElementById('btn-status').className = `btn-status-toggle status-novo`;
+                document.getElementById('btn-status').innerText = "NOVO";
+                document.getElementById('prod-espessura').innerHTML = '<option value="">Selecione a Matéria...</option>';
+            } else {
+                document.getElementById('div-qtd').style.display = 'block';
             }
+            window.atualizarPlanoCorte();
+        };
+
+        window.handleCategoryChange = () => {
+            const isSerr = window.setorAtual === 'serralheria';
+            if (!isSerr) return; // Impressão não tem dimensões dinâmicas no cadastro
+
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            const divDims = document.getElementById('div-dims');
+            const espSelect = document.getElementById('prod-espessura');
+            window.indiceMedidaPadrao = 0;
+            
+            if (CONFIG_FABRICA[cat]) {
+                const espessuras = CONFIG_FABRICA[cat].espessuras;
+                espSelect.innerHTML = espessuras.map(e => `<option value="${e}">${e}</option>`).join('');
+                divDims.style.display = 'block';
+                if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
+            } else if (cat !== "") {
+                espSelect.innerHTML = '<option value="Outra">Outra</option>';
+                divDims.style.display = 'block';
+                document.getElementById('prod-dim-w').value = '';
+                document.getElementById('prod-dim-h').value = '';
+            } else {
+                divDims.style.display = 'none';
+            }
+            window.atualizarPlanoCorte();
+        };
+
+        // Lógicas visuais da Serralheria do usuário
+        window.toggleStatus = () => {
+            const btn = document.getElementById('btn-status');
+            window.materialStatus = (window.materialStatus === "Novo") ? "Usado" : "Novo";
+            btn.innerText = window.materialStatus;
+            btn.className = `btn-status-toggle status-${window.materialStatus.toLowerCase()}`;
+            if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
+        };
+
+        window.aplicarMedidasAutomaticas = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            if (CONFIG_FABRICA[cat]) {
+                const medida = CONFIG_FABRICA[cat].medidas[window.indiceMedidaPadrao];
+                document.getElementById('prod-dim-w').value = medida.w;
+                document.getElementById('prod-dim-h').value = medida.h;
+                window.atualizarPlanoCorte();
+            }
+        };
+
+        window.alternarMedidaPadrao = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            if (CONFIG_FABRICA[cat]) {
+                window.indiceMedidaPadrao = (window.indiceMedidaPadrao + 1) % CONFIG_FABRICA[cat].medidas.length;
+                window.aplicarMedidasAutomaticas();
+            }
+        };
+
+        window.atualizarPlanoCorte = () => {
+            const wReal = parseFloat(document.getElementById('prod-dim-w').value) || 0;
+            const hReal = parseFloat(document.getElementById('prod-dim-h').value) || 0;
+            const fill = document.getElementById('corte-fill');
+            const area = document.getElementById('div-visual-corte');
+            const lMaior = document.getElementById('txt-cota-maior');
+            const lMenor = document.getElementById('txt-cota-menor');
+            
+            if (wReal > 0 && hReal > 0) {
+                area.style.display = 'flex';
+                const maior = Math.max(wReal, hReal);
+                const menor = Math.min(wReal, hReal);
+                let ratio = menor / maior; 
+                let finalW = 150; let finalH = 150 * ratio;
+
+                fill.style.width = finalW + 'px'; fill.style.height = finalH + 'px';
+                fill.innerText = `${wReal}x${hReal}`;
+                lMaior.innerText = maior + 'cm'; lMenor.innerText = menor + 'cm';
+            } else {
+                area.style.display = 'none';
+            }
+        };
+
+        // Inputs Customizados
+        window.ativarNovaCategoria = () => {
+            window.isNewCategory = true;
+            document.getElementById('label-cat').innerText = "Nova Categoria";
+            const btn = document.getElementById('btn-toggle-cat');
+            btn.innerHTML = '×'; btn.onclick = window.resetarCategoriaField;
+            document.getElementById('cat-container').innerHTML = `<input type="text" id="prod-cat-new" placeholder="Nome da Categoria..." autofocus>`;
+        };
+        window.resetarCategoriaField = () => {
+            window.isNewCategory = false;
+            document.getElementById('label-cat').innerText = "Categoria";
+            const btn = document.getElementById('btn-toggle-cat');
+            btn.innerText = "+"; btn.onclick = window.ativarNovaCategoria;
+            const catsToUse = window.setorAtual === 'serralheria' ? CATS_SERR : CATS_IMP;
+            document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange="handleCategoryChange()"><option value="">Selecione...</option>${catsToUse.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
+            window.handleCategoryChange();
+        };
+
+        window.ativarNovaEspessura = () => {
+            document.getElementById('label-espessura').innerText = "Nova Espessura";
+            const b = document.getElementById('btn-toggle-esp'); b.innerHTML = '×'; b.onclick = window.resetarEspessuraField;
+            document.getElementById('esp-container').innerHTML = `<input type="text" id="prod-esp-new" placeholder="Ex: 15mm" autofocus>`;
+        };
+        window.resetarEspessuraField = () => {
+            document.getElementById('label-espessura').innerText = "Espessura";
+            const b = document.getElementById('btn-toggle-esp'); b.innerText = "+"; b.onclick = window.ativarNovaEspessura;
+            document.getElementById('esp-container').innerHTML = `<select id="prod-espessura"><option value="">Selecione...</option></select>`;
+            window.handleCategoryChange();
+        };
+
+        window.ativarNovaCor = () => {
+            document.getElementById('label-cor').innerText = "Nova Cor";
+            const b = document.getElementById('btn-toggle-cor'); b.innerHTML = '×'; b.onclick = window.resetarCorField;
+            document.getElementById('cor-container').innerHTML = `<input type="text" id="prod-cor-new" placeholder="Ex: Prata" autofocus>`;
+        };
+        window.resetarCorField = () => {
+            document.getElementById('label-cor').innerText = "Cor";
+            const b = document.getElementById('btn-toggle-cor'); b.innerText = "+"; b.onclick = window.ativarNovaCor;
+            document.getElementById('cor-container').innerHTML = `<select id="prod-cor"><option value="">Selecione...</option><option value="preto">Preto</option><option value="branco">Branco</option><option value="transparente">Transparente</option><option value="amarelo">Amarelo</option><option value="vermelho">Vermelho</option></select>`;
+        };
+
+        // ======= SALVAMENTO NO FIREBASE ======= //
+        window.salvarProduto = async () => {
+            const btn = document.getElementById('btn-salvar-final');
+            const isSerr = window.setorAtual === 'serralheria';
+            
+            const cat = window.isNewCategory ? document.getElementById('prod-cat-new').value : document.getElementById('prod-cat').value;
+            if (!cat) return alert("Selecione ou digite uma Categoria!");
+
+            btn.disabled = true; btn.innerText = "SALVANDO...";
+
+            let dados = { setor: window.setorAtual, categoria: cat, data_criacao: serverTimestamp() };
+
+            if (isSerr) {
+                // Captura campos complexos da serralheria
+                const espNode = document.getElementById('prod-esp-new') || document.getElementById('prod-espessura');
+                const corNode = document.getElementById('prod-cor-new') || document.getElementById('prod-cor');
+                
+                dados.acabamento = document.getElementById('prod-acabamento').value;
+                dados.espessura = espNode.value;
+                dados.cor = corNode.value;
+                dados.dimW = parseFloat(document.getElementById('prod-dim-w').value) || 0;
+                dados.dimH = parseFloat(document.getElementById('prod-dim-h').value) || 0;
+                dados.status = window.materialStatus;
+                dados.qtd = 1; // Chapas contam como 1 unidade física no card
+                
+                if (dados.dimW <= 0 || dados.dimH <= 0) { alert("Preencha as dimensões!"); btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE"; return; }
+            } else {
+                // Captura campos simples da impressão
+                dados.nome = document.getElementById('prod-nome').value;
+                if(!dados.nome) dados.nome = cat; // Fallback
+                dados.qtd = parseFloat(document.getElementById('prod-qtd').value) || 0;
+                dados.unidade = document.getElementById('prod-unidade').value;
+            }
+
+            try {
+                await addDoc(collection(db, "estoque"), dados);
+                window.fecharModal('modal-prod');
+            } catch(e) { console.error(e); alert("Erro ao salvar"); }
+            
+            btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE";
+        };
+
+        // ======= AJUSTE RÁPIDO (+ / -) DA IMPRESSÃO ======= //
+        let idParaAjuste = null;
+        window.abrirAjuste = (id) => {
+            idParaAjuste = id;
+            const p = produtos.find(x => x.id === id);
+            document.getElementById('mov-nome').innerText = p.nome || p.categoria;
+            document.getElementById('mov-qtd-atual').innerText = p.qtd;
+            document.getElementById('modal-mov').style.display = 'flex';
+        };
+
+        window.ajustarQtdRapido = async (valorDiff) => {
+            if(!idParaAjuste) return;
+            const p = produtos.find(x => x.id === idParaAjuste);
+            let novaQtd = Math.max(0, p.qtd + valorDiff); // Não permite negativo
+            
+            document.getElementById('mov-qtd-atual').innerText = novaQtd;
+            await updateDoc(doc(db, "estoque", idParaAjuste), { qtd: novaQtd });
+            // Não fecha o modal, permitindo o usuário apertar várias vezes
         };
     </script>
 </body>
