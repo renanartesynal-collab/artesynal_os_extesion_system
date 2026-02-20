@@ -311,13 +311,21 @@
             <div style="background:#1a1a1a; padding:15px; border-radius:8px; border: 1px solid #333; text-align: left;">
                 <label class="label-standard" style="margin-top:0;">Tamanho do Pedaço a Retirar (cm)</label>
                 <div class="form-row" style="margin-bottom:0; margin-top:10px;">
-                    <input type="number" id="corte-w" placeholder="Largura (L)">
-                    <input type="number" id="corte-h" placeholder="Altura (A)">
+                    <input type="number" id="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
+                    <input type="number" id="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                </div>
+
+                <div id="div-visual-modal-corte" style="margin-top: 15px; padding: 15px; background: #000; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; align-items: center;">
+                    <div class="canvas-title" style="margin-bottom: 20px;">PREVISÃO DO CORTE</div>
+                    <div class="chapa-container" style="height: 140px;">
+                        <div id="corte-original-bg" style="position: relative; background: var(--orange); border: 1px solid white; display: flex; align-items: flex-start; justify-content: flex-start; transition: all 0.3s ease;">
+                            <div id="corte-pedaco-box" style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
 
-            <button class="btn-salvar" id="btn-executar-corte" onclick="executarCorte()" style="background:var(--green-new)">✂️ CONFIRMAR CORTE</button>
+            <button class="btn-salvar" id="btn-executar-corte" onclick="executarCorte()" style="margin-top:20px; background:var(--green-new)">✂️ CONFIRMAR CORTE</button>
         </div>
     </div>
 
@@ -653,8 +661,8 @@
             await updateDoc(doc(db, "estoque", idParaAjuste), { qtd: novaQtd });
         };
 
-        // ---------------------------------------------------
-        // SESSÃO 9: SISTEMA DE CORTE DE CHAPA (SERRALHERIA)
+      // ---------------------------------------------------
+        // SESSÃO 9: SISTEMA DE CORTE DE CHAPA E PREVIEW VISUAL
         // ---------------------------------------------------
         let pecaParaCorte = null;
 
@@ -665,6 +673,55 @@
             document.getElementById('corte-w').value = '';
             document.getElementById('corte-h').value = '';
             document.getElementById('modal-corte').style.display = 'flex';
+            
+            // Renderiza o quadrado visual ao abrir o modal
+            window.atualizarPreviewCorte();
+        };
+
+        // Função que desenha a sobra e a área de corte
+        window.atualizarPreviewCorte = () => {
+            if (!pecaParaCorte) return;
+
+            const wOriginal = pecaParaCorte.dimW;
+            const hOriginal = pecaParaCorte.dimH;
+            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
+            const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
+
+            const bgOriginal = document.getElementById('corte-original-bg');
+            const boxCorte = document.getElementById('corte-pedaco-box');
+
+            // Calcula proporção para caber na tela (container max 120px)
+            const maiorOriginal = Math.max(wOriginal, hOriginal);
+            const menorOriginal = Math.min(wOriginal, hOriginal);
+            const ratioOriginal = menorOriginal / maiorOriginal;
+            
+            const basePx = 120;
+            let finalW = wOriginal >= hOriginal ? basePx : basePx * ratioOriginal;
+            let finalH = wOriginal >= hOriginal ? basePx * ratioOriginal : basePx;
+
+            // Aplica tamanho da chapa base
+            bgOriginal.style.width = finalW + 'px';
+            bgOriginal.style.height = finalH + 'px';
+
+            // Verifica se o corte é válido (não excede o tamanho original)
+            if (wCorte > 0 && hCorte > 0 && wCorte <= wOriginal && hCorte <= hOriginal) {
+                boxCorte.style.display = 'flex';
+                
+                // Regra de três para o pedaço vermelho
+                const percentW = wCorte / wOriginal;
+                const percentH = hCorte / hOriginal;
+                
+                boxCorte.style.width = (finalW * percentW) + 'px';
+                boxCorte.style.height = (finalH * percentH) + 'px';
+                boxCorte.innerText = `${wCorte}x${hCorte}`;
+                
+                // Escurece o fundo para mostrar que virou "Sobra"
+                bgOriginal.style.background = '#333';
+            } else {
+                // Se não tem corte válido, deixa apenas a chapa laranja
+                boxCorte.style.display = 'none';
+                bgOriginal.style.background = 'var(--orange)';
+            }
         };
 
         window.executarCorte = async () => {
@@ -682,12 +739,11 @@
             btn.disabled = true; btn.innerText = "CORTANDO...";
 
             try {
-                // 1. Reduz as medidas da chapa original (que vira a "Sobra")
                 const sobraW = pecaParaCorte.dimW - cw;
                 const sobraH = pecaParaCorte.dimH - ch;
-                
                 const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
                 
+                // Atualiza a chapa atual transformando ela na sobra
                 await updateDoc(doc(db, "estoque", pecaParaCorte.id), { 
                     dimW: sobraW > 0 ? sobraW : pecaParaCorte.dimW, 
                     dimH: sobraH > 0 ? sobraH : pecaParaCorte.dimH,
@@ -695,7 +751,7 @@
                     nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)"
                 });
 
-                // 2. Cria um novo card para a chapa cortada
+                // Cria o card do corte novo
                 const novaPeca = { ...pecaParaCorte };
                 delete novaPeca.id;
                 novaPeca.dimW = cw;
@@ -715,6 +771,3 @@
                 btn.disabled = false; btn.innerText = "✂️ CONFIRMAR CORTE";
             }
         };
-    </script>
-</body>
-</html>
