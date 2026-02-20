@@ -9,7 +9,7 @@
         :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; --text: #eee; }
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
 
-        .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; padding-bottom: 80px;}
         
         .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
 
@@ -48,10 +48,8 @@
         .view-item div { font-size: 16px; font-weight: 600; color: #eee; }
         .view-obs-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #ddd; border-left: 3px solid var(--blue); }
 
-        .btn-whats-action { background: #25D366; color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 11px;}
-
-        /* GALERIA GERAL */
-        .gallery-container { margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
+        /* GALERIA GERAL (COMPARTILHADA) */
+        #shared-gallery { display: none; margin-top: 30px; border-top: 2px dashed #555; padding-top: 20px; }
         .gallery-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
         .btn-photo { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; color: white; font-family: 'Montserrat', sans-serif;}
         .btn-upload { background: #555; }
@@ -79,26 +77,28 @@
         .thumb-actions { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 2px; pointer-events: none; }
         .thumb-btn { width: 20px; height: 20px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 3px; font-size: 10px; font-weight: bold; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;}
         .btn-del-thumb { background: var(--red); align-self: flex-end; }
-        .btn-move-thumb { background: var(--blue); }
 
-        .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none;}
+        /* BOTOES FLUTUANTES */
+        .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
+        .fab-vt { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: none; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
 
-        /* MODAL DE DESENHO */
+        /* MODAL DE DESENHO (ROBUSTO) */
         #draw-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; 
+            background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; 
         }
         #canvas-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; touch-action: none; }
-        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 20px #000; }
-        .draw-toolbar { height: 70px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-top: 2px solid var(--yellow); overflow-x: auto;}
-        .btn-tool { padding: 8px 12px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; margin-right: 5px; font-family: 'Montserrat', sans-serif;}
+        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 20px #000; touch-action: none; cursor: crosshair; }
+        
+        .draw-toolbar { height: 75px; background: #222; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-top: 2px solid var(--yellow); overflow-x: auto; flex-shrink: 0;}
+        .btn-tool { padding: 10px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; margin-right: 5px; font-family: 'Montserrat', sans-serif;}
         .btn-cancel { background: #555; color: white; }
-        .btn-undo { background: var(--blue); color: white; }
+        .btn-undo { background: var(--blue); color: white; font-size: 16px;}
         .btn-confirm { background: var(--green); color: white; }
         .tool-select { background: #333; color: #aaa; border: 1px solid #555; }
         .tool-select.active { background: var(--yellow); color: black; border-color: var(--yellow); }
 
-        /* VISITA TÉCNICA */
+        /* VISITA TÉCNICA - MODAL */
         #visita-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center;
@@ -115,49 +115,80 @@
         .b-edit { background: #555; flex: 1; min-width: 120px; font-size: 12px;}
         .copy-end-btn { background: #555; color: white; border: none; border-radius: 5px; padding: 0 15px; cursor: pointer; font-weight: bold; font-size: 11px;}
         
+        /* CARD DO TÉCNICO (MODO VT) */
+        #vt-mode { display: none; }
+        .vt-card { background: #1e272e; border-radius: 10px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.6); border-left: 5px solid var(--green); }
+        .vt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .vt-title { font-size: 24px; font-weight: 900; color: white; margin: 0; }
+        .vt-badge { background: var(--green); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        
+        .vt-info-group { margin-bottom: 20px; }
+        .vt-label { font-size: 11px; color: var(--yellow); font-weight: bold; margin-bottom: 3px; display: block; text-transform: uppercase; }
+        .vt-value { font-size: 16px; color: white; font-weight: 600; line-height: 1.4; }
+        .vt-value.large { font-size: 20px; color: var(--blue); }
+        
+        .vt-actions-row { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-vt-map { background: #4285F4; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Montserrat', sans-serif;}
+        .btn-vt-copy { background: #555; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Montserrat', sans-serif;}
+
+        .vt-obs-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border-left: 3px solid var(--yellow); font-size: 14px; color: #ddd; line-height: 1.5; white-space: pre-wrap; margin-top: 5px;}
+
         @media (max-width: 600px) {
             .view-grid { grid-template-columns: 1fr; }
             .photo-viewer { height: 250px; }
+            .vt-actions-row { flex-direction: column; }
+            .tool-select { padding: 10px 8px; font-size: 10px; }
         }
     </style>
 </head>
 <body>
 
     <div id="draw-modal">
-        <div style="background: #111; padding: 10px; display: flex; justify-content: center; gap: 10px;">
+        <div style="background: #111; padding: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
             <button class="btn-tool tool-select active" id="btn-tool-draw" onclick="window.setTool('draw')">✏️ DESENHAR</button>
-            <button class="btn-tool tool-select" id="btn-tool-move" onclick="window.setTool('move')">✋ MOVER</button>
+            <button class="btn-tool tool-select" id="btn-tool-move" onclick="window.setTool('move')">✋ MOVER / EDITAR</button>
+            <button class="btn-tool tool-select" id="btn-tool-del" onclick="window.setTool('del')">🗑️ APAGAR</button>
         </div>
         <div id="canvas-wrapper"><canvas id="editor-canvas"></canvas></div>
         <div class="draw-toolbar">
-            <div>
+            <div style="display: flex; gap: 5px;">
                 <button class="btn-tool btn-cancel" onclick="window.fecharEditor()">CANCELAR</button>
                 <button class="btn-tool btn-undo" onclick="window.desfazerUltimo()">↩</button>
             </div>
-            <button class="btn-tool btn-confirm" onclick="window.salvarEditor()">SALVAR</button>
+            <button class="btn-tool btn-confirm" onclick="window.salvarEditor()">SALVAR MEDIDAS</button>
         </div>
     </div>
 
     <div id="visita-modal">
         <div class="visita-box">
             <h3>Gerar Visita Técnica</h3>
-            <label>CLIENTE</label>
-            <input type="text" id="v-cliente" readonly style="margin-bottom: 10px; background: #222; color:#aaa;">
+            <div class="row" style="margin-bottom: 10px;">
+                <div class="col" style="margin-bottom: 0;">
+                    <label>CLIENTE</label>
+                    <input type="text" id="v-cliente">
+                </div>
+                <div class="col" style="margin-bottom: 0;">
+                    <label>EMPRESA</label>
+                    <input type="text" id="v-empresa">
+                </div>
+            </div>
             <label>ENDEREÇO</label>
             <div style="display:flex; gap:5px; margin-bottom: 10px;">
                 <input type="text" id="v-endereco">
                 <button class="copy-end-btn" onclick="window.copiarEnderecoModal()">COPIAR</button>
             </div>
-            <label>INFORMAÇÕES ADICIONAIS</label>
+            <label>INFORMAÇÕES E OBJETIVO DA VISITA</label>
             <textarea id="v-info" placeholder="O que será feito na visita?"></textarea>
+            
             <div style="display:flex; gap: 10px; margin-top: 20px;">
                 <button class="btn-v-action" style="background: #e74c3c; flex:1;" onclick="window.fecharModalVisita()">CANCELAR</button>
-                <button id="btn-finalizar-visita" class="btn-v-action" style="background: #2ecc71; flex:1;" onclick="window.finalizarVisita()">FINALIZAR</button>
+                <button id="btn-finalizar-visita" class="btn-v-action" style="background: #2ecc71; flex:1;" onclick="window.finalizarVisita()">SALVAR VISITA</button>
             </div>
         </div>
     </div>
 
     <div class="container" id="main-container">
+        
         <div id="edit-mode">
             <div class="header-form">
                 <h2>Editar Solicitação</h2>
@@ -189,25 +220,10 @@
                 <label>ENDEREÇO</label>
                 <input type="text" id="in-endereco">
                 <br><br>
-                <label>OBSERVAÇÕES</label>
+                <label>OBSERVAÇÕES GERAIS</label>
                 <textarea id="in-obs"></textarea>
-
-                <div class="gallery-container">
-                    <div class="gallery-controls">
-                        <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
-                        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
-                        <button type="button" class="btn-photo btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR</button>
-                        <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
-                    </div>
-                    <div class="mini-gallery-grid" id="mini-gallery"></div>
-                    <div class="photo-viewer">
-                         <img id="img-display-edit" src="" style="display:none;">
-                         <span id="no-photo-msg-edit" style="color:#555;">Selecione uma foto</span>
-                    </div>
-                    <button type="button" id="btn-medidas" class="btn-photo btn-measure" onclick="window.abrirEditor()">📏 ADICIONAR MEDIDAS</button>
-                    <input type="text" id="in-foto-obs" placeholder="Legenda da foto..." style="margin-top:10px" oninput="window.atualizarLegendaFoto()">
-                </div>
-                <button type="button" id="btn-salvar" class="btn-save" onclick="window.salvarSolicitacao()">SALVAR SOLICITAÇÃO</button>
+                
+                <button type="button" id="btn-salvar-orcamento" class="btn-save" onclick="window.salvarSolicitacao()">💾 SALVAR INFORMAÇÕES DO ORÇAMENTO</button>
             </form>
         </div>
 
@@ -227,10 +243,10 @@
                     </div>
                 </div>
                 <div class="area-botoes-topo">
-                    <button id="btn-acao-gerar-vt" class="btn-v-action btn-gerar-vt" onclick="window.abrirModalVisita()">📋 GERAR VISITA TÉCNICA</button>
+                    <button id="btn-acao-gerar-vt" class="btn-v-action btn-gerar-vt" onclick="window.abrirModalVisita()">📋 VISITA TÉCNICA</button>
                     <div id="area-vt-gerada" class="botoes-pos-vt">
-                        <button class="btn-v-action b-ver" onclick="window.verVisitaAtual()">👁️ VER</button>
-                        <button class="btn-v-action b-link" onclick="window.copiarLinkVisita()">🔗 LINK</button>
+                        <button class="btn-v-action b-ver" onclick="window.alternarModo('vt')">🚗 ABRIR CARD TÉCNICO</button>
+                        <button class="btn-v-action b-edit" onclick="window.abrirModalVisita()">✏️ EDITAR INFO VISITA</button>
                     </div>
                 </div>
                 <div class="view-body">
@@ -247,17 +263,77 @@
                     <div class="view-obs-box" id="view-obs">Obs...</div>
                 </div>
             </div>
-            <div style="margin-top: 20px;">
+            
+            <div style="margin-top: 20px;" id="view-gallery-readonly">
                 <div class="photo-viewer">
-                    <button class="nav-btn prev" onclick="window.mudarFoto(-1)">&#10094;</button>
+                    <button class="nav-btn prev" onclick="window.mudarFoto(-1)">❮</button>
                     <img id="img-display" src="" style="display:none;">
-                    <button class="nav-btn next" onclick="window.mudarFoto(1)">&#10095;</button>
+                    <button class="nav-btn next" onclick="window.mudarFoto(1)">❯</button>
                 </div>
                 <div class="photo-count" id="photo-count">0/0</div>
                 <div class="photo-caption-display" id="caption-display"></div>
             </div>
-            <button class="fab-edit" onclick="window.alternarModo('edit')">✏️</button>
         </div>
+
+        <div id="vt-mode">
+            <div class="header-form">
+                <h2>Card do Técnico</h2>
+                <a href="#" class="btn-voltar" onclick="window.alternarModo('view')">⬅ VOLTAR AO RESUMO</a>
+            </div>
+
+            <div class="vt-card">
+                <div class="vt-header">
+                    <h2 class="vt-title" id="vt-servico">Título do Serviço</h2>
+                    <span class="vt-badge">EM RUA</span>
+                </div>
+                
+                <div class="vt-info-group">
+                    <span class="vt-label">Cliente / Contato</span>
+                    <div class="vt-value large" id="vt-cliente">Nome do Cliente</div>
+                    <div class="vt-value" id="vt-empresa" style="font-size: 14px; color: #aaa;">Empresa</div>
+                </div>
+
+                <div class="vt-info-group">
+                    <span class="vt-label">Endereço do Local</span>
+                    <div class="vt-value" id="vt-endereco">Rua Exemplo, 123 - Bairro</div>
+                    <div class="vt-actions-row">
+                        <button class="btn-vt-map" onclick="window.abrirMapsVT()">🗺️ ABRIR NO MAPS</button>
+                        <button class="btn-vt-copy" onclick="window.copiarEnderecoVT()">📋 COPIAR</button>
+                    </div>
+                </div>
+
+                <div class="vt-info-group">
+                    <span class="vt-label">Instruções para a Visita</span>
+                    <div class="vt-obs-box" id="vt-info">Sem instruções adicionais registradas.</div>
+                </div>
+            </div>
+            <p style="text-align: center; color: var(--yellow); font-size: 12px; margin-top: 20px; font-weight: bold;">ADICIONE FOTOS E MEDIDAS ABAIXO</p>
+        </div>
+
+        <div id="shared-gallery">
+            <div class="gallery-controls">
+                <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
+                <button type="button" class="btn-photo btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR FOTO</button>
+                <button type="button" class="btn-photo btn-cam" onclick="document.getElementById('camera-input').click()">📷 CÂMERA</button>
+            </div>
+            
+            <div class="mini-gallery-grid" id="mini-gallery"></div>
+            
+            <div class="photo-viewer">
+                 <img id="img-display-edit" src="" style="display:none;">
+                 <span id="no-photo-msg-edit" style="color:#555;">Selecione uma foto</span>
+            </div>
+            
+            <button type="button" id="btn-medidas" class="btn-photo btn-measure" onclick="window.abrirEditor()">📏 ADICIONAR MEDIDAS NA FOTO</button>
+            <input type="text" id="in-foto-obs" placeholder="Legenda da foto..." style="margin-top:10px" oninput="window.atualizarLegendaFoto()">
+
+            <button type="button" class="btn-save" id="btn-salvar-fotos-vt" style="margin-top: 20px;" onclick="window.salvarSolicitacao()">💾 SALVAR FOTOS NO SISTEMA</button>
+        </div>
+
+        <button id="fab-edit" class="fab-edit" onclick="window.alternarModo('edit')">✏️</button>
+        <button id="fab-vt" class="fab-vt" onclick="window.alternarModo('vt')" title="Card do Técnico">🚗</button>
+
     </div>
 
     <script type="module">
@@ -273,10 +349,17 @@
         let modoAtual = 'edit';
         let idVisitaTecnicaGerada = null;
 
-        // Canvas Vars
+        // ==========================================
+        // VARIÁVEIS DO CANVAS ROBUSTO
+        // ==========================================
         let canvas = document.getElementById('editor-canvas');
         let ctx = canvas.getContext('2d');
-        let arrows = [], isDrawing = false, editorTool = 'draw', startX, startY;
+        let arrows = []; // Armazena as setas matematicamente
+        let editorTool = 'draw';
+        let isDrawing = false, isDragging = false, didDrag = false;
+        let startX, startY, currentX, currentY;
+        let dragTarget = null; // Para saber o que estamos movendo (ponta 1, ponta 2 ou centro)
+        let currentEditorImg = null;
 
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
@@ -288,20 +371,49 @@
 
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
+            
+            // Eventos do Canvas (Mouse + Touch)
+            canvas.addEventListener('mousedown', handleDown);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('mouseup', handleUp);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDown(e); }, {passive: false});
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive: false});
+            canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, {passive: false});
         };
 
         window.alternarModo = (modo) => {
             modoAtual = modo;
+            
             document.getElementById('edit-mode').style.display = modo === 'edit' ? 'block' : 'none';
             document.getElementById('view-mode').style.display = modo === 'view' ? 'block' : 'none';
-            if(modo === 'edit') window.renderMiniaturas(); else window.renderVisualizadorView();
+            document.getElementById('vt-mode').style.display = modo === 'vt' ? 'block' : 'none';
+
+            document.getElementById('shared-gallery').style.display = (modo === 'edit' || modo === 'vt') ? 'block' : 'none';
+            document.getElementById('view-gallery-readonly').style.display = modo === 'view' ? 'block' : 'none';
+
+            document.getElementById('fab-edit').style.display = (modo === 'view' || modo === 'vt') ? 'flex' : 'none';
+            document.getElementById('fab-vt').style.display = (idVisitaTecnicaGerada && (modo === 'view' || modo === 'edit')) ? 'flex' : 'none';
+
+            if(modo === 'edit' || modo === 'vt') {
+                window.renderMiniaturas();
+            } else {
+                window.renderVisualizadorView();
+            }
+
+            if (modo === 'vt') {
+                document.getElementById('vt-servico').innerText = document.getElementById('in-servico').value || 'Serviço Sem Título';
+                document.getElementById('vt-cliente').innerText = document.getElementById('v-cliente').value || document.getElementById('in-cliente').value || 'Cliente não informado';
+                document.getElementById('vt-empresa').innerText = document.getElementById('v-empresa').value || document.getElementById('in-empresa').value || '';
+                document.getElementById('vt-endereco').innerText = document.getElementById('v-endereco').value || document.getElementById('in-endereco').value || 'Endereço não informado';
+                document.getElementById('vt-info').innerText = document.getElementById('v-info').value || 'Sem instruções da visita.';
+            }
         };
 
         async function carregarDados(id) {
             const docSnap = await getDoc(doc(db, "orcamentos", id));
             if (docSnap.exists()) {
                 const d = docSnap.data();
-                // Fill Edit
+                
                 document.getElementById('display-num-edit').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
                 document.getElementById('in-cliente').value = d.cliente || '';
                 document.getElementById('in-whatsapp').value = d.whatsapp || '';
@@ -310,31 +422,60 @@
                 document.getElementById('in-medidas').value = d.medidas || '';
                 document.getElementById('in-endereco').value = d.endereco || '';
                 document.getElementById('in-obs').value = d.observacoes || '';
-                // Fill View
+                if(d.tipo_servico_material) { document.querySelector(`input[name="tipo"][value="${d.tipo_servico_material}"]`).checked = true; }
+                
                 document.getElementById('view-id').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
                 document.getElementById('view-cliente').innerText = d.cliente || '--';
+                document.getElementById('view-empresa').innerText = d.empresa || '--';
                 document.getElementById('view-servico').innerText = d.servico_titulo || '--';
                 document.getElementById('view-whatsapp').innerText = d.whatsapp || '--';
                 document.getElementById('view-endereco').innerText = d.endereco || '--';
+                document.getElementById('view-medidas').innerText = d.medidas || '--';
                 document.getElementById('view-obs').innerText = d.observacoes || 'Sem observações.';
                 
                 if(d.visita_id) {
                     idVisitaTecnicaGerada = d.visita_id;
                     document.getElementById('btn-acao-gerar-vt').style.display = 'none';
                     document.getElementById('area-vt-gerada').style.display = 'flex';
+                    document.getElementById('fab-vt').style.display = 'flex';
+                    
+                    const visitaSnap = await getDoc(doc(db, "visitas", idVisitaTecnicaGerada));
+                    if(visitaSnap.exists()) {
+                        const vData = visitaSnap.data();
+                        document.getElementById('v-cliente').value = vData.cliente || '';
+                        document.getElementById('v-empresa').value = vData.empresa || '';
+                        document.getElementById('v-endereco').value = vData.endereco || '';
+                        document.getElementById('v-info').value = vData.info_adicional || '';
+                    }
                 }
 
-                imagens = d.imagens || [];
+                // Migração de imagens antigas para suportar o novo canvas
+                let dbImgs = d.imagens || [];
+                dbImgs.forEach(img => {
+                    if (!img.originalUrl) {
+                        img.originalUrl = img.url; // Salva o backup caso seja imagem antiga
+                        img.arrows = [];
+                    }
+                });
+                imagens = dbImgs;
                 window.renderMiniaturas();
             }
         }
 
+        // ==========================================
+        // LÓGICA DE FOTOS E GALERIA
+        // ==========================================
         window.processarImagens = (e) => {
             const files = e.target.files;
             for(let file of files) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    imagens.push({ url: event.target.result, obs: "" });
+                    imagens.push({ 
+                        url: event.target.result, 
+                        originalUrl: event.target.result, // A mágica: guarda a foto original intacta
+                        obs: "", 
+                        arrows: [] // Histórico de setas
+                    });
                     window.renderMiniaturas();
                 };
                 reader.readAsDataURL(file);
@@ -380,10 +521,15 @@
                 display.style.display = 'block';
                 document.getElementById('photo-count').innerText = `${indiceAtual + 1} / ${imagens.length}`;
                 document.getElementById('caption-display').innerText = imagens[indiceAtual].obs || '';
+            } else {
+                display.style.display = 'none';
+                document.getElementById('caption-display').innerText = 'Nenhuma foto anexada.';
+                document.getElementById('photo-count').innerText = `0 / 0`;
             }
         };
 
         window.mudarFoto = (dir) => {
+            if (imagens.length === 0) return;
             indiceAtual = (indiceAtual + dir + imagens.length) % imagens.length;
             window.renderVisualizadorView();
         };
@@ -398,10 +544,18 @@
             if(imagens[indiceAtual]) imagens[indiceAtual].obs = document.getElementById('in-foto-obs').value;
         };
 
-        // SALVAR
+        // ==========================================
+        // SALVAR SISTEMA PRINCIPAL E FOTOS
+        // ==========================================
         window.salvarSolicitacao = async () => {
-            const btn = document.getElementById('btn-salvar');
-            btn.disabled = true; btn.innerText = "SALVANDO...";
+            const btnEdit = document.getElementById('btn-salvar-orcamento');
+            const btnVt = document.getElementById('btn-salvar-fotos-vt');
+            
+            btnEdit.disabled = true; btnVt.disabled = true;
+            const originalTextEdit = btnEdit.innerText;
+            const originalTextVt = btnVt.innerText;
+            
+            btnEdit.innerText = "SALVANDO..."; btnVt.innerText = "SALVANDO...";
             
             const dados = {
                 cliente: document.getElementById('in-cliente').value,
@@ -412,7 +566,7 @@
                 endereco: document.getElementById('in-endereco').value,
                 precisa_instalacao: document.getElementById('in-instalacao').value,
                 observacoes: document.getElementById('in-obs').value,
-                tipo_servico_material: document.querySelector('input[name="tipo"]:checked').value,
+                tipo_servico_material: document.querySelector('input[name="tipo"]:checked') ? document.querySelector('input[name="tipo"]:checked').value : 'Serviço',
                 imagens: imagens,
                 data_atualizacao: serverTimestamp()
             };
@@ -420,6 +574,7 @@
             try {
                 if(idEdicao) {
                     await updateDoc(doc(db, "orcamentos", idEdicao), dados);
+                    alert("Salvo com sucesso!");
                 } else {
                     const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"), limit(1));
                     const snap = await getDocs(q);
@@ -429,86 +584,93 @@
                     dados.data_criacao = serverTimestamp();
                     const novoDoc = await addDoc(collection(db, "orcamentos"), dados);
                     idEdicao = novoDoc.id;
+                    alert("Salvo com sucesso!");
+                    window.location.href = `${ROTAS.detalhes_orcamento}?id=${idEdicao}&mode=view`;
                 }
-                alert("Salvo com sucesso!");
-                window.location.href = `${ROTAS.detalhes_orcamento}?id=${idEdicao}&mode=view`;
             } catch(e) { console.error(e); alert("Erro ao salvar."); }
-            btn.disabled = false; btn.innerText = "SALVAR SOLICITAÇÃO";
+            
+            btnEdit.disabled = false; btnEdit.innerText = originalTextEdit;
+            btnVt.disabled = false; btnVt.innerText = originalTextVt;
         };
 
-        // VISITA TÉCNICA
+        // ==========================================
+        // VISITA TÉCNICA (CARD DO TÉCNICO)
+        // ==========================================
         window.abrirModalVisita = () => {
-            document.getElementById('v-cliente').value = document.getElementById('view-cliente').innerText;
-            document.getElementById('v-endereco').value = document.getElementById('view-endereco').innerText;
+            if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
+            if (!document.getElementById('v-empresa').value) document.getElementById('v-empresa').value = document.getElementById('in-empresa').value;
+            if (!document.getElementById('v-endereco').value) document.getElementById('v-endereco').value = document.getElementById('in-endereco').value;
+            if (!document.getElementById('v-info').value) document.getElementById('v-info').value = document.getElementById('in-obs').value;
+            
             document.getElementById('visita-modal').style.display = 'flex';
         };
 
         window.fecharModalVisita = () => document.getElementById('visita-modal').style.display = 'none';
-window.finalizarVisita = async () => {
-    const btn = document.getElementById('btn-finalizar-visita');
-    if (!idEdicao) { alert("Salve a solicitação antes de gerar uma visita!"); return; }
-    
-    btn.disabled = true; 
-    btn.innerText = "GERANDO...";
-    
-    try {
-        const vtDados = {
-            cliente: document.getElementById('v-cliente').value,
-            endereco: document.getElementById('v-endereco').value,
-            info_adicional: document.getElementById('v-info').value,
-            orcamento_id: idEdicao,
-            status: "Pendente",
-            data_criacao: serverTimestamp()
+        
+        window.finalizarVisita = async () => {
+            const btn = document.getElementById('btn-finalizar-visita');
+            if (!idEdicao) { alert("Salve a solicitação base antes de gerar/salvar os dados da visita!"); return; }
+            
+            btn.disabled = true; btn.innerText = "SALVANDO...";
+            
+            try {
+                const vtDados = {
+                    cliente: document.getElementById('v-cliente').value,
+                    empresa: document.getElementById('v-empresa').value,
+                    endereco: document.getElementById('v-endereco').value,
+                    info_adicional: document.getElementById('v-info').value,
+                    orcamento_id: idEdicao,
+                    status: "Pendente",
+                    data_atualizacao: serverTimestamp()
+                };
+                
+                if (idVisitaTecnicaGerada) {
+                    await updateDoc(doc(db, "visitas", idVisitaTecnicaGerada), vtDados);
+                } else {
+                    vtDados.data_criacao = serverTimestamp();
+                    const docRef = await addDoc(collection(db, "visitas"), vtDados);
+                    idVisitaTecnicaGerada = docRef.id; 
+                    await updateDoc(doc(db, "orcamentos", idEdicao), { visita_id: idVisitaTecnicaGerada });
+                }
+                
+                alert("Dados da Visita Técnica salvos com sucesso!");
+                document.getElementById('visita-modal').style.display = 'none';
+                document.getElementById('btn-acao-gerar-vt').style.display = 'none';
+                document.getElementById('area-vt-gerada').style.display = 'flex';
+                document.getElementById('fab-vt').style.display = 'flex';
+                
+            } catch(e) { console.error("Erro:", e); alert("Erro ao salvar visita."); } 
+            finally { btn.disabled = false; btn.innerText = "SALVAR VISITA"; }
         };
-        
-        // Linha importante: Capturamos o ID gerado pelo Firebase
-        const docRef = await addDoc(collection(db, "visitas"), vtDados);
-        idVisitaTecnicaGerada = docRef.id; 
-        
-        await updateDoc(doc(db, "orcamentos", idEdicao), { visita_id: docRef.id });
-        
-        alert("Visita Técnica gerada com sucesso!");
-        
-        // Fecha o modal e atualiza os botões na tela sem precisar de reload
-        document.getElementById('visita-modal').style.display = 'none';
-        document.getElementById('btn-acao-gerar-vt').style.display = 'none';
-        document.getElementById('area-vt-gerada').style.display = 'flex';
-        
-    } catch(e) { 
-        console.error("Erro ao gerar visita:", e); 
-        alert("Erro ao gerar visita técnica.");
-    } finally {
-        btn.disabled = false; 
-        btn.innerText = "FINALIZAR";
-    }
-};
 
-window.verVisitaAtual = () => {
-    if (idVisitaTecnicaGerada) {
-        window.location.href = `detalhes-visita.html?id=${idVisitaTecnicaGerada}`;
-    } else {
-        alert("Erro: ID da visita não encontrado. Tente recarregar a página.");
-    }
-};
+        window.copiarEnderecoModal = () => {
+            navigator.clipboard.writeText(document.getElementById('v-endereco').value).then(() => alert("Endereço copiado!"));
+        };
+        window.copiarEnderecoVT = () => {
+            navigator.clipboard.writeText(document.getElementById('vt-endereco').innerText).then(() => alert("Copiado!"));
+        };
+        window.abrirMapsVT = () => {
+            window.open(`https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
+        };
 
-window.copiarLinkVisita = () => {
-    if (!idVisitaTecnicaGerada) return;
-    const link = window.location.origin + window.location.pathname.replace('solicitacao.html', 'detalhes-visita.html') + `?id=${idVisitaTecnicaGerada}`;
-    
-    navigator.clipboard.writeText(link).then(() => {
-        alert("Link da visita copiado para o WhatsApp!");
-    });
-};
-        // EDITOR DE MEDIDAS (Simples)
+        // ==========================================
+        // EDITOR DE MEDIDAS (ROBUSTO E ORIENTADO A OBJETO)
+        // ==========================================
         window.abrirEditor = () => {
             if(!imagens[indiceAtual]) return;
             document.getElementById('draw-modal').style.display = 'flex';
+            
+            // Clona o array de setas para não afetar o original até que o usuário clique em SALVAR
+            arrows = JSON.parse(JSON.stringify(imagens[indiceAtual].arrows || []));
+            window.setTool('draw');
+
             const img = new Image();
             img.onload = () => {
                 canvas.width = img.width; canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+                currentEditorImg = img;
+                redrawCanvas();
             };
-            img.src = imagens[indiceAtual].url;
+            img.src = imagens[indiceAtual].originalUrl; // Abre SEMPRE a imagem original limpa
         };
 
         window.fecharEditor = () => document.getElementById('draw-modal').style.display = 'none';
@@ -519,36 +681,170 @@ window.copiarLinkVisita = () => {
             document.getElementById(`btn-tool-${t}`).classList.add('active');
         };
 
-        canvas.onmousedown = (e) => {
-            if(editorTool !== 'draw') return;
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            startX = (e.clientX - rect.left) * scaleX;
-            startY = (e.clientY - rect.top) * scaleY;
-        };
-
-        canvas.onmouseup = (e) => {
-            if(!isDrawing) return;
-            isDrawing = false;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const endX = (e.clientX - rect.left) * scaleX;
-            const endY = (e.clientY - rect.top) * scaleY;
-            
-            const txt = prompt("Medida (Ex: 150cm):");
-            if(txt) {
-                ctx.strokeStyle = "red"; ctx.lineWidth = 5;
-                ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY); ctx.stroke();
-                ctx.fillStyle = "red"; ctx.font = "bold 40px Montserrat";
-                ctx.fillText(txt, (startX + endX)/2, (startY + endY)/2 - 10);
+        window.desfazerUltimo = () => {
+            if (arrows.length > 0) {
+                arrows.pop();
+                redrawCanvas();
             }
         };
 
+        function dist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let cx = e.clientX, cy = e.clientY;
+            
+            if(e.touches && e.touches.length > 0) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } 
+            else if (e.changedTouches && e.changedTouches.length > 0) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+            
+            return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
+        }
+
+        function handleDown(e) {
+            const pos = getPos(e);
+            
+            if (editorTool === 'draw') {
+                isDrawing = true;
+                startX = pos.x; startY = pos.y;
+                currentX = pos.x; currentY = pos.y;
+            } 
+            else if (editorTool === 'move') {
+                let closest = null; let minDist = Number.MAX_VALUE;
+                const hitR = 50; // Raio grande para o dedo no celular acertar fácil
+
+                arrows.forEach((a, i) => {
+                    let d1 = dist(pos.x, pos.y, a.x1, a.y1);
+                    let d2 = dist(pos.x, pos.y, a.x2, a.y2);
+                    let d3 = dist(pos.x, pos.y, (a.x1+a.x2)/2, (a.y1+a.y2)/2);
+
+                    if (d1 < hitR && d1 < minDist) { minDist = d1; closest = {i, p: 'start'}; }
+                    if (d2 < hitR && d2 < minDist) { minDist = d2; closest = {i, p: 'end'}; }
+                    if (d3 < hitR && d3 < minDist) { minDist = d3; closest = {i, p: 'center'}; }
+                });
+
+                if (closest) { isDragging = true; didDrag = false; dragTarget = closest; }
+            } 
+            else if (editorTool === 'del') {
+                let hitIndex = -1; let minDist = 60;
+                arrows.forEach((a, i) => {
+                    let d = dist(pos.x, pos.y, (a.x1+a.x2)/2, (a.y1+a.y2)/2);
+                    if (d < minDist) { minDist = d; hitIndex = i; }
+                });
+                if (hitIndex !== -1) { arrows.splice(hitIndex, 1); redrawCanvas(); }
+            }
+        }
+
+        function handleMove(e) {
+            if (isDrawing && editorTool === 'draw') {
+                const pos = getPos(e);
+                currentX = pos.x; currentY = pos.y;
+                redrawCanvas();
+            } else if (isDragging && editorTool === 'move' && dragTarget) {
+                didDrag = true;
+                const pos = getPos(e);
+                let a = arrows[dragTarget.i];
+                if (dragTarget.p === 'start') { a.x1 = pos.x; a.y1 = pos.y; } 
+                else if (dragTarget.p === 'end') { a.x2 = pos.x; a.y2 = pos.y; } 
+                else if (dragTarget.p === 'center') {
+                    if (!a.lastX) { a.lastX = pos.x; a.lastY = pos.y; }
+                    let dx = pos.x - a.lastX; let dy = pos.y - a.lastY;
+                    a.x1 += dx; a.x2 += dx; a.y1 += dy; a.y2 += dy;
+                    a.lastX = pos.x; a.lastY = pos.y;
+                }
+                redrawCanvas();
+            }
+        }
+
+        function handleUp(e) {
+            if (isDrawing && editorTool === 'draw') {
+                isDrawing = false;
+                if (dist(startX, startY, currentX, currentY) > 20) {
+                    setTimeout(() => {
+                        const txt = prompt("Digite a medida (Ex: 150cm):");
+                        if (txt) { arrows.push({ x1: startX, y1: startY, x2: currentX, y2: currentY, text: txt }); }
+                        redrawCanvas();
+                    }, 50); // Delay pro prompt não travar o mobile no touchEnd
+                } else { redrawCanvas(); }
+            } else if (isDragging && editorTool === 'move' && dragTarget) {
+                isDragging = false;
+                let a = arrows[dragTarget.i];
+                delete a.lastX; delete a.lastY;
+
+                // Se clicou no centro da seta mas NÃO arrastou, edita o texto!
+                if (!didDrag && dragTarget.p === 'center') {
+                    setTimeout(() => {
+                        const txt = prompt("Editar medida:", a.text);
+                        if (txt) a.text = txt;
+                        redrawCanvas();
+                    }, 50);
+                }
+                dragTarget = null;
+            }
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (currentEditorImg) ctx.drawImage(currentEditorImg, 0, 0);
+
+            arrows.forEach(a => drawArrow(a.x1, a.y1, a.x2, a.y2, a.text));
+
+            if (isDrawing && editorTool === 'draw') {
+                drawArrow(startX, startY, currentX, currentY, "...");
+            }
+        }
+
+        function drawArrow(x1, y1, x2, y2, text) {
+            const headlen = 25; 
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            
+            ctx.strokeStyle = "#00a651"; // Verde 
+            ctx.fillStyle = "#00a651";
+            ctx.lineWidth = 6;
+
+            // Linha Principal
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+            // Ponta Final
+            ctx.beginPath(); ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Ponta Inicial (Seta Bidirecional)
+            ctx.beginPath(); ctx.moveTo(x1, y1);
+            ctx.lineTo(x1 + headlen * Math.cos(angle - Math.PI / 6), y1 + headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(x1 + headlen * Math.cos(angle + Math.PI / 6), y1 + headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Texto com Fundo
+            if (text && text !== "...") {
+                const midX = (x1 + x2) / 2; const midY = (y1 + y2) / 2;
+                ctx.save(); ctx.translate(midX, midY);
+                
+                ctx.font = "bold 32px Montserrat, sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                const metrics = ctx.measureText(text);
+                const pad = 12;
+
+                ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+                ctx.fillRect(-metrics.width/2 - pad, -16 - pad, metrics.width + pad*2, 32 + pad*2);
+
+                ctx.fillStyle = "#fff";
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            }
+        }
+
         window.salvarEditor = () => {
+            // Salva o estado real na memória para uso futuro
+            imagens[indiceAtual].arrows = JSON.parse(JSON.stringify(arrows));
+            
+            // Desenha a versão final e sobrescreve a URL de preview
+            redrawCanvas();
             imagens[indiceAtual].url = canvas.toDataURL("image/jpeg", 0.8);
+            
             window.renderMiniaturas();
             window.fecharEditor();
         };
