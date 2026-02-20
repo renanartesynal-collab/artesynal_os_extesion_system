@@ -610,7 +610,7 @@
             btn.innerText = "+"; btn.onclick = window.ativarNovaCategoria;
             
             const catsBase = window.setorAtual === 'serralheria' ? CATS_SERR : CATS_IMP;
-            const todasCats = [...new Set([...catsBase, ...categoriasDinamicas])](); // Junta lista de fabrica com a do banco
+            const todasCats = [...new Set([...catsBase, ...categoriasDinamicas])].sort(); // Junta lista de fabrica com a do banco
 
             document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange="handleCategoryChange()"><option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
             window.handleCategoryChange();
