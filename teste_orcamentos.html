@@ -324,16 +324,32 @@
         // ==========================================
         
         window.mudarPrefixo = async (id, novoPrefixo) => {
+            // 1. Atualiza visualmente na mesma hora (sem recarregar)
+            const card = document.getElementById(`card-${id}`);
+            if (card) {
+                const botoes = card.querySelectorAll('.btn-prefix');
+                botoes.forEach(btn => {
+                    if(btn.innerText === novoPrefixo) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                
+                // Atualiza o botão de copiar link
+                const numSpan = card.querySelector('.orc-num');
+                const linkBtn = card.querySelector('.btn-link');
+                if (numSpan && linkBtn) {
+                    linkBtn.setAttribute('onclick', `window.gerarLink('${id}', '${novoPrefixo}-${numSpan.innerText}')`);
+                }
+            }
+
+            // 2. Salva no banco "silenciosamente"
             try {
                 await updateDoc(doc(db, "orcamentos", id), { prefixo: novoPrefixo });
-                carregarLista(); 
             } catch (e) {
                 console.error("Erro ao mudar prefixo", e);
-                alert("Erro ao alterar prefixo.");
+                alert("Erro ao alterar prefixo no banco de dados.");
             }
         }
 
-        // NOVO: Editar o número manualmente
         window.editarNumero = async (id, numeroAtual) => {
             const novoNumStr = prompt("Digite o novo número (apenas números):", numeroAtual);
             
@@ -341,12 +357,33 @@
                 const novoNum = parseInt(novoNumStr);
                 
                 if (!isNaN(novoNum)) {
+                    const numFormatado = String(novoNum).padStart(4, '0');
+                    
+                    // 1. Atualiza visualmente na mesma hora (sem recarregar)
+                    const card = document.getElementById(`card-${id}`);
+                    if (card) {
+                        const numSpan = card.querySelector('.orc-num');
+                        numSpan.innerText = numFormatado;
+                        
+                        // Garante que o próximo clique saiba o número atualizado
+                        numSpan.setAttribute('onclick', `window.editarNumero('${id}', '${novoNum}')`);
+                        
+                        // Atualiza o botão de Link para o novo número e mantendo o prefixo atual
+                        const btnAtivo = card.querySelector('.btn-prefix.active');
+                        const prefixoAtivo = btnAtivo ? btnAtivo.innerText : 'OR';
+                        
+                        const linkBtn = card.querySelector('.btn-link');
+                        if (linkBtn) {
+                            linkBtn.setAttribute('onclick', `window.gerarLink('${id}', '${prefixoAtivo}-${numFormatado}')`);
+                        }
+                    }
+
+                    // 2. Salva no banco "silenciosamente"
                     try {
                         await updateDoc(doc(db, "orcamentos", id), { numero_solicitacao: novoNum });
-                        carregarLista(); // Atualiza a tela instantaneamente
                     } catch (e) {
                         console.error("Erro ao editar número:", e);
-                        alert("Erro ao alterar o número no banco de dados.");
+                        alert("Erro ao salvar o novo número.");
                     }
                 } else {
                     alert("Por favor, digite um número válido!");
