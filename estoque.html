@@ -22,7 +22,16 @@
             --blue-used: #3b82f6;
             --purple: #9b59b6;
         }
+@keyframes piscarAlerta {
+    0% { color: #ff0000; }  /* Vermelho */
+    50% { color: #ffffff; } /* Branco */
+    100% { color: #ff0000; } /* Vermelho */
+}
 
+.texto-pisca {
+    animation: piscarAlerta 0.8s infinite;
+    font-weight: bold;
+}
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: var(--dark-bg);
@@ -32,7 +41,10 @@
         }
 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
 
         /* ==========================================================================
            2. TELA DE SELEÇÃO INICIAL (IMPRESSÃO OU SERRALHERIA)
@@ -146,7 +158,7 @@
         <button class="sector-btn sec-serr" onclick="selecionarSetor('serralheria')">
             <div class="sec-icon">🛠️</div>
             <div class="sec-title">Serralheria</div>
-            <span style="font-size:12px; margin-top:5px; opacity:0.8;">Chapas e Retalhos</span>
+            <span style="font-size:12px; margin-top:5px; opacity:0.8;">Chapas</span>
         </button>
     </div>
 
@@ -168,8 +180,9 @@
         <div id="kanban-serralheria" class="kanban-container" style="display: none;">
             <div class="kanban-col"><div class="kanban-header hdr-serr">ACM</div><div class="grid-est" id="grid-ACM"></div></div>
             <div class="kanban-col"><div class="kanban-header hdr-serr">PVC</div><div class="grid-est" id="grid-PVC"></div></div>
+            <div class="kanban-col"><div class="kanban-header hdr-serr">PS</div><div class="grid-est" id="grid-ACRILICO"></div></div>
             <div class="kanban-col"><div class="kanban-header hdr-serr">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
-            <div class="kanban-col"><div class="kanban-header" style="background:#444">Outros Metais/MDF</div><div class="grid-est" id="grid-OUTROS-SERR"></div></div>
+            <div class="kanban-col"><div class="kanban-header" style="background:#444">Outros Materiais / MDF</div><div class="grid-est" id="grid-OUTROS-SERR"></div></div>
         </div>
 
         <button class="fab-add" onclick="abrirModalProd()">+</button>
@@ -177,8 +190,7 @@
 
     <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')">Cancelar</button>
-
+            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')" style="background: linear-gradient(180deg, #e67e22, #d35400); color: white; border: 1px solid #a04000; border-radius: 20px; padding: 0 10px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 25px; top: 22px; width: 100px; height: 28px; line-height: 1;">✖ CANCELAR</button>
             <div class="header-row">
                 <h2 class="title-material" id="modal-main-title">Material</h2>
                 <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatus()" style="display: none;">Novo</button>
@@ -187,7 +199,7 @@
             <div class="form-row align-bottom">
                 <div style="flex: 3;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 32px;">
-                        <label id="label-cat" class="label-standard" style="margin:0;">Categoria / Matéria</label>
+                        <label id="label-cat" class="label-standard" style="margin:0;">MATÉRIA PRIMA</label>
                         <button class="btn-icon-action" id="btn-toggle-cat" onclick="ativarNovaCategoria()">+</button>
                     </div>
                     <div id="cat-container">
@@ -199,7 +211,6 @@
                         <label class="label-standard" style="margin:0;">Acabamento</label>
                     </div>
                     <select id="prod-acabamento">
-                        <option value="">Selecione...</option>
                         <option value="brilho">Brilho</option>
                         <option value="fosco">Fosco</option>
                     </select>
@@ -217,7 +228,7 @@
                         <label id="label-espessura" class="label-standard" style="margin:0;">Espessura</label>
                         <button class="btn-icon-action" id="btn-toggle-esp" onclick="ativarNovaEspessura()">+</button>
                     </div>
-                    <div id="esp-container"><select id="prod-espessura"><option value="">Selecione...</option></select></div>
+                    <div id="esp-container"><select id="prod-espessura"><option value="">Selecione</option></select></div>
                 </div>
                 <div class="field-group">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 32px;">
@@ -249,7 +260,7 @@
                 </div>
 
                 <div id="div-visual-corte">
-                    <div class="canvas-title">APRECIAÇÃO DA REFERÊNCIA VISUAL</div>
+                    <div class="canvas-title">REFERÊNCIA VISUAL</div>
                     <div class="chapa-container">
                         <div id="corte-wrapper">
                             <div class="cota-w-box"><span class="cota-label" id="txt-cota-maior">0cm</span><div class="linha-cota-w"></div></div>
@@ -379,7 +390,7 @@
 
         const CATS_IMP = ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Tinta', 'Outros'];
         const CATS_SERR = ['ACM', 'PVC', 'PS', 'Acrilico', 'MDF', 'Galvanizada', 'Policarbonato'];
-        const CORES_BASE = ['Preto', 'Branco', 'Transparente', 'Amarelo', 'Vermelho'];
+        const CORES_BASE = ['Branco', 'Preto', 'Amarelo', 'Laranja', 'Azul', 'Vermelho', 'Verde', 'Verde Escuro', 'Azul Marinho', 'Bege', 'Rosa', 'Azul Royal', 'Grafite', 'Cinza RAL 7037', 'Bronze 1003', 'Bordo', 'Roxo', 'Dourado', 'Espelhado Prata', 'Espelhado Dourado', 'Champagne Dourado', 'Cinza IP', 'Azul IP', 'Amarelo IP', 'Prata', 'Prata Ral9006', 'Prata Aço', 'Bright Bronze', 'Cinza Anthracite', 'Dark Grey', 'Smoke Silver', 'Azul GM', 'Azul Cobalto', 'Verde Turquesa', 'Verde Sicredi', 'Verde Sicoob', 'Marrom Café', 'Madeira Mogno (Clara)', 'Madeira IMBUIA (Escura)', 'Madeira Sucupira', 'Madeira Castanha', 'Madeira Nogueira', 'Aço Corten Oxidado', 'Aço Corten Enferrujado'];
 
         // SESSÃO 2: NAVEGAÇÃO E EXTRAÇÃO DINÂMICA
         window.selecionarSetor = (setor) => {
@@ -478,7 +489,7 @@
             window.materialStatus = "Novo";
             
             const isSerr = window.setorAtual === 'serralheria';
-            document.getElementById('modal-main-title').innerText = isSerr ? "Nova Chapa/Retalho" : "Novo Material";
+            document.getElementById('modal-main-title').innerText = isSerr ? "Novo Material" : "Material Usado";
             
             document.getElementById('btn-status').style.display = isSerr ? 'block' : 'none';
             document.getElementById('div-acabamento').style.display = isSerr ? 'block' : 'none';
@@ -598,24 +609,86 @@
         // SESSÃO 6: INPUTS CUSTOMIZADOS COM MEMÓRIA (DB)
         window.ativarNovaCategoria = () => {
             window.isNewCategory = true;
-            document.getElementById('label-cat').innerText = "Nova Categoria";
+            document.getElementById('label-cat').innerText = "Nova Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat');
             btn.innerHTML = '×'; btn.onclick = window.resetarCategoriaField;
-            document.getElementById('cat-container').innerHTML = `<input type="text" id="prod-cat-new" placeholder="Nome da Categoria..." autofocus>`;
+            document.getElementById('cat-container').innerHTML = `
+    <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+        <input type="text" id="prod-cat-new" placeholder="Digite o nome" autofocus 
+               style="flex: 1; height: 35px; border-radius: 4px; border: 1px solid #333; background: #1a1a1a; color: white; padding: 0 35px 0 10px;">
+        <button onclick="salvarNovaCategoriaNoArray()" 
+                style="position: absolute; right: 5px; background: #00ff00; color: #000; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+            ✓
+        </button>
+    </div>
+`;
         };
         window.resetarCategoriaField = () => {
             window.isNewCategory = false;
-            document.getElementById('label-cat').innerText = "Categoria";
+            document.getElementById('label-cat').innerText = "Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat');
             btn.innerText = "+"; btn.onclick = window.ativarNovaCategoria;
             
             const catsBase = window.setorAtual === 'serralheria' ? CATS_SERR : CATS_IMP;
             const todasCats = [...new Set([...catsBase, ...categoriasDinamicas])].sort(); // Junta lista de fabrica com a do banco
 
-            document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange="handleCategoryChange()"><option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
+            document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange=
+            "handleCategoryChange()"><option value="">Selecione...</option>
+            ${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
             window.handleCategoryChange();
         };
+        window.salvarNovaCategoriaNoArray = () => {
+    const input = document.getElementById('prod-cat-new');
+    const valor = input.value.trim();
 
+    if (valor !== "") {
+        // Adiciona o novo item à lista dinâmica
+        if (typeof categoriasDinamicas !== 'undefined') {
+            categoriasDinamicas.push(valor);
+        }
+        // Retorna o campo para o modo de seleção (Select)
+        window.resetarCategoriaField(); 
+    } else {
+        // Se estiver vazio, foca no campo novamente
+        input.focus();
+    }
+};
+// Função para remover um item da lista e atualizar a tela
+window.removerCategoriaDinamica = (nome) => {
+    if (confirm(`Deseja realmente excluir o material "${nome}"?`)) {
+        const index = categoriasDinamicas.indexOf(nome);
+        if (index > -1) {
+            categoriasDinamicas.splice(index, 1); // Remove do array
+            window.resetarCategoriaField(); // Recarrega a lista sem o item
+        }
+    }
+};
+
+// Altera o resetarCategoriaField para incluir a opção de excluir
+const originalResetar = window.resetarCategoriaField;
+window.resetarCategoriaField = () => {
+    originalResetar(); // Executa o que já existia
+    
+    const select = document.getElementById('prod-cat');
+    // Adiciona a opção de exclusão no final da lista
+    const optExcluir = document.createElement('option');
+    optExcluir.value = "MODO_EXCLUIR";
+    optExcluir.text = "⚠️ EXCLUIR MATÉRIA PRIMA DA LISTA ⚠️";
+    optExcluir.className = "texto-pisca"; // Conecta com a animação da linha 25
+optExcluir.style.color = "red";       // Garante a cor vermelha como base
+    select.appendChild(optExcluir);
+
+    // Monitora se o usuário quer excluir
+    select.addEventListener('change', function() {
+        if (this.value === "MODO_EXCLUIR") {
+            const itemParaExcluir = prompt("Digite o nome EXATO do item que deseja remover:");
+            if (itemParaExcluir) {
+                window.removerCategoriaDinamica(itemParaExcluir);
+            }
+            this.value = ""; // Reseta o select
+        }
+    });
+};
         window.ativarNovaEspessura = () => {
             document.getElementById('label-espessura').innerText = "Nova Espessura";
             const b = document.getElementById('btn-toggle-esp'); b.innerHTML = '×'; b.onclick = window.resetarEspessuraField;
@@ -636,7 +709,7 @@
             document.getElementById('label-cor').innerText = "Cor";
             const b = document.getElementById('btn-toggle-cor'); b.innerText = "+"; b.onclick = window.ativarNovaCor;
             
-            const todasCores = [...new Set([...CORES_BASE, ...coresDinamicas])].sort(); // Junta fabrica e banco
+            const todasCores = [...new Set([...CORES_BASE, ...coresDinamicas])]; // Junta fabrica e banco mantendo a ordem
             
             document.getElementById('cor-container').innerHTML = `<select id="prod-cor"><option value="">Selecione...</option>${todasCores.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
         };
