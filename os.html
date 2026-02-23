@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistema OS - Comunicação Visual</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
     <style>
+        /* ==========================================================================
+           1. VARIÁVEIS E RESET GERAL
+           ========================================================================== */
         :root {
             --black: #231f20;
             --red: #ed1c24;
@@ -15,7 +19,6 @@
             --border-radius: 6px;
         }
 
-        /* RESET GERAL */
         body { 
             font-family: 'Mitra LT', 'Montserrat', sans-serif; 
             margin: 0; padding: 0;
@@ -24,8 +27,10 @@
             overflow: hidden; 
             color: white; 
         }
-        
-        /* --- PAINEL DE CONTROLE (ESQUERDA) --- */
+
+        /* ==========================================================================
+           2. PAINEL DE CONTROLE (ESQUERDA) E FORMULÁRIOS
+           ========================================================================== */
         #painel-controle { 
             width: 380px; padding: 25px; background: #2c3e50; color: white;
             height: 100vh; overflow-y: auto; box-sizing: border-box; position: fixed;
@@ -36,25 +41,31 @@
         #painel-controle::-webkit-scrollbar { width: 8px; }
         #painel-controle::-webkit-scrollbar-track { background: #1a252f; }
         #painel-controle::-webkit-scrollbar-thumb { background: #f1c40f; border-radius: 4px; }
+        
         .grupo-input { margin-bottom: 15px; }
         .titulo-secao { color: #f1c40f; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 10px;}
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #bdc3c7; }
+        
         input[type="text"], input[type="date"], input[type="number"], select, textarea { 
             width: 100%; padding: 10px; border-radius: 6px; border: none; 
             box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif; font-weight: bold;
             background: #34495e; color: white;
         }
         textarea { height: 80px; resize: none; }
+        
         .check-group { display: flex; flex-direction: column; gap: 8px; }
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); accent-color: #f1c40f; }
 
-        .btn-voltar-topo {
-            display: inline-block; margin-bottom: 15px; color: #aaa; text-decoration: none; font-size: 12px; font-weight: bold;
-        }
+        .btn-voltar-topo { display: inline-block; margin-bottom: 15px; color: #aaa; text-decoration: none; font-size: 12px; font-weight: bold; }
         .btn-voltar-topo:hover { color: white; }
 
-        /* --- ÁREA DE IMPRESSÃO (DIREITA) --- */
+        .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
+        .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
+
+        /* ==========================================================================
+           3. ÁREA DE IMPRESSÃO (DIREITA) E ESTRUTURA DA FOLHA A4
+           ========================================================================== */
         #area-impressao { 
             margin-left: 380px; display: flex; justify-content: center; 
             padding: 40px; width: calc(100% - 380px); 
@@ -71,63 +82,35 @@
             color: var(--black); 
         }
 
-        /* --- ESTILOS DO CONTEÚDO DA OS --- */
+        /* ==========================================================================
+           4. COMPONENTES INTERNOS DA O.S. (CABEÇALHO, GRID, DADOS)
+           ========================================================================== */
         .header-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px; }
         .col-esq { display: flex; flex-direction: column; gap: 4px; }
         .col-dir { display: flex; flex-direction: column; border: 2px solid var(--black); border-radius: var(--border-radius); overflow: hidden; }
+        
         .header-top { background: var(--black); color: white; padding: 8px 12px; font-weight: 900; font-size: 22px; text-transform: uppercase; border-radius: var(--border-radius); margin-bottom: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        
         .linha-dados { display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; height: 32px;}
         .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; color: var(--black); }
         .col:last-child { border-right: none; }
         .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;}
 
-        /* OS DARK - AJUSTADO PARA LINHA ÚNICA */
-        .box-os { 
-            background: var(--black); 
-            display: flex; 
-            flex-direction: row; 
-            align-items: center; 
-            justify-content: space-between; 
-            border-bottom: 2px solid var(--black); 
-            -webkit-print-color-adjust: exact; print-color-adjust: exact; 
-            padding: 5px 8px;
-            height: 35px; 
-        }
+        /* OS e Valores */
+        .box-os { background: var(--black); display: flex; flex-direction: row; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--black); -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 5px 8px; height: 35px; }
         .os-label { font-size: 14px; font-weight: 900; color: white; margin-right: 5px; margin-bottom: 0;}
         .os-valor-box { background: white; flex: 1; text-align: center; border-radius: 4px; padding: 2px 0;}
         .os-valor { font-size: 20px; font-weight: 900; color: var(--black); line-height: 1; }
         
-        /* CONTAINER LOGISTICA + QR CODE */
-        .logistica-qr-flex {
-            display: flex;
-            flex: 1;
-            background: white;
-        }
-
-        .box-logistica { 
-            padding: 5px; flex: 1; 
-            display: flex; flex-direction: column; justify-content: center; 
-            background: white; 
-            border-right: 1px solid #ddd; 
-        }
+        /* Logística e QR Code */
+        .logistica-qr-flex { display: flex; flex: 1; background: white; }
+        .box-logistica { padding: 5px; flex: 1; display: flex; flex-direction: column; justify-content: center; background: white; border-right: 1px solid #ddd; }
         .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold; color: var(--black); }
         .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--red); line-height: 10px; border-radius: 50%; }
+        .box-qr { width: 75px; display: flex; align-items: center; justify-content: center; padding: 2px; overflow: hidden; }
+        #img-preview-qr { max-width: 100%; max-height: 100%; display: none; }
 
-        /* QR CODE BOX */
-        .box-qr {
-            width: 75px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2px;
-            overflow: hidden;
-        }
-        #img-preview-qr {
-            max-width: 100%;
-            max-height: 100%;
-            display: none; 
-        }
-
+        /* Datas e Pagamentos */
         .grid-datas-pag { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px; }
         .box-pagamento { display: flex; flex-direction: column; justify-content: center; padding-left: 10px; background: #eee; border-radius: var(--border-radius); border: 1px solid #ddd; font-size: 10px; font-weight: 900; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: var(--black); }
         .pag-valor { font-size: 16px; color: var(--red); }
@@ -135,112 +118,67 @@
         .data-header { background: #666; color: white; font-size: 9px; text-align: center; padding: 3px; font-weight: bold; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .data-valor { text-align: center; font-weight: 900; color: var(--red); font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; }
 
-        /* STATUS BADGES */
+        /* ==========================================================================
+           5. BADGES, STATUS E CORPO INFERIOR (IMAGENS E TEXTO)
+           ========================================================================== */
         .area-status { display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc; }
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
-        
-        .badge-box { 
-            display: flex; width: 60px; height: 26px; 
-            border: 1px solid #ccc; border-radius: 13px; overflow: hidden; 
-            box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important;
-        }
-        
+        .badge-box { display: flex; width: 60px; height: 26px; border: 1px solid #ccc; border-radius: 13px; overflow: hidden; box-shadow: 1px 1px 0px rgba(0,0,0,0.1); -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .bg-red { background-color: #ed1c24 !important; border-color: var(--red) !important; }
         .bg-blue { background-color: #00aeef !important; border-color: var(--blue) !important; }
         .bg-green { background-color: #00a651 !important; border-color: var(--green) !important; }
-        
-        .badge-letra { 
-            width: 24px; display: flex; align-items: center; justify-content: center; 
-            color: white !important; font-weight: 900; font-size: 14px; 
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important;
-        }
-        
+        .badge-letra { width: 24px; display: flex; align-items: center; justify-content: center; color: white !important; font-weight: 900; font-size: 14px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; }
-        
         .maq-cartao { margin-left: auto; background: var(--red) !important; color: white !important; font-weight: 900; font-size: 10px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; height: 20px; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
         .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        .area-imagens { flex-grow: 1; border: 2px dashed #ccc; border-radius: var(--border-radius); position: relative; overflow: hidden; margin-bottom: 5px; background-color: #fcfcfc; touch-action: none; }
+        /* Box de Imagens */
+        .area-imagens { flex-grow: 1; border: 2px dashed #ccc; border-radius: var(--border-radius); position: relative; overflow: hidden; background-color: #fcfcfc; touch-action: none; }
         .draggable-img { position: absolute; cursor: move; width: 150px; touch-action: none;}
         .img-selected { border: 2px solid var(--blue); box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
         .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
-        .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase;}
-        .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius); padding: 8px; font-size: 11px; font-family: 'Mitra LT', 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; color: var(--black); }
-
-        .btn-print { width:100%; padding: 15px; background: var(--green); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 0 #007f3d; transition: all 0.2s;}
-        .btn-save { width:100%; padding: 15px; background: var(--blue); color:white; border:none; font-weight:900; cursor:pointer; border-radius:6px; font-size: 16px; margin-top: 20px; box-shadow: 0 4px 0 #007db0; transition: all 0.2s;}
-
-        /* --- CONTROLES FLUTUANTES (MOBILE) --- */
-        .fab-btn {
-            position: fixed; bottom: 20px;
-            width: 60px; height: 60px; border-radius: 50%;
-            border: none; font-size: 24px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 100; cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
         
+        /* Barra de Redimensionamento (Resizer) */
+        .resizer { height: 12px; background: #e0e0e0; cursor: ns-resize; border-radius: 4px; margin: 5px 0; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; transition: background 0.2s;}
+        .resizer:hover { background: #d0d0d0; }
+        .resizer::before { content: "••••"; color: #888; font-size: 10px; letter-spacing: 2px; line-height: 10px; }
+
+        /* Box de Texto Inferior */
+        .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase;}
+        .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: var(--border-radius); padding: 8px; font-size: 11px; font-family: 'Mitra LT', 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; color: var(--black); overflow: hidden; box-sizing: border-box;}
+
+        /* ==========================================================================
+           6. CONTROLES E RESPONSIVIDADE (MOBILE)
+           ========================================================================== */
+        .fab-btn { position: fixed; bottom: 20px; width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 100; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #btn-abrir-previa { right: 20px; background: #f1c40f; color: #2c3e50; display: none; }
         #btn-fechar-previa { right: 20px; background: #e74c3c; color: white; display: none; }
         #btn-imprimir-mobile { right: 90px; background: #00a651; color: white; display: none; }
 
-        /* Slider de Zoom Mobile */
-        #mobile-zoom-control {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(44, 62, 80, 0.95); padding: 20px; box-sizing: border-box;
-            z-index: 101; text-align: center; color: white;
-            border-top-left-radius: 15px; border-top-right-radius: 15px;
-        }
+        #mobile-zoom-control { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(44, 62, 80, 0.95); padding: 20px; box-sizing: border-box; z-index: 101; text-align: center; color: white; border-top-left-radius: 15px; border-top-right-radius: 15px; }
         #mobile-zoom-control label { color: #f1c40f; font-weight: bold; margin-bottom: 10px; display: block;}
         #mobile-zoom-control input[type=range] { width: 100%; }
 
-        /* --- RESPONSIVIDADE MOBILE --- */
         @media (max-width: 768px) {
             body { display: block; overflow: auto; background: #2c3e50; }
-            
-            #painel-controle { 
-                width: 100%; height: auto; position: relative; 
-                padding-bottom: 100px;
-                background: #2c3e50; z-index: 10;
-            }
-
-            #area-impressao {
-                display: none; position: fixed; top: 0; left: 0; 
-                width: 100%; height: 100vh;
-                background: #333; z-index: 50;
-                overflow-y: scroll;
-                align-items: flex-start; padding: 10px;
-            }
-
-            .folha-a4 {
-                min-width: 210mm; width: 210mm; 
-                min-height: 296mm; height: auto;
-                transform-origin: top center;
-                margin-top: 10px; margin-bottom: 100px;
-            }
-
+            #painel-controle { width: 100%; height: auto; position: relative; padding-bottom: 100px; background: #2c3e50; z-index: 10; }
+            #area-impressao { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #333; z-index: 50; overflow-y: scroll; align-items: flex-start; padding: 10px; }
+            .folha-a4 { min-width: 210mm; width: 210mm; min-height: 296mm; height: auto; transform-origin: top center; margin-top: 10px; margin-bottom: 100px; }
             #btn-abrir-previa { display: flex; }
             .btn-print { display: none; }
         }
 
+        /* ==========================================================================
+           7. REGRAS DE IMPRESSÃO (@media print)
+           ========================================================================== */
         @page { size: A4; margin: 0; }
         @media print {
             body { background: white; margin: 0; padding: 0; display: block; color: black !important;}
-            #painel-controle, .fab-btn, #mobile-zoom-control { display: none !important; }
-            #area-impressao { 
-                margin: 0; padding: 0; width: 100%; height: 100vh; 
-                background: none; display: block; position: static;
-                transform: none; overflow: visible;
-            }
-            .folha-a4 { 
-                box-shadow: none; padding: 10mm; margin: 0 auto; 
-                width: 210mm; min-height: 296mm; transform: none !important; 
-                color: black !important;
-            }
+            #painel-controle, .fab-btn, #mobile-zoom-control, .resizer { display: none !important; } /* Resizer oculto na impressão */
+            #area-impressao { margin: 0; padding: 0; width: 100%; height: 100vh; background: none; display: block; position: static; transform: none; overflow: visible; }
+            .folha-a4 { box-shadow: none; padding: 10mm; margin: 0 auto; width: 210mm; min-height: 296mm; transform: none !important; color: black !important; }
             .area-imagens { border: 1px dashed #ccc; }
             .placeholder-text { display: none; }
             .img-selected { border: none; box-shadow: none; }
@@ -410,58 +348,19 @@
                 <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>
             </div>
             
+            <div class="resizer" id="resizer"></div>
+            
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
             <div class="box-anotacoes" id="out-desc"></div>
         </div>
     </div>
 
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 1. FUNÇÃO UP (GLOBAL)
-        window.up = function() {
-            const setTxt = (idOut, idIn, def) => { 
-                const elIn = document.getElementById(idIn);
-                const elOut = document.getElementById(idOut);
-                if(elIn && elOut) {
-                    elOut.innerText = elIn.value || def || ""; 
-                }
-            };
-            
-            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); 
-            setTxt('out-cliente', 'in-cliente', '');
-            setTxt('out-tel', 'in-tel', ''); 
-            setTxt('out-os', 'in-os', '0000'); 
-            setTxt('out-end', 'in-end', '');
-            setTxt('out-pag', 'in-pag', 'R$ 0,00'); 
-            setTxt('out-data-aprov', 'in-data-aprov', '00/00');
-            setTxt('out-data-limite', 'in-data-limite', '00/00'); 
-            setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
-            setTxt('out-desc', 'in-desc', '');
-
-            const setX = (idOut, idIn) => {
-                const elIn = document.getElementById(idIn);
-                const elOut = document.getElementById(idOut);
-                if(elIn && elOut) {
-                    elOut.innerText = elIn.checked ? "X" : "";
-                }
-            };
-
-            setX('x-entrada', 'chk-entrada'); setX('x-faturado', 'chk-faturado'); setX('x-pago', 'chk-pago');
-            setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
-        }
-
-        // 2. LISTENERS
-        const inputs = document.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            if(input.type !== 'file' && input.type !== 'range') {
-                input.addEventListener('input', window.up); 
-                input.addEventListener('change', window.up);
-            }
-        });
-
-        // 3. FIREBASE CONFIG
+        // CONFIGURAÇÃO DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
             authDomain: "artesynal-os-system.firebaseapp.com",
@@ -470,17 +369,14 @@
             messagingSenderId: "539958005846",
             appId: "1:539958005846:web:9120505e097b56bf16ebf7"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
         let idEdicao = null;
 
         // VERIFICA EDIÇÃO AO CARREGAR
-        window.onload = async () => {
+        window.addEventListener('load', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const osId = urlParams.get('id');
-
             if (osId) {
                 idEdicao = osId;
                 const btn = document.getElementById('btn-salvar');
@@ -490,80 +386,10 @@
                 }
                 await carregarDadosEdicao(osId);
             }
-        };
+        });
 
-        // CARREGAR DADOS
-        async function carregarDadosEdicao(id) {
-            try {
-                const docRef = doc(db, "ordens_servico", id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    const safeVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ""; }
-                    safeVal('in-empresa', data.empresa);
-                    safeVal('in-cliente', data.cliente);
-                    safeVal('in-tel', data.telefone);
-                    safeVal('in-end', data.endereco);
-                    safeVal('in-os', data.os_numero);
-                    safeVal('in-pag', data.valor_restante);
-                    safeVal('in-data-aprov', data.data_aprovacao);
-                    safeVal('in-data-limite', data.data_limite);
-                    safeVal('in-servico', data.servico_titulo);
-                    safeVal('in-desc', data.descricao);
-
-                    if(data.status) {
-                        document.getElementById('chk-entrada').checked = data.status.entrada;
-                        document.getElementById('chk-faturado').checked = data.status.faturado;
-                        document.getElementById('chk-pago').checked = data.status.pago;
-                        document.getElementById('chk-maq').checked = data.status.maquina;
-                    }
-                    if(data.logistica) {
-                        document.getElementById('chk-inst').checked = data.logistica.instalacao;
-                        document.getElementById('chk-ent').checked = data.logistica.entrega;
-                        document.getElementById('chk-ret').checked = data.logistica.retirada;
-                    }
-
-                    // RECUPERAR IMAGENS DO BANCO
-                    const canvas = document.getElementById('canvas-imagens');
-                    if (data.imagens_salvas && data.imagens_salvas.length > 0) {
-                        canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text" style="display:none;">ARRASTE AS IMAGENS</span>';
-                        
-                        data.imagens_salvas.forEach(imgData => {
-                            const img = document.createElement('img');
-                            img.src = imgData.url; // Base64 comprimido
-                            img.classList.add('draggable-img');
-                            img.style.left = imgData.left;
-                            img.style.top = imgData.top;
-                            img.style.width = imgData.width;
-
-                            addEventosImagem(img);
-                            canvas.appendChild(img);
-                        });
-                    } else {
-                         canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
-                    }
-
-                    // RECUPERAR QR CODE DO BANCO
-                    if (data.qr_code_url) {
-                        const imgQr = document.getElementById('img-preview-qr');
-                        imgQr.src = data.qr_code_url;
-                        imgQr.style.display = "block";
-                    }
-
-                    window.up(); 
-                } else {
-                    alert("O.S. não encontrada!");
-                }
-            } catch (e) {
-                console.error("Erro ao carregar:", e);
-                alert("Erro ao carregar dados.");
-            }
-        }
-
-        // --- FUNÇÃO DE COMPRESSÃO DE IMAGENS ---
-        function comprimirImagem(file) {
+        // FUNÇÃO DE COMPRESSÃO DE IMAGENS
+        window.comprimirImagem = function(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -572,7 +398,6 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const elem = document.createElement('canvas');
-                        // Reduz para no máximo 800px de largura/altura
                         const scaleFactor = 800 / Math.max(img.width, img.height);
                         const w = scaleFactor < 1 ? img.width * scaleFactor : img.width;
                         const h = scaleFactor < 1 ? img.height * scaleFactor : img.height;
@@ -581,52 +406,34 @@
                         elem.height = h;
                         const ctx = elem.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
-                        
-                        // Retorna como JPEG qualidade 0.6 (leve)
                         resolve(elem.toDataURL('image/jpeg', 0.6));
                     };
                 };
             });
         }
 
-        async function salvarOS() {
+        // SALVAR DADOS NO FIREBASE
+        window.salvarOS = async function() {
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Comprimindo imagens...";
             btn.disabled = true;
 
             try {
-                // 1. Processar Imagens
                 const imagensParaSalvar = [];
                 const imgsElementos = document.querySelectorAll('.draggable-img');
                 
                 for (const img of imgsElementos) {
                     let urlFinal = img.src;
-
-                    // Se tem arquivo anexado, comprime antes
-                    if (img.file) {
-                        urlFinal = await comprimirImagem(img.file);
-                    }
-
-                    imagensParaSalvar.push({
-                        url: urlFinal,
-                        left: img.style.left,
-                        top: img.style.top,
-                        width: img.style.width
-                    });
+                    if (img.file) { urlFinal = await window.comprimirImagem(img.file); }
+                    imagensParaSalvar.push({ url: urlFinal, left: img.style.left, top: img.style.top, width: img.style.width });
                 }
 
-                // 2. Processar QR Code
                 let qrCodeUrl = null;
                 const imgQrPreview = document.getElementById('img-preview-qr');
                 if (imgQrPreview.src && imgQrPreview.style.display !== 'none') {
-                    if (imgQrPreview.file) {
-                        qrCodeUrl = await comprimirImagem(imgQrPreview.file);
-                    } else {
-                        qrCodeUrl = imgQrPreview.src;
-                    }
+                    qrCodeUrl = imgQrPreview.file ? await window.comprimirImagem(imgQrPreview.file) : imgQrPreview.src;
                 }
 
-                // 3. Dados
                 const dados = {
                     empresa: document.getElementById('in-empresa').value,
                     cliente: document.getElementById('in-cliente').value,
@@ -654,11 +461,8 @@
                     data_atualizacao: new Date()
                 };
 
-                if (!idEdicao) {
-                    dados.data_criacao = new Date();
-                }
+                if (!idEdicao) dados.data_criacao = new Date();
 
-                // 4. Salvar
                 btn.innerText = "Salvando...";
                 
                 if (idEdicao) {
@@ -671,49 +475,174 @@
                     alert("Nova O.S. Salva! ID: " + docRef.id);
                     btn.innerText = "SALVAR NO SISTEMA";
                 }
-                
                 btn.disabled = false;
 
             } catch (e) {
                 console.error("Erro ao salvar: ", e);
-                if (e.code === 'invalid-argument' || e.toString().includes('exceeds')) {
-                    alert("Erro: Imagens muito grandes para salvar direto no banco. Tente usar menos fotos.");
-                } else {
-                    alert("Erro ao salvar: " + e.message);
-                }
+                alert("Erro ao salvar. Verifique se as imagens não são grandes demais.");
                 btn.innerText = "TENTAR NOVAMENTE";
                 btn.disabled = false;
             }
         }
-        document.getElementById('btn-salvar').addEventListener('click', salvarOS);
+        document.getElementById('btn-salvar').addEventListener('click', window.salvarOS);
 
-        // --- LÓGICA VISUAL ---
-        function addEventosImagem(img) {
+        // CARREGAR DADOS NA TELA (EDIÇÃO)
+        async function carregarDadosEdicao(id) {
+            try {
+                const docRef = doc(db, "ordens_servico", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const safeVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ""; }
+                    
+                    safeVal('in-empresa', data.empresa);
+                    safeVal('in-cliente', data.cliente);
+                    safeVal('in-tel', data.telefone);
+                    safeVal('in-end', data.endereco);
+                    safeVal('in-os', data.os_numero);
+                    safeVal('in-pag', data.valor_restante);
+                    safeVal('in-data-aprov', data.data_aprovacao);
+                    safeVal('in-data-limite', data.data_limite);
+                    safeVal('in-servico', data.servico_titulo);
+                    safeVal('in-desc', data.descricao);
+
+                    if(data.status) {
+                        document.getElementById('chk-entrada').checked = data.status.entrada;
+                        document.getElementById('chk-faturado').checked = data.status.faturado;
+                        document.getElementById('chk-pago').checked = data.status.pago;
+                        document.getElementById('chk-maq').checked = data.status.maquina;
+                    }
+                    if(data.logistica) {
+                        document.getElementById('chk-inst').checked = data.logistica.instalacao;
+                        document.getElementById('chk-ent').checked = data.logistica.entrega;
+                        document.getElementById('chk-ret').checked = data.logistica.retirada;
+                    }
+
+                    const canvas = document.getElementById('canvas-imagens');
+                    if (data.imagens_salvas && data.imagens_salvas.length > 0) {
+                        canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text" style="display:none;">ARRASTE AS IMAGENS</span>';
+                        data.imagens_salvas.forEach(imgData => {
+                            const img = document.createElement('img');
+                            img.src = imgData.url;
+                            img.classList.add('draggable-img');
+                            img.style.left = imgData.left; img.style.top = imgData.top; img.style.width = imgData.width;
+                            window.addEventosImagem(img);
+                            canvas.appendChild(img);
+                        });
+                    } else {
+                         canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
+                    }
+
+                    if (data.qr_code_url) {
+                        const imgQr = document.getElementById('img-preview-qr');
+                        imgQr.src = data.qr_code_url;
+                        imgQr.style.display = "block";
+                    }
+                    window.up(); 
+                } else {
+                    alert("O.S. não encontrada!");
+                }
+            } catch (e) {
+                console.error("Erro ao carregar:", e);
+                alert("Erro ao carregar dados.");
+            }
+        }
+    </script>
+
+    <script>
+        // --- 1. ATUALIZAR VISUAL DA O.S. EM TEMPO REAL ---
+        window.up = function() {
+            const setTxt = (idOut, idIn, def) => { 
+                const elIn = document.getElementById(idIn);
+                const elOut = document.getElementById(idOut);
+                if(elIn && elOut) { elOut.innerText = elIn.value || def || ""; }
+            };
+            
+            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); 
+            setTxt('out-cliente', 'in-cliente', '');
+            setTxt('out-tel', 'in-tel', ''); 
+            setTxt('out-os', 'in-os', '0000'); 
+            setTxt('out-end', 'in-end', '');
+            setTxt('out-pag', 'in-pag', 'R$ 0,00'); 
+            setTxt('out-data-aprov', 'in-data-aprov', '00/00');
+            setTxt('out-data-limite', 'in-data-limite', '00/00'); 
+            setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
+            setTxt('out-desc', 'in-desc', '');
+
+            const setX = (idOut, idIn) => {
+                const elIn = document.getElementById(idIn);
+                const elOut = document.getElementById(idOut);
+                if(elIn && elOut) { elOut.innerText = elIn.checked ? "X" : ""; }
+            };
+
+            setX('x-entrada', 'chk-entrada'); setX('x-faturado', 'chk-faturado'); setX('x-pago', 'chk-pago');
+            setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
+        }
+
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if(input.type !== 'file' && input.type !== 'range') {
+                input.addEventListener('input', window.up); 
+                input.addEventListener('change', window.up);
+            }
+        });
+
+        // --- 2. LÓGICA DO RESIZER (REDIMENSIONAR ÁREA DE TEXTO) ---
+        const resizer = document.getElementById('resizer');
+        const boxAnotacoes = document.getElementById('out-desc');
+        let startYResizer, startHeightBox;
+
+        resizer.addEventListener('mousedown', initDragResizer);
+        resizer.addEventListener('touchstart', initDragResizer, {passive: false});
+
+        function initDragResizer(e) {
+            e.preventDefault();
+            startYResizer = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            startHeightBox = parseInt(document.defaultView.getComputedStyle(boxAnotacoes).height, 10);
+            
+            document.addEventListener('mousemove', doDragResizer);
+            document.addEventListener('touchmove', doDragResizer, {passive: false});
+            document.addEventListener('mouseup', stopDragResizer);
+            document.addEventListener('touchend', stopDragResizer);
+        }
+
+        function doDragResizer(e) {
+            e.preventDefault();
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const dy = startYResizer - clientY; 
+            
+            // Quanto mais arrasta para cima (dy positivo), maior a caixa de texto fica.
+            let newHeight = startHeightBox + dy;
+            
+            // Limites de tamanho (mínimo 40px, máximo 400px)
+            if(newHeight < 40) newHeight = 40; 
+            if(newHeight > 400) newHeight = 400;
+
+            boxAnotacoes.style.height = newHeight + 'px';
+        }
+
+        function stopDragResizer() {
+            document.removeEventListener('mousemove', doDragResizer);
+            document.removeEventListener('touchmove', doDragResizer);
+            document.removeEventListener('mouseup', stopDragResizer);
+            document.removeEventListener('touchend', stopDragResizer);
+        }
+
+
+        // --- 3. LÓGICA DE IMAGENS E ARRASTO ---
+        const canvas = document.getElementById('canvas-imagens');
+        let draggedImg = null;
+        let startX, startY, initialLeft, initialTop;
+        let selectedImgForZoom = null;
+
+        window.addEventosImagem = function(img) {
             img.addEventListener('mousedown', startDragMouse);
             img.addEventListener('click', selectImage);
             img.addEventListener('touchstart', startDragTouch, {passive: false});
             img.addEventListener('dblclick', (e) => e.target.remove());
             img.addEventListener('wheel', resizeImage, { passive: false });
         }
-
-        window.carregarQRCode = function(event) {
-            const input = event.target;
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e){
-                    const imgQr = document.getElementById('img-preview-qr');
-                    imgQr.src = e.target.result;
-                    imgQr.style.display = "block";
-                    imgQr.file = input.files[0];
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        const canvas = document.getElementById('canvas-imagens');
-        let draggedImg = null;
-        let startX, startY, initialLeft, initialTop;
-        let selectedImgForZoom = null;
 
         window.adicionarImagens = function(event) {
             const files = event.target.files;
@@ -728,13 +657,26 @@
                     img.classList.add('draggable-img');
                     img.style.left = '50px'; img.style.top = '50px';
                     img.style.width = '150px';
-                    img.file = file; // Guarda para comprimir depois
-                    
-                    addEventosImagem(img);
+                    img.file = file; 
+                    window.addEventosImagem(img);
                     canvas.appendChild(img);
                 }
                 reader.readAsDataURL(file);
             });
+        }
+
+        window.carregarQRCode = function(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e){
+                    const imgQr = document.getElementById('img-preview-qr');
+                    imgQr.src = e.target.result;
+                    imgQr.style.display = "block";
+                    imgQr.file = input.files[0];
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         function selectImage(e) {
@@ -752,20 +694,15 @@
         }
 
         window.aplicarZoomMobile = function(valor) {
-            if(selectedImgForZoom) {
-                selectedImgForZoom.style.width = valor + 'px';
-            }
+            if(selectedImgForZoom) { selectedImgForZoom.style.width = valor + 'px'; }
         }
 
         function resizeImage(e) {
             e.preventDefault();
             const scaleAmount = 20; 
             let currentWidth = this.offsetWidth;
-            if (e.deltaY < 0) {
-                this.style.width = (currentWidth + scaleAmount) + 'px';
-            } else {
-                if (currentWidth > 50) this.style.width = (currentWidth - scaleAmount) + 'px';
-            }
+            if (e.deltaY < 0) { this.style.width = (currentWidth + scaleAmount) + 'px'; } 
+            else { if (currentWidth > 50) this.style.width = (currentWidth - scaleAmount) + 'px'; }
         }
 
         canvas.addEventListener('click', () => {
@@ -784,9 +721,7 @@
             draggedImg.style.left = `${initialLeft + (e.clientX - startX)}px`;
             draggedImg.style.top = `${initialTop + (e.clientY - startY)}px`;
         }
-        function stopDragMouse() {
-            draggedImg = null; document.removeEventListener('mousemove', dragMouse); document.removeEventListener('mouseup', stopDragMouse);
-        }
+        function stopDragMouse() { draggedImg = null; document.removeEventListener('mousemove', dragMouse); document.removeEventListener('mouseup', stopDragMouse); }
 
         function startDragTouch(e) {
             if(e.touches.length > 1) return;
@@ -797,20 +732,16 @@
             document.addEventListener('touchmove', dragTouch, {passive: false}); document.addEventListener('touchend', stopDragTouch);
         }
         function dragTouch(e) {
-            if (!draggedImg) return;
-            e.preventDefault();
+            if (!draggedImg) return; e.preventDefault();
             const touch = e.touches[0];
             draggedImg.style.left = `${initialLeft + (touch.clientX - startX)}px`;
             draggedImg.style.top = `${initialTop + (touch.clientY - startY)}px`;
         }
-        function stopDragTouch() {
-            draggedImg = null; document.removeEventListener('touchmove', dragTouch); document.removeEventListener('touchend', stopDragTouch);
-        }
-    </script>
-    
-    <script>
-        // --- NAVEGAÇÃO MOBILE (SCRIPT SEPARADO) ---
-        function abrirPrevia() {
+        function stopDragTouch() { draggedImg = null; document.removeEventListener('touchmove', dragTouch); document.removeEventListener('touchend', stopDragTouch); }
+
+
+        // --- 4. NAVEGAÇÃO MOBILE ---
+        window.abrirPrevia = function() {
             document.getElementById('painel-controle').style.display = 'none';
             document.getElementById('area-impressao').style.display = 'flex';
             document.getElementById('btn-abrir-previa').style.display = 'none';
@@ -823,7 +754,7 @@
             folha.style.transform = `scale(${escala})`;
         }
 
-        function fecharPrevia() {
+        window.fecharPrevia = function() {
             document.getElementById('painel-controle').style.display = 'block';
             document.getElementById('area-impressao').style.display = 'none';
             document.getElementById('btn-abrir-previa').style.display = 'flex';
