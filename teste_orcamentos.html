@@ -112,7 +112,10 @@
         .prefix-group { display: flex; align-items: center; background: #111; border-radius: 5px; overflow: hidden; border: 1px solid #444;}
         .btn-prefix { border: none; background: transparent; color: #777; font-size: 10px; font-weight: 900; padding: 4px 6px; cursor: pointer; transition: 0.2s; }
         .btn-prefix.active { background: var(--yellow); color: #000; }
-        .orc-num { font-size: 12px; color: white; font-weight: 900; padding: 0 8px; letter-spacing: 1px;}
+        
+        /* Número Editável */
+        .orc-num { font-size: 12px; color: white; font-weight: 900; padding: 0 8px; letter-spacing: 1px; cursor: pointer; transition: color 0.2s;}
+        .orc-num:hover { color: var(--blue); }
         
         /* Ferramentas Superiores (Arq e Del) */
         .card-tools { display: flex; gap: 5px; }
@@ -239,7 +242,8 @@
                     
                     // Sistema de Formatação 4 dígitos e Prefixo
                     const prefixo = data.prefixo || 'OR';
-                    const num = String(data.numero_solicitacao || 0).padStart(4, '0');
+                    const numeroPuro = data.numero_solicitacao || 0;
+                    const num = String(numeroPuro).padStart(4, '0');
                     const numDisplay = `${prefixo}-${num}`;
                     
                     const isArquivado = data.arquivado || false;
@@ -255,7 +259,7 @@
                                 </div>
                             </div>
                         `;
-                        return; // Pula o resto, não entra no Kanban
+                        return; 
                     }
 
                     // --- RENDERIZAÇÃO PARA O KANBAN ---
@@ -281,7 +285,7 @@
                                 <div class="prefix-group">
                                     <button class="btn-prefix ${prefixo === 'OR' ? 'active' : ''}" onclick="window.mudarPrefixo('${id}', 'OR')">OR</button>
                                     <button class="btn-prefix ${prefixo === 'OS' ? 'active' : ''}" onclick="window.mudarPrefixo('${id}', 'OS')">OS</button>
-                                    <span class="orc-num">${num}</span>
+                                    <span class="orc-num" title="Clique para editar o número" onclick="window.editarNumero('${id}', '${numeroPuro}')">${num}</span>
                                 </div>
                                 <div class="card-tools">
                                     <button class="btn-mini-tool" onclick="window.arquivarCard('${id}', true)" title="Arquivar Solicitação">📁</button>
@@ -322,10 +326,31 @@
         window.mudarPrefixo = async (id, novoPrefixo) => {
             try {
                 await updateDoc(doc(db, "orcamentos", id), { prefixo: novoPrefixo });
-                carregarLista(); // Recarrega a tela para atualizar o visual
+                carregarLista(); 
             } catch (e) {
                 console.error("Erro ao mudar prefixo", e);
                 alert("Erro ao alterar prefixo.");
+            }
+        }
+
+        // NOVO: Editar o número manualmente
+        window.editarNumero = async (id, numeroAtual) => {
+            const novoNumStr = prompt("Digite o novo número (apenas números):", numeroAtual);
+            
+            if (novoNumStr !== null) {
+                const novoNum = parseInt(novoNumStr);
+                
+                if (!isNaN(novoNum)) {
+                    try {
+                        await updateDoc(doc(db, "orcamentos", id), { numero_solicitacao: novoNum });
+                        carregarLista(); // Atualiza a tela instantaneamente
+                    } catch (e) {
+                        console.error("Erro ao editar número:", e);
+                        alert("Erro ao alterar o número no banco de dados.");
+                    }
+                } else {
+                    alert("Por favor, digite um número válido!");
+                }
             }
         }
 
