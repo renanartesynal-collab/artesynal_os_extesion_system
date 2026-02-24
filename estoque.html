@@ -339,8 +339,7 @@
 conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white;">${p.status}</span>`;
 
 // Tentamos ler 'dataCadastro' ou 'dataEntrada' para garantir que apareça
-let dataExibir = (p.data_criacao && typeof p.data_criacao === 'string') ? p.data_criacao : 
-                 (p.ddata_criacao || p.dataCadastro || "");
+let dataExibir = p.data_criacao || p.data_criacao || p.dataCadastro || "";
 
 if (dataExibir) {
     conteudo += `<span style="color: var(--text-gray); font-size: 9px; margin-left: 8px;
