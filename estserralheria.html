@@ -398,7 +398,7 @@
         window.resetarCategoriaField = () => {
             window.isNewCategory = false; document.getElementById('label-cat').innerText = "Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat'); btn.innerText = "+"; btn.onclick = window.ativarNovaCategoria;
-            const todasCats = [...new Set([...CATS_SERR, ...categoriasDinamicas])].sort(); 
+            const todasCats = [...new Set([...CATS_SERR, ...categoriasDinamicas])]; 
             
             const select = document.createElement('select');
             select.id = "prod-cat";
