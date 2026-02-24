@@ -14,6 +14,7 @@
             --green: #00a651;
             --red: #ed1c24;
             --purple: #9b59b6; 
+            --orange: #ff6b00;
             --text-gray: #bdc3c7;
         }
 
@@ -34,34 +35,39 @@
             text-align: center;
             border-bottom: 4px solid var(--yellow);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-sizing: border-box;
         }
 
         h1 { margin: 0; font-weight: 900; letter-spacing: 1px; color: white; text-transform: uppercase; font-size: 24px; }
         .subtitle { color: var(--yellow); font-size: 12px; margin-top: 5px; font-weight: 600; }
 
-        /* GRID DE CARTÕES */
+        /* MUDANÇA AQUI: De Grid para Flexbox centralizado */
         .dashboard-container {
-            width: 100%; max-width: 1000px;
-            padding: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            width: 100%; max-width: 1200px;
+            padding: 40px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Centraliza os itens */
+            gap: 25px;
             box-sizing: border-box;
         }
 
         /* ESTILO DO CARTÃO */
         .card {
             background: var(--card-bg);
-            border-radius: 10px;
-            padding: 25px;
+            border-radius: 12px;
+            padding: 30px 20px;
             text-align: center;
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
             text-decoration: none; 
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            height: 220px;
+            flex: 1 1 300px; /* Permite crescer e encolher, tamanho base 300px */
+            max-width: 350px; /* Não deixa o cartão ficar largo demais */
+            min-height: 250px; /* Aumentei a altura para não espremer */
             border: 1px solid #34495e;
             position: relative; overflow: hidden;
+            box-sizing: border-box;
         }
 
         .card:hover {
@@ -79,18 +85,23 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        .card-title { color: white; font-weight: 800; font-size: 20px; margin-bottom: 5px; text-transform: uppercase; }
-        .card-desc { color: var(--text-gray); font-size: 12px; margin-bottom: 20px; line-height: 1.4; }
+        .card-title { color: white; font-weight: 800; font-size: 20px; margin-bottom: 8px; text-transform: uppercase; }
+        .card-desc { color: var(--text-gray); font-size: 13px; margin-bottom: 25px; line-height: 1.5; padding: 0 10px; }
 
         .btn-acessar {
-            padding: 10px 25px;
-            border-radius: 20px;
+            padding: 12px 25px;
+            border-radius: 25px;
             font-weight: 900;
-            font-size: 12px;
+            font-size: 13px;
             text-transform: uppercase;
             border: none;
-            width: 100%;
+            width: 90%;
             cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .card:hover .btn-acessar {
+            opacity: 0.9;
         }
 
         /* CORES ESPECÍFICAS POR MÓDULO */
@@ -103,16 +114,20 @@
         .mod-orc .icon-box { color: var(--yellow); border: 2px solid var(--yellow); }
         .mod-orc .btn-acessar { background: var(--yellow); color: #333; }
 
-        .mod-estoque .icon-box { color: var(--purple); border: 2px solid var(--purple); }
-        .mod-estoque .btn-acessar { background: var(--purple); color: white; }
+        .mod-imp .icon-box { color: var(--purple); border: 2px solid var(--purple); }
+        .mod-imp .btn-acessar { background: var(--purple); color: white; }
 
+        .mod-serr .icon-box { color: var(--orange); border: 2px solid var(--orange); }
+        .mod-serr .btn-acessar { background: var(--orange); color: white; }
+
+        /* RESPONSIVIDADE PARA CELULAR */
         @media (max-width: 600px) {
-            .dashboard-container { grid-template-columns: 1fr; padding: 20px; }
-            .card { flex-direction: row; height: auto; text-align: left; align-items: center; padding: 20px; }
+            .dashboard-container { padding: 20px; flex-direction: column; align-items: center; }
+            .card { flex-direction: row; min-height: auto; text-align: left; align-items: center; padding: 20px; max-width: 100%; width: 100%; }
             .icon-box { font-size: 30px; width: 60px; height: 60px; margin-bottom: 0; margin-right: 15px; }
             .card-content { flex: 1; }
-            .btn-acessar { width: auto; display: none; }
-            .card-desc { margin-bottom: 5px; }
+            .btn-acessar { display: none; }
+            .card-desc { margin-bottom: 5px; padding: 0; }
         }
     </style>
 </head>
@@ -152,11 +167,20 @@
             <button class="btn-acessar">ACESSAR</button>
         </a>
 
-        <a href="estoque.html" class="card mod-estoque">
-            <div class="icon-box">📦</div>
+        <a href="estimpressao.html" class="card mod-imp">
+            <div class="icon-box">🖨️</div>
             <div class="card-content">
-                <div class="card-title">Estoque</div>
-                <div class="card-desc">Controle de materiais, peças e cortes.</div>
+                <div class="card-title">Impressão</div>
+                <div class="card-desc">Controle de lonas, adesivos, recortes e tintas.</div>
+            </div>
+            <button class="btn-acessar">ACESSAR</button>
+        </a>
+
+        <a href="estserralheria.html" class="card mod-serr">
+            <div class="icon-box">🛠️</div>
+            <div class="card-content">
+                <div class="card-title">Serralheria</div>
+                <div class="card-desc">Controle de chapas, retalhos de corte e MDF.</div>
             </div>
             <button class="btn-acessar">ACESSAR</button>
         </a>
@@ -164,7 +188,7 @@
     </div>
 
     <div style="margin-top: auto; padding: 20px; font-size: 10px; color: #555;">
-        Sistema v1.3 - Desenvolvido para Artesynal
+        Sistema v1.4 - Desenvolvido para Artesynal
     </div>
 
 </body>
