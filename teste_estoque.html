@@ -22,7 +22,16 @@
             --blue-used: #3b82f6;
             --purple: #9b59b6;
         }
+        @keyframes piscarAlerta {
+            0% { color: #ff0000; }  /* Vermelho */
+            50% { color: #ffffff; } /* Branco */
+            100% { color: #ff0000; } /* Vermelho */
+        }
 
+        .texto-pisca {
+            animation: piscarAlerta 0.8s infinite;
+            font-weight: bold;
+        }
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: var(--dark-bg);
@@ -32,7 +41,37 @@
         }
 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* --- BOTÃO DE VOLTAR AO PAINEL --- */
+        .btn-voltar-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #1a1a1a;
+            color: var(--text-gray);
+            border: 1px solid #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn-voltar-home:hover {
+            background: #333;
+            color: white;
+            transform: translateY(-2px);
+            border-color: #555;
+        }
 
         /* ==========================================================================
            2. TELA DE SELEÇÃO INICIAL (IMPRESSÃO OU SERRALHERIA)
@@ -48,7 +87,7 @@
         /* ==========================================================================
            3. LAYOUT PRINCIPAL E KANBAN (COLUNAS)
            ========================================================================== */
-        #main-layout { display: none; padding: 20px; }
+        #main-layout { display: none; padding: 20px; padding-top: 70px; } /* Adicionado padding-top para o botão não sobrepor */
         .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
         h1 { margin: 0; color: var(--white); font-size: 24px; text-transform: uppercase; font-weight: 900; }
         .btn-voltar { cursor: pointer; color: white; background: #333; padding: 10px 20px; border-radius: 8px; font-size: 12px; font-weight: bold; border:none; transition: 0.2s; }
@@ -91,7 +130,6 @@
         .btn-voltar-top { position: absolute; top: 20px; right: 20px; background: transparent; color: var(--red-cancel); border: 1px solid var(--red-cancel); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s; z-index: 10; }
         .btn-voltar-top:hover { background: rgba(255, 59, 59, 0.1); }
         
-        /* Padding-right adicionado para o botão NOVO não bater no Cancelar */
         .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding-right: 90px; }
         .title-material { font-size: 30px; font-weight: 900; margin: 0; color: #fff; line-height: 1; }
         .btn-status-toggle { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: all 0.3s ease; }
@@ -137,6 +175,8 @@
 </head>
 <body>
 
+    <a href="index.html" class="btn-voltar-home">⬅ VOLTAR AO PAINEL</a>
+
     <div id="sector-screen">
         <button class="sector-btn sec-imp" onclick="selecionarSetor('impressao')">
             <div class="sec-icon">🖨️</div>
@@ -178,8 +218,7 @@
 
     <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')">Cancelar</button>
-
+            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')" style="background: linear-gradient(180deg, #e67e22, #d35400); color: white; border: 1px solid #a04000; border-radius: 20px; padding: 0 10px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: absolute; right: 25px; top: 22px; width: 100px; height: 28px; line-height: 1;">✖ CANCELAR</button>
             <div class="header-row">
                 <h2 class="title-material" id="modal-main-title">Material</h2>
                 <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatus()" style="display: none;">Novo</button>
@@ -188,7 +227,7 @@
             <div class="form-row align-bottom">
                 <div style="flex: 3;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 32px;">
-                        <label id="label-cat" class="label-standard" style="margin:0;">Matéria</label>
+                        <label id="label-cat" class="label-standard" style="margin:0;">MATÉRIA PRIMA</label>
                         <button class="btn-icon-action" id="btn-toggle-cat" onclick="ativarNovaCategoria()">+</button>
                     </div>
                     <div id="cat-container">
@@ -598,24 +637,86 @@
         // SESSÃO 6: INPUTS CUSTOMIZADOS COM MEMÓRIA (DB)
         window.ativarNovaCategoria = () => {
             window.isNewCategory = true;
-            document.getElementById('label-cat').innerText = "Nova Categoria";
+            document.getElementById('label-cat').innerText = "Nova Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat');
             btn.innerHTML = '×'; btn.onclick = window.resetarCategoriaField;
-            document.getElementById('cat-container').innerHTML = `<input type="text" id="prod-cat-new" placeholder="Nome da Categoria..." autofocus>`;
+            document.getElementById('cat-container').innerHTML = `
+    <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+        <input type="text" id="prod-cat-new" placeholder="Digite o nome" autofocus 
+               style="flex: 1; height: 35px; border-radius: 4px; border: 1px solid #333; background: #1a1a1a; color: white; padding: 0 35px 0 10px;">
+        <button onclick="salvarNovaCategoriaNoArray()" 
+                style="position: absolute; right: 5px; background: #00ff00; color: #000; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+            ✓
+        </button>
+    </div>
+`;
         };
         window.resetarCategoriaField = () => {
             window.isNewCategory = false;
-            document.getElementById('label-cat').innerText = "Categoria";
+            document.getElementById('label-cat').innerText = "Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat');
             btn.innerText = "+"; btn.onclick = window.ativarNovaCategoria;
             
             const catsBase = window.setorAtual === 'serralheria' ? CATS_SERR : CATS_IMP;
             const todasCats = [...new Set([...catsBase, ...categoriasDinamicas])].sort(); // Junta lista de fabrica com a do banco
 
-            document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange="handleCategoryChange()"><option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
+            document.getElementById('cat-container').innerHTML = `<select id="prod-cat" onchange=
+            "handleCategoryChange()"><option value="">Selecione...</option>
+            ${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
             window.handleCategoryChange();
         };
+        window.salvarNovaCategoriaNoArray = () => {
+    const input = document.getElementById('prod-cat-new');
+    const valor = input.value.trim();
 
+    if (valor !== "") {
+        // Adiciona o novo item à lista dinâmica
+        if (typeof categoriasDinamicas !== 'undefined') {
+            categoriasDinamicas.push(valor);
+        }
+        // Retorna o campo para o modo de seleção (Select)
+        window.resetarCategoriaField(); 
+    } else {
+        // Se estiver vazio, foca no campo novamente
+        input.focus();
+    }
+};
+// Função para remover um item da lista e atualizar a tela
+window.removerCategoriaDinamica = (nome) => {
+    if (confirm(`Deseja realmente excluir o material "${nome}"?`)) {
+        const index = categoriasDinamicas.indexOf(nome);
+        if (index > -1) {
+            categoriasDinamicas.splice(index, 1); // Remove do array
+            window.resetarCategoriaField(); // Recarrega a lista sem o item
+        }
+    }
+};
+
+// Altera o resetarCategoriaField para incluir a opção de excluir
+const originalResetar = window.resetarCategoriaField;
+window.resetarCategoriaField = () => {
+    originalResetar(); // Executa o que já existia
+    
+    const select = document.getElementById('prod-cat');
+    // Adiciona a opção de exclusão no final da lista
+    const optExcluir = document.createElement('option');
+    optExcluir.value = "MODO_EXCLUIR";
+    optExcluir.text = "⚠️ EXCLUIR MATÉRIA PRIMA DA LISTA ⚠️";
+    optExcluir.className = "texto-pisca"; // Conecta com a animação da linha 25
+optExcluir.style.color = "red";       // Garante a cor vermelha como base
+    select.appendChild(optExcluir);
+
+    // Monitora se o usuário quer excluir
+    select.addEventListener('change', function() {
+        if (this.value === "MODO_EXCLUIR") {
+            const itemParaExcluir = prompt("Digite o nome EXATO do item que deseja remover:");
+            if (itemParaExcluir) {
+                window.removerCategoriaDinamica(itemParaExcluir);
+            }
+            this.value = ""; // Reseta o select
+        }
+    });
+};
         window.ativarNovaEspessura = () => {
             document.getElementById('label-espessura').innerText = "Nova Espessura";
             const b = document.getElementById('btn-toggle-esp'); b.innerHTML = '×'; b.onclick = window.resetarEspessuraField;
