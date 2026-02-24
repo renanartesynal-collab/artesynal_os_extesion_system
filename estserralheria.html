@@ -115,7 +115,9 @@
             <div class="kanban-col"><div class="kanban-header">PVC</div><div class="grid-est" id="grid-PVC"></div></div>
             <div class="kanban-col"><div class="kanban-header">PS</div><div class="grid-est" id="grid-PS"></div></div>
             <div class="kanban-col"><div class="kanban-header">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
-            <div class="kanban-col"><div class="kanban-header" style="background:#444; color:white;">Outros Materiais / MDF</div><div class="grid-est" id="grid-OUTROS-SERR"></div></div>
+            <div class="kanban-col"><div class="kanban-header" style=
+                "background:#444; color:white;">Outros Materiais / MDF</div>
+                <div class="grid-est" id="grid-OUTROS-SERR"></div></div>
         </div>
 
         <button class="fab-add" onclick="abrirModalProd()">+</button>
@@ -123,7 +125,23 @@
 
     <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')" style="background: transparent; color: white; border: 1px solid #555;">✖ CANCELAR</button>
+            <button onclick="document.getElementById('modal-prod').style.display='none'" 
+            style="position: absolute; top: 20px; right: 18px; display: flex; align-items: center;
+             border: none; border-radius: 18px; overflow: hidden; cursor: pointer; padding: 0;
+              height: 32px; font-family: 'Montserrat', sans-serif;">
+                
+                <div style="background-color: rgb(253, 123, 2); width: 29px; height: 100%;
+                 display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-size: 14px; font-weight: bold;">×</span>
+                </div>
+                
+                <div style="background-color: rgb(245, 133, 5); padding: 0 5px; height: 100%; display: flex;
+                 align-items: center;">
+                    <span style="color: rgb(255, 253, 253); font-size: 13px; font-weight: 900;
+                     text-transform: uppercase;
+                     letter-spacing: 0.5px;">CANCELAR</span>
+                </div>
+            </button>
             <div class="header-row">
                 <h2 class="title-material" id="modal-main-title">Nova Chapa</h2>
                 <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatus()">NOVO</button>
@@ -409,48 +427,102 @@
         };
 
         window.handleCategoryChange = () => {
-            const cat = document.getElementById('prod-cat').value;
-            const catLower = cat.toLowerCase();
-            const divDims = document.getElementById('div-dims');
-            const espSelect = document.getElementById('prod-espessura');
-            window.indiceMedidaPadrao = 0;
-            
-            let espessurasDisponiveis = [];
+    const cat = document.getElementById('prod-cat').value;
+    const catLower = cat.toLowerCase();
+    const divDims = document.getElementById('div-dims');
+    const espContainer = document.getElementById('esp-container'); 
+    window.indiceMedidaPadrao = 0;
+    
+    let espessurasDisponiveis = [];
 
-            if (CONFIG_FABRICA[catLower]) {
-                espessurasDisponiveis = [...CONFIG_FABRICA[catLower].espessuras];
-                divDims.style.display = 'block';
-                if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
-            } else if (cat !== "") {
-                divDims.style.display = 'block';
-                document.getElementById('prod-dim-w').value = '';
-                document.getElementById('prod-dim-h').value = '';
-            } else {
-                divDims.style.display = 'none';
+    // 1. Padrão de fábrica baseado no CONFIG_FABRICA
+    if (CONFIG_FABRICA[catLower]) {
+        espessurasDisponiveis = [...CONFIG_FABRICA[catLower].espessuras];
+        divDims.style.display = 'block';
+        if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
+    } else if (cat !== "") {
+        divDims.style.display = 'block';
+    } else {
+        divDims.style.display = 'none';
+    }
+
+    // 2. Banco de dados e Adições Dinâmicas por Matéria Prima
+    const customEspessuras = [...new Set(produtos.filter(p => p.categoria === cat && p.espessura).map(p => p.espessura))];
+    if (typeof window.espessurasDinamicasMap === 'undefined') window.espessurasDinamicasMap = {};
+    const locais = window.espessurasDinamicasMap[cat] || [];
+
+    const todasEspessuras = [...new Set([...espessurasDisponiveis, ...customEspessuras, ...locais])];
+
+    // 3. Criação do Select com MODO_EXCLUIR
+    const select = document.createElement('select');
+    select.id = "prod-espessura";
+    select.innerHTML = `<option value="">Selecione...</option>` +
+        todasEspessuras.map(e => `<option value="${e}">${e}</option>`).join('') +
+        `<option value="MODO_EXCLUIR" style="color: red; font-weight: bold;">⚠️ EXCLUIR ESPESSURA 🔴</option>`;
+
+    select.addEventListener('change', function() {
+        if (this.value === "MODO_EXCLUIR") {
+            const itemParaExcluir = prompt("Digite o valor EXATO da espessura que deseja remover:");
+            if (itemParaExcluir && window.espessurasDinamicasMap[cat]) {
+                const index = window.espessurasDinamicasMap[cat].indexOf(itemParaExcluir);
+                if (index > -1) {
+                    window.espessurasDinamicasMap[cat].splice(index, 1);
+                    window.handleCategoryChange(); 
+                }
             }
+            this.value = ""; 
+        }
+    });
 
-            const customEspessuras = [...new Set(produtos.filter(p => p.categoria === cat && p.espessura).map(p => p.espessura))];
-            const todasEspessuras = [...new Set([...espessurasDisponiveis, ...customEspessuras])];
+    espContainer.innerHTML = '';
+    espContainer.appendChild(select);
+    if (typeof window.atualizarPlanoCorte === 'function') window.atualizarPlanoCorte();
+};
 
-            if(todasEspessuras.length > 0) {
-                espSelect.innerHTML = todasEspessuras.map(e => `<option value="${e}">${e}</option>`).join('');
-            } else {
-                espSelect.innerHTML = '<option value="">Sem espessura / Adicione +</option>';
-            }
-
-            window.atualizarPlanoCorte();
-        };
-
-        // ESPESSURAS
+        // ESPESSURAS - CONTROLE DE ADIÇÃO E SALVAMENTO
         window.ativarNovaEspessura = () => {
+            const cat = document.getElementById('prod-cat').value;
+            if (!cat) { alert("Selecione uma Matéria Prima primeiro!"); return; }
+
             document.getElementById('label-espessura').innerText = "Nova Espessura";
-            const b = document.getElementById('btn-toggle-esp'); b.innerHTML = '×'; b.onclick = window.resetarEspessuraField;
-            document.getElementById('esp-container').innerHTML = `<input type="text" id="prod-esp-new" placeholder="Ex: 15mm" autofocus>`;
+            const b = document.getElementById('btn-toggle-esp'); 
+            b.innerHTML = '×'; 
+            b.onclick = window.resetarEspessuraField;
+            document.getElementById('esp-container').innerHTML = `
+                <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+                    <input type="text" id="prod-esp-new" placeholder="Ex: 15mm" autofocus 
+                           style="flex: 1; height: 35px; border-radius: 4px; border: 1px solid #333; background: #1a1a1a; color: white; padding: 0 35px 0 10px;">
+                    <button onclick="window.salvarNovaEspessuraNoArray()" 
+                            style="position: absolute; right: 5px; background: #00ff00; color: #000; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                        ✓
+                    </button>
+                </div>`;
         };
+
         window.resetarEspessuraField = () => {
             document.getElementById('label-espessura').innerText = "Espessura";
-            const b = document.getElementById('btn-toggle-esp'); b.innerText = "+"; b.onclick = window.ativarNovaEspessura;
+            const b = document.getElementById('btn-toggle-esp'); 
+            b.innerText = "+"; 
+            b.onclick = window.ativarNovaEspessura;
             window.handleCategoryChange(); 
+        };
+
+        window.salvarNovaEspessuraNoArray = () => {
+            const cat = document.getElementById('prod-cat').value;
+            const input = document.getElementById('prod-esp-new');
+            const val = input ? input.value.trim() : "";
+            if (val) {
+                if (typeof window.espessurasDinamicasMap === 'undefined') window.espessurasDinamicasMap = {};
+                if (!window.espessurasDinamicasMap[cat]) window.espessurasDinamicasMap[cat] = [];
+                
+                // Salva a espessura apenas para a categoria selecionada
+                if (!window.espessurasDinamicasMap[cat].includes(val)) {
+                    window.espessurasDinamicasMap[cat].push(val);
+                }
+                window.resetarEspessuraField();
+            } else if (input) {
+                input.focus();
+            }
         };
 
         // CORES
