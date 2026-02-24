@@ -22,16 +22,16 @@
             --blue-used: #3b82f6;
             --purple: #9b59b6;
         }
-@keyframes piscarAlerta {
-    0% { color: #ff0000; }  /* Vermelho */
-    50% { color: #ffffff; } /* Branco */
-    100% { color: #ff0000; } /* Vermelho */
-}
+        @keyframes piscarAlerta {
+            0% { color: #ff0000; }  /* Vermelho */
+            50% { color: #ffffff; } /* Branco */
+            100% { color: #ff0000; } /* Vermelho */
+        }
 
-.texto-pisca {
-    animation: piscarAlerta 0.8s infinite;
-    font-weight: bold;
-}
+        .texto-pisca {
+            animation: piscarAlerta 0.8s infinite;
+            font-weight: bold;
+        }
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: var(--dark-bg);
@@ -42,9 +42,36 @@
 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* --- BOTÃO DE VOLTAR AO PAINEL --- */
+        .btn-voltar-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #1a1a1a;
+            color: var(--text-gray);
+            border: 1px solid #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn-voltar-home:hover {
+            background: #333;
+            color: white;
+            transform: translateY(-2px);
+            border-color: #555;
+        }
 
         /* ==========================================================================
            2. TELA DE SELEÇÃO INICIAL (IMPRESSÃO OU SERRALHERIA)
@@ -60,7 +87,7 @@
         /* ==========================================================================
            3. LAYOUT PRINCIPAL E KANBAN (COLUNAS)
            ========================================================================== */
-        #main-layout { display: none; padding: 20px; }
+        #main-layout { display: none; padding: 20px; padding-top: 70px; } /* Adicionado padding-top para o botão não sobrepor */
         .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
         h1 { margin: 0; color: var(--white); font-size: 24px; text-transform: uppercase; font-weight: 900; }
         .btn-voltar { cursor: pointer; color: white; background: #333; padding: 10px 20px; border-radius: 8px; font-size: 12px; font-weight: bold; border:none; transition: 0.2s; }
@@ -103,7 +130,6 @@
         .btn-voltar-top { position: absolute; top: 20px; right: 20px; background: transparent; color: var(--red-cancel); border: 1px solid var(--red-cancel); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s; z-index: 10; }
         .btn-voltar-top:hover { background: rgba(255, 59, 59, 0.1); }
         
-        /* Padding-right adicionado para o botão NOVO não bater no Cancelar */
         .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding-right: 90px; }
         .title-material { font-size: 30px; font-weight: 900; margin: 0; color: #fff; line-height: 1; }
         .btn-status-toggle { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: all 0.3s ease; }
@@ -148,6 +174,8 @@
     </style>
 </head>
 <body>
+
+    <a href="index.html" class="btn-voltar-home">⬅ VOLTAR AO PAINEL</a>
 
     <div id="sector-screen">
         <button class="sector-btn sec-imp" onclick="selecionarSetor('impressao')">
