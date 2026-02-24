@@ -728,19 +728,71 @@ optExcluir.style.color = "red";       // Garante a cor vermelha como base
             window.handleCategoryChange(); // Recarrega puxando da base de dados baseada na categoria
         };
 
-        window.ativarNovaCor = () => {
-            document.getElementById('label-cor').innerText = "Nova Cor";
-            const b = document.getElementById('btn-toggle-cor'); b.innerHTML = '×'; b.onclick = window.resetarCorField;
-            document.getElementById('cor-container').innerHTML = `<input type="text" id="prod-cor-new" placeholder="Ex: Prata" autofocus>`;
-        };
-        window.resetarCorField = () => {
-            document.getElementById('label-cor').innerText = "Cor";
-            const b = document.getElementById('btn-toggle-cor'); b.innerText = "+"; b.onclick = window.ativarNovaCor;
-            
-            const todasCores = [...new Set([...CORES_BASE, ...coresDinamicas])]; // Junta fabrica e banco mantendo a ordem
-            
-            document.getElementById('cor-container').innerHTML = `<select id="prod-cor"><option value="">Selecione...</option>${todasCores.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
-        };
+       window.ativarNovaCor = () => {
+    document.getElementById('label-cor').innerText = "Nova Cor";
+    const b = document.getElementById('btn-toggle-cor'); 
+    b.innerHTML = '×'; 
+    b.onclick = window.resetarCorField;
+    document.getElementById('cor-container').innerHTML = `
+        <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+            <input type="text" id="prod-cor-new" placeholder="Ex: Prata" autofocus 
+                   style="flex: 1; height: 35px; border-radius: 4px; border: 1px solid #333; background: #1a1a1a; color: white; padding: 0 35px 0 10px;">
+            <button onclick="window.salvarNovaCorNoArray()" 
+                    style="position: absolute; right: 5px; background: #00ff00; color: #000; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                ✓
+            </button>
+        </div>`;
+};
+
+window.resetarCorField = () => {
+    document.getElementById('label-cor').innerText = "Cor";
+    const b = document.getElementById('btn-toggle-cor'); 
+    b.innerText = "+"; 
+    b.onclick = window.ativarNovaCor;
+    
+    const base = typeof CORES_BASE !== 'undefined' ? CORES_BASE : [];
+    const dinas = typeof coresDinamicas !== 'undefined' ? coresDinamicas : [];
+    const todasCores = [...new Set([...base, ...dinas])];
+
+    const select = document.createElement('select');
+    select.id = "prod-cor";
+    select.innerHTML = `
+        <option value="">Selecione a cor...</option>
+        ${todasCores.map(c => `<option value="${c}">${c}</option>`).join('')}
+        <option value="MODO_EXCLUIR" style="color: red; font-weight: bold;">⚠️ EXCLUIR COR DA LISTA 🔴</option>`;
+
+    // Lógica para excluir cores da lista dinâmica
+    select.addEventListener('change', function() {
+        if (this.value === "MODO_EXCLUIR") {
+            const itemParaExcluir = prompt("Digite o nome EXATO da cor que deseja remover:");
+            if (itemParaExcluir && typeof coresDinamicas !== 'undefined') {
+                const index = coresDinamicas.indexOf(itemParaExcluir);
+                if (index > -1) {
+                    coresDinamicas.splice(index, 1);
+                    window.resetarCorField();
+                } else {
+                    alert("Cor não encontrada ou faz parte do padrão de fábrica.");
+                }
+            }
+            this.value = "";
+        }
+    });
+
+    const container = document.getElementById('cor-container');
+    container.innerHTML = "";
+    container.appendChild(select);
+};
+
+window.salvarNovaCorNoArray = () => {
+    const input = document.getElementById('prod-cor-new');
+    const val = input ? input.value.trim() : "";
+    if (val && typeof coresDinamicas !== 'undefined') {
+        if (!coresDinamicas.includes(val)) {
+            coresDinamicas.push(val);
+        }
+        window.resetarCorField();
+    }
+};
 
         // SESSÃO 7: SALVAR MATERIAL NO FIREBASE
         window.salvarProduto = async () => {
