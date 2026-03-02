@@ -464,23 +464,65 @@
         }
 
         // ==========================================
-        // LÓGICA DE FOTOS E GALERIA
+        // LÓGICA DE COMPRESSÃO DE FOTOS
         // ==========================================
-        window.processarImagens = (e) => {
-            const files = e.target.files;
-            for(let file of files) {
+        
+        // Função para reduzir a resolução da imagem para evitar exceder 1MB no Firestore
+        function comprimirImagem(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    imagens.push({ 
-                        url: event.target.result, 
-                        originalUrl: event.target.result, // A mágica: guarda a foto original intacta
-                        obs: "", 
-                        arrows: [] // Histórico de setas
-                    });
-                    window.renderMiniaturas();
+                    const img = new Image();
+                    img.onload = () => {
+                        const compCanvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                        } else {
+                            if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
+                        }
+
+                        compCanvas.width = width;
+                        compCanvas.height = height;
+                        const compCtx = compCanvas.getContext('2d');
+                        compCtx.drawImage(img, 0, 0, width, height);
+
+                        // Comprime para JPEG (0.6 = 60% de qualidade)
+                        const dataUrl = compCanvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
+            });
+        }
+
+        window.processarImagens = async (e) => {
+            const files = e.target.files;
+            
+            // Alterado visual do botão para mostrar que está carregando
+            const btnUpload = document.querySelector('.btn-upload');
+            const originalText = btnUpload.innerText;
+            btnUpload.innerText = "⏳ COMPRIMINDO...";
+            btnUpload.disabled = true;
+
+            for(let file of files) {
+                // Comprime para max 1200px com 60% de qualidade (gera algo em torno de 150kb)
+                const base64Comprimido = await comprimirImagem(file, 1200, 1200, 0.6);
+                
+                imagens.push({ 
+                    url: base64Comprimido, 
+                    originalUrl: base64Comprimido, // A foto "original" agora já é a comprimida, salvando MUITO espaço
+                    obs: "", 
+                    arrows: [] 
+                });
             }
+            
+            btnUpload.innerText = originalText;
+            btnUpload.disabled = false;
+            window.renderMiniaturas();
         };
 
         window.renderMiniaturas = () => {
@@ -556,7 +598,7 @@
             const originalTextEdit = btnEdit.innerText;
             const originalTextVt = btnVt.innerText;
             
-            btnEdit.innerText = "SALVANDO..."; btnVt.innerText = "SALVANDO...";
+            btnEdit.innerText = "⏳ SALVANDO..."; btnVt.innerText = "⏳ SALVANDO...";
             
             const dados = {
                 cliente: document.getElementById('in-cliente').value,
@@ -588,14 +630,17 @@
                     alert("Salvo com sucesso!");
                     window.location.href = `${ROTAS.detalhes_orcamento}?id=${idEdicao}&mode=view`;
                 }
-            } catch(e) { console.error(e); alert("Erro ao salvar."); }
+            } catch(e) { 
+                console.error(e); 
+                alert("Erro ao salvar! O arquivo de imagens pode estar muito grande. Tente excluir alguma foto."); 
+            }
             
             btnEdit.disabled = false; btnEdit.innerText = originalTextEdit;
             btnVt.disabled = false; btnVt.innerText = originalTextVt;
         };
 
         // ==========================================
-        // VISITA TÉCNICA (CARD DO TÉCNICO) E COPIAR LINK
+        // VISITA TÉCNICA E COPIAR LINK
         // ==========================================
         window.abrirModalVisita = () => {
             if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
@@ -644,7 +689,6 @@
             finally { btn.disabled = false; btn.innerText = "SALVAR VISITA"; }
         };
 
-        // NOVA FUNÇÃO: Copiar link forçando o modo VT
         window.copiarLinkVT = () => {
             if (!idEdicao) return;
             const link = `${window.location.origin}${window.location.pathname}?id=${idEdicao}&mode=vt`;
@@ -663,17 +707,16 @@
             navigator.clipboard.writeText(document.getElementById('vt-endereco').innerText).then(() => alert("Copiado!"));
         };
         window.abrirMapsVT = () => {
-            window.open(`https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
+            window.open(`http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
         };
 
         // ==========================================
-        // EDITOR DE MEDIDAS (ROBUSTO E ORIENTADO A OBJETO)
+        // EDITOR DE MEDIDAS 
         // ==========================================
         window.abrirEditor = () => {
             if(!imagens[indiceAtual]) return;
             document.getElementById('draw-modal').style.display = 'flex';
             
-            // Clona o array de setas para não afetar o original até que o usuário clique em SALVAR
             arrows = JSON.parse(JSON.stringify(imagens[indiceAtual].arrows || []));
             window.setTool('draw');
 
@@ -683,7 +726,7 @@
                 currentEditorImg = img;
                 redrawCanvas();
             };
-            img.src = imagens[indiceAtual].originalUrl; // Abre SEMPRE a imagem original limpa
+            img.src = imagens[indiceAtual].originalUrl;
         };
 
         window.fecharEditor = () => document.getElementById('draw-modal').style.display = 'none';
@@ -725,7 +768,7 @@
             } 
             else if (editorTool === 'move') {
                 let closest = null; let minDist = Number.MAX_VALUE;
-                const hitR = 50; // Raio grande para o dedo no celular acertar fácil
+                const hitR = 50; 
 
                 arrows.forEach((a, i) => {
                     let d1 = dist(pos.x, pos.y, a.x1, a.y1);
@@ -778,14 +821,13 @@
                         const txt = prompt("Digite a medida (Ex: 150cm):");
                         if (txt) { arrows.push({ x1: startX, y1: startY, x2: currentX, y2: currentY, text: txt }); }
                         redrawCanvas();
-                    }, 50); // Delay pro prompt não travar o mobile no touchEnd
+                    }, 50); 
                 } else { redrawCanvas(); }
             } else if (isDragging && editorTool === 'move' && dragTarget) {
                 isDragging = false;
                 let a = arrows[dragTarget.i];
                 delete a.lastX; delete a.lastY;
 
-                // Se clicou no centro da seta mas NÃO arrastou, edita o texto!
                 if (!didDrag && dragTarget.p === 'center') {
                     setTimeout(() => {
                         const txt = prompt("Editar medida:", a.text);
@@ -812,26 +854,22 @@
             const headlen = 25; 
             const angle = Math.atan2(y2 - y1, x2 - x1);
             
-            ctx.strokeStyle = "#00a651"; // Verde 
+            ctx.strokeStyle = "#00a651"; 
             ctx.fillStyle = "#00a651";
             ctx.lineWidth = 6;
 
-            // Linha Principal
             ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 
-            // Ponta Final
             ctx.beginPath(); ctx.moveTo(x2, y2);
             ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
             ctx.fill();
 
-            // Ponta Inicial (Seta Bidirecional)
             ctx.beginPath(); ctx.moveTo(x1, y1);
             ctx.lineTo(x1 + headlen * Math.cos(angle - Math.PI / 6), y1 + headlen * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x1 + headlen * Math.cos(angle + Math.PI / 6), y1 + headlen * Math.sin(angle + Math.PI / 6));
             ctx.fill();
 
-            // Texto com Fundo
             if (text && text !== "...") {
                 const midX = (x1 + x2) / 2; const midY = (y1 + y2) / 2;
                 ctx.save(); ctx.translate(midX, midY);
@@ -851,11 +889,10 @@
         }
 
         window.salvarEditor = () => {
-            // Salva o estado real na memória para uso futuro
+            // Compressão da imagem com setas para manter leve!
             imagens[indiceAtual].arrows = JSON.parse(JSON.stringify(arrows));
-            
-            // Desenha a versão final e sobrescreve a URL de preview
             redrawCanvas();
+            // Comprime a imagem com setas com 80% de qualidade
             imagens[indiceAtual].url = canvas.toDataURL("image/jpeg", 0.8);
             
             window.renderMiniaturas();
