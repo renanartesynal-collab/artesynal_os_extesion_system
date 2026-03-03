@@ -682,88 +682,136 @@
             document.getElementById('modal-corte').style.display = 'flex';
             window.atualizarPreviewCorte();
         };
+        
+        // 👀 ✂️ Início Preview Corte 🔽//
+
 
         window.atualizarPreviewCorte = () => {
-            if (!pecaParaCorte) return;
-            const wOriginal = pecaParaCorte.dimW; const hOriginal = pecaParaCorte.dimH;
-            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0; 
-            const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
 
-            // 🚨 Validação imediata
-if (wCorte > wOriginal || hCorte > hOriginal) {
-    alert(`A medida digitada (${wCorte} x ${hCorte}) é maior que a chapa original (${wOriginal} x ${hOriginal})`);
-    document.getElementById('corte-w').value = '';
-    document.getElementById('corte-h').value = '';
-    return;
-}
+    if (!pecaParaCorte) return;
 
-            const bgOriginal = document.getElementById('corte-original-bg'); const boxCorte = document.getElementById('corte-pedaco-box');
+    let wOriginal = pecaParaCorte.dimW;
+    let hOriginal = pecaParaCorte.dimH;
 
-            const maior = Math.max(wOriginal, hOriginal);
-const menor = Math.min(wOriginal, hOriginal);
-const ratio = menor / maior;
+    // 🔥 AJUSTE DEFINITIVO:
+    // sempre tratar maior como largura
+    if (hOriginal > wOriginal) {
+        [wOriginal, hOriginal] = [hOriginal, wOriginal];
+    }
 
-const basePx = 150;
+    const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
+    const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
 
-let finalW;
-let finalH;
+    // 🚨 validação correta agora
+    if (wCorte > wOriginal || hCorte > hOriginal) {
+        alert(`A medida digitada (${wCorte} x ${hCorte}) 
+é maior que a chapa original (${wOriginal} x ${hOriginal})`);
+        document.getElementById('corte-w').value = '';
+        document.getElementById('corte-h').value = '';
+        return;
+    }
 
-// 🔥 REGRA: maior sempre horizontal
-if (wOriginal >= hOriginal) {
-    finalW = basePx;
-    finalH = basePx * ratio;
+    const bgOriginal = document.getElementById('corte-original-bg');
+    const boxCorte = document.getElementById('corte-pedaco-box');
+
+    const ratio = hOriginal / wOriginal;
+    const basePx = 150;
+
+    const finalW = basePx;
+    const finalH = basePx * ratio;
+
+    bgOriginal.style.width = finalW + 'px';
+    bgOriginal.style.height = finalH + 'px';
 
     document.getElementById('txt-cota-w-original').innerText = wOriginal + 'cm';
     document.getElementById('txt-cota-h-original').innerText = hOriginal + 'cm';
-} else {
-    finalW = basePx;
-    finalH = basePx * ratio;
 
-    // Inverte visualmente as cotas
-    document.getElementById('txt-cota-w-original').innerText = hOriginal + 'cm';
-    document.getElementById('txt-cota-h-original').innerText = wOriginal + 'cm';
-}
+    if (wCorte > 0 && hCorte > 0) {
 
-bgOriginal.style.width = finalW + 'px';
-bgOriginal.style.height = finalH + 'px';
+        const percentW = wCorte / wOriginal;
+        const percentH = hCorte / hOriginal;
 
-            if (wCorte > 0 && hCorte > 0 && wCorte <= wOriginal && hCorte <= hOriginal) {
-                boxCorte.style.display = 'flex'; 
-                const percentW = wCorte / wOriginal; 
-                const percentH = hCorte / hOriginal;
-                boxCorte.style.width = (finalW * percentW) + 'px'; 
-                boxCorte.style.height = (finalH * percentH) + 'px'; 
-                boxCorte.innerText = `${wCorte}x${hCorte}`;
-                bgOriginal.style.background = '#333';
-            } else { boxCorte.style.display = 'none'; bgOriginal.style.background = 'var(--orange)'; }
-        };
+        boxCorte.style.display = 'flex';
+        boxCorte.style.width = (finalW * percentW) + 'px';
+        boxCorte.style.height = (finalH * percentH) + 'px';
+        boxCorte.innerText = `${wCorte}x${hCorte}`;
+
+        bgOriginal.style.background = '#333';
+
+    } else {
+        boxCorte.style.display = 'none';
+        bgOriginal.style.background = 'var(--orange)';
+    }
+};
+
+        // 👀 ✂️ Final Preview Corte 🔼//
+
+        // 📏 ✂️ Início Executar Corte 🔽//
 
         window.executarCorte = async () => {
-            if (!pecaParaCorte) return; const btn = document.getElementById('btn-executar-corte');
-            const cw = parseFloat(document.getElementById('corte-w').value) || 0; const ch = parseFloat(document.getElementById('corte-h').value) || 0;
 
-            if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
-            if (cw > pecaParaCorte.dimW || ch > pecaParaCorte.dimH) { return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça original (${pecaParaCorte.dimW} x ${pecaParaCorte.dimH} cm)!`); }
+    if (!pecaParaCorte) return;
 
-            btn.disabled = true; btn.innerText = "CORTANDO...";
+    const btn = document.getElementById('btn-executar-corte');
 
-            try {
-                const sobraW = pecaParaCorte.dimW - cw; const sobraH = pecaParaCorte.dimH - ch; const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
-                await updateDoc(doc(db, "estoque", pecaParaCorte.id), { 
-                    dimW: sobraW > 0 ? sobraW : pecaParaCorte.dimW, 
-                    dimH: sobraH > 0 ? sobraH : pecaParaCorte.dimH, 
-                    status: "Usado", 
-                    nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)" 
-                });
+    let wOriginal = pecaParaCorte.dimW;
+    let hOriginal = pecaParaCorte.dimH;
 
-                const novaPeca = { ...pecaParaCorte }; delete novaPeca.id;
-                novaPeca.dimW = cw; novaPeca.dimH = ch; novaPeca.status = "Usado"; novaPeca.data_criacao = serverTimestamp(); novaPeca.nome = nomeBase.replace(" (Sobra)", "") + " (Corte)";
-                await addDoc(collection(db, "estoque"), novaPeca);
+    // 🔥 MESMA REGRA AQUI
+    if (hOriginal > wOriginal) {
+        [wOriginal, hOriginal] = [hOriginal, wOriginal];
+    }
 
-                alert("Corte realizado! O estoque foi atualizado."); window.fecharModal('modal-corte');
-            } catch (e) { console.error(e); alert("Erro ao executar o corte."); } 
-            finally { btn.disabled = false; btn.innerText = "✂️ CONFIRMAR CORTE"; }
-        };
+    const cw = parseFloat(document.getElementById('corte-w').value) || 0;
+    const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+
+    if (cw <= 0 || ch <= 0)
+        return alert("Informe as medidas válidas para o corte!");
+
+    if (cw > wOriginal || ch > hOriginal)
+        return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça original (${wOriginal} x ${hOriginal} cm)!`);
+
+    btn.disabled = true;
+    btn.innerText = "CORTANDO...";
+
+    try {
+
+        const sobraW = wOriginal - cw;
+        const sobraH = hOriginal - ch;
+
+        const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
+
+        await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
+            dimW: sobraW > 0 ? sobraW : wOriginal,
+            dimH: sobraH > 0 ? sobraH : hOriginal,
+            status: "Usado",
+            nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)"
+        });
+
+        const novaPeca = { ...pecaParaCorte };
+        delete novaPeca.id;
+
+        novaPeca.dimW = cw;
+        novaPeca.dimH = ch;
+        novaPeca.status = "Usado";
+        novaPeca.data_criacao = serverTimestamp();
+        novaPeca.nome = nomeBase.replace(" (Sobra)", "") + " (Corte)";
+
+        await addDoc(collection(db, "estoque"), novaPeca);
+
+        alert("Corte realizado! O estoque foi atualizado.");
+        window.fecharModal('modal-corte');
+
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao executar o corte.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "✂️ CONFIRMAR CORTE";
+    }
+};
+
+        // 📏 ✂️Final Executar Corte 🔼//
 
         /* ==========================================================================
            DETALHES E INFORMAÇÕES
