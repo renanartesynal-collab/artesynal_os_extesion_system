@@ -22,7 +22,10 @@
             --blue-used: #3b82f6;
         }
         @keyframes piscarAlerta { 0% { color: #ff0000; } 50% { color: #ffffff; } 100% { color: #ff0000; } }
-        .texto-pisca { animation: piscarAlerta 0.8s infinite; font-weight: bold; }
+        .texto-pisca { animation: piscarAlerta 0.8s infinite; font-weight: 900; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { background-color: var(--dark-bg); color: var(--white); overflow-x: hidden; padding-bottom: 50px; }
         
         body { font-family: 'Montserrat', sans-serif; background-color: var(--dark-bg); color: var(--white); margin: 0; padding: 0; overflow-x: hidden; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -59,8 +62,22 @@
         /* Estilos dos Modais */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-box { background: var(--card-bg); width: 95%; max-width: 500px; max-height: 90vh; padding: 25px; border-radius: 16px; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow-y: auto; position: relative; }
-        .btn-voltar-top { position: absolute; top: 20px; right: 20px; background: transparent; color: var(--red-cancel); border: 1px solid var(--red-cancel); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s; z-index: 10; }
-        .btn-voltar-top:hover { background: rgba(255, 59, 59, 0.1); }
+        .btn-voltar-top { position: absolute; top: 20px; right: 20px; background: #333; /* Cinza escuro padrão que você já usa */
+    color: var(--white);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+}
+        .btn-voltar-top:hover {
+    background: var(--red-cancel); /* O vermelho de alerta que você definiu no :root */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 59, 59, 0.3);
+}
         .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding-right: 90px; }
         .title-material { font-size: 30px; font-weight: 900; margin: 0; color: #fff; line-height: 1; }
         .btn-status-toggle { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: all 0.3s ease; }
@@ -223,7 +240,7 @@
 
     <div id="modal-corte" class="modal-overlay">
         <div class="modal-box" style="max-width: 400px; text-align: center;">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-corte')">Cancelar</button>
+            <button class="btn-voltar-top" onclick="fecharModal('modal-corte')">X</button>
             <h2 style="margin-top:0; color:var(--orange)">Cortar Chapa</h2>
             <p id="corte-nome-peca" style="color:#ccc; font-weight:bold; margin-bottom: 5px;">Peça Original</p>
             <p id="corte-dimensoes-atuais" style="color:var(--orange); font-size:18px; font-weight:900; margin-bottom: 20px;">0 x 0 cm</p>
@@ -237,11 +254,29 @@
 
                 <div id="div-visual-modal-corte" style="margin-top: 15px; padding: 15px; background: #000; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; align-items: center;">
                     <div class="canvas-title" style="margin-bottom: 20px;">PREVISÃO DO CORTE</div>
-                    <div class="chapa-container" style="height: 140px;">
-                        <div id="corte-original-bg" style="position: relative; background: var(--orange); border: 1px solid white; display: flex; align-items: flex-start; justify-content: flex-start; transition: all 0.3s ease;">
-                            <div id="corte-pedaco-box" style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease;"></div>
-                        </div>
-                    </div>
+                    <div class="chapa-container" style="height: 180px;">
+    <div id="corte-wrapper-modal" style="position: relative; display: flex; align-items: center; justify-content: center;">
+        
+        <div class="cota-w-box">
+            <span class="cota-label" id="txt-cota-w-original">0cm</span>
+            <div class="linha-cota-w"></div>
+        </div>
+
+        <div class="cota-h-box">
+            <div class="linha-cota-h"></div>
+            <span class="cota-label" id="txt-cota-h-original"
+                style="writing-mode: vertical-lr; transform: rotate(180deg);">0cm</span>
+        </div>
+
+        <div id="corte-original-bg"
+             style="position: relative; background: var(--orange); border: 1px solid white; transition: all 0.3s ease;">
+            
+            <div id="corte-pedaco-box"
+                 style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease;">
+            </div>
+        </div>
+    </div>
+</div>
                 </div>
             </div>
 
@@ -651,17 +686,54 @@
         window.atualizarPreviewCorte = () => {
             if (!pecaParaCorte) return;
             const wOriginal = pecaParaCorte.dimW; const hOriginal = pecaParaCorte.dimH;
-            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0; const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
+            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0; 
+            const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
+
+            // 🚨 Validação imediata
+if (wCorte > wOriginal || hCorte > hOriginal) {
+    alert(`A medida digitada (${wCorte} x ${hCorte}) é maior que a chapa original (${wOriginal} x ${hOriginal})`);
+    document.getElementById('corte-w').value = '';
+    document.getElementById('corte-h').value = '';
+    return;
+}
+
             const bgOriginal = document.getElementById('corte-original-bg'); const boxCorte = document.getElementById('corte-pedaco-box');
 
-            const maiorOriginal = Math.max(wOriginal, hOriginal); const menorOriginal = Math.min(wOriginal, hOriginal); const ratioOriginal = menorOriginal / maiorOriginal;
-            const basePx = 120; let finalW = wOriginal >= hOriginal ? basePx : basePx * ratioOriginal; let finalH = wOriginal >= hOriginal ? basePx * ratioOriginal : basePx;
+            const maior = Math.max(wOriginal, hOriginal);
+const menor = Math.min(wOriginal, hOriginal);
+const ratio = menor / maior;
 
-            bgOriginal.style.width = finalW + 'px'; bgOriginal.style.height = finalH + 'px';
+const basePx = 150;
+
+let finalW;
+let finalH;
+
+// 🔥 REGRA: maior sempre horizontal
+if (wOriginal >= hOriginal) {
+    finalW = basePx;
+    finalH = basePx * ratio;
+
+    document.getElementById('txt-cota-w-original').innerText = wOriginal + 'cm';
+    document.getElementById('txt-cota-h-original').innerText = hOriginal + 'cm';
+} else {
+    finalW = basePx;
+    finalH = basePx * ratio;
+
+    // Inverte visualmente as cotas
+    document.getElementById('txt-cota-w-original').innerText = hOriginal + 'cm';
+    document.getElementById('txt-cota-h-original').innerText = wOriginal + 'cm';
+}
+
+bgOriginal.style.width = finalW + 'px';
+bgOriginal.style.height = finalH + 'px';
 
             if (wCorte > 0 && hCorte > 0 && wCorte <= wOriginal && hCorte <= hOriginal) {
-                boxCorte.style.display = 'flex'; const percentW = wCorte / wOriginal; const percentH = hCorte / hOriginal;
-                boxCorte.style.width = (finalW * percentW) + 'px'; boxCorte.style.height = (finalH * percentH) + 'px'; boxCorte.innerText = `${wCorte}x${hCorte}`;
+                boxCorte.style.display = 'flex'; 
+                const percentW = wCorte / wOriginal; 
+                const percentH = hCorte / hOriginal;
+                boxCorte.style.width = (finalW * percentW) + 'px'; 
+                boxCorte.style.height = (finalH * percentH) + 'px'; 
+                boxCorte.innerText = `${wCorte}x${hCorte}`;
                 bgOriginal.style.background = '#333';
             } else { boxCorte.style.display = 'none'; bgOriginal.style.background = 'var(--orange)'; }
         };
