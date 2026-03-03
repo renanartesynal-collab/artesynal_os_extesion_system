@@ -280,9 +280,73 @@
                 </div>
             </div>
 
-            <button class="btn-salvar" id="btn-executar-corte" onclick="executarCorte()" style="margin-top:20px; background:var(--green-new)">✂️ CONFIRMAR CORTE</button>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+    
+    <button class="btn-salvar"
+            onclick="abrirSimuladorCorte()"
+            style="flex:1; background:var(--blue-used);">
+        📐 APLICAR CORTE
+    </button>
+
+    <button class="btn-salvar"
+            id="btn-executar-corte"
+            onclick="executarCorte()"
+            style="flex:1; background:var(--green-new);">
+        ✂️ CONFIRMAR CORTE
+    </button>
+
+</div>
         </div>
     </div>
+<div id="modal-simulador" class="modal-overlay">
+    <div class="modal-box" style="max-width:90%; width:900px;">
+        
+        <button class="btn-voltar-top"
+                onclick="fecharModal('modal-simulador')">
+            X
+        </button>
+
+        <h2 style="color:var(--orange); margin-top:0;">
+            📐 Simulador de Corte
+        </h2>
+
+        <div style="display:flex; gap:20px;">
+
+            <!-- ÁREA DO GRID -->
+            <div id="area-grid"
+                 style="background:#111; border:1px solid #333; overflow:auto;">
+            </div>
+
+            <!-- LISTA DE PEÇAS -->
+            <div style="width: 220px; display: flex; flex-direction: column; height: 450px;">
+            
+            <h3 style="font-size:14px; margin-bottom:10px;">Peças adicionadas</h3>
+            
+            <div id="lista-cortes" style="display:flex; flex-direction:column; gap:8px; overflow-y: auto; flex-grow: 1;">
+                </div>
+
+            <div style="margin-top: auto; padding-top: 10px;">
+                <button id="btn-confirmar-posicionamento" 
+                        onclick="confirmarPosicionamentoSimulador()"
+                        style="width: 100%; 
+                               background-color: #28a745; 
+                               color: white; 
+                               border: none; 
+                               padding: 8px; 
+                               border-radius: 5px; 
+                               font-size: 11px; 
+                               font-weight: bold; 
+                               cursor: pointer; 
+                               text-transform: uppercase;">
+                    CONFIRMAR POSICIONAMENTO
+                </button>
+            </div>
+        </div> </div> </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
     <div id="modal-detalhes" class="modal-overlay">
         <div class="modal-box" style="max-width: 450px;">
@@ -672,7 +736,170 @@
            SISTEMA DE TESOURA - CORTES DE CHAPA
            ========================================================================== */
         let pecaParaCorte = null;
+// 🔵 ================= SIMULADOR DE CORTE =================
 
+let pecasSimuladas = [];
+let escalaSimulador = 1; // 1cm = 3px
+
+window.abrirSimuladorCorte = () => {
+
+    if (!pecaParaCorte) return;
+
+    const cw = parseFloat(document.getElementById('corte-w').value) || 0;
+    const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+
+    if (cw <= 0 || ch <= 0) {
+        alert("Informe medidas válidas antes de aplicar o corte.");
+        return;
+    }
+
+    document.getElementById('modal-simulador').style.display = 'flex';
+
+    renderizarSimuladorBase();
+
+    adicionarPecaSimulada(cw, ch);
+};
+
+function renderizarSimuladorBase() {
+    const area = document.getElementById('area-grid');
+    const containerSimulador = area.parentElement; // Pega o div que segura o grid
+    area.innerHTML = '';
+    area.style.position = "relative";
+    area.style.margin = "auto"; // Centraliza a chapa
+
+    let w = pecaParaCorte.dimW;
+    let h = pecaParaCorte.dimH;
+
+    // Regra da Artesynal: maior sempre horizontal
+    if (h > w) [w, h] = [h, w];
+
+    // --- LÓGICA DE ESCALA DINÂMICA ---
+    // Definimos o tamanho máximo que o simulador pode ter na tela (ex: 80% da largura do modal)
+    const larguraMaximaDisponivel = containerSimulador.clientWidth - 40; 
+    const alturaMaximaDisponivel = 500; // Altura fixa para não esticar demais
+
+    // Calcula qual escala faz a chapa caber perfeitamente
+    const escalaW = larguraMaximaDisponivel / w;
+    const escalaH = alturaMaximaDisponivel / h;
+    
+    // Usa a menor escala para garantir que caiba tanto na largura quanto na altura
+    window.escalaSimulador = Math.min(escalaW, escalaH);
+
+    const larguraPx = w * window.escalaSimulador;
+    const alturaPx = h * window.escalaSimulador;
+
+    area.style.width = larguraPx + "px";
+    area.style.height = alturaPx + "px";
+
+    // Ajuste do Grid Milimetrado para a nova escala
+    area.style.backgroundImage = `
+        linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255,255,255,0.3) 2px, transparent 2px),
+        linear-gradient(to bottom, rgba(255,255,255,0.3) 2px, transparent 2px)
+    `;
+
+    area.style.backgroundSize = `
+        ${5 * window.escalaSimulador}px ${5 * window.escalaSimulador}px,
+        ${5 * window.escalaSimulador}px ${5 * window.escalaSimulador}px,
+        ${10 * window.escalaSimulador}px ${10 * window.escalaSimulador}px,
+        ${10 * window.escalaSimulador}px ${10 * window.escalaSimulador}px
+    `;
+}
+
+function adicionarPecaSimulada(w, h) {
+    const area = document.getElementById('area-grid');
+    const peca = document.createElement('div');
+    
+    // Usa a escala dinâmica window.escalaSimulador calculada na base
+    const pW = w * window.escalaSimulador;
+    const pH = h * window.escalaSimulador;
+
+    peca.className = "peca-simulada";
+    peca.style.position = "absolute";
+    peca.style.width = pW + "px";
+    peca.style.height = pH + "px";
+    peca.style.background = "rgba(255,59,59,0.8)";
+    peca.style.border = "1px solid #fff";
+    peca.style.cursor = "move";
+    peca.style.display = "flex";
+    peca.style.alignItems = "center";
+    peca.style.justifyContent = "center";
+    peca.style.color = "#fff";
+    peca.style.fontSize = (pW < 40) ? "9px" : "11px"; // Ajusta fonte se a peça for pequena
+    peca.style.fontWeight = "bold";
+    peca.innerText = `${w}x${h}`;
+
+    peca.style.left = "5px";
+    peca.style.top = "5px";
+
+    tornarArrastavel(peca);
+    area.appendChild(peca);
+    adicionarNaLista(w, h, peca);
+}
+
+function adicionarNaLista(w, h, elementoVisual) {
+
+    const lista = document.getElementById('lista-cortes');
+
+    const item = document.createElement('div');
+    item.style.background = "#1a1a1a";
+    item.style.padding = "6px";
+    item.style.borderRadius = "6px";
+    item.style.display = "flex";
+    item.style.justifyContent = "space-between";
+    item.style.alignItems = "center";
+
+    item.innerHTML = `
+        <span>${w}x${h}</span>
+        <button style="background:red;color:white;border:none;border-radius:4px;cursor:pointer;">X</button>
+    `;
+
+    item.querySelector("button").onclick = () => {
+        elementoVisual.remove();
+        item.remove();
+    };
+
+    lista.appendChild(item);
+}
+
+function tornarArrastavel(elemento) {
+    let offsetX, offsetY;
+
+    elemento.onmousedown = function(e) {
+        const area = document.getElementById('area-grid');
+        
+        // Limites da chapa original em pixels
+        const limiteMaxX = area.clientWidth - elemento.offsetWidth;
+        const limiteMaxY = area.clientHeight - elemento.offsetHeight;
+
+        offsetX = e.clientX - elemento.offsetLeft;
+        offsetY = e.clientY - elemento.offsetTop;
+
+        document.onmousemove = function(e) {
+            let novoX = e.clientX - offsetX;
+            let novoY = e.clientY - offsetY;
+
+            // 🛡️ TRAVA: Impede de sair da chapa (0 até limite máximo)
+            if (novoX < 0) novoX = 0;
+            if (novoY < 0) novoY = 0;
+            if (novoX > limiteMaxX) novoX = limiteMaxX;
+            if (novoY > limiteMaxY) novoY = limiteMaxY;
+
+            elemento.style.left = novoX + "px";
+            elemento.style.top = novoY + "px";
+            
+            // Atualiza a cor para dar feedback visual de movimento
+            elemento.style.background = "rgba(59, 130, 246, 0.9)"; // Azul ao mover
+        };
+
+        document.onmouseup = function() {
+            document.onmousemove = null;
+            document.onmouseup = null;
+            elemento.style.background = "rgba(255,59,59,0.8)"; // Volta ao vermelho/laranja
+        };
+    };
+}
         window.abrirModalCorte = (id) => {
             pecaParaCorte = produtos.find(x => x.id === id);
             document.getElementById('corte-nome-peca').innerText = `${pecaParaCorte.categoria} ${pecaParaCorte.espessura || ''} | ${pecaParaCorte.cor || ''}`;
@@ -810,7 +1037,19 @@
         btn.innerText = "✂️ CONFIRMAR CORTE";
     }
 };
+window.confirmarPosicionamentoSimulador = () => {
+    // Verifica se existem peças criadas no grid visual
+    const pecasNoGrid = document.querySelectorAll('.peca-simulada'); 
+    
+    if (pecasNoGrid.length === 0) {
+        return alert("Adicione pelo menos uma peça para confirmar!");
+    }
 
+    alert("Posicionamento confirmado! Agora você pode prosseguir com o corte definitivo.");
+    
+    // Fecha o simulador e volta para o modal de corte original
+    document.getElementById('modal-simulador').style.display = 'none';
+};
         // 📏 ✂️Final Executar Corte 🔼//
 
         /* ==========================================================================
