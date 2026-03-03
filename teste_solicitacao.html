@@ -82,7 +82,7 @@
         .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
         .fab-vt { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: none; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
 
-        /* MODAL DE DESENHO (ROBUSTO) */
+        /* MODAL DE DESENHO */
         #draw-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; 
@@ -128,8 +128,10 @@
         .vt-value.large { font-size: 20px; color: var(--blue); }
         
         .vt-actions-row { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-vt-map { background: #4285F4; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Montserrat', sans-serif;}
-        .btn-vt-copy { background: #555; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Montserrat', sans-serif;}
+        .btn-vt-map { background: #4285F4; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Montserrat', sans-serif; transition: 0.2s;}
+        .btn-vt-map:hover { background: #3367d6; }
+        .btn-vt-copy { background: #555; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'Montserrat', sans-serif; transition: 0.2s;}
+        .btn-vt-copy:hover { background: #777; }
 
         .vt-obs-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border-left: 3px solid var(--yellow); font-size: 14px; color: #ddd; line-height: 1.5; white-space: pre-wrap; margin-top: 5px;}
 
@@ -172,9 +174,9 @@
                     <input type="text" id="v-empresa">
                 </div>
             </div>
-            <label>ENDEREÇO DA VISITA</label>
+            <label>ENDEREÇO DA VISITA (OPCIONAL)</label>
             <div style="display:flex; gap:5px; margin-bottom: 10px;">
-                <input type="text" id="v-endereco" placeholder="Local da visita técnica...">
+                <input type="text" id="v-endereco" placeholder="Deixe em branco para usar os múltiplos locais...">
                 <button class="copy-end-btn" onclick="window.copiarEnderecoModal()">COPIAR</button>
             </div>
             <label>INFORMAÇÕES E OBJETIVO DA VISITA</label>
@@ -300,10 +302,10 @@
 
                 <div class="vt-info-group">
                     <span class="vt-label">Locais / Endereços da Visita</span>
-                    <div class="vt-value" id="vt-endereco" style="display: flex; flex-direction: column; gap: 5px;">Rua Exemplo, 123 - Bairro</div>
-                    <div class="vt-actions-row">
-                        <button class="btn-vt-copy" style="background:var(--blue);" onclick="window.copiarEnderecoVT()">📋 COPIAR ENDEREÇOS</button>
-                    </div>
+                    
+                    <div id="vt-endereco-container" style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                        </div>
+
                 </div>
 
                 <div class="vt-info-group">
@@ -376,7 +378,7 @@
             if (idEdicao) {
                 await carregarDados(idEdicao);
             } else {
-                window.renderEnderecos(); // Renderiza o primeiro campo vazio
+                window.renderEnderecos(); 
             }
             
             window.alternarModo(mode);
@@ -393,7 +395,7 @@
         };
 
         // ==========================================
-        // SISTEMA DE ENDEREÇOS MÚLTIPLOS
+        // SISTEMA DE ENDEREÇOS MÚLTIPLOS E BOTÕES MAPS
         // ==========================================
         window.renderEnderecos = () => {
             const container = document.getElementById('enderecos-container');
@@ -441,6 +443,36 @@
             window.listaEnderecos[i][campo] = valor;
         };
 
+        // FUNÇÕES GLOBAIS DE MAPA E CÓPIA
+        window.abrirMapsTexto = (texto) => {
+            window.open(`https://google.com/maps/search/?api=1&query=${encodeURIComponent(texto)}`, '_blank');
+        };
+
+        window.copiarTexto = (texto) => {
+            navigator.clipboard.writeText(texto).then(() => alert("Endereço copiado!"));
+        };
+
+        // GERAÇÃO DOS BLOCOS DO CARD DO TÉCNICO
+        window.criarBlocoEnderecoVT = (texto, tipo, isMulti) => {
+            const prefix = (isMulti && tipo !== 'Local') ? `<span style="color:var(--yellow); font-size:11px; font-weight:bold; padding-bottom:5px; display:inline-block; text-transform:uppercase;">[${tipo}]</span><br>` : '';
+            const safeText = texto.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
+            // Define a cor da borda baseado no tipo
+            let borderColor = '#666';
+            if (tipo === 'Retirada') borderColor = 'var(--blue)';
+            else if (tipo === 'Entrega') borderColor = 'var(--green)';
+            else if (isMulti) borderColor = 'var(--yellow)';
+
+            return `
+            <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 8px; border: 1px solid #444; border-left: 4px solid ${borderColor};">
+                <div class="vt-value" style="font-size: 14px; margin-bottom: 12px;">${prefix}${texto}</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-vt-map" onclick="window.abrirMapsTexto('${safeText}')">🗺️ ABRIR NO MAPS</button>
+                    <button class="btn-vt-copy" onclick="window.copiarTexto('${safeText}')">📋 COPIAR</button>
+                </div>
+            </div>`;
+        };
+
         // ==========================================
         // GESTÃO DE MODOS E DADOS
         // ==========================================
@@ -467,20 +499,31 @@
                 document.getElementById('vt-servico').innerText = document.getElementById('in-servico').value || 'Serviço Sem Título';
                 document.getElementById('vt-cliente').innerText = document.getElementById('v-cliente').value || document.getElementById('in-cliente').value || 'Cliente não informado';
                 document.getElementById('vt-empresa').innerText = document.getElementById('v-empresa').value || document.getElementById('in-empresa').value || '';
-                
-                // Formata os endereços para a VT
-                let vtEndTexto = document.getElementById('v-endereco').value;
-                if (!vtEndTexto) {
-                    vtEndTexto = window.listaEnderecos.map(e => {
-                        let prefix = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `[${e.tipo.toUpperCase()}] ` : '';
-                        return e.texto ? `<div>${prefix}${e.texto}</div>` : '';
-                    }).filter(x => x).join('');
-                } else {
-                    vtEndTexto = `<div>${vtEndTexto}</div>`;
-                }
-                
-                document.getElementById('vt-endereco').innerHTML = vtEndTexto || 'Endereço não informado';
                 document.getElementById('vt-info').innerText = document.getElementById('v-info').value || 'Sem instruções da visita.';
+                
+                // Formata os endereços para a VT separadamente em blocos!
+                const vtEndContainer = document.getElementById('vt-endereco-container');
+                vtEndContainer.innerHTML = '';
+                
+                let manualVtEnd = document.getElementById('v-endereco').value;
+
+                if (manualVtEnd) {
+                    // Se digitou manual no modal da VT
+                    vtEndContainer.innerHTML = window.criarBlocoEnderecoVT(manualVtEnd, 'Local', false);
+                } else {
+                    // Puxa da lista gerando um bloco pra cada!
+                    let hasEnd = false;
+                    window.listaEnderecos.forEach(end => {
+                        if(end.texto.trim() !== '') {
+                            hasEnd = true;
+                            vtEndContainer.innerHTML += window.criarBlocoEnderecoVT(end.texto, end.tipo, window.listaEnderecos.length > 1);
+                        }
+                    });
+                    
+                    if(!hasEnd) {
+                        vtEndContainer.innerHTML = '<div class="vt-value" style="color:#aaa;">Endereço não informado</div>';
+                    }
+                }
             }
         };
 
@@ -737,12 +780,14 @@
             if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
             if (!document.getElementById('v-empresa').value) document.getElementById('v-empresa').value = document.getElementById('in-empresa').value;
             
-            if (!document.getElementById('v-endereco').value) {
-                let strEnd = window.listaEnderecos.map(e => {
-                    let prefix = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `[${e.tipo.toUpperCase()}] ` : '';
-                    return e.texto ? prefix + e.texto : '';
-                }).filter(x => x).join(' | ');
-                document.getElementById('v-endereco').value = strEnd;
+            // Só joga um endereço no input se tiver um só cadastrado e for texto simples
+            const endInput = document.getElementById('v-endereco');
+            if (!endInput.value) {
+                if(window.listaEnderecos.length === 1 && window.listaEnderecos[0].texto.trim() !== '') {
+                    endInput.value = window.listaEnderecos[0].texto;
+                } else {
+                    endInput.value = "";
+                }
             }
 
             if (!document.getElementById('v-info').value) document.getElementById('v-info').value = document.getElementById('in-obs').value;
@@ -762,7 +807,7 @@
                 const vtDados = {
                     cliente: document.getElementById('v-cliente').value,
                     empresa: document.getElementById('v-empresa').value,
-                    endereco: document.getElementById('v-endereco').value,
+                    endereco: document.getElementById('v-endereco').value, // Pode estar vazio, aí o sistema usa a lista principal
                     info_adicional: document.getElementById('v-info').value,
                     orcamento_id: idEdicao,
                     status: "Pendente",
@@ -801,12 +846,6 @@
 
         window.copiarEnderecoModal = () => {
             navigator.clipboard.writeText(document.getElementById('v-endereco').value).then(() => alert("Endereço copiado!"));
-        };
-        
-        window.copiarEnderecoVT = () => {
-            // Pega o texto limpo (sem as tags de HTML <div>) do que estiver mostrando no endereço da VT
-            const blocoEnd = document.getElementById('vt-endereco').innerText;
-            navigator.clipboard.writeText(blocoEnd).then(() => alert("Copiado!"));
         };
 
         // ==========================================
