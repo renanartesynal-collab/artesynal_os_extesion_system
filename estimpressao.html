@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estoque Impressão - Pro</title>
+    <title>Estoque Serralheria - Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
@@ -20,10 +20,12 @@
             --red-cancel: #ff3b3b;
             --green-new: #22c55e;
             --blue-used: #3b82f6;
-            --purple: #9b59b6;
         }
         @keyframes piscarAlerta { 0% { color: #ff0000; } 50% { color: #ffffff; } 100% { color: #ff0000; } }
-        .texto-pisca { animation: piscarAlerta 0.8s infinite; font-weight: bold; }
+        .texto-pisca { animation: piscarAlerta 0.8s infinite; font-weight: 900; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { background-color: var(--dark-bg); color: var(--white); overflow-x: hidden; padding-bottom: 50px; }
         
         body { font-family: 'Montserrat', sans-serif; background-color: var(--dark-bg); color: var(--white); margin: 0; padding: 0; overflow-x: hidden; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -33,68 +35,87 @@
         .btn-voltar-home:hover { background: #333; color: white; transform: translateY(-2px); border-color: #555; }
 
         /* Layout Kanban Geral */
-        #main-layout { padding: 20px; padding-top: 70px; display: block; } /* Já inicia visível */
+        #main-layout { padding: 20px; padding-top: 70px; display: block; }
         .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
-        h1 { margin: 0; color: var(--purple); font-size: 24px; text-transform: uppercase; font-weight: 900; }
+        h1 { margin: 0; color: var(--orange); font-size: 24px; text-transform: uppercase; font-weight: 900; }
         
         .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
         .kanban-col { background: #161616; border-radius: 10px; padding: 15px; min-width: 320px; width: 320px; border: 1px solid #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: white; text-transform: uppercase; text-align: center; background: var(--purple); }
+        .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: #000; background: var(--orange); text-transform: uppercase; text-align: center; }
         .grid-est { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
         
-        /* Cards */
-        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* Cards Chapa */
+        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--orange); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .btn-del-card { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #555; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-del-card:hover { color: var(--red-cancel); }
         .prod-cat { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; margin-bottom: 8px; display: inline-block; }
         .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1.1; }
+        .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 5px; display: block; }
+        .prod-details { font-size: 11px; color: var(--text-gray); display: block; margin-bottom: 10px;}
+        .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
         
-        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: var(--purple); color: white; border-radius: 50%; border: none; font-size: 35px; font-weight: bold; box-shadow: 0 4px 15px rgba(155, 89, 182, 0.5); cursor: pointer; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center;}
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: var(--orange); color: white; border-radius: 50%; border: none; font-size: 35px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.5); cursor: pointer; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center;}
         .fab-add:hover { transform: scale(1.1); }
 
         /* Estilos dos Modais */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-box { background: var(--card-bg); width: 95%; max-width: 500px; max-height: 90vh; padding: 25px; border-radius: 16px; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow-y: auto; position: relative; }
-        .btn-voltar-top { position: absolute; top: 20px; right: 20px; background: transparent; color: var(--red-cancel); border: 1px solid var(--red-cancel); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s; z-index: 10; }
-        .btn-voltar-top:hover { background: rgba(255, 59, 59, 0.1); }
+        .btn-voltar-top { position: absolute; top: 20px; right: 20px; background: #333; /* Cinza escuro padrão que você já usa */
+    color: var(--white);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+}
+        .btn-voltar-top:hover {
+    background: var(--red-cancel); /* O vermelho de alerta que você definiu no :root */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 59, 59, 0.3);
+}
         .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding-right: 90px; }
         .title-material { font-size: 30px; font-weight: 900; margin: 0; color: #fff; line-height: 1; }
-        .label-standard { display: block; font-size: 13px; color: var(--purple); font-weight: bold; }
-        .btn-icon-action { background: #222; color: var(--purple); border: 1px solid #444; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: bold;}
+        .btn-status-toggle { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; font-size: 12px; cursor: pointer; text-transform: uppercase; transition: all 0.3s ease; }
+        .status-novo { background-color: var(--green-new); color: white; }
+        .status-usado { background-color: var(--blue-used); color: white; }
+
+        .label-standard { display: block; font-size: 13px; color: var(--orange); font-weight: bold; }
+        .sub-label-right { display: block; font-size: 12px; color: var(--text-gray); margin-bottom: 4px; text-align: right; width: 100%; }
+        .btn-icon-action { background: #222; color: var(--orange); border: 1px solid #444; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: bold;}
         input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; outline: none; font-size: 14px; font-family: inherit; box-sizing: border-box;}
         textarea { resize: vertical; min-height: 100px; }
+        .input-suffix-wrapper { position: relative; display: flex; align-items: center; }
+        .input-suffix-wrapper::after { content: "cm"; position: absolute; right: 12px; color: var(--text-gray); font-size: 12px; pointer-events: none; }
         .form-row { display: flex; gap: 12px; margin-bottom: 15px; width: 100%;}
+        .align-bottom { align-items: flex-end; }
         .field-group { flex: 1; min-width: 0; }
-        .btn-salvar { width: 100%; background: var(--purple); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 900; margin-top: 20px; cursor: pointer; font-size: 16px; text-transform: uppercase; font-family: inherit;}
+        .btn-salvar { width: 100%; background: var(--orange); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 900; margin-top: 20px; cursor: pointer; font-size: 16px; text-transform: uppercase; font-family: inherit;}
+        .icon-refresh { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; }
 
         /* ==========================================================================
-           [ TINTAS ] - CSS DO PAINEL DE INSUMOS
+           [ VISUAL DE CORTES ] - RÉGUAS E CANVAS
            ========================================================================== */
-        .painel-tintas { background: #161616; border-radius: 10px; padding: 20px; border: 1px solid #222; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .painel-tintas h2 { margin-top: 0; font-size: 14px; color: var(--purple); text-transform: uppercase; font-weight: 900; letter-spacing: 1px; margin-bottom: 20px;}
-        .tintas-grid { display: flex; gap: 20px; overflow-x: auto; align-items: flex-start; padding-bottom: 10px; }
-        .tinta-card { background: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; min-width: 130px; }
-        .tinta-nome { font-weight: 900; text-transform: uppercase; font-size: 12px; margin-bottom: 15px; letter-spacing: 1px; }
+        #div-visual-corte { margin-top: 15px; padding: 20px; background: #000; border-radius: 8px; border: 1px solid #333; display: none; flex-direction: column; align-items: center; }
+        .canvas-title { font-size: 10px; color: var(--orange); text-transform: uppercase; font-weight: bold; margin-bottom: 40px; letter-spacing: 1px; text-align: center; width: 100%; }
+        .chapa-container { width: 100%; height: 180px; background: #080808; position: relative; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        #corte-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+        #corte-fill { background: var(--orange); border: 1px solid var(--white); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; text-align: center; padding: 5px; }
         
-        .recipiente { width: 50px; height: 140px; border: 2px solid #555; border-radius: 4px; border-top-left-radius: 10px; border-top-right-radius: 10px; position: relative; overflow: hidden; background: rgba(255,255,255,0.05); display: flex; align-items: flex-end; margin-bottom: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
-        .recipiente::before { content: ''; position: absolute; top: -2px; left: 15%; width: 70%; height: 6px; background: #555; border-radius: 2px; z-index: 10; } 
-        .recipiente::after { content: '- 15 \A - 10 \A - 5'; white-space: pre; position: absolute; left: 2px; top: 20px; font-size: 8px; color: rgba(255,255,255,0.3); line-height: 33px; font-weight: bold; pointer-events: none;}
+        .cota-label { position: absolute; color: var(--orange); font-size: 11px; font-weight: bold; white-space: nowrap; }
+        .cota-w-box { position: absolute; top: -35px; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .linha-cota-w { height: 1px; background-color: var(--orange); width: 100%; margin-top: 2px; position: relative; }
+        .linha-cota-w::before, .linha-cota-w::after { content: ''; position: absolute; top: -4px; width: 1px; height: 9px; background-color: var(--orange); }
+        .linha-cota-w::before { left: 0; } .linha-cota-w::after { right: 0; }
         
-        .liquido { width: 100%; transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; font-size: 12px; text-shadow: 0px 1px 3px rgba(0,0,0,0.5); line-height: 1.2;}
-        .liq-ciano { background: #00aeef; color: white; }
-        .liq-magenta { background: #ec008c; color: white; }
-        .liq-amarelo { background: #fff200; color: black; text-shadow: 0px 1px 3px rgba(255,255,255,0.8); }
-        .liq-preto { background: #231f20; color: white; }
-        .liq-solvente { background: rgba(255,255,255,0.3); color: white; backdrop-filter: blur(2px); border-top: 1px solid rgba(255,255,255,0.5);}
-        .liq-laca { background: rgba(240, 248, 255, 0.6); color: #fff; backdrop-filter: blur(2px); border-top: 1px solid rgba(255,255,255,0.8); }
-
-        .tinta-ctrl-group { display: flex; flex-direction: column; width: 100%; gap: 10px; }
-        .tinta-ctrl-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-gray); font-weight: bold; text-transform: uppercase; }
-        .tinta-ctrl-row input { width: 45px; padding: 4px; text-align: center; height: 28px; border-radius: 4px; font-weight: 900; border: 1px solid #444; background: #000; color: white; }
-        .tinta-ctrl-row input:focus { border-color: var(--purple); }
-        .tinta-ml-info { text-align: right; font-size: 10px; color: #00aeef; margin-top: -6px; margin-bottom: 4px; font-weight: bold; font-style: italic; }
+        .cota-h-box { position: absolute; left: -55px; top: 0; height: 100%; display: flex; flex-direction: row; align-items: center; }
+        .linha-cota-h { width: 1px; background-color: var(--orange); height: 100%; margin-right: 5px; position: relative; }
+        .linha-cota-h::before, .linha-cota-h::after { content: ''; position: absolute; left: -4px; width: 9px; height: 1px; background-color: var(--orange); }
+        .linha-cota-h::before { top: 0; } .linha-cota-h::after { bottom: 0; }
     </style>
 </head>
 <body>
@@ -103,19 +124,17 @@
 
     <div id="main-layout">
         <div class="header-est">
-            <div><h1 id="page-title">📦 Sala de Impressão</h1></div>
+            <div><h1 id="page-title">🛠️ Estoque Serralheria</h1></div>
         </div>
 
-        <div id="painel-tintas" class="painel-tintas">
-            <h2>Gestão de Insumos da Máquina (Frascos 900ml / 20cm)</h2>
-            <div class="tintas-grid" id="container-tintas"></div>
-        </div>
-
-        <div id="kanban-impressao" class="kanban-container">
-            <div class="kanban-col"><div class="kanban-header">Adesivos</div><div class="grid-est" id="grid-ADESIVO"></div></div>
-            <div class="kanban-col"><div class="kanban-header">Lonas</div><div class="grid-est" id="grid-LONA"></div></div>
-            <div class="kanban-col"><div class="kanban-header">Adesivos de Recorte</div><div class="grid-est" id="grid-RECORTE"></div></div>
-            <div class="kanban-col"><div class="kanban-header" style="background:#444">Outros</div><div class="grid-est" id="grid-OUTROS-IMP"></div></div>
+        <div id="kanban-serralheria" class="kanban-container">
+            <div class="kanban-col"><div class="kanban-header">ACM</div><div class="grid-est" id="grid-ACM"></div></div>
+            <div class="kanban-col"><div class="kanban-header">PVC</div><div class="grid-est" id="grid-PVC"></div></div>
+            <div class="kanban-col"><div class="kanban-header">PS</div><div class="grid-est" id="grid-PS"></div></div>
+            <div class="kanban-col"><div class="kanban-header">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
+            <div class="kanban-col"><div class="kanban-header" style=
+                "background:#444; color:white;">Outros Materiais / MDF</div>
+                <div class="grid-est" id="grid-OUTROS-SERR"></div></div>
         </div>
 
         <button class="fab-add" onclick="abrirModalProd()">+</button>
@@ -123,41 +142,94 @@
 
     <div id="modal-prod" class="modal-overlay">
         <div class="modal-box">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-prod')" style="background: transparent; color: white; border: 1px solid #555;">✖ CANCELAR</button>
+            <button onclick="document.getElementById('modal-prod').style.display='none'" 
+            style="position: absolute; top: 20px; right: 18px; display: flex; align-items: center;
+             border: none; border-radius: 18px; overflow: hidden; cursor: pointer; padding: 0;
+              height: 32px; font-family: 'Montserrat', sans-serif;">
+                
+                <div style="background-color: rgb(253, 123, 2); width: 29px; height: 100%;
+                 display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-size: 14px; font-weight: bold;">×</span>
+                </div>
+                
+                <div style="background-color: rgb(245, 133, 5); padding: 0 5px; height: 100%; display: flex;
+                 align-items: center;">
+                    <span style="color: rgb(255, 253, 253); font-size: 13px; font-weight: 900;
+                     text-transform: uppercase;
+                     letter-spacing: 0.5px;">CANCELAR</span>
+                </div>
+            </button>
             <div class="header-row">
-                <h2 class="title-material">Novo Material</h2>
+                <h2 class="title-material" id="modal-main-title">Nova Chapa</h2>
+                <button id="btn-status" class="btn-status-toggle status-novo" onclick="toggleStatus()">NOVO</button>
             </div>
             
             <div class="form-row align-bottom">
-                <div style="flex: 1;">
+                <div style="flex: 3;">
                     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 32px;">
-                        <label id="label-cat" class="label-standard" style="margin:0;">CATEGORIA</label>
+                        <label id="label-cat" class="label-standard" style="margin:0;">MATÉRIA PRIMA</label>
                         <button class="btn-icon-action" id="btn-toggle-cat" onclick="ativarNovaCategoria()">+</button>
                     </div>
                     <div id="cat-container">
                         <select id="prod-cat" onchange="handleCategoryChange()"></select>
                     </div>
                 </div>
+                <div id="div-acabamento" style="flex: 1.5;">
+                    <div style="display:flex; align-items: center; margin-bottom: 8px; height: 32px;">
+                        <label class="label-standard" style="margin:0;">Acabamento</label>
+                    </div>
+                    <select id="prod-acabamento">
+                        <option value="brilho">Brilho</option>
+                        <option value="fosco">Fosco</option>
+                    </select>
+                </div>
             </div>
 
-            <div id="div-nome-imp" style="margin-bottom: 15px;">
-                <label class="label-standard" style="margin-bottom: 8px;">Nome / Descrição do Rolo ou Item</label>
-                <input type="text" id="prod-nome" placeholder="Ex: Adesivo Brilho 1.22m x 50m">
+            <div class="form-row" id="div-esp-cor">
+                <div class="field-group">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 32px;">
+                        <label id="label-espessura" class="label-standard" style="margin:0;">Espessura</label>
+                        <button class="btn-icon-action" id="btn-toggle-esp" onclick="ativarNovaEspessura()">+</button>
+                    </div>
+                    <div id="esp-container"><select id="prod-espessura"><option value="">Selecione</option></select></div>
+                </div>
+                <div class="field-group">
+                    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; height: 32px;">
+                        <label id="label-cor" class="label-standard" style="margin:0;">Cor</label>
+                        <button class="btn-icon-action" id="btn-toggle-cor" onclick="ativarNovaCor()">+</button>
+                    </div>
+                    <div id="cor-container">
+                        <select id="prod-cor"></select>
+                    </div>
+                </div>
             </div>
 
-            <div id="div-qtd" style="margin-top:15px;">
-                <div class="form-row">
+            <div id="div-dims" style="display:none; background:#1a1a1a; padding:15px; border-radius:8px; margin-top:5px; border: 1px solid #333;">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label class="label-standard" style="margin-top:0;">Dimensões da Chapa (cm)</label>
+                    <button id="btn-refresh-dims" class="btn-icon-action" onclick="alternarMedidaPadrao()" title="Navegar Medidas Padrões">
+                        <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                </div>
+                <div class="form-row" style="margin-bottom: 0;">
                     <div class="field-group">
-                        <label class="label-standard" style="margin-bottom: 8px;">Quantidade Em Estoque</label>
-                        <input type="number" id="prod-qtd" value="1">
+                        <label class="sub-label-right">Largura (L)</label>
+                        <div class="input-suffix-wrapper"><input type="number" id="prod-dim-w" placeholder="0" oninput="atualizarPlanoCorte()"></div>
                     </div>
                     <div class="field-group">
-                        <label class="label-standard" style="margin-bottom: 8px;">Unidade</label>
-                        <select id="prod-unidade">
-                            <option value="un">Rolos / Unidade</option>
-                            <option value="m">Metros</option>
-                            <option value="L">Litros</option>
-                        </select>
+                        <label class="sub-label-right">Altura (A)</label>
+                        <div class="input-suffix-wrapper"><input type="number" id="prod-dim-h" placeholder="0" oninput="atualizarPlanoCorte()"></div>
+                    </div>
+                </div>
+
+                <div id="div-visual-corte">
+                    <div class="canvas-title">REFERÊNCIA VISUAL</div>
+                    <div class="chapa-container">
+                        <div id="corte-wrapper">
+                            <div class="cota-w-box"><span class="cota-label" id="txt-cota-maior">0cm</span><div class="linha-cota-w"></div></div>
+                            <div class="cota-h-box"><div class="linha-cota-h"></div><span class="cota-label" id="txt-cota-menor" style="writing-mode: vertical-lr; transform: rotate(180deg);">0cm</span></div>
+                            <div id="corte-fill"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -166,43 +238,62 @@
         </div>
     </div>
 
-    <div id="modal-mov" class="modal-overlay">
-        <div class="modal-box" style="text-align: center; max-width: 450px;">
-            <button class="btn-voltar-top" onclick="fecharModal('modal-mov')">Cancelar</button>
-            <h2 style="margin-top:0; color:var(--purple)">Registrar Movimentação</h2>
-            <p id="mov-nome" style="color:#ccc; font-weight:bold; margin-bottom: 5px;">Item</p>
-            <p style="color:var(--text-gray); margin-bottom: 20px;">Estoque Atual: <b id="mov-qtd-atual-txt" style="color:white; font-size:18px;">0</b></p>
-            <input type="hidden" id="mov-id">
-            
+    <div id="modal-corte" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px; text-align: center;">
+            <button class="btn-voltar-top" onclick="fecharModal('modal-corte')">X</button>
+            <h2 style="margin-top:0; color:var(--orange)">Cortar Chapa</h2>
+            <p id="corte-nome-peca" style="color:#ccc; font-weight:bold; margin-bottom: 5px;">Peça Original</p>
+            <p id="corte-dimensoes-atuais" style="color:var(--orange); font-size:18px; font-weight:900; margin-bottom: 20px;">0 x 0 cm</p>
+
             <div style="background:#1a1a1a; padding:15px; border-radius:8px; border: 1px solid #333; text-align: left;">
-                <label class="label-standard">Tipo de Operação</label>
-                <select id="mov-tipo" style="margin-bottom:15px; margin-top:5px; font-weight:bold;">
-                    <option value="saida">🔴 SAÍDA / BAIXA DE MATERIAL</option>
-                    <option value="entrada">🟢 ENTRADA / REPOSIÇÃO</option>
-                </select>
+                <label class="label-standard" style="margin-top:0;">Tamanho do Pedaço a Retirar (cm)</label>
+                <div class="form-row" style="margin-bottom:0; margin-top:10px;">
+                    <input type="number" id="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
+                    <input type="number" id="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                </div>
 
-                <label class="label-standard">Quantidade Utilizada / Adicionada</label>
-                <input type="number" id="mov-qtd-input" placeholder="Ex: 5" style="margin-bottom:15px; margin-top:5px;">
+                <div id="div-visual-modal-corte" style="margin-top: 15px; padding: 15px; background: #000; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; align-items: center;">
+                    <div class="canvas-title" style="margin-bottom: 20px;">PREVISÃO DO CORTE</div>
+                    <div class="chapa-container" style="height: 180px;">
+    <div id="corte-wrapper-modal" style="position: relative; display: flex; align-items: center; justify-content: center;">
+        
+        <div class="cota-w-box">
+            <span class="cota-label" id="txt-cota-w-original">0cm</span>
+            <div class="linha-cota-w"></div>
+        </div>
 
-                <label class="label-standard">Referência do Serviço ou O.S.</label>
-                <input type="text" id="mov-os-input" placeholder="Ex: O.S. 1234 - Fachada" style="margin-top:5px;">
-                <p style="font-size:11px; color:#666; margin-top:5px; margin-bottom:0;">Esta observação será salva no histórico.</p>
-            </div>
+        <div class="cota-h-box">
+            <div class="linha-cota-h"></div>
+            <span class="cota-label" id="txt-cota-h-original"
+                style="writing-mode: vertical-lr; transform: rotate(180deg);">0cm</span>
+        </div>
+
+        <div id="corte-original-bg"
+             style="position: relative; background: var(--orange); border: 1px solid white; transition: all 0.3s ease;">
             
-            <button class="btn-salvar" style="background:var(--green-new)" onclick="salvarAjusteQtd()">💾 CONFIRMAR REGISTRO</button>
+            <div id="corte-pedaco-box"
+                 style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease;">
+            </div>
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+
+            <button class="btn-salvar" id="btn-executar-corte" onclick="executarCorte()" style="margin-top:20px; background:var(--green-new)">✂️ CONFIRMAR CORTE</button>
         </div>
     </div>
 
     <div id="modal-detalhes" class="modal-overlay">
         <div class="modal-box" style="max-width: 450px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-detalhes')">Fechar</button>
-            <h2 style="margin-top:0; color:var(--purple); border-bottom:1px solid #333; padding-bottom:10px;">Informações do Material</h2>
+            <h2 style="margin-top:0; color:var(--orange); border-bottom:1px solid #333; padding-bottom:10px;">Informações do Material</h2>
             
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
             <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #333;"></pre>
 
-            <label class="label-standard" style="margin-top:20px; margin-bottom: 8px;">Anotações e Histórico</label>
-            <textarea id="detalhes-anotacoes" placeholder="O histórico de baixas e suas anotações aparecerão aqui..."></textarea>
+            <label class="label-standard" style="margin-top:20px; margin-bottom: 8px;">Anotações (Serviços e O.S.)</label>
+            <textarea id="detalhes-anotacoes" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
 
             <button class="btn-salvar" id="btn-salvar-anotacoes" onclick="salvarAnotacoes()" style="margin-top:15px; background:#444; border: 1px solid #666;">💾 SALVAR ANOTAÇÕES</button>
         </div>
@@ -210,29 +301,34 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
-        window.setorAtual = 'impressao'; // Fixo para este arquivo
+        window.setorAtual = 'serralheria'; // Fixo para este arquivo
+        window.materialStatus = "Novo";
         window.isNewCategory = false;
+        window.indiceMedidaPadrao = 0;
         let produtos = [];
         let categoriasDinamicas = [];
+        let coresDinamicas = [];
 
-        // Constantes Impressão
-        const CATS_IMP = ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Tinta', 'Outros'];
-        const CORES_TINTAS = [
-            { id: 'ciano', nome: 'Ciano', classeCSS: 'liq-ciano', corTexto: '#00aeef', tipo: 'medida' },
-            { id: 'magenta', nome: 'Magenta', classeCSS: 'liq-magenta', corTexto: '#ec008c', tipo: 'medida' },
-            { id: 'amarelo', nome: 'Amarelo', classeCSS: 'liq-amarelo', corTexto: '#fff200', tipo: 'medida' },
-            { id: 'preto', nome: 'Preto', classeCSS: 'liq-preto', corTexto: '#a0a0a0', tipo: 'medida' },
-            { id: 'solvente', nome: 'Solvente', classeCSS: 'liq-solvente', corTexto: '#ffffff', tipo: 'medida' },
-            { id: 'laca', nome: 'Laca', classeCSS: 'liq-laca', corTexto: '#dddddd', tipo: 'fixa' }
-        ];
+        // Constantes e Padrões de Fábrica da Serralheria
+        const CATS_SERR = ['ACM', 'PVC', 'PS', 'Acrilico', 'MDF', 'Galvanizada', 'Policarbonato'];
+        const CORES_BASE = ['Branco', 'Preto', 'Amarelo', 'Laranja', 'Azul', 'Vermelho', 'Verde', 'Verde Escuro', 'Azul Marinho', 'Bege', 'Rosa', 'Azul Royal', 'Grafite', 'Cinza RAL 7037', 'Bronze 1003', 'Bordo', 'Roxo', 'Dourado', 'Espelhado Prata', 'Espelhado Dourado', 'Champagne Dourado', 'Cinza IP', 'Azul IP', 'Amarelo IP', 'Prata', 'Prata Ral9006', 'Prata Aço', 'Bright Bronze', 'Cinza Anthracite', 'Dark Grey', 'Smoke Silver', 'Azul GM', 'Azul Cobalto', 'Verde Turquesa', 'Verde Sicredi', 'Verde Sicoob', 'Marrom Café', 'Madeira Mogno (Clara)', 'Madeira IMBUIA (Escura)', 'Madeira Sucupira', 'Madeira Castanha', 'Madeira Nogueira', 'Aço Corten Oxidado', 'Aço Corten Enferrujado'];
+
+        const CONFIG_FABRICA = {
+            'acm': { medidas: [{w: 122, h: 500}, {w: 152, h: 500}], espessuras: ['3mm', '4mm'] },
+            'pvc': { medidas: [{w: 122, h: 244}], espessuras: ['5mm', '10mm', '20mm'] },
+            'ps': { medidas: [{w: 100, h: 200}, {w: 120, h: 240}], espessuras: ['1mm', '2mm','3mm','4mm','5mm','6mm','8mm','10mm'] },
+            'acrilico': { medidas: [{w: 100, h: 200}, {w: 120, h: 240}], espessuras: ['2mm','3mm','4mm','5mm','6mm','8mm','10mm'] },
+            'mdf': { medidas: [{w: 183, h: 275}], espessuras: ['3mm', '6mm', '15mm', '18mm'] },
+            'galvanizada': { medidas: [{w: 120, h: 200}, {w: 120, h: 300}], espessuras: ['#28', '#26', '#24','#22','#20'] },
+            'policarbonato': { medidas: [{w: 105, h: 600}, {w: 210, h: 600}], espessuras: ['4mm', '6mm', '10mm'] }
+        };
 
         // INICIALIZAÇÃO IMEDIATA
         document.addEventListener('DOMContentLoaded', () => {
             ouvirEstoque();
-            iniciarPainelTintas();
         });
 
         function ouvirEstoque() {
@@ -240,9 +336,12 @@
             onSnapshot(q, (snapshot) => {
                 produtos = [];
                 snapshot.forEach(d => { 
-                    if(d.id !== 'TINTAS_SISTEMA') { let item = d.data(); item.id = d.id; produtos.push(item); }
+                    let item = d.data(); item.id = d.id; produtos.push(item); 
                 });
+                
                 categoriasDinamicas = [...new Set(produtos.map(p => p.categoria).filter(Boolean))];
+                coresDinamicas = [...new Set(produtos.map(p => p.cor).filter(Boolean))];
+                
                 renderizarCards();
             });
         }
@@ -251,24 +350,30 @@
             document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
 
             produtos.forEach(p => {
-                let catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace("ADESIVO DE RECORTE", "RECORTE");
-                let gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-IMP';
+                let catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                let gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-SERR';
                 const grid = document.getElementById(`grid-${gridID}`);
 
                 if(grid) {
                     const card = document.createElement('div');
                     card.className = `card-prod`;
-                    let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--purple); color:white; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
+                    
+                    let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--orange); color:black; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
                     let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
                     conteudo += `<span class="prod-cat">${p.categoria}</span>`;
-                    conteudo += `<div class="prod-name">${p.nome || p.categoria}</div>`;
-                    conteudo += `<div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; background:#222; padding:10px; border-radius:8px;">
-                                    <div><b style="font-size:24px;">${p.qtd}</b> <small style="color:#aaa">${p.unidade}</small></div>
-                                    <div style="display:flex; gap:8px;">
-                                        <button class="btn-adj" style="background:#444; padding:8px 10px;" onclick="abrirModalDetalhes('${p.id}')" title="Anotações e Histórico">📋</button>
-                                        <button class="btn-adj" onclick="abrirAjuste('${p.id}')">BAIXA</button>
-                                    </div>
-                                 </div>`;
+                    conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
+                    conteudo += `<span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>`;
+                    conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
+                    
+                    const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
+                    conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white">${p.status}</span>`;
+                    
+                    conteudo += `
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="btn-adj" style="flex:1; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR</button>
+                            <button class="btn-adj" style="flex:1; background:#222; border:1px solid #444;" onclick="abrirModalDetalhes('${p.id}')">📋 INFO</button>
+                        </div>
+                    `;
                     
                     card.innerHTML = conteudo;
                     grid.appendChild(card);
@@ -277,24 +382,46 @@
         }
 
         window.deletarItem = async (id) => {
-            if(confirm("Tem certeza que deseja apagar este material permanentemente?")) { await deleteDoc(doc(db, "estoque", id)); }
+            if(confirm("Tem certeza que deseja apagar essa peça permanentemente?")) { await deleteDoc(doc(db, "estoque", id)); }
         };
 
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
 
-        // Lógica Formulário Categoria Dinâmica
+        /* ==========================================================================
+           LÓGICA DO FORMULÁRIO E CUSTOM INPUTS (CHAPAS)
+           ========================================================================== */
         window.abrirModalProd = () => {
             document.getElementById('modal-prod').style.display = 'flex';
             window.isNewCategory = false;
+            window.materialStatus = "Novo";
+            
+            document.getElementById('modal-main-title').innerText = "Nova Chapa";
+            document.getElementById('btn-status').className = `btn-status-toggle status-novo`;
+            document.getElementById('btn-status').innerText = "NOVO";
+            
             window.resetarCategoriaField();
-            document.getElementById('prod-nome').value = '';
-            document.getElementById('prod-qtd').value = '1';
+            window.resetarCorField();
+            
+            document.getElementById('prod-espessura').innerHTML = '<option value="">Selecione a Matéria...</option>';
+            document.getElementById('prod-dim-w').value = '';
+            document.getElementById('prod-dim-h').value = '';
+            document.getElementById('div-dims').style.display = 'none';
+            
+            window.atualizarPlanoCorte();
         };
 
-        window.handleCategoryChange = () => { /* Vazio aqui pois não temos mais dependência visual das chapas */ };
+        window.toggleStatus = () => {
+            const btn = document.getElementById('btn-status');
+            window.materialStatus = (window.materialStatus === "Novo") ? "Usado" : "Novo";
+            btn.innerText = window.materialStatus;
+            btn.className = `btn-status-toggle status-${window.materialStatus.toLowerCase()}`;
+            document.getElementById('modal-main-title').innerText = window.materialStatus === "Novo" ? "Nova Chapa" : "Chapa Usada";
+            if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
+        };
 
+        // MATÉRIA PRIMA (CATEGORIAS)
         window.ativarNovaCategoria = () => {
-            window.isNewCategory = true; document.getElementById('label-cat').innerText = "Nova Categoria";
+            window.isNewCategory = true; document.getElementById('label-cat').innerText = "Nova Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat'); btn.innerHTML = '×'; btn.onclick = window.resetarCategoriaField;
             document.getElementById('cat-container').innerHTML = `
                 <div style="display: flex; gap: 8px; align-items: center; position: relative;">
@@ -304,13 +431,14 @@
         };
 
         window.resetarCategoriaField = () => {
-            window.isNewCategory = false; document.getElementById('label-cat').innerText = "Categoria";
+            window.isNewCategory = false; document.getElementById('label-cat').innerText = "Matéria Prima";
             const btn = document.getElementById('btn-toggle-cat'); btn.innerText = "+"; btn.onclick = window.ativarNovaCategoria;
-            const todasCats = [...new Set([...CATS_IMP, ...categoriasDinamicas])].sort(); 
+            const todasCats = [...new Set([...CATS_SERR, ...categoriasDinamicas])]; 
             
             const select = document.createElement('select');
             select.id = "prod-cat";
-            select.innerHTML = `<option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}<option value="MODO_EXCLUIR" class="texto-pisca" style="color: red;">⚠️ EXCLUIR CATEGORIA ⚠️</option>`;
+            select.onchange = window.handleCategoryChange;
+            select.innerHTML = `<option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}<option value="MODO_EXCLUIR" class="texto-pisca" style="color: red;">⚠️ EXCLUIR MATÉRIA ⚠️</option>`;
             
             select.addEventListener('change', function() {
                 if (this.value === "MODO_EXCLUIR") {
@@ -324,6 +452,7 @@
             });
             document.getElementById('cat-container').innerHTML = '';
             document.getElementById('cat-container').appendChild(select);
+            window.handleCategoryChange();
         };
 
         window.salvarNovaCategoriaNoArray = () => {
@@ -332,69 +461,324 @@
             else { input.focus(); }
         };
 
-        // Salvar Produto (Limpo)
+        window.handleCategoryChange = () => {
+    const cat = document.getElementById('prod-cat').value;
+    const catLower = cat.toLowerCase();
+    const divDims = document.getElementById('div-dims');
+    const espContainer = document.getElementById('esp-container'); 
+    window.indiceMedidaPadrao = 0;
+    
+    let espessurasDisponiveis = [];
+
+    // 1. Padrão de fábrica baseado no CONFIG_FABRICA
+    if (CONFIG_FABRICA[catLower]) {
+        espessurasDisponiveis = [...CONFIG_FABRICA[catLower].espessuras];
+        divDims.style.display = 'block';
+        if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
+    } else if (cat !== "") {
+        divDims.style.display = 'block';
+    } else {
+        divDims.style.display = 'none';
+    }
+
+    // 2. Banco de dados e Adições Dinâmicas por Matéria Prima
+    const customEspessuras = [...new Set(produtos.filter(p => p.categoria === cat && p.espessura).map(p => p.espessura))];
+    if (typeof window.espessurasDinamicasMap === 'undefined') window.espessurasDinamicasMap = {};
+    const locais = window.espessurasDinamicasMap[cat] || [];
+
+    const todasEspessuras = [...new Set([...espessurasDisponiveis, ...customEspessuras, ...locais])];
+
+    // 3. Criação do Select com a animação vinculada
+    const select = document.createElement('select');
+    select.id = "prod-espessura";
+    
+    // Criamos o HTML das opções
+    let optionsHTML = `<option value="">Selecione...</option>` +
+        todasEspessuras.map(e => `<option value="${e}">${e}</option>`).join('');
+    
+    // Adicionamos a opção de excluir com a sua classe de animação
+    optionsHTML += `<option value="MODO_EXCLUIR" class="texto-pisca" style="color: red; font-weight: bold;">⚠️ EXCLUIR ESPESSURA ⚠️ </option>`;
+    
+    select.innerHTML = optionsHTML;
+
+    select.addEventListener('change', function() {
+        if (this.value === "MODO_EXCLUIR") {
+            const itemParaExcluir = prompt("Digite o valor EXATO da espessura que deseja remover:");
+            if (itemParaExcluir && window.espessurasDinamicasMap[cat]) {
+                const index = window.espessurasDinamicasMap[cat].indexOf(itemParaExcluir);
+                if (index > -1) {
+                    window.espessurasDinamicasMap[cat].splice(index, 1);
+                    window.handleCategoryChange(); 
+                }
+            }
+            this.value = ""; 
+        }
+    });
+
+    espContainer.innerHTML = '';
+    espContainer.appendChild(select);
+    if (typeof window.atualizarPlanoCorte === 'function') window.atualizarPlanoCorte();
+};
+
+        // ESPESSURAS - CONTROLE DE ADIÇÃO E SALVAMENTO
+        window.ativarNovaEspessura = () => {
+            const cat = document.getElementById('prod-cat').value;
+            if (!cat) { alert("Selecione uma Matéria Prima primeiro!"); return; }
+
+            document.getElementById('label-espessura').innerText = "Nova Espessura";
+            const b = document.getElementById('btn-toggle-esp'); 
+            b.innerHTML = '×'; 
+            b.onclick = window.resetarEspessuraField;
+            document.getElementById('esp-container').innerHTML = `
+                <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+                    <input type="text" id="prod-esp-new" placeholder="Ex: 15mm" autofocus 
+                           style="flex: 1; height: 35px; border-radius: 4px; border: 1px solid #333; background: #1a1a1a; color: white; padding: 0 35px 0 10px;">
+                    <button onclick="window.salvarNovaEspessuraNoArray()" 
+                            style="position: absolute; right: 5px; background: #00ff00; color: #000; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                        ✓
+                    </button>
+                </div>`;
+        };
+
+        window.resetarEspessuraField = () => {
+            document.getElementById('label-espessura').innerText = "Espessura";
+            const b = document.getElementById('btn-toggle-esp'); 
+            b.innerText = "+"; 
+            b.onclick = window.ativarNovaEspessura;
+            window.handleCategoryChange(); 
+        };
+
+        window.salvarNovaEspessuraNoArray = () => {
+            const cat = document.getElementById('prod-cat').value;
+            const input = document.getElementById('prod-esp-new');
+            const val = input ? input.value.trim() : "";
+            if (val) {
+                if (typeof window.espessurasDinamicasMap === 'undefined') window.espessurasDinamicasMap = {};
+                if (!window.espessurasDinamicasMap[cat]) window.espessurasDinamicasMap[cat] = [];
+                
+                // Salva a espessura apenas para a categoria selecionada
+                if (!window.espessurasDinamicasMap[cat].includes(val)) {
+                    window.espessurasDinamicasMap[cat].push(val);
+                }
+                window.resetarEspessuraField();
+            } else if (input) {
+                input.focus();
+            }
+        };
+
+        // CORES
+        window.ativarNovaCor = () => {
+            document.getElementById('label-cor').innerText = "Nova Cor";
+            const b = document.getElementById('btn-toggle-cor'); b.innerHTML = '×'; b.onclick = window.resetarCorField;
+            document.getElementById('cor-container').innerHTML = `
+                <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+                    <input type="text" id="prod-cor-new" placeholder="Ex: Prata" autofocus style="flex: 1; height: 35px; border-radius: 4px; border: 1px solid #333; background: #1a1a1a; color: white; padding: 0 35px 0 10px;">
+                    <button onclick="window.salvarNovaCorNoArray()" style="position: absolute; right: 5px; background: #00ff00; color: #000; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center;">✓</button>
+                </div>`;
+        };
+
+        window.resetarCorField = () => {
+            document.getElementById('label-cor').innerText = "Cor";
+            const b = document.getElementById('btn-toggle-cor'); b.innerText = "+";
+             b.onclick = window.ativarNovaCor;
+            const todasCores = [...new Set([...CORES_BASE, ...coresDinamicas])];
+            
+            const select = document.createElement('select'); select.id = "prod-cor";
+            select.innerHTML = `<option value="">Selecione a cor...</option>
+            ${todasCores.map(c => `<option value="${c}">${c}</option>`).join('')}
+            <option value="MODO_EXCLUIR" class="texto-pisca" style="color: red; font-weight: bold;">⚠️ EXCLUIR COR ⚠️ </option>`;
+            
+            select.addEventListener('change', function() {
+                if (this.value === "MODO_EXCLUIR") {
+                    const itemParaExcluir = prompt("Digite o nome EXATO da cor que deseja remover:");
+                    if (itemParaExcluir) {
+                        const index = coresDinamicas.indexOf(itemParaExcluir);
+                        if (index > -1) { coresDinamicas.splice(index, 1); window.resetarCorField(); } else { alert("Cor padrão de fábrica."); }
+                    }
+                    this.value = "";
+                }
+            });
+            const container = document.getElementById('cor-container'); container.innerHTML = ""; container.appendChild(select);
+        };
+
+        window.salvarNovaCorNoArray = () => {
+            const input = document.getElementById('prod-cor-new'); const val = input ? input.value.trim() : "";
+            if (val) { if (!coresDinamicas.includes(val)) { coresDinamicas.push(val); } window.resetarCorField(); }
+        };
+
+        // VISUALIZADOR DE CORTES E DIMENSÕES
+        window.aplicarMedidasAutomaticas = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            if (CONFIG_FABRICA[cat]) {
+                const medida = CONFIG_FABRICA[cat].medidas[window.indiceMedidaPadrao];
+                document.getElementById('prod-dim-w').value = medida.w;
+                document.getElementById('prod-dim-h').value = medida.h;
+                window.atualizarPlanoCorte();
+            }
+        };
+
+        window.alternarMedidaPadrao = () => {
+            const cat = document.getElementById('prod-cat').value.toLowerCase();
+            if (CONFIG_FABRICA[cat]) {
+                window.indiceMedidaPadrao = (window.indiceMedidaPadrao + 1) % CONFIG_FABRICA[cat].medidas.length;
+                window.aplicarMedidasAutomaticas();
+            }
+        };
+
+        window.atualizarPlanoCorte = () => {
+            const wReal = parseFloat(document.getElementById('prod-dim-w').value) || 0; const hReal = parseFloat(document.getElementById('prod-dim-h').value) || 0;
+            const fill = document.getElementById('corte-fill'); const area = document.getElementById('div-visual-corte');
+            const lMaior = document.getElementById('txt-cota-maior'); const lMenor = document.getElementById('txt-cota-menor');
+            
+            if (wReal > 0 && hReal > 0) {
+                area.style.display = 'flex';
+                const maior = Math.max(wReal, hReal); const menor = Math.min(wReal, hReal); let ratio = menor / maior; let finalW = 150; let finalH = 150 * ratio;
+                fill.style.width = finalW + 'px'; fill.style.height = finalH + 'px'; fill.innerText = `${wReal}x${hReal}`; lMaior.innerText = maior + 'cm'; lMenor.innerText = menor + 'cm';
+            } else { area.style.display = 'none'; }
+        };
+
+        // SALVAR NO FIREBASE
         window.salvarProduto = async () => {
             const btn = document.getElementById('btn-salvar-final');
             const cat = window.isNewCategory ? document.getElementById('prod-cat-new').value : document.getElementById('prod-cat').value;
-            if (!cat) return alert("Selecione ou digite uma Categoria!");
+            if (!cat) return alert("Selecione ou digite uma Matéria Prima!");
 
-            btn.disabled = true; btn.innerText = "SALVANDO...";
+            const espNode = document.getElementById('prod-esp-new') || document.getElementById('prod-espessura');
+            const corNode = document.getElementById('prod-cor-new') || document.getElementById('prod-cor');
             
             let dados = { 
                 setor: window.setorAtual, 
                 categoria: cat, 
                 data_criacao: serverTimestamp(),
-                nome: document.getElementById('prod-nome').value || cat,
-                qtd: parseFloat(document.getElementById('prod-qtd').value) || 0,
-                unidade: document.getElementById('prod-unidade').value
+                acabamento: document.getElementById('prod-acabamento').value,
+                espessura: espNode ? espNode.value : '',
+                cor: corNode ? corNode.value : '',
+                dimW: parseFloat(document.getElementById('prod-dim-w').value) || 0,
+                dimH: parseFloat(document.getElementById('prod-dim-h').value) || 0,
+                status: window.materialStatus,
+                qtd: 1
             };
+            dados.nome = `${cat} ${dados.espessura}`.trim();
 
+            if (dados.dimW <= 0 || dados.dimH <= 0) { return alert("Preencha as dimensões da chapa!"); }
+
+            btn.disabled = true; btn.innerText = "SALVANDO...";
             try { await addDoc(collection(db, "estoque"), dados); window.fecharModal('modal-prod'); } 
             catch(e) { console.error(e); alert("Erro ao salvar"); }
             btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE";
         };
 
-        // Lógica de Movimentação (Baixa/Entrada)
-        let idParaAjuste = null;
-        window.abrirAjuste = (id) => {
-            idParaAjuste = id; const p = produtos.find(x => x.id === id);
-            document.getElementById('mov-nome').innerText = p.nome || p.categoria;
-            document.getElementById('mov-qtd-atual-txt').innerText = `${p.qtd} ${p.unidade}`;
-            document.getElementById('mov-qtd-input').value = ''; document.getElementById('mov-os-input').value = ''; document.getElementById('mov-tipo').value = 'saida';
-            document.getElementById('modal-mov').style.display = 'flex';
+        /* ==========================================================================
+           SISTEMA DE TESOURA - CORTES DE CHAPA
+           ========================================================================== */
+        let pecaParaCorte = null;
+
+        window.abrirModalCorte = (id) => {
+            pecaParaCorte = produtos.find(x => x.id === id);
+            document.getElementById('corte-nome-peca').innerText = `${pecaParaCorte.categoria} ${pecaParaCorte.espessura || ''} | ${pecaParaCorte.cor || ''}`;
+            document.getElementById('corte-dimensoes-atuais').innerText = `${pecaParaCorte.dimW} x ${pecaParaCorte.dimH} cm`;
+            document.getElementById('corte-w').value = '';
+            document.getElementById('corte-h').value = '';
+            document.getElementById('modal-corte').style.display = 'flex';
+            window.atualizarPreviewCorte();
         };
 
-        window.salvarAjusteQtd = async () => {
-            if(!idParaAjuste) return;
-            const p = produtos.find(x => x.id === idParaAjuste);
-            const tipoMovimentacao = document.getElementById('mov-tipo').value; 
-            const qtdInformada = parseFloat(document.getElementById('mov-qtd-input').value); 
-            const refOS = document.getElementById('mov-os-input').value;
+        window.atualizarPreviewCorte = () => {
+            if (!pecaParaCorte) return;
+            const wOriginal = pecaParaCorte.dimW; const hOriginal = pecaParaCorte.dimH;
+            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0; 
+            const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
 
-            if (isNaN(qtdInformada) || qtdInformada <= 0) return alert("Informe uma quantidade válida!");
-            if (tipoMovimentacao === 'saida' && qtdInformada > p.qtd) { return alert("A baixa não pode ser maior que o estoque atual!"); }
+            // 🚨 Validação imediata
+if (wCorte > wOriginal || hCorte > hOriginal) {
+    alert(`A medida digitada (${wCorte} x ${hCorte}) é maior que a chapa original (${wOriginal} x ${hOriginal})`);
+    document.getElementById('corte-w').value = '';
+    document.getElementById('corte-h').value = '';
+    return;
+}
 
-            const btn = document.querySelector('#modal-mov .btn-salvar'); btn.disabled = true; btn.innerText = "SALVANDO...";
-            let novaQtd = tipoMovimentacao === 'saida' ? (p.qtd - qtdInformada) : (p.qtd + qtdInformada);
-            
-            const dataAtual = new Date().toLocaleDateString('pt-BR'); 
-            const sinal = tipoMovimentacao === 'saida' ? '🔻 BAIXA: -' : '🟢 ENTRADA: +'; 
-            const servicoDesc = refOS ? ` | Ref/O.S: ${refOS}` : '';
-            const logEntry = `\n[${dataAtual}] ${sinal}${qtdInformada}${p.unidade}${servicoDesc}`; 
-            const novasAnotacoes = (p.anotacoes || '') + logEntry;
+            const bgOriginal = document.getElementById('corte-original-bg'); const boxCorte = document.getElementById('corte-pedaco-box');
 
-            try { await updateDoc(doc(db, "estoque", idParaAjuste), { qtd: novaQtd, anotacoes: novasAnotacoes }); window.fecharModal('modal-mov'); } 
-            catch (e) { console.error(e); alert("Erro ao salvar."); } 
-            finally { btn.disabled = false; btn.innerText = "💾 CONFIRMAR REGISTRO"; }
+            const maior = Math.max(wOriginal, hOriginal);
+const menor = Math.min(wOriginal, hOriginal);
+const ratio = menor / maior;
+
+const basePx = 150;
+
+let finalW;
+let finalH;
+
+// 🔥 REGRA: maior sempre horizontal
+if (wOriginal >= hOriginal) {
+    finalW = basePx;
+    finalH = basePx * ratio;
+
+    document.getElementById('txt-cota-w-original').innerText = wOriginal + 'cm';
+    document.getElementById('txt-cota-h-original').innerText = hOriginal + 'cm';
+} else {
+    finalW = basePx;
+    finalH = basePx * ratio;
+
+    // Inverte visualmente as cotas
+    document.getElementById('txt-cota-w-original').innerText = hOriginal + 'cm';
+    document.getElementById('txt-cota-h-original').innerText = wOriginal + 'cm';
+}
+
+bgOriginal.style.width = finalW + 'px';
+bgOriginal.style.height = finalH + 'px';
+
+            if (wCorte > 0 && hCorte > 0 && wCorte <= wOriginal && hCorte <= hOriginal) {
+                boxCorte.style.display = 'flex'; 
+                const percentW = wCorte / wOriginal; 
+                const percentH = hCorte / hOriginal;
+                boxCorte.style.width = (finalW * percentW) + 'px'; 
+                boxCorte.style.height = (finalH * percentH) + 'px'; 
+                boxCorte.innerText = `${wCorte}x${hCorte}`;
+                bgOriginal.style.background = '#333';
+            } else { boxCorte.style.display = 'none'; bgOriginal.style.background = 'var(--orange)'; }
         };
 
-        // Detalhes e Histórico
+        window.executarCorte = async () => {
+            if (!pecaParaCorte) return; const btn = document.getElementById('btn-executar-corte');
+            const cw = parseFloat(document.getElementById('corte-w').value) || 0; const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+
+            if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
+            if (cw > pecaParaCorte.dimW || ch > pecaParaCorte.dimH) { return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça original (${pecaParaCorte.dimW} x ${pecaParaCorte.dimH} cm)!`); }
+
+            btn.disabled = true; btn.innerText = "CORTANDO...";
+
+            try {
+                const sobraW = pecaParaCorte.dimW - cw; const sobraH = pecaParaCorte.dimH - ch; const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
+                await updateDoc(doc(db, "estoque", pecaParaCorte.id), { 
+                    dimW: sobraW > 0 ? sobraW : pecaParaCorte.dimW, 
+                    dimH: sobraH > 0 ? sobraH : pecaParaCorte.dimH, 
+                    status: "Usado", 
+                    nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)" 
+                });
+
+                const novaPeca = { ...pecaParaCorte }; delete novaPeca.id;
+                novaPeca.dimW = cw; novaPeca.dimH = ch; novaPeca.status = "Usado"; novaPeca.data_criacao = serverTimestamp(); novaPeca.nome = nomeBase.replace(" (Sobra)", "") + " (Corte)";
+                await addDoc(collection(db, "estoque"), novaPeca);
+
+                alert("Corte realizado! O estoque foi atualizado."); window.fecharModal('modal-corte');
+            } catch (e) { console.error(e); alert("Erro ao executar o corte."); } 
+            finally { btn.disabled = false; btn.innerText = "✂️ CONFIRMAR CORTE"; }
+        };
+
+        /* ==========================================================================
+           DETALHES E INFORMAÇÕES
+           ========================================================================== */
         let itemParaDetalhes = null;
         window.abrirModalDetalhes = (id) => {
             itemParaDetalhes = produtos.find(x => x.id === id);
-            document.getElementById('detalhes-nome').innerText = (itemParaDetalhes.nome || itemParaDetalhes.categoria);
+            const nome = `${itemParaDetalhes.categoria} ${itemParaDetalhes.espessura || ''}`;
+            document.getElementById('detalhes-nome').innerText = nome;
             
-            let info = `📝 Cadastrado no setor: IMPRESSÃO\n📦 Quantidade Atual: ${itemParaDetalhes.qtd} ${itemParaDetalhes.unidade}\n`;
+            let info = `📝 Cadastrado no setor: SERRALHERIA\n`;
+            info += `📊 Status: ${itemParaDetalhes.status}\n📐 Dimensões: ${itemParaDetalhes.dimW} x ${itemParaDetalhes.dimH} cm\n`;
+            if(itemParaDetalhes.cor) info += `🎨 Cor: ${itemParaDetalhes.cor}\n`;
+            if(itemParaDetalhes.acabamento) info += `✨ Acabamento: ${itemParaDetalhes.acabamento}\n`;
+            
             document.getElementById('detalhes-info').innerText = info;
             document.getElementById('detalhes-anotacoes').value = itemParaDetalhes.anotacoes || '';
             document.getElementById('modal-detalhes').style.display = 'flex';
@@ -408,57 +792,6 @@
             catch (e) { console.error(e); alert("Erro ao salvar anotações."); } 
             finally { btn.disabled = false; btn.innerText = "💾 SALVAR ANOTAÇÕES"; }
         };
-
-        // Lógica Sistema de Tintas
-        function montarLayoutTintas() {
-            const container = document.getElementById('container-tintas'); container.innerHTML = '';
-            CORES_TINTAS.forEach(tinta => {
-                if (tinta.tipo === 'medida') {
-                    container.innerHTML += `<div class="tinta-card"><div class="tinta-nome">${tinta.nome}</div><div class="recipiente"><div class="liquido ${tinta.classeCSS}" id="liq-${tinta.id}" style="height: 0%;"></div></div><div class="tinta-ctrl-group"><div class="tinta-ctrl-row">Nível (cm) <input type="number" id="in-cm-${tinta.id}" max="20" min="0" onchange="window.atualizarTintaDB('${tinta.id}')"></div><div class="tinta-ml-info" id="txt-ml-${tinta.id}" style="color: ${tinta.corTexto};">~0ml restantes</div><div class="tinta-ctrl-row">Extras (un) <input type="number" id="in-ex-${tinta.id}" min="0" onchange="window.atualizarTintaDB('${tinta.id}')"></div></div></div>`;
-                } else if (tinta.tipo === 'fixa') {
-                    container.innerHTML += `<div class="tinta-card"><div class="tinta-nome">${tinta.nome}</div><div class="recipiente"><div class="liquido ${tinta.classeCSS}" id="liq-${tinta.id}" style="height: 100%;"></div></div><div class="tinta-ctrl-group"><div class="tinta-ctrl-row" style="justify-content: center; text-align: center; height: 28px; margin-bottom: 8px;"><span style="color: var(--green-new); font-weight: 900; letter-spacing: 1px;">EM USO</span></div><div class="tinta-ctrl-row">Extras (un) <input type="number" id="in-ex-${tinta.id}" min="0" onchange="window.atualizarTintaDB('${tinta.id}')"></div><input type="hidden" id="in-cm-${tinta.id}" value="20"></div></div>`;
-                }
-            });
-        }
-
-        function iniciarPainelTintas() {
-            montarLayoutTintas();
-            const docRef = doc(db, "estoque", "TINTAS_SISTEMA");
-            onSnapshot(docRef, async (docSnap) => {
-                if (docSnap.exists()) {
-                    const dadosTintas = docSnap.data();
-                    CORES_TINTAS.forEach(tinta => {
-                        const corId = tinta.id; const dadosCor = dadosTintas[corId] || { cm: 20, extra: 0 };
-                        document.getElementById(`in-ex-${corId}`).value = dadosCor.extra;
-                        if (tinta.tipo === 'medida') {
-                            document.getElementById(`in-cm-${corId}`).value = dadosCor.cm;
-                            const alturaPorcentagem = Math.min(100, Math.max(0, (dadosCor.cm / 20) * 100));
-                            const liqDiv = document.getElementById(`liq-${corId}`);
-                            liqDiv.style.height = `${alturaPorcentagem}%`;
-                            const mlCalculado = Math.round((dadosCor.cm / 20) * 900);
-                            document.getElementById(`txt-ml-${corId}`).innerText = `~${mlCalculado}ml restantes`;
-                            if(dadosCor.cm <= 2) { liqDiv.innerHTML = ''; } 
-                            else { liqDiv.innerHTML = `<span>${dadosCor.cm}cm</span><span style="font-size:8px; font-weight:normal; opacity:0.9;">${mlCalculado}ml</span>`; }
-                        }
-                    });
-                } else {
-                    let tintasZeradas = {}; CORES_TINTAS.forEach(t => tintasZeradas[t.id] = { cm: 20, extra: 0 }); await setDoc(docRef, tintasZeradas);
-                }
-            });
-        }
-
-        window.atualizarTintaDB = async (corId) => {
-            const tintaConfig = CORES_TINTAS.find(t => t.id === corId); let cmValue = 20;
-            if (tintaConfig && tintaConfig.tipo === 'medida') {
-                cmValue = parseFloat(document.getElementById(`in-cm-${corId}`).value) || 0;
-                if (cmValue > 20) cmValue = 20; if (cmValue < 0) cmValue = 0; document.getElementById(`in-cm-${corId}`).value = cmValue; 
-            }
-            let extraValue = parseInt(document.getElementById(`in-ex-${corId}`).value) || 0;
-            const docRef = doc(db, "estoque", "TINTAS_SISTEMA");
-            try { await setDoc(docRef, { [corId]: { cm: cmValue, extra: extraValue } }, { merge: true }); } 
-            catch (e) { console.error(e); alert("Erro de conexão ao salvar tinta."); }
-        };
-
     </script>
 </body>
 </html>
