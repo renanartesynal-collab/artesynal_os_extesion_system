@@ -172,9 +172,9 @@
                     <input type="text" id="v-empresa">
                 </div>
             </div>
-            <label>ENDEREÇO</label>
+            <label>ENDEREÇO DA VISITA</label>
             <div style="display:flex; gap:5px; margin-bottom: 10px;">
-                <input type="text" id="v-endereco">
+                <input type="text" id="v-endereco" placeholder="Local da visita técnica...">
                 <button class="copy-end-btn" onclick="window.copiarEnderecoModal()">COPIAR</button>
             </div>
             <label>INFORMAÇÕES E OBJETIVO DA VISITA</label>
@@ -217,9 +217,13 @@
                     <div class="col"><label>MEDIDAS</label><input type="text" id="in-medidas"></div>
                     <div class="col"><label>INSTALAÇÃO</label><select id="in-instalacao"><option>Não</option><option>Sim</option></select></div>
                 </div>
-                <label>ENDEREÇO</label>
-                <input type="text" id="in-endereco">
-                <br><br>
+                
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="margin: 0;">ENDEREÇOS / LOCAIS</label>
+                    <button type="button" onclick="window.addEndereco()" style="background: var(--blue); color: white; border: none; border-radius: 4px; padding: 4px 10px; font-weight: bold; font-size: 11px; cursor: pointer;">+ ADICIONAR LOCAL</button>
+                </div>
+                <div id="enderecos-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                <br>
                 <label>OBSERVAÇÕES GERAIS</label>
                 <textarea id="in-obs"></textarea>
                 
@@ -246,6 +250,7 @@
                     <button id="btn-acao-gerar-vt" class="btn-v-action btn-gerar-vt" onclick="window.abrirModalVisita()">📋 VISITA TÉCNICA</button>
                     <div id="area-vt-gerada" class="botoes-pos-vt">
                         <button class="btn-v-action b-ver" onclick="window.alternarModo('vt')">🚗 ABRIR CARD TÉCNICO</button>
+                        <button class="btn-v-action b-link" onclick="window.copiarLinkVT()">🔗 COPIAR LINK</button>
                         <button class="btn-v-action b-edit" onclick="window.abrirModalVisita()">✏️ EDITAR INFO VISITA</button>
                     </div>
                 </div>
@@ -258,7 +263,7 @@
                         <div class="view-item"><label>WHATSAPP</label><div id="view-whatsapp">--</div></div>
                         <div class="view-item"><label>MEDIDAS</label><div id="view-medidas">--</div></div>
                         <div class="view-item"><label>INSTALAÇÃO</label><div id="view-instalacao">--</div></div>
-                        <div class="view-item"><label>LOCAL</label><div id="view-endereco">--</div></div>
+                        <div class="view-item" style="grid-column: span 2;"><label>ENDEREÇOS / LOCAIS</label><div id="view-endereco" style="display:flex; flex-direction: column; gap: 5px;">--</div></div>
                     </div>
                     <div class="view-obs-box" id="view-obs">Obs...</div>
                 </div>
@@ -294,11 +299,10 @@
                 </div>
 
                 <div class="vt-info-group">
-                    <span class="vt-label">Endereço do Local</span>
-                    <div class="vt-value" id="vt-endereco">Rua Exemplo, 123 - Bairro</div>
+                    <span class="vt-label">Locais / Endereços da Visita</span>
+                    <div class="vt-value" id="vt-endereco" style="display: flex; flex-direction: column; gap: 5px;">Rua Exemplo, 123 - Bairro</div>
                     <div class="vt-actions-row">
-                        <button class="btn-vt-map" onclick="window.abrirMapsVT()">🗺️ ABRIR NO MAPS</button>
-                        <button class="btn-vt-copy" onclick="window.copiarEnderecoVT()">📋 COPIAR</button>
+                        <button class="btn-vt-copy" style="background:var(--blue);" onclick="window.copiarEnderecoVT()">📋 COPIAR ENDEREÇOS</button>
                     </div>
                 </div>
 
@@ -349,16 +353,19 @@
         let modoAtual = 'edit';
         let idVisitaTecnicaGerada = null;
 
+        // Variavel Global para a lista de Endereços
+        window.listaEnderecos = [{ texto: '', tipo: 'Local' }];
+
         // ==========================================
         // VARIÁVEIS DO CANVAS ROBUSTO
         // ==========================================
         let canvas = document.getElementById('editor-canvas');
         let ctx = canvas.getContext('2d');
-        let arrows = []; // Armazena as setas matematicamente
+        let arrows = []; 
         let editorTool = 'draw';
         let isDrawing = false, isDragging = false, didDrag = false;
         let startX, startY, currentX, currentY;
-        let dragTarget = null; // Para saber o que estamos movendo (ponta 1, ponta 2 ou centro)
+        let dragTarget = null; 
         let currentEditorImg = null;
 
         window.onload = async () => {
@@ -366,13 +373,17 @@
             idEdicao = params.get('id');
             const mode = params.get('mode') || 'edit';
             
-            if (idEdicao) await carregarDados(idEdicao);
+            if (idEdicao) {
+                await carregarDados(idEdicao);
+            } else {
+                window.renderEnderecos(); // Renderiza o primeiro campo vazio
+            }
+            
             window.alternarModo(mode);
 
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
             
-            // Eventos do Canvas (Mouse + Touch)
             canvas.addEventListener('mousedown', handleDown);
             canvas.addEventListener('mousemove', handleMove);
             canvas.addEventListener('mouseup', handleUp);
@@ -381,6 +392,58 @@
             canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, {passive: false});
         };
 
+        // ==========================================
+        // SISTEMA DE ENDEREÇOS MÚLTIPLOS
+        // ==========================================
+        window.renderEnderecos = () => {
+            const container = document.getElementById('enderecos-container');
+            container.innerHTML = '';
+            const mostrarTipo = window.listaEnderecos.length > 1;
+
+            window.listaEnderecos.forEach((end, i) => {
+                let row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '10px';
+
+                let input = `<input type="text" value="${end.texto}" oninput="window.updateEndereco(${i}, 'texto', this.value)" style="flex:1" placeholder="Rua, número, bairro...">`;
+
+                let select = '';
+                if(mostrarTipo) {
+                    select = `<select onchange="window.updateEndereco(${i}, 'tipo', this.value)" style="width:110px; padding: 12px 5px; cursor:pointer;">
+                        <option value="Local" ${end.tipo==='Local'?'selected':''}>Local</option>
+                        <option value="Retirada" ${end.tipo==='Retirada'?'selected':''}>Retirada</option>
+                        <option value="Entrega" ${end.tipo==='Entrega'?'selected':''}>Entrega</option>
+                    </select>`;
+                }
+
+                let btnDel = '';
+                if(window.listaEnderecos.length > 1) {
+                    btnDel = `<button type="button" onclick="window.remEndereco(${i})" style="background:var(--red); color:white; border:none; border-radius:5px; padding:0 15px; font-weight:bold; cursor:pointer;" title="Remover">X</button>`;
+                }
+
+                row.innerHTML = input + select + btnDel;
+                container.appendChild(row);
+            });
+        };
+
+        window.addEndereco = () => {
+            window.listaEnderecos.push({ texto: '', tipo: 'Local' });
+            window.renderEnderecos();
+        };
+
+        window.remEndereco = (i) => {
+            window.listaEnderecos.splice(i, 1);
+            if(window.listaEnderecos.length === 1) window.listaEnderecos[0].tipo = 'Local';
+            window.renderEnderecos();
+        };
+
+        window.updateEndereco = (i, campo, valor) => {
+            window.listaEnderecos[i][campo] = valor;
+        };
+
+        // ==========================================
+        // GESTÃO DE MODOS E DADOS
+        // ==========================================
         window.alternarModo = (modo) => {
             modoAtual = modo;
             
@@ -404,7 +467,19 @@
                 document.getElementById('vt-servico').innerText = document.getElementById('in-servico').value || 'Serviço Sem Título';
                 document.getElementById('vt-cliente').innerText = document.getElementById('v-cliente').value || document.getElementById('in-cliente').value || 'Cliente não informado';
                 document.getElementById('vt-empresa').innerText = document.getElementById('v-empresa').value || document.getElementById('in-empresa').value || '';
-                document.getElementById('vt-endereco').innerText = document.getElementById('v-endereco').value || document.getElementById('in-endereco').value || 'Endereço não informado';
+                
+                // Formata os endereços para a VT
+                let vtEndTexto = document.getElementById('v-endereco').value;
+                if (!vtEndTexto) {
+                    vtEndTexto = window.listaEnderecos.map(e => {
+                        let prefix = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `[${e.tipo.toUpperCase()}] ` : '';
+                        return e.texto ? `<div>${prefix}${e.texto}</div>` : '';
+                    }).filter(x => x).join('');
+                } else {
+                    vtEndTexto = `<div>${vtEndTexto}</div>`;
+                }
+                
+                document.getElementById('vt-endereco').innerHTML = vtEndTexto || 'Endereço não informado';
                 document.getElementById('vt-info').innerText = document.getElementById('v-info').value || 'Sem instruções da visita.';
             }
         };
@@ -420,19 +495,41 @@
                 document.getElementById('in-empresa').value = d.empresa || '';
                 document.getElementById('in-servico').value = d.servico_titulo || '';
                 document.getElementById('in-medidas').value = d.medidas || '';
-                document.getElementById('in-endereco').value = d.endereco || '';
                 document.getElementById('in-obs').value = d.observacoes || '';
                 if(d.tipo_servico_material) { document.querySelector(`input[name="tipo"][value="${d.tipo_servico_material}"]`).checked = true; }
                 
+                // Carrega os endereços convertendo antigos
+                if (d.enderecos && d.enderecos.length > 0) {
+                    window.listaEnderecos = d.enderecos;
+                } else if (d.endereco) {
+                    window.listaEnderecos = [{ texto: d.endereco, tipo: 'Local' }];
+                } else {
+                    window.listaEnderecos = [{ texto: '', tipo: 'Local' }];
+                }
+                window.renderEnderecos();
+
+                // View Mode Fields
                 document.getElementById('view-id').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
                 document.getElementById('view-cliente').innerText = d.cliente || '--';
                 document.getElementById('view-empresa').innerText = d.empresa || '--';
                 document.getElementById('view-servico').innerText = d.servico_titulo || '--';
                 document.getElementById('view-whatsapp').innerText = d.whatsapp || '--';
-                document.getElementById('view-endereco').innerText = d.endereco || '--';
                 document.getElementById('view-medidas').innerText = d.medidas || '--';
                 document.getElementById('view-obs').innerText = d.observacoes || 'Sem observações.';
                 
+                // Renderiza endereços no view mode
+                let htmlViewEnd = '';
+                if (window.listaEnderecos.length > 0 && window.listaEnderecos[0].texto !== '') {
+                    htmlViewEnd = window.listaEnderecos.map(e => {
+                        let badge = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `<span style="color:var(--yellow); font-size:10px;">[${e.tipo.toUpperCase()}]</span> ` : '';
+                        return `<div style="margin-bottom:4px;">${badge}${e.texto}</div>`;
+                    }).join('');
+                } else {
+                    htmlViewEnd = '--';
+                }
+                document.getElementById('view-endereco').innerHTML = htmlViewEnd;
+                
+                // Dados de VT
                 if(d.visita_id) {
                     idVisitaTecnicaGerada = d.visita_id;
                     document.getElementById('btn-acao-gerar-vt').style.display = 'none';
@@ -449,11 +546,11 @@
                     }
                 }
 
-                // Migração de imagens antigas para suportar o novo canvas
+                // Migração de imagens
                 let dbImgs = d.imagens || [];
                 dbImgs.forEach(img => {
                     if (!img.originalUrl) {
-                        img.originalUrl = img.url; // Salva o backup caso seja imagem antiga
+                        img.originalUrl = img.url; 
                         img.arrows = [];
                     }
                 });
@@ -463,23 +560,57 @@
         }
 
         // ==========================================
-        // LÓGICA DE FOTOS E GALERIA
+        // LÓGICA DE COMPRESSÃO DE FOTOS
         // ==========================================
-        window.processarImagens = (e) => {
-            const files = e.target.files;
-            for(let file of files) {
+        function comprimirImagem(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    imagens.push({ 
-                        url: event.target.result, 
-                        originalUrl: event.target.result, // A mágica: guarda a foto original intacta
-                        obs: "", 
-                        arrows: [] // Histórico de setas
-                    });
-                    window.renderMiniaturas();
+                    const img = new Image();
+                    img.onload = () => {
+                        const compCanvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                        } else {
+                            if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
+                        }
+
+                        compCanvas.width = width;
+                        compCanvas.height = height;
+                        const compCtx = compCanvas.getContext('2d');
+                        compCtx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = compCanvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
+            });
+        }
+
+        window.processarImagens = async (e) => {
+            const files = e.target.files;
+            const btnUpload = document.querySelector('.btn-upload');
+            const originalText = btnUpload.innerText;
+            btnUpload.innerText = "⏳ COMPRIMINDO...";
+            btnUpload.disabled = true;
+
+            for(let file of files) {
+                const base64Comprimido = await comprimirImagem(file, 1200, 1200, 0.6);
+                imagens.push({ 
+                    url: base64Comprimido, 
+                    originalUrl: base64Comprimido,
+                    obs: "", 
+                    arrows: [] 
+                });
             }
+            
+            btnUpload.innerText = originalText;
+            btnUpload.disabled = false;
+            window.renderMiniaturas();
         };
 
         window.renderMiniaturas = () => {
@@ -555,7 +686,7 @@
             const originalTextEdit = btnEdit.innerText;
             const originalTextVt = btnVt.innerText;
             
-            btnEdit.innerText = "SALVANDO..."; btnVt.innerText = "SALVANDO...";
+            btnEdit.innerText = "⏳ SALVANDO..."; btnVt.innerText = "⏳ SALVANDO...";
             
             const dados = {
                 cliente: document.getElementById('in-cliente').value,
@@ -563,7 +694,10 @@
                 empresa: document.getElementById('in-empresa').value,
                 servico_titulo: document.getElementById('in-servico').value,
                 medidas: document.getElementById('in-medidas').value,
-                endereco: document.getElementById('in-endereco').value,
+                
+                enderecos: window.listaEnderecos, // NOVO CAMPO ARRAY
+                endereco: window.listaEnderecos.map(e => e.texto).join(' | '), // Fallback p/ o banco de dados e pesquisas velhas
+                
                 precisa_instalacao: document.getElementById('in-instalacao').value,
                 observacoes: document.getElementById('in-obs').value,
                 tipo_servico_material: document.querySelector('input[name="tipo"]:checked') ? document.querySelector('input[name="tipo"]:checked').value : 'Serviço',
@@ -587,19 +721,30 @@
                     alert("Salvo com sucesso!");
                     window.location.href = `${ROTAS.detalhes_orcamento}?id=${idEdicao}&mode=view`;
                 }
-            } catch(e) { console.error(e); alert("Erro ao salvar."); }
+            } catch(e) { 
+                console.error(e); 
+                alert("Erro ao salvar! O arquivo de imagens pode estar muito grande. Tente excluir alguma foto."); 
+            }
             
             btnEdit.disabled = false; btnEdit.innerText = originalTextEdit;
             btnVt.disabled = false; btnVt.innerText = originalTextVt;
         };
 
         // ==========================================
-        // VISITA TÉCNICA (CARD DO TÉCNICO)
+        // VISITA TÉCNICA E COPIAR LINK
         // ==========================================
         window.abrirModalVisita = () => {
             if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
             if (!document.getElementById('v-empresa').value) document.getElementById('v-empresa').value = document.getElementById('in-empresa').value;
-            if (!document.getElementById('v-endereco').value) document.getElementById('v-endereco').value = document.getElementById('in-endereco').value;
+            
+            if (!document.getElementById('v-endereco').value) {
+                let strEnd = window.listaEnderecos.map(e => {
+                    let prefix = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `[${e.tipo.toUpperCase()}] ` : '';
+                    return e.texto ? prefix + e.texto : '';
+                }).filter(x => x).join(' | ');
+                document.getElementById('v-endereco').value = strEnd;
+            }
+
             if (!document.getElementById('v-info').value) document.getElementById('v-info').value = document.getElementById('in-obs').value;
             
             document.getElementById('visita-modal').style.display = 'flex';
@@ -643,24 +788,34 @@
             finally { btn.disabled = false; btn.innerText = "SALVAR VISITA"; }
         };
 
+        window.copiarLinkVT = () => {
+            if (!idEdicao) return;
+            const link = `${window.location.origin}${window.location.pathname}?id=${idEdicao}&mode=vt`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert("Link do Card Técnico copiado! Envie para o técnico.");
+            }).catch(err => {
+                console.error("Erro ao copiar link:", err);
+                alert("Erro ao copiar link.");
+            });
+        };
+
         window.copiarEnderecoModal = () => {
             navigator.clipboard.writeText(document.getElementById('v-endereco').value).then(() => alert("Endereço copiado!"));
         };
+        
         window.copiarEnderecoVT = () => {
-            navigator.clipboard.writeText(document.getElementById('vt-endereco').innerText).then(() => alert("Copiado!"));
-        };
-        window.abrirMapsVT = () => {
-            window.open(`https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
+            // Pega o texto limpo (sem as tags de HTML <div>) do que estiver mostrando no endereço da VT
+            const blocoEnd = document.getElementById('vt-endereco').innerText;
+            navigator.clipboard.writeText(blocoEnd).then(() => alert("Copiado!"));
         };
 
         // ==========================================
-        // EDITOR DE MEDIDAS (ROBUSTO E ORIENTADO A OBJETO)
+        // EDITOR DE MEDIDAS 
         // ==========================================
         window.abrirEditor = () => {
             if(!imagens[indiceAtual]) return;
             document.getElementById('draw-modal').style.display = 'flex';
             
-            // Clona o array de setas para não afetar o original até que o usuário clique em SALVAR
             arrows = JSON.parse(JSON.stringify(imagens[indiceAtual].arrows || []));
             window.setTool('draw');
 
@@ -670,7 +825,7 @@
                 currentEditorImg = img;
                 redrawCanvas();
             };
-            img.src = imagens[indiceAtual].originalUrl; // Abre SEMPRE a imagem original limpa
+            img.src = imagens[indiceAtual].originalUrl;
         };
 
         window.fecharEditor = () => document.getElementById('draw-modal').style.display = 'none';
@@ -712,7 +867,7 @@
             } 
             else if (editorTool === 'move') {
                 let closest = null; let minDist = Number.MAX_VALUE;
-                const hitR = 50; // Raio grande para o dedo no celular acertar fácil
+                const hitR = 50; 
 
                 arrows.forEach((a, i) => {
                     let d1 = dist(pos.x, pos.y, a.x1, a.y1);
@@ -765,14 +920,13 @@
                         const txt = prompt("Digite a medida (Ex: 150cm):");
                         if (txt) { arrows.push({ x1: startX, y1: startY, x2: currentX, y2: currentY, text: txt }); }
                         redrawCanvas();
-                    }, 50); // Delay pro prompt não travar o mobile no touchEnd
+                    }, 50); 
                 } else { redrawCanvas(); }
             } else if (isDragging && editorTool === 'move' && dragTarget) {
                 isDragging = false;
                 let a = arrows[dragTarget.i];
                 delete a.lastX; delete a.lastY;
 
-                // Se clicou no centro da seta mas NÃO arrastou, edita o texto!
                 if (!didDrag && dragTarget.p === 'center') {
                     setTimeout(() => {
                         const txt = prompt("Editar medida:", a.text);
@@ -799,26 +953,22 @@
             const headlen = 25; 
             const angle = Math.atan2(y2 - y1, x2 - x1);
             
-            ctx.strokeStyle = "#00a651"; // Verde 
+            ctx.strokeStyle = "#00a651"; 
             ctx.fillStyle = "#00a651";
             ctx.lineWidth = 6;
 
-            // Linha Principal
             ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 
-            // Ponta Final
             ctx.beginPath(); ctx.moveTo(x2, y2);
             ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
             ctx.fill();
 
-            // Ponta Inicial (Seta Bidirecional)
             ctx.beginPath(); ctx.moveTo(x1, y1);
             ctx.lineTo(x1 + headlen * Math.cos(angle - Math.PI / 6), y1 + headlen * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(x1 + headlen * Math.cos(angle + Math.PI / 6), y1 + headlen * Math.sin(angle + Math.PI / 6));
             ctx.fill();
 
-            // Texto com Fundo
             if (text && text !== "...") {
                 const midX = (x1 + x2) / 2; const midY = (y1 + y2) / 2;
                 ctx.save(); ctx.translate(midX, midY);
@@ -838,11 +988,10 @@
         }
 
         window.salvarEditor = () => {
-            // Salva o estado real na memória para uso futuro
+            // Compressão da imagem com setas para manter leve!
             imagens[indiceAtual].arrows = JSON.parse(JSON.stringify(arrows));
-            
-            // Desenha a versão final e sobrescreve a URL de preview
             redrawCanvas();
+            // Comprime a imagem com setas com 80% de qualidade
             imagens[indiceAtual].url = canvas.toDataURL("image/jpeg", 0.8);
             
             window.renderMiniaturas();
