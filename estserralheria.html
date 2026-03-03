@@ -1003,8 +1003,18 @@ function tornarArrastavel(elemento) {
 
     try {
 
-        const sobraW = wOriginal - cw;
-        const sobraH = hOriginal - ch;
+        // Lógica de Sobra Inteligente Artesynal
+        let sobraW, sobraH;
+
+        if ((wOriginal - cw) * hOriginal >= (hOriginal - ch) * wOriginal) {
+            // Sobra lateral é maior: Retira a largura, mantém a altura original
+            sobraW = wOriginal - cw;
+            sobraH = hOriginal;
+        } else {
+            // Sobra superior é maior: Mantém a largura original, retira a altura
+            sobraW = wOriginal;
+            sobraH = hOriginal - ch;
+        }
 
         const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
 
