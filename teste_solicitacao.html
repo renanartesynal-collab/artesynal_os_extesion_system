@@ -445,19 +445,20 @@
 
         // FUNÇÕES GLOBAIS DE MAPA E CÓPIA
         window.abrirMapsTexto = (texto) => {
-            window.open(`https://google.com/maps/search/?api=1&query=${encodeURIComponent(texto)}`, '_blank');
+            window.open(`https://maps.google.com/?q=${encodeURIComponent(texto)}`, '_blank');
         };
 
         window.copiarTexto = (texto) => {
-            navigator.clipboard.writeText(texto).then(() => alert("Endereço copiado!"));
+            navigator.clipboard.writeText(texto).then(() => alert("Endereço copiado com sucesso!"));
         };
 
-        // GERAÇÃO DOS BLOCOS DO CARD DO TÉCNICO
+        // GERAÇÃO DOS BLOCOS ISOLADOS DO CARD DO TÉCNICO
         window.criarBlocoEnderecoVT = (texto, tipo, isMulti) => {
+            // Cria um visual de tag apenas se for Retirada/Entrega
             const prefix = (isMulti && tipo !== 'Local') ? `<span style="color:var(--yellow); font-size:11px; font-weight:bold; padding-bottom:5px; display:inline-block; text-transform:uppercase;">[${tipo}]</span><br>` : '';
             const safeText = texto.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             
-            // Define a cor da borda baseado no tipo
+            // Define a cor da bordinha do bloco baseado no tipo
             let borderColor = '#666';
             if (tipo === 'Retirada') borderColor = 'var(--blue)';
             else if (tipo === 'Entrega') borderColor = 'var(--green)';
@@ -465,8 +466,8 @@
 
             return `
             <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 8px; border: 1px solid #444; border-left: 4px solid ${borderColor};">
-                <div class="vt-value" style="font-size: 14px; margin-bottom: 12px;">${prefix}${texto}</div>
-                <div style="display: flex; gap: 8px;">
+                <div class="vt-value" style="font-size: 14px; margin-bottom: 12px; line-height: 1.5;">${prefix}${texto}</div>
+                <div class="vt-actions-row">
                     <button class="btn-vt-map" onclick="window.abrirMapsTexto('${safeText}')">🗺️ ABRIR NO MAPS</button>
                     <button class="btn-vt-copy" onclick="window.copiarTexto('${safeText}')">📋 COPIAR</button>
                 </div>
@@ -501,28 +502,44 @@
                 document.getElementById('vt-empresa').innerText = document.getElementById('v-empresa').value || document.getElementById('in-empresa').value || '';
                 document.getElementById('vt-info').innerText = document.getElementById('v-info').value || 'Sem instruções da visita.';
                 
-                // Formata os endereços para a VT separadamente em blocos!
+                // Formata os endereços para a VT separadamente em blocos isolados
                 const vtEndContainer = document.getElementById('vt-endereco-container');
                 vtEndContainer.innerHTML = '';
                 
-                let manualVtEnd = document.getElementById('v-endereco').value;
+                let addressesToRender = [];
+                let validMulti = window.listaEnderecos.filter(e => e.texto.trim() !== '');
 
-                if (manualVtEnd) {
-                    // Se digitou manual no modal da VT
-                    vtEndContainer.innerHTML = window.criarBlocoEnderecoVT(manualVtEnd, 'Local', false);
+                if (validMulti.length > 1) {
+                    addressesToRender = validMulti;
                 } else {
-                    // Puxa da lista gerando um bloco pra cada!
-                    let hasEnd = false;
-                    window.listaEnderecos.forEach(end => {
-                        if(end.texto.trim() !== '') {
-                            hasEnd = true;
-                            vtEndContainer.innerHTML += window.criarBlocoEnderecoVT(end.texto, end.tipo, window.listaEnderecos.length > 1);
+                    // Checa se tem texto legado agrupado no input manual
+                    let manualVtEnd = document.getElementById('v-endereco').value;
+                    if (manualVtEnd) {
+                        if (manualVtEnd.includes(' | ')) {
+                            // Sistema divide o texto legado de volta em blocos isolados!
+                            let parts = manualVtEnd.split(' | ');
+                            parts.forEach(p => {
+                                let tipo = 'Local'; let texto = p.trim();
+                                let match = texto.match(/^\[(.*?)\]\s*(.*)$/);
+                                if(match) { tipo = match[1]; texto = match[2]; }
+                                addressesToRender.push({texto: texto, tipo: tipo});
+                            });
+                        } else {
+                            addressesToRender.push({texto: manualVtEnd, tipo: validMulti.length === 1 ? validMulti[0].tipo : 'Local'});
                         }
-                    });
-                    
-                    if(!hasEnd) {
-                        vtEndContainer.innerHTML = '<div class="vt-value" style="color:#aaa;">Endereço não informado</div>';
+                    } else if (validMulti.length === 1) {
+                        addressesToRender = validMulti;
                     }
+                }
+
+                // Renderiza os blocos
+                if (addressesToRender.length > 0) {
+                    let isMulti = addressesToRender.length > 1;
+                    addressesToRender.forEach(end => {
+                        vtEndContainer.innerHTML += window.criarBlocoEnderecoVT(end.texto, end.tipo, isMulti);
+                    });
+                } else {
+                    vtEndContainer.innerHTML = '<div class="vt-value" style="color:#aaa;">Endereço não informado</div>';
                 }
             }
         };
@@ -739,7 +756,10 @@
                 medidas: document.getElementById('in-medidas').value,
                 
                 enderecos: window.listaEnderecos, // NOVO CAMPO ARRAY
-                endereco: window.listaEnderecos.map(e => e.texto).join(' | '), // Fallback p/ o banco de dados e pesquisas velhas
+                endereco: window.listaEnderecos.map(e => {
+                    let prefix = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `[${e.tipo}] ` : '';
+                    return prefix + e.texto;
+                }).join(' | '), // Fallback p/ o banco de dados
                 
                 precisa_instalacao: document.getElementById('in-instalacao').value,
                 observacoes: document.getElementById('in-obs').value,
