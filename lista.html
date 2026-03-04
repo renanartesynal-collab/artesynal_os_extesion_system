@@ -157,8 +157,6 @@
 
             // Agrupar por Mês/Ano
             const grupos = {};
-            const dataAtual = new Date();
-            const mesAtualSort = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
 
             lista.forEach(os => {
                 let mesAnoSort = "0000-00";
@@ -183,11 +181,11 @@
             // Obter as chaves (ex: 2026-02) e ordenar de forma decrescente
             const chavesOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
 
-            chavesOrdenadas.forEach((chave, index) => {
+            chavesOrdenadas.forEach((chave) => {
                 const grupo = grupos[chave];
                 
-                // Abre o mês se for o mês atual OU se for o primeiro mês da lista (caso não existam O.S. no mês atual)
-                const isAberto = (chave === mesAtualSort) || (index === 0 && !grupos[mesAtualSort]);
+                // Mantém todos os meses fechados por padrão para evitar renderização inicial pesada.
+                const isAberto = false;
                 const displayEstilo = isAberto ? 'grid' : 'none';
                 const iconEstilo = isAberto ? '▼' : '▶';
 
