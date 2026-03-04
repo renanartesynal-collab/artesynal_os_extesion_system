@@ -193,20 +193,30 @@
     </style>
 </head>
 <body>
-
+    <!-- ARQUIVO REESTRUTURADO: seções visuais para manutenção (sem alterar regras de negócio) -->
+    <!-- ====================================================================== -->
+    <!-- AÇÕES RÁPIDAS MOBILE (ABRIR PRÉVIA / FECHAR / IMPRIMIR) -->
+    <!-- ====================================================================== -->
     <button id="btn-abrir-previa" class="fab-btn" onclick="abrirPrevia()">👁️</button>
     <button id="btn-fechar-previa" class="fab-btn" onclick="fecharPrevia()">✏️</button>
     <button id="btn-imprimir-mobile" class="fab-btn" onclick="window.print()">🖨️</button>
 
+    <!-- ====================================================================== -->
+    <!-- CONTROLE DE ZOOM PARA IMAGENS NO MOBILE -->
+    <!-- ====================================================================== -->
     <div id="mobile-zoom-control">
         <label>TAMANHO DA IMAGEM</label>
         <input type="range" id="zoom-slider" min="50" max="1500" value="150" oninput="aplicarZoomMobile(this.value)">
     </div>
 
+    <!-- ====================================================================== -->
+    <!-- PAINEL DE DADOS (ENTRADA MANUAL DA O.S.) -->
+    <!-- ====================================================================== -->
     <div id="painel-controle">
         <a href="index.html" class="btn-voltar-topo">⬅ VOLTAR AO PAINEL</a>
         <h2 style="margin-top: 0; color: #f1c40f;">GERADOR DE O.S.</h2>
 
+        <!-- BLOCO: IDENTIFICAÇÃO DO CLIENTE -->
         <div class="grupo-input">
             <label>NOME DA EMPRESA</label>
             <input type="text" id="in-empresa" placeholder="Ex: Gráfica Rápida" value="SUA EMPRESA AQUI">
@@ -224,6 +234,7 @@
             <input type="text" id="in-end">
         </div>
 
+        <!-- BLOCO: DADOS FINANCEIROS E PRAZOS -->
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input" style="flex:1;">
                 <label>Nº OS</label>
@@ -246,6 +257,7 @@
             </div>
         </div>
 
+        <!-- BLOCO: STATUS FINANCEIRO -->
         <div class="check-group">
             <label class="check-item"><input type="checkbox" id="chk-entrada"> ENTRADA (E)</label>
             <label class="check-item"><input type="checkbox" id="chk-faturado"> FATURADO (F)</label>
@@ -254,6 +266,8 @@
         </div>
 
         <div class="titulo-secao">LOGÍSTICA</div>
+
+        <!-- BLOCO: STATUS LOGÍSTICO -->
         <div class="check-group">
             <label class="check-item"><input type="checkbox" id="chk-inst"> INSTALAÇÃO</label>
             <label class="check-item"><input type="checkbox" id="chk-ent"> ENTREGA</label>
@@ -265,6 +279,7 @@
             <input type="file" accept="image/*" onchange="carregarQRCode(event)">
         </div>
 
+        <!-- BLOCO: INFORMAÇÕES DE SERVIÇO -->
         <div class="titulo-secao">SERVIÇO</div>
         <div class="grupo-input">
             <label>TÍTULO DO SERVIÇO</label>
@@ -285,11 +300,16 @@
         <button class="btn-print" onclick="window.print()">IMPRIMIR / PDF</button>
     </div>
 
+    <!-- ====================================================================== -->
+    <!-- PRÉVIA VISUAL DA ORDEM DE SERVIÇO (FOLHA A4) -->
+    <!-- ====================================================================== -->
     <div id="area-impressao">
         <div class="folha-a4" id="folha-a4">
+            <!-- CABEÇALHO DA EMPRESA -->
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
             
             <div class="header-grid">
+                <!-- COLUNA ESQUERDA: CLIENTE / ENDEREÇO / PAGAMENTO / DATAS -->
                 <div class="col-esq">
                     <div class="linha-dados">
                         <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
@@ -314,6 +334,7 @@
                     </div>
                 </div>
 
+                <!-- COLUNA DIREITA: NÚMERO DA OS / LOGÍSTICA / QR CODE -->
                 <div class="col-dir">
                     <div class="box-os">
                         <span class="os-label">Nº OS</span>
@@ -333,6 +354,7 @@
                 </div>
             </div>
 
+            <!-- STATUS RÁPIDO (E/F/P + MÁQUINA DE CARTÃO) -->
             <div class="area-status">
                 <div class="badges-wrapper">
                     <div class="badge-box bg-red"><div class="badge-letra">E</div><div class="badge-x" id="x-entrada"></div></div>
@@ -344,12 +366,15 @@
             
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
             
+            <!-- ÁREA DE IMAGENS PRINCIPAIS (ARRASTÁVEIS) -->
             <div class="area-imagens" id="canvas-imagens">
                 <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>
             </div>
             
+            <!-- CONTROLE PARA REDIMENSIONAR A CAIXA DE OBSERVAÇÕES -->
             <div class="resizer" id="resizer"></div>
             
+            <!-- BLOCO FINAL DE DESCRIÇÃO -->
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
             <div class="box-anotacoes" id="out-desc"></div>
         </div>
@@ -357,6 +382,9 @@
 
 
     <script type="module">
+        // ======================================================================
+        // MÓDULO FIREBASE: CONEXÃO, LEITURA E GRAVAÇÃO DA O.S.
+        // ======================================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -373,7 +401,7 @@
         const db = getFirestore(app);
         let idEdicao = null;
 
-        // VERIFICA EDIÇÃO AO CARREGAR
+        // ETAPA 1: VERIFICA EDIÇÃO AO CARREGAR (query string ?id=...)
         window.addEventListener('load', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const osId = urlParams.get('id');
@@ -388,7 +416,7 @@
             }
         });
 
-        // FUNÇÃO DE COMPRESSÃO DE IMAGENS
+        // ETAPA 2: UTILITÁRIO DE COMPRESSÃO DE IMAGENS (mantém payload leve)
         window.comprimirImagem = function(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -412,7 +440,7 @@
             });
         }
 
-        // SALVAR DADOS NO FIREBASE
+        // ETAPA 3: SALVAR / ATUALIZAR DADOS NO FIREBASE
         window.salvarOS = async function() {
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Comprimindo imagens...";
@@ -486,7 +514,7 @@
         }
         document.getElementById('btn-salvar').addEventListener('click', window.salvarOS);
 
-        // CARREGAR DADOS NA TELA (EDIÇÃO)
+        // ETAPA 4: CARREGAR DADOS DE UMA O.S. EXISTENTE PARA EDIÇÃO
         async function carregarDadosEdicao(id) {
             try {
                 const docRef = doc(db, "ordens_servico", id);
@@ -551,6 +579,10 @@
     </script>
 
     <script>
+        // ======================================================================
+        // SCRIPT DE INTERFACE: RENDER, INTERAÇÃO E CONTROLES VISUAIS
+        // ======================================================================
+
         // --- 1. ATUALIZAR VISUAL DA O.S. EM TEMPO REAL ---
         window.up = function() {
             const setTxt = (idOut, idIn, def) => { 
@@ -588,7 +620,7 @@
             }
         });
 
-        // --- 2. LÓGICA DO RESIZER (REDIMENSIONAR ÁREA DE TEXTO) ---
+        // --- 2. RESIZER DA ÁREA DE OBSERVAÇÕES ---
         const resizer = document.getElementById('resizer');
         const boxAnotacoes = document.getElementById('out-desc');
         let startYResizer, startHeightBox;
@@ -630,7 +662,7 @@
         }
 
 
-        // --- 3. LÓGICA DE IMAGENS E ARRASTO ---
+        // --- 3. LÓGICA DE IMAGENS (UPLOAD, SELEÇÃO, ZOOM E ARRASTE) ---
         const canvas = document.getElementById('canvas-imagens');
         let draggedImg = null;
         let startX, startY, initialLeft, initialTop;
@@ -740,7 +772,7 @@
         function stopDragTouch() { draggedImg = null; document.removeEventListener('touchmove', dragTouch); document.removeEventListener('touchend', stopDragTouch); }
 
 
-        // --- 4. NAVEGAÇÃO MOBILE ---
+        // --- 4. NAVEGAÇÃO MOBILE (ENTRADA ↔ PRÉVIA) ---
         window.abrirPrevia = function() {
             document.getElementById('painel-controle').style.display = 'none';
             document.getElementById('area-impressao').style.display = 'flex';
