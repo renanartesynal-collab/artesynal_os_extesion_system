@@ -93,7 +93,7 @@
 
     <script type="module">
         import { db } from "./config.js";
-        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { doc, getDoc, updateDoc } from "./mysql-firestore-compat.js";
 
         const params = new URLSearchParams(window.location.search);
         const visitaId = params.get('id');

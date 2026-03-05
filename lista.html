@@ -114,8 +114,9 @@
 
     <script type="module">
         // 1. IMPORTAÇÕES DO CONFIG
-        import { db, ROTAS } from "./config.js";
-        import { collection, getDocs, doc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { ROTAS } from "./config.js";
+
+        const API_OS = './api/ordens_servico.php';
 
         document.getElementById('link-voltar').href = ROTAS.painel;
         let todasOS = []; 
@@ -127,15 +128,8 @@
             loading.style.display = 'block';
             
             try {
-                const q = query(collection(db, "ordens_servico"), orderBy("data_criacao", "desc"));
-                const querySnapshot = await getDocs(q);
-                
-                todasOS = [];
-                querySnapshot.forEach((doc) => {
-                    let dados = doc.data();
-                    dados.id = doc.id; 
-                    todasOS.push(dados);
-                });
+                const resp = await fetch(API_OS);
+                todasOS = await resp.json();
 
                 renderizar(todasOS);
                 loading.style.display = 'none';
@@ -162,8 +156,8 @@
                 let mesAnoSort = "0000-00";
                 let mesAnoExibicao = "Sem Data";
 
-                if (os.data_criacao && os.data_criacao.seconds) {
-                    const d = new Date(os.data_criacao.seconds * 1000);
+                if (os.data_criacao) {
+                    const d = new Date(os.data_criacao);
                     const ano = d.getFullYear();
                     const mes = String(d.getMonth() + 1).padStart(2, '0');
                     mesAnoSort = `${ano}-${mes}`;
@@ -204,8 +198,8 @@
                     else if (!os.status?.pago && !os.status?.faturado) statusClass = 'status-pendente';
 
                     let dataFormatada = "--/--/----";
-                    if (os.data_criacao && os.data_criacao.seconds) {
-                        const d = new Date(os.data_criacao.seconds * 1000);
+                    if (os.data_criacao) {
+                        const d = new Date(os.data_criacao);
                         dataFormatada = d.toLocaleDateString('pt-PT');
                     }
 
@@ -247,7 +241,7 @@
         window.deletarOS = async function(id) {
             if (confirm("Tem a certeza que deseja APAGAR esta O.S. permanentemente?")) {
                 try {
-                    await deleteDoc(doc(db, "ordens_servico", id));
+                    await fetch(`${API_OS}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
                     alert("O.S. apagada!");
                     carregarLista(); 
                 } catch (e) {

@@ -301,7 +301,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "./mysql-firestore-compat.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo

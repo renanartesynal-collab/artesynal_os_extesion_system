@@ -339,7 +339,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDoc, doc, updateDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, getDoc, doc, updateDoc, query, orderBy, limit, getDocs, serverTimestamp } from "./mysql-firestore-compat.js";
 
         document.getElementById('link-voltar-1').href = ROTAS.orcamentos;
         document.getElementById('link-voltar-2').href = ROTAS.orcamentos;

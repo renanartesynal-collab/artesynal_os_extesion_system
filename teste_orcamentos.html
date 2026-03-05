@@ -206,7 +206,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "./mysql-firestore-compat.js";
 
         document.getElementById('link-voltar').href = ROTAS.painel;
 

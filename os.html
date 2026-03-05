@@ -383,22 +383,9 @@
 
     <script type="module">
         // ======================================================================
-        // MÓDULO FIREBASE: CONEXÃO, LEITURA E GRAVAÇÃO DA O.S.
+        // MÓDULO MYSQL API: LEITURA E GRAVAÇÃO DA O.S.
         // ======================================================================
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // CONFIGURAÇÃO DO FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
-            authDomain: "artesynal-os-system.firebaseapp.com",
-            projectId: "artesynal-os-system",
-            storageBucket: "artesynal-os-system.firebasestorage.app",
-            messagingSenderId: "539958005846",
-            appId: "1:539958005846:web:9120505e097b56bf16ebf7"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const API_OS = './api/ordens_servico.php';
         let idEdicao = null;
 
         // ETAPA 1: VERIFICA EDIÇÃO AO CARREGAR (query string ?id=...)
@@ -489,18 +476,27 @@
                     data_atualizacao: new Date()
                 };
 
-                if (!idEdicao) dados.data_criacao = new Date();
+                if (!idEdicao) dados.data_criacao = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
                 btn.innerText = "Salvando...";
                 
                 if (idEdicao) {
-                    const docRef = doc(db, "ordens_servico", idEdicao);
-                    await updateDoc(docRef, dados);
+                    dados.id = idEdicao;
+                    await fetch(API_OS, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dados)
+                    });
                     alert("O.S. Atualizada com sucesso!");
                     btn.innerText = "ATUALIZAR O.S.";
                 } else {
-                    const docRef = await addDoc(collection(db, "ordens_servico"), dados);
-                    alert("Nova O.S. Salva! ID: " + docRef.id);
+                    const resp = await fetch(API_OS, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dados)
+                    });
+                    const json = await resp.json();
+                    alert("Nova O.S. Salva! ID: " + json.id);
                     btn.innerText = "SALVAR NO SISTEMA";
                 }
                 btn.disabled = false;
@@ -517,11 +513,9 @@
         // ETAPA 4: CARREGAR DADOS DE UMA O.S. EXISTENTE PARA EDIÇÃO
         async function carregarDadosEdicao(id) {
             try {
-                const docRef = doc(db, "ordens_servico", id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
+                const resp = await fetch(`${API_OS}?id=${encodeURIComponent(id)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
                     const safeVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ""; }
                     
                     safeVal('in-empresa', data.empresa);
