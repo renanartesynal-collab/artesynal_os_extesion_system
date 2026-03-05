@@ -445,7 +445,7 @@
 
         // FUNÇÕES GLOBAIS DE MAPA E CÓPIA
         window.abrirMapsTexto = (texto) => {
-            window.open(`https://maps.google.com/?q=${encodeURIComponent(texto)}`, '_blank');
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(texto)}`, '_blank');
         };
 
         window.copiarTexto = (texto) => {
@@ -454,11 +454,9 @@
 
         // GERAÇÃO DOS BLOCOS ISOLADOS DO CARD DO TÉCNICO
         window.criarBlocoEnderecoVT = (texto, tipo, isMulti) => {
-            // Cria um visual de tag apenas se for Retirada/Entrega
             const prefix = (isMulti && tipo !== 'Local') ? `<span style="color:var(--yellow); font-size:11px; font-weight:bold; padding-bottom:5px; display:inline-block; text-transform:uppercase;">[${tipo}]</span><br>` : '';
-            const safeText = texto.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeText = texto.replace(/'/g, "\\'").replace(/"/g, """);
             
-            // Define a cor da bordinha do bloco baseado no tipo
             let borderColor = '#666';
             if (tipo === 'Retirada') borderColor = 'var(--blue)';
             else if (tipo === 'Entrega') borderColor = 'var(--green)';
@@ -502,7 +500,6 @@
                 document.getElementById('vt-empresa').innerText = document.getElementById('v-empresa').value || document.getElementById('in-empresa').value || '';
                 document.getElementById('vt-info').innerText = document.getElementById('v-info').value || 'Sem instruções da visita.';
                 
-                // Formata os endereços para a VT separadamente em blocos isolados
                 const vtEndContainer = document.getElementById('vt-endereco-container');
                 vtEndContainer.innerHTML = '';
                 
@@ -512,11 +509,9 @@
                 if (validMulti.length > 1) {
                     addressesToRender = validMulti;
                 } else {
-                    // Checa se tem texto legado agrupado no input manual
                     let manualVtEnd = document.getElementById('v-endereco').value;
                     if (manualVtEnd) {
                         if (manualVtEnd.includes(' | ')) {
-                            // Sistema divide o texto legado de volta em blocos isolados!
                             let parts = manualVtEnd.split(' | ');
                             parts.forEach(p => {
                                 let tipo = 'Local'; let texto = p.trim();
@@ -532,7 +527,6 @@
                     }
                 }
 
-                // Renderiza os blocos
                 if (addressesToRender.length > 0) {
                     let isMulti = addressesToRender.length > 1;
                     addressesToRender.forEach(end => {
@@ -558,7 +552,6 @@
                 document.getElementById('in-obs').value = d.observacoes || '';
                 if(d.tipo_servico_material) { document.querySelector(`input[name="tipo"][value="${d.tipo_servico_material}"]`).checked = true; }
                 
-                // Carrega os endereços convertendo antigos
                 if (d.enderecos && d.enderecos.length > 0) {
                     window.listaEnderecos = d.enderecos;
                 } else if (d.endereco) {
@@ -568,7 +561,6 @@
                 }
                 window.renderEnderecos();
 
-                // View Mode Fields
                 document.getElementById('view-id').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
                 document.getElementById('view-cliente').innerText = d.cliente || '--';
                 document.getElementById('view-empresa').innerText = d.empresa || '--';
@@ -577,7 +569,6 @@
                 document.getElementById('view-medidas').innerText = d.medidas || '--';
                 document.getElementById('view-obs').innerText = d.observacoes || 'Sem observações.';
                 
-                // Renderiza endereços no view mode
                 let htmlViewEnd = '';
                 if (window.listaEnderecos.length > 0 && window.listaEnderecos[0].texto !== '') {
                     htmlViewEnd = window.listaEnderecos.map(e => {
@@ -589,7 +580,6 @@
                 }
                 document.getElementById('view-endereco').innerHTML = htmlViewEnd;
                 
-                // Dados de VT
                 if(d.visita_id) {
                     idVisitaTecnicaGerada = d.visita_id;
                     document.getElementById('btn-acao-gerar-vt').style.display = 'none';
@@ -606,7 +596,6 @@
                     }
                 }
 
-                // Migração de imagens
                 let dbImgs = d.imagens || [];
                 dbImgs.forEach(img => {
                     if (!img.originalUrl) {
@@ -755,11 +744,11 @@
                 servico_titulo: document.getElementById('in-servico').value,
                 medidas: document.getElementById('in-medidas').value,
                 
-                enderecos: window.listaEnderecos, // NOVO CAMPO ARRAY
+                enderecos: window.listaEnderecos, 
                 endereco: window.listaEnderecos.map(e => {
                     let prefix = (window.listaEnderecos.length > 1 && e.tipo !== 'Local') ? `[${e.tipo}] ` : '';
                     return prefix + e.texto;
-                }).join(' | '), // Fallback p/ o banco de dados
+                }).join(' | '),
                 
                 precisa_instalacao: document.getElementById('in-instalacao').value,
                 observacoes: document.getElementById('in-obs').value,
@@ -800,7 +789,6 @@
             if (!document.getElementById('v-cliente').value) document.getElementById('v-cliente').value = document.getElementById('in-cliente').value;
             if (!document.getElementById('v-empresa').value) document.getElementById('v-empresa').value = document.getElementById('in-empresa').value;
             
-            // Só joga um endereço no input se tiver um só cadastrado e for texto simples
             const endInput = document.getElementById('v-endereco');
             if (!endInput.value) {
                 if(window.listaEnderecos.length === 1 && window.listaEnderecos[0].texto.trim() !== '') {
@@ -827,7 +815,7 @@
                 const vtDados = {
                     cliente: document.getElementById('v-cliente').value,
                     empresa: document.getElementById('v-empresa').value,
-                    endereco: document.getElementById('v-endereco').value, // Pode estar vazio, aí o sistema usa a lista principal
+                    endereco: document.getElementById('v-endereco').value, 
                     info_adicional: document.getElementById('v-info').value,
                     orcamento_id: idEdicao,
                     status: "Pendente",
@@ -866,6 +854,10 @@
 
         window.copiarEnderecoModal = () => {
             navigator.clipboard.writeText(document.getElementById('v-endereco').value).then(() => alert("Endereço copiado!"));
+        };
+
+        window.abrirMapsVT = () => {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
         };
 
         // ==========================================
