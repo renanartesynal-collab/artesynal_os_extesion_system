@@ -707,7 +707,12 @@
             navigator.clipboard.writeText(document.getElementById('vt-endereco').innerText).then(() => alert("Copiado!"));
         };
         window.abrirMapsVT = () => {
-            window.open(`http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(document.getElementById('vt-endereco').innerText)}`, '_blank');
+            const endereco = document.getElementById('vt-endereco').innerText.trim();
+            if (!endereco) {
+                alert('Endereço indisponível para abrir no Maps.');
+                return;
+            }
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`, '_blank');
         };
 
         // ==========================================
