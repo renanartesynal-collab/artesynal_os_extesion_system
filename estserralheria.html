@@ -263,14 +263,16 @@
 
             <div style="background:#1a1a1a; padding:15px; border-radius:8px; border: 1px solid #333; text-align: left;">
                 <label class="label-standard" style="margin-top:0;">Tamanho do Pedaço a Retirar (cm)</label>
-                <div class="form-row" style="margin-bottom:0; margin-top:10px;">
+                <div class="form-row" style="margin-bottom:0; margin-top:10px; align-items: stretch;">
                     <input type="number" id="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
                     <input type="number" id="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                    <button type="button" class="btn-adj" onclick="inverterMedidasCorte()" style="padding: 0 12px; white-space: nowrap;">↔️ INVERTER</button>
                 </div>
+                <div id="msg-corte-status" style="margin-top:8px; min-height:18px; font-size:12px; color:#fca5a5;"></div>
 
                 <div id="div-visual-modal-corte" style="margin-top: 15px; padding: 15px; background: #000; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; align-items: center;">
                     <div class="canvas-title" style="margin-bottom: 20px;">PREVISÃO DO CORTE</div>
-                    <div class="chapa-container" style="height: 180px;">
+                    <div class="chapa-container" style="height: 220px;">
     <div id="corte-wrapper-modal" style="position: relative; display: flex; align-items: center; justify-content: center;">
         
         <div class="cota-w-box">
@@ -297,21 +299,13 @@
             </div>
 
             <div style="display:flex; gap:10px; margin-top:20px;">
-    
-    <button class="btn-salvar"
-            onclick="abrirSimuladorCorte()"
-            style="flex:1; background:var(--blue-used);">
-        📐 APLICAR CORTE
-    </button>
-
-    <button class="btn-salvar"
-            id="btn-executar-corte"
-            onclick="executarCorte()"
-            style="flex:1; background:var(--green-new);">
-        ✂️ CONFIRMAR CORTE
-    </button>
-
-</div>
+                <button class="btn-salvar"
+                        id="btn-executar-corte"
+                        onclick="executarCorte()"
+                        style="flex:1; background:var(--green-new);">
+                    ✂️ CONFIRMAR CORTE
+                </button>
+            </div>
         </div>
     </div>
 <div id="modal-simulador" class="modal-overlay">
@@ -1002,13 +996,14 @@ function tornarArrastavel(elemento) {
             document.getElementById('corte-w').value = '';
             document.getElementById('corte-h').value = '';
             posicaoCorteCm = { x: 0, y: 0 };
+            document.getElementById('msg-corte-status').innerText = '';
             document.getElementById('modal-corte').style.display = 'flex';
             window.atualizarPreviewCorte();
         };
 
         function renderizarRecortesExistentesNoPreview(bgOriginal, base, finalW, finalH) {
             bgOriginal.querySelectorAll('.preview-recorte-existente').forEach((el) => el.remove());
-            const recortes = Array.isArray(pecaParaCorte?.recortes) ? pecaParaCorte.recortes : [];
+            const recortes = normalizarRecortes(pecaParaCorte?.recortes);
 
             recortes.forEach((r) => {
                 const recorte = document.createElement('div');
@@ -1026,6 +1021,18 @@ function tornarArrastavel(elemento) {
             });
         }
 
+        function normalizarRecortes(recortes) {
+            if (!Array.isArray(recortes)) return [];
+            return recortes
+                .map((r) => ({
+                    x: parseFloat(r.x) || 0,
+                    y: parseFloat(r.y) || 0,
+                    w: parseFloat(r.w) || 0,
+                    h: parseFloat(r.h) || 0
+                }))
+                .filter((r) => r.w > 0 && r.h > 0);
+        }
+
         function corteSobrepoeRecorteExistente(x, y, w, h, recortes = []) {
             return recortes.some((r) => {
                 const semIntersecao =
@@ -1037,18 +1044,48 @@ function tornarArrastavel(elemento) {
             });
         }
 
-        function atualizarEstiloValidadeCorte(box, base, larguraEscala, alturaEscala) {
-            const cw = parseFloat(document.getElementById('corte-w').value) || 0;
-            const ch = parseFloat(document.getElementById('corte-h').value) || 0;
-            const recortesAtuais = Array.isArray(pecaParaCorte?.recortes) ? pecaParaCorte.recortes : [];
-            const sobrepoe = corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, cw, ch, recortesAtuais);
+        function corteCabeEmPosicao(base, x, y, w, h, recortes = []) {
+            const dentro = x >= 0 && y >= 0 && (x + w) <= base.w && (y + h) <= base.h;
+            if (!dentro) return false;
+            return !corteSobrepoeRecorteExistente(x, y, w, h, recortes);
+        }
 
+        function encontrarPrimeiraPosicaoLivre(base, w, h, recortes = []) {
+            const maxX = Math.floor(base.w - w);
+            const maxY = Math.floor(base.h - h);
+            if (maxX < 0 || maxY < 0) return null;
+
+            for (let y = 0; y <= maxY; y += 1) {
+                for (let x = 0; x <= maxX; x += 1) {
+                    if (corteCabeEmPosicao(base, x, y, w, h, recortes)) {
+                        return { x, y };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function atualizarEstiloValidadeCorte(box, sobrepoe) {
             box.style.background = sobrepoe ? 'rgba(220, 38, 38, 0.9)' : 'rgba(255, 59, 59, 0.8)';
             box.style.borderColor = sobrepoe ? '#fecaca' : '#fff';
             box.title = sobrepoe ? 'Posição inválida: sobrepõe área já cortada.' : '';
-
-            return !sobrepoe;
         }
+
+        function setMensagemCorte(texto = '', cor = '#fca5a5') {
+            const msg = document.getElementById('msg-corte-status');
+            if (!msg) return;
+            msg.innerText = texto;
+            msg.style.color = cor;
+        }
+
+        window.inverterMedidasCorte = () => {
+            const inputW = document.getElementById('corte-w');
+            const inputH = document.getElementById('corte-h');
+            const atualW = inputW.value;
+            inputW.value = inputH.value;
+            inputH.value = atualW;
+            window.atualizarPreviewCorte();
+        };
 
         function tornarCorteArrastavel(box, larguraEscala, alturaEscala, base) {
             let dragging = false;
@@ -1064,19 +1101,31 @@ function tornarArrastavel(elemento) {
             };
             document.onmousemove = (e) => {
                 if (!dragging) return;
+
+                const cw = parseFloat(document.getElementById('corte-w').value) || 0;
+                const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+                const recortesAtuais = normalizarRecortes(pecaParaCorte?.recortes);
+
                 const maxX = larguraEscala - box.offsetWidth;
                 const maxY = alturaEscala - box.offsetHeight;
                 let nx = e.clientX - offsetX;
                 let ny = e.clientY - offsetY;
                 nx = Math.max(0, Math.min(maxX, nx));
                 ny = Math.max(0, Math.min(maxY, ny));
+
+                const candidatoX = Number(((nx / larguraEscala) * base.w).toFixed(2));
+                const candidatoY = Number(((ny / alturaEscala) * base.h).toFixed(2));
+
+                if (!corteCabeEmPosicao(base, candidatoX, candidatoY, cw, ch, recortesAtuais)) {
+                    atualizarEstiloValidadeCorte(box, true);
+                    return;
+                }
+
                 box.style.left = `${nx}px`;
                 box.style.top = `${ny}px`;
-                posicaoCorteCm = {
-                    x: Number(((nx / larguraEscala) * base.w).toFixed(2)),
-                    y: Number(((ny / alturaEscala) * base.h).toFixed(2))
-                };
-                atualizarEstiloValidadeCorte(box, base, larguraEscala, alturaEscala);
+                posicaoCorteCm = { x: candidatoX, y: candidatoY };
+                atualizarEstiloValidadeCorte(box, false);
+                setMensagemCorte('');
             };
             document.onmouseup = () => {
                 if (!dragging) return;
@@ -1091,9 +1140,12 @@ function tornarArrastavel(elemento) {
 
             const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
             const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
+            const recortesAtuais = normalizarRecortes(pecaParaCorte?.recortes);
+
+            setMensagemCorte('');
 
             if (wCorte > base.w || hCorte > base.h) {
-                alert(`A medida digitada (${wCorte} x ${hCorte}) é maior que a chapa (${base.w} x ${base.h}).`);
+                setMensagemCorte(`Corte (${wCorte}x${hCorte}) maior que a chapa (${base.w}x${base.h}).`);
                 document.getElementById('corte-w').value = '';
                 document.getElementById('corte-h').value = '';
                 return;
@@ -1101,8 +1153,8 @@ function tornarArrastavel(elemento) {
 
             const bgOriginal = document.getElementById('corte-original-bg');
             const boxCorte = document.getElementById('corte-pedaco-box');
-            const maxW = 150;
-            const maxH = 150;
+            const maxW = 180;
+            const maxH = 180;
             const escalaPreview = Math.min(maxW / base.w, maxH / base.h);
             const finalW = Math.max(24, base.w * escalaPreview);
             const finalH = Math.max(24, base.h * escalaPreview);
@@ -1116,6 +1168,21 @@ function tornarArrastavel(elemento) {
             if (wCorte > 0 && hCorte > 0) {
                 const percentW = wCorte / base.w;
                 const percentH = hCorte / base.h;
+
+                const posicaoAtualValida = corteCabeEmPosicao(base, posicaoCorteCm.x, posicaoCorteCm.y, wCorte, hCorte, recortesAtuais);
+                if (!posicaoAtualValida) {
+                    const posLivre = encontrarPrimeiraPosicaoLivre(base, wCorte, hCorte, recortesAtuais);
+                    if (posLivre) {
+                        posicaoCorteCm = posLivre;
+                        setMensagemCorte('Posição ajustada automaticamente para área livre.', '#93c5fd');
+                    } else {
+                        boxCorte.style.display = 'none';
+                        bgOriginal.style.background = '#333';
+                        setMensagemCorte('Esse corte não cabe em nenhuma área livre da chapa.');
+                        return;
+                    }
+                }
+
                 boxCorte.style.display = 'flex';
                 boxCorte.style.zIndex = '2';
                 boxCorte.style.width = (finalW * percentW) + 'px';
@@ -1124,7 +1191,9 @@ function tornarArrastavel(elemento) {
                 boxCorte.style.left = `${(posicaoCorteCm.x / base.w) * finalW}px`;
                 boxCorte.style.top = `${(posicaoCorteCm.y / base.h) * finalH}px`;
                 bgOriginal.style.background = '#333';
-                atualizarEstiloValidadeCorte(boxCorte, base, finalW, finalH);
+
+                const invalido = corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, wCorte, hCorte, recortesAtuais);
+                atualizarEstiloValidadeCorte(boxCorte, invalido);
                 tornarCorteArrastavel(boxCorte, finalW, finalH, base);
             } else {
                 boxCorte.style.display = 'none';
@@ -1142,7 +1211,7 @@ function tornarArrastavel(elemento) {
             if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
             if (cw > base.w || ch > base.h) return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça (${base.w} x ${base.h} cm)!`);
             if ((posicaoCorteCm.x + cw) > base.w || (posicaoCorteCm.y + ch) > base.h) return alert('O corte está fora da área da chapa.');
-            const recortesAtuaisValidacao = Array.isArray(pecaParaCorte.recortes) ? pecaParaCorte.recortes : [];
+            const recortesAtuaisValidacao = normalizarRecortes(pecaParaCorte.recortes);
             if (corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, cw, ch, recortesAtuaisValidacao)) {
                 return alert('Este corte sobrepõe uma área já cortada. Posicione em uma área íntegra da chapa.');
             }
@@ -1152,7 +1221,7 @@ function tornarArrastavel(elemento) {
 
             try {
                 const nomeBase = (pecaParaCorte.nome || pecaParaCorte.categoria || '').replace(' (Sobra)', '');
-                const recortesAtuais = Array.isArray(pecaParaCorte.recortes) ? pecaParaCorte.recortes : [];
+                const recortesAtuais = normalizarRecortes(pecaParaCorte.recortes);
                 const corteLinear = recortesAtuais.length === 0 && (
                     (Math.abs(ch - base.h) < 0.01 && (Math.abs(posicaoCorteCm.y) < 0.01)) ||
                     (Math.abs(cw - base.w) < 0.01 && (Math.abs(posicaoCorteCm.x) < 0.01))
