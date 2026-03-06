@@ -290,7 +290,7 @@
              style="position: relative; background: var(--orange); border: 1px solid white; transition: all 0.3s ease;">
             
             <div id="corte-pedaco-box"
-                 style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease; cursor: grab;">
+                 style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease; cursor: grab; touch-action: none; user-select: none;">
             </div>
         </div>
     </div>
@@ -446,10 +446,23 @@
             document.getElementById('btn-home-selector').style.display = 'flex';
         };
 
-        function getDimensoesBase(peca) {
+        function normalizarDimensoesChapa(w, h) {
+            const largura = parseFloat(w) || 0;
+            const altura = parseFloat(h) || 0;
+            if (largura <= 0 || altura <= 0) {
+                return { w: largura, h: altura };
+            }
             return {
-                w: parseFloat(peca.baseDimW || peca.dimW) || 0,
-                h: parseFloat(peca.baseDimH || peca.dimH) || 0
+                w: Math.max(largura, altura),
+                h: Math.min(largura, altura)
+            };
+        }
+
+        function getDimensoesBase(peca) {
+            const base = normalizarDimensoesChapa(peca.baseDimW || peca.dimW, peca.baseDimH || peca.dimH);
+            return {
+                w: base.w,
+                h: base.h
             };
         }
 
@@ -511,7 +524,8 @@
                 let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
                 conteudo += `<span class="prod-cat">${p.categoria}</span>`;
                 conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
-                conteudo += `<span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>`;
+                const dimsCard = getDimensoesBase(p);
+                conteudo += `<span class="prod-dims">${dimsCard.w} x ${dimsCard.h} cm</span>`;
                 conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
                 conteudo += gerarPreviewCard(p);
 
@@ -795,6 +809,11 @@
             const espNode = document.getElementById('prod-esp-new') || document.getElementById('prod-espessura');
             const corNode = document.getElementById('prod-cor-new') || document.getElementById('prod-cor');
             
+            const dimensoesNormalizadas = normalizarDimensoesChapa(
+                document.getElementById('prod-dim-w').value,
+                document.getElementById('prod-dim-h').value
+            );
+
             let dados = { 
                 setor: window.setorAtual, 
                 categoria: cat, 
@@ -802,14 +821,14 @@
                 acabamento: document.getElementById('prod-acabamento').value,
                 espessura: espNode ? espNode.value : '',
                 cor: corNode ? corNode.value : '',
-                dimW: parseFloat(document.getElementById('prod-dim-w').value) || 0,
-                dimH: parseFloat(document.getElementById('prod-dim-h').value) || 0,
+                dimW: dimensoesNormalizadas.w,
+                dimH: dimensoesNormalizadas.h,
                 status: window.materialStatus,
                 qtd: 1,
                 recortes: []
             };
-            dados.baseDimW = dados.dimW;
-            dados.baseDimH = dados.dimH;
+            dados.baseDimW = dimensoesNormalizadas.w;
+            dados.baseDimH = dimensoesNormalizadas.h;
             dados.nome = `${cat} ${dados.espessura}`.trim();
 
             if (dados.dimW <= 0 || dados.dimH <= 0) { return alert("Preencha as dimensões da chapa!"); }
@@ -1091,25 +1110,17 @@ function tornarArrastavel(elemento) {
             let dragging = false;
             let offsetX = 0;
             let offsetY = 0;
-            box.onmousedown = (e) => {
-                if (box.style.display === 'none') return;
-                dragging = true;
-                box.style.cursor = 'grabbing';
-                offsetX = e.clientX - box.offsetLeft;
-                offsetY = e.clientY - box.offsetTop;
-                e.preventDefault();
-            };
-            document.onmousemove = (e) => {
-                if (!dragging) return;
+            let pointerIdAtivo = null;
 
+            const moverCorte = (clientX, clientY) => {
                 const cw = parseFloat(document.getElementById('corte-w').value) || 0;
                 const ch = parseFloat(document.getElementById('corte-h').value) || 0;
                 const recortesAtuais = normalizarRecortes(pecaParaCorte?.recortes);
 
                 const maxX = larguraEscala - box.offsetWidth;
                 const maxY = alturaEscala - box.offsetHeight;
-                let nx = e.clientX - offsetX;
-                let ny = e.clientY - offsetY;
+                let nx = clientX - offsetX;
+                let ny = clientY - offsetY;
                 nx = Math.max(0, Math.min(maxX, nx));
                 ny = Math.max(0, Math.min(maxY, ny));
 
@@ -1127,9 +1138,41 @@ function tornarArrastavel(elemento) {
                 atualizarEstiloValidadeCorte(box, false);
                 setMensagemCorte('');
             };
-            document.onmouseup = () => {
-                if (!dragging) return;
+
+            box.onpointerdown = (e) => {
+                if (box.style.display === 'none') return;
+                dragging = true;
+                pointerIdAtivo = e.pointerId;
+                box.style.cursor = 'grabbing';
+                offsetX = e.clientX - box.offsetLeft;
+                offsetY = e.clientY - box.offsetTop;
+                if (typeof box.setPointerCapture === 'function') {
+                    box.setPointerCapture(e.pointerId);
+                }
+                e.preventDefault();
+            };
+
+            box.onpointermove = (e) => {
+                if (!dragging || (pointerIdAtivo !== null && e.pointerId !== pointerIdAtivo)) return;
+                moverCorte(e.clientX, e.clientY);
+                e.preventDefault();
+            };
+
+            const finalizarArraste = (e) => {
+                if (!dragging || (pointerIdAtivo !== null && e.pointerId !== pointerIdAtivo)) return;
                 dragging = false;
+                box.style.cursor = 'grab';
+                if (typeof box.releasePointerCapture === 'function' && pointerIdAtivo !== null) {
+                    box.releasePointerCapture(pointerIdAtivo);
+                }
+                pointerIdAtivo = null;
+            };
+
+            box.onpointerup = finalizarArraste;
+            box.onpointercancel = finalizarArraste;
+            box.onlostpointercapture = () => {
+                dragging = false;
+                pointerIdAtivo = null;
                 box.style.cursor = 'grab';
             };
         }
@@ -1230,11 +1273,12 @@ function tornarArrastavel(elemento) {
                 if (corteLinear) {
                     const sobraW = Math.abs(ch - base.h) < 0.01 ? base.w - cw : base.w;
                     const sobraH = Math.abs(cw - base.w) < 0.01 ? base.h - ch : base.h;
+                    const sobraNormalizada = normalizarDimensoesChapa(sobraW, sobraH);
                     await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
-                        dimW: Number(sobraW.toFixed(2)),
-                        dimH: Number(sobraH.toFixed(2)),
-                        baseDimW: Number(sobraW.toFixed(2)),
-                        baseDimH: Number(sobraH.toFixed(2)),
+                        dimW: Number(sobraNormalizada.w.toFixed(2)),
+                        dimH: Number(sobraNormalizada.h.toFixed(2)),
+                        baseDimW: Number(sobraNormalizada.w.toFixed(2)),
+                        baseDimH: Number(sobraNormalizada.h.toFixed(2)),
                         recortes: [],
                         status: "Usado",
                         nome: nomeBase + " (Sobra)"
@@ -1254,10 +1298,11 @@ function tornarArrastavel(elemento) {
 
                 const novaPeca = { ...pecaParaCorte };
                 delete novaPeca.id;
-                novaPeca.dimW = cw;
-                novaPeca.dimH = ch;
-                novaPeca.baseDimW = cw;
-                novaPeca.baseDimH = ch;
+                const pecaRetiradaNormalizada = normalizarDimensoesChapa(cw, ch);
+                novaPeca.dimW = pecaRetiradaNormalizada.w;
+                novaPeca.dimH = pecaRetiradaNormalizada.h;
+                novaPeca.baseDimW = pecaRetiradaNormalizada.w;
+                novaPeca.baseDimH = pecaRetiradaNormalizada.h;
                 novaPeca.recortes = [];
                 novaPeca.status = "Usado";
                 novaPeca.data_criacao = serverTimestamp();
@@ -1299,7 +1344,8 @@ window.confirmarPosicionamentoSimulador = () => {
             document.getElementById('detalhes-nome').innerText = nome;
             
             let info = `📝 Cadastrado no setor: SERRALHERIA\n`;
-            info += `📊 Status: ${itemParaDetalhes.status}\n📐 Dimensões: ${itemParaDetalhes.dimW} x ${itemParaDetalhes.dimH} cm\n`;
+            const dimsDetalhe = getDimensoesBase(itemParaDetalhes);
+            info += `📊 Status: ${itemParaDetalhes.status}\n📐 Dimensões: ${dimsDetalhe.w} x ${dimsDetalhe.h} cm\n`;
             if(itemParaDetalhes.cor) info += `🎨 Cor: ${itemParaDetalhes.cor}\n`;
             if(itemParaDetalhes.acabamento) info += `✨ Acabamento: ${itemParaDetalhes.acabamento}\n`;
             
