@@ -1026,6 +1026,30 @@ function tornarArrastavel(elemento) {
             });
         }
 
+        function corteSobrepoeRecorteExistente(x, y, w, h, recortes = []) {
+            return recortes.some((r) => {
+                const semIntersecao =
+                    (x + w) <= r.x ||
+                    x >= (r.x + r.w) ||
+                    (y + h) <= r.y ||
+                    y >= (r.y + r.h);
+                return !semIntersecao;
+            });
+        }
+
+        function atualizarEstiloValidadeCorte(box, base, larguraEscala, alturaEscala) {
+            const cw = parseFloat(document.getElementById('corte-w').value) || 0;
+            const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+            const recortesAtuais = Array.isArray(pecaParaCorte?.recortes) ? pecaParaCorte.recortes : [];
+            const sobrepoe = corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, cw, ch, recortesAtuais);
+
+            box.style.background = sobrepoe ? 'rgba(220, 38, 38, 0.9)' : 'rgba(255, 59, 59, 0.8)';
+            box.style.borderColor = sobrepoe ? '#fecaca' : '#fff';
+            box.title = sobrepoe ? 'Posição inválida: sobrepõe área já cortada.' : '';
+
+            return !sobrepoe;
+        }
+
         function tornarCorteArrastavel(box, larguraEscala, alturaEscala, base) {
             let dragging = false;
             let offsetX = 0;
@@ -1052,21 +1076,12 @@ function tornarArrastavel(elemento) {
                     x: Number(((nx / larguraEscala) * base.w).toFixed(2)),
                     y: Number(((ny / alturaEscala) * base.h).toFixed(2))
                 };
+                atualizarEstiloValidadeCorte(box, base, larguraEscala, alturaEscala);
             };
             document.onmouseup = () => {
                 if (!dragging) return;
                 dragging = false;
                 box.style.cursor = 'grab';
-                const corners = [
-                    { x: 0, y: 0 },
-                    { x: base.w - (parseFloat(document.getElementById('corte-w').value) || 0), y: 0 },
-                    { x: 0, y: base.h - (parseFloat(document.getElementById('corte-h').value) || 0) },
-                    { x: base.w - (parseFloat(document.getElementById('corte-w').value) || 0), y: base.h - (parseFloat(document.getElementById('corte-h').value) || 0) }
-                ].map(c => ({ x: Math.max(0, c.x), y: Math.max(0, c.y) }));
-                corners.sort((a,b) => ((a.x-posicaoCorteCm.x)**2 + (a.y-posicaoCorteCm.y)**2) - ((b.x-posicaoCorteCm.x)**2 + (b.y-posicaoCorteCm.y)**2));
-                posicaoCorteCm = corners[0];
-                box.style.left = `${(posicaoCorteCm.x / base.w) * larguraEscala}px`;
-                box.style.top = `${(posicaoCorteCm.y / base.h) * alturaEscala}px`;
             };
         }
 
@@ -1109,6 +1124,7 @@ function tornarArrastavel(elemento) {
                 boxCorte.style.left = `${(posicaoCorteCm.x / base.w) * finalW}px`;
                 boxCorte.style.top = `${(posicaoCorteCm.y / base.h) * finalH}px`;
                 bgOriginal.style.background = '#333';
+                atualizarEstiloValidadeCorte(boxCorte, base, finalW, finalH);
                 tornarCorteArrastavel(boxCorte, finalW, finalH, base);
             } else {
                 boxCorte.style.display = 'none';
@@ -1126,6 +1142,10 @@ function tornarArrastavel(elemento) {
             if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
             if (cw > base.w || ch > base.h) return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça (${base.w} x ${base.h} cm)!`);
             if ((posicaoCorteCm.x + cw) > base.w || (posicaoCorteCm.y + ch) > base.h) return alert('O corte está fora da área da chapa.');
+            const recortesAtuaisValidacao = Array.isArray(pecaParaCorte.recortes) ? pecaParaCorte.recortes : [];
+            if (corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, cw, ch, recortesAtuaisValidacao)) {
+                return alert('Este corte sobrepõe uma área já cortada. Posicione em uma área íntegra da chapa.');
+            }
 
             btn.disabled = true;
             btn.innerText = "CORTANDO...";
