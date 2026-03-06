@@ -1006,6 +1006,26 @@ function tornarArrastavel(elemento) {
             window.atualizarPreviewCorte();
         };
 
+        function renderizarRecortesExistentesNoPreview(bgOriginal, base, finalW, finalH) {
+            bgOriginal.querySelectorAll('.preview-recorte-existente').forEach((el) => el.remove());
+            const recortes = Array.isArray(pecaParaCorte?.recortes) ? pecaParaCorte.recortes : [];
+
+            recortes.forEach((r) => {
+                const recorte = document.createElement('div');
+                recorte.className = 'preview-recorte-existente';
+                recorte.style.position = 'absolute';
+                recorte.style.left = `${(r.x / base.w) * finalW}px`;
+                recorte.style.top = `${(r.y / base.h) * finalH}px`;
+                recorte.style.width = `${(r.w / base.w) * finalW}px`;
+                recorte.style.height = `${(r.h / base.h) * finalH}px`;
+                recorte.style.background = 'rgba(8, 12, 20, 0.88)';
+                recorte.style.border = '1px dashed #7dd3fc';
+                recorte.style.pointerEvents = 'none';
+                recorte.style.zIndex = '1';
+                bgOriginal.appendChild(recorte);
+            });
+        }
+
         function tornarCorteArrastavel(box, larguraEscala, alturaEscala, base) {
             let dragging = false;
             let offsetX = 0;
@@ -1076,11 +1096,13 @@ function tornarArrastavel(elemento) {
             bgOriginal.style.height = finalH + 'px';
             document.getElementById('txt-cota-w-original').innerText = base.w + 'cm';
             document.getElementById('txt-cota-h-original').innerText = base.h + 'cm';
+            renderizarRecortesExistentesNoPreview(bgOriginal, base, finalW, finalH);
 
             if (wCorte > 0 && hCorte > 0) {
                 const percentW = wCorte / base.w;
                 const percentH = hCorte / base.h;
                 boxCorte.style.display = 'flex';
+                boxCorte.style.zIndex = '2';
                 boxCorte.style.width = (finalW * percentW) + 'px';
                 boxCorte.style.height = (finalH * percentH) + 'px';
                 boxCorte.innerText = `${wCorte}x${hCorte}`;
