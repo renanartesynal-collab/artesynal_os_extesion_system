@@ -43,6 +43,13 @@
         .kanban-col { background: #161616; border-radius: 10px; padding: 15px; min-width: 320px; width: 320px; border: 1px solid #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: #000; background: var(--orange); text-transform: uppercase; text-align: center; }
         .grid-est { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
+        .material-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+        .material-option { background: #161616; border: 1px solid #2b2b2b; border-radius: 12px; padding: 20px; color: var(--white); text-align: left; cursor: pointer; transition: 0.2s; }
+        .material-option:hover { border-color: var(--orange); transform: translateY(-2px); }
+        .material-option-title { font-size: 18px; font-weight: 800; color: var(--orange); margin-bottom: 4px; }
+        .material-option-sub { font-size: 12px; color: var(--text-gray); }
+        .btn-voltar-material { background: #1a1a1a; color: var(--text-gray); border: 1px solid #333; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+        .btn-voltar-material:hover { color: var(--white); border-color: #555; }
         
         /* Cards Chapa */
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 15px; position: relative; border-left: 5px solid var(--orange); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -52,6 +59,9 @@
         .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1.1; }
         .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 5px; display: block; }
         .prod-details { font-size: 11px; color: var(--text-gray); display: block; margin-bottom: 10px;}
+        .card-preview { margin: 10px 0; padding: 10px; background: #0d0d0d; border: 1px solid #2d2d2d; border-radius: 8px; display: flex; justify-content: center; }
+        .card-preview-sheet { position: relative; background: var(--orange); border: 1px solid #fff; min-width: 60px; min-height: 40px; }
+        .card-preview-cut { position: absolute; background: #111; border: 1px dashed #7dd3fc; }
         .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
@@ -120,21 +130,27 @@
 </head>
 <body>
 
-    <a href="index.html" class="btn-voltar-home">⬅ VOLTAR AO PAINEL PRINCIPAL</a>
-
     <div id="main-layout">
-        <div class="header-est">
-            <div><h1 id="page-title">🛠️ Estoque Serralheria</h1></div>
+        <a id="btn-home-selector" href="index.html" class="btn-voltar-home">⬅ VOLTAR AO PAINEL PRINCIPAL</a>
+
+        <div id="material-selector-view">
+            <div class="header-est">
+                <div><h1 id="page-title">🛠️ Selecione o Material</h1></div>
+            </div>
+            <div class="material-selector" id="material-selector"></div>
         </div>
 
-        <div id="kanban-serralheria" class="kanban-container">
-            <div class="kanban-col"><div class="kanban-header">ACM</div><div class="grid-est" id="grid-ACM"></div></div>
-            <div class="kanban-col"><div class="kanban-header">PVC</div><div class="grid-est" id="grid-PVC"></div></div>
-            <div class="kanban-col"><div class="kanban-header">PS</div><div class="grid-est" id="grid-PS"></div></div>
-            <div class="kanban-col"><div class="kanban-header">Acrílico</div><div class="grid-est" id="grid-ACRILICO"></div></div>
-            <div class="kanban-col"><div class="kanban-header" style=
-                "background:#444; color:white;">Outros Materiais / MDF</div>
-                <div class="grid-est" id="grid-OUTROS-SERR"></div></div>
+        <div id="material-stock-view" style="display:none;">
+            <button class="btn-voltar-material" onclick="voltarSelecaoMaterial()">⬅ VOLTAR À SELEÇÃO DE MATERIAL</button>
+            <div class="header-est">
+                <div><h1 id="stock-title">🛠️ Estoque</h1></div>
+            </div>
+            <div id="kanban-serralheria" class="kanban-container">
+                <div class="kanban-col" style="width:100%; max-width:480px;">
+                    <div class="kanban-header" id="selected-material-header">Material</div>
+                    <div class="grid-est" id="grid-material-selecionado"></div>
+                </div>
+            </div>
         </div>
 
         <button class="fab-add" onclick="abrirModalProd()">+</button>
@@ -272,7 +288,7 @@
              style="position: relative; background: var(--orange); border: 1px solid white; transition: all 0.3s ease;">
             
             <div id="corte-pedaco-box"
-                 style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease;">
+                 style="background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; top: 0; left: 0; display: none; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: bold; overflow: hidden; transition: all 0.2s ease; cursor: grab;">
             </div>
         </div>
     </div>
@@ -375,6 +391,8 @@
         let produtos = [];
         let categoriasDinamicas = [];
         let coresDinamicas = [];
+        let materialSelecionado = null;
+        let posicaoCorteCm = { x: 0, y: 0 };
 
         // Constantes e Padrões de Fábrica da Serralheria
         const CATS_SERR = ['ACM', 'PVC', 'PS', 'Acrilico', 'MDF', 'Galvanizada', 'Policarbonato'];
@@ -392,8 +410,72 @@
 
         // INICIALIZAÇÃO IMEDIATA
         document.addEventListener('DOMContentLoaded', () => {
+            renderizarSeletorMateriais();
             ouvirEstoque();
         });
+
+        function normalizarCategoria(cat = '') {
+            return cat.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+        }
+
+        function categoriaExibicao(cat) {
+            return normalizarCategoria(cat) === 'OUTROS-SERR' ? 'Outros Materiais' : cat;
+        }
+
+        function renderizarSeletorMateriais() {
+            const selector = document.getElementById('material-selector');
+            const materiais = [...new Set([...CATS_SERR, ...categoriasDinamicas])];
+            selector.innerHTML = '';
+            materiais.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'material-option';
+                btn.innerHTML = `<div class="material-option-title">${cat}</div><div class="material-option-sub">Abrir estoque de ${cat}</div>`;
+                btn.onclick = () => selecionarMaterial(cat);
+                selector.appendChild(btn);
+            });
+        }
+
+        window.selecionarMaterial = (cat) => {
+            materialSelecionado = cat;
+            document.getElementById('material-selector-view').style.display = 'none';
+            document.getElementById('material-stock-view').style.display = 'block';
+            document.getElementById('btn-home-selector').style.display = 'none';
+            document.getElementById('stock-title').innerText = `🛠️ Estoque - ${categoriaExibicao(cat)}`;
+            document.getElementById('selected-material-header').innerText = categoriaExibicao(cat);
+            renderizarCards();
+        };
+
+        window.voltarSelecaoMaterial = () => {
+            materialSelecionado = null;
+            document.getElementById('material-selector-view').style.display = 'block';
+            document.getElementById('material-stock-view').style.display = 'none';
+            document.getElementById('btn-home-selector').style.display = 'flex';
+        };
+
+        function getDimensoesBase(peca) {
+            return {
+                w: parseFloat(peca.baseDimW || peca.dimW) || 0,
+                h: parseFloat(peca.baseDimH || peca.dimH) || 0
+            };
+        }
+
+        function gerarPreviewCard(peca) {
+            const base = getDimensoesBase(peca);
+            if (base.w <= 0 || base.h <= 0) return '';
+            const maxW = 180;
+            const escala = Math.min(maxW / base.w, 80 / base.h);
+            const largura = Math.max(60, base.w * escala);
+            const altura = Math.max(40, base.h * escala);
+            const recortes = Array.isArray(peca.recortes) ? peca.recortes : [];
+            const recortesHtml = recortes.map(r => {
+                const rx = (r.x / base.w) * largura;
+                const ry = (r.y / base.h) * altura;
+                const rw = (r.w / base.w) * largura;
+                const rh = (r.h / base.h) * altura;
+                return `<div class="card-preview-cut" style="left:${rx}px; top:${ry}px; width:${rw}px; height:${rh}px;"></div>`;
+            }).join('');
+            return `<div class="card-preview"><div class="card-preview-sheet" style="width:${largura}px; height:${altura}px;">${recortesHtml}</div></div>`;
+        }
 
         function ouvirEstoque() {
             const q = query(collection(db, "estoque"), where("setor", "==", window.setorAtual));
@@ -406,42 +488,51 @@
                 categoriasDinamicas = [...new Set(produtos.map(p => p.categoria).filter(Boolean))];
                 coresDinamicas = [...new Set(produtos.map(p => p.cor).filter(Boolean))];
                 
+                renderizarSeletorMateriais();
                 renderizarCards();
             });
         }
 
         function renderizarCards() {
-            document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
+            const grid = document.getElementById('grid-material-selecionado');
+            if (!grid) return;
+            grid.innerHTML = '';
 
-            produtos.forEach(p => {
-                let catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                let gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-SERR';
-                const grid = document.getElementById(`grid-${gridID}`);
+            if (!materialSelecionado) return;
 
-                if(grid) {
-                    const card = document.createElement('div');
-                    card.className = `card-prod`;
-                    
-                    let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--orange); color:black; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
-                    let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
-                    conteudo += `<span class="prod-cat">${p.categoria}</span>`;
-                    conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
-                    conteudo += `<span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>`;
-                    conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
-                    
-                    const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
-                    conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white">${p.status}</span>`;
-                    
-                    conteudo += `
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <button class="btn-adj" style="flex:1; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR</button>
-                            <button class="btn-adj" style="flex:1; background:#222; border:1px solid #444;" onclick="abrirModalDetalhes('${p.id}')">📋 INFO</button>
-                        </div>
-                    `;
-                    
-                    card.innerHTML = conteudo;
-                    grid.appendChild(card);
+            const categoriaSelecionadaNorm = normalizarCategoria(materialSelecionado);
+            const filtrados = produtos.filter((p) => {
+                const catNorm = normalizarCategoria(p.categoria || '');
+                if (categoriaSelecionadaNorm === 'OUTROS-SERR') {
+                    return !CATS_SERR.map(normalizarCategoria).includes(catNorm);
                 }
+                return catNorm === categoriaSelecionadaNorm;
+            });
+
+            filtrados.forEach(p => {
+                const card = document.createElement('div');
+                card.className = `card-prod`;
+
+                let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--orange); color:black; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
+                let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
+                conteudo += `<span class="prod-cat">${p.categoria}</span>`;
+                conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
+                conteudo += `<span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>`;
+                conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
+                conteudo += gerarPreviewCard(p);
+
+                const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
+                conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white">${p.status}</span>`;
+
+                conteudo += `
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn-adj" style="flex:1; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR</button>
+                        <button class="btn-adj" style="flex:1; background:#222; border:1px solid #444;" onclick="abrirModalDetalhes('${p.id}')">📋 INFO</button>
+                    </div>
+                `;
+
+                card.innerHTML = conteudo;
+                grid.appendChild(card);
             });
         }
 
@@ -720,8 +811,11 @@
                 dimW: parseFloat(document.getElementById('prod-dim-w').value) || 0,
                 dimH: parseFloat(document.getElementById('prod-dim-h').value) || 0,
                 status: window.materialStatus,
-                qtd: 1
+                qtd: 1,
+                recortes: []
             };
+            dados.baseDimW = dados.dimW;
+            dados.baseDimH = dados.dimH;
             dados.nome = `${cat} ${dados.espessura}`.trim();
 
             if (dados.dimW <= 0 || dados.dimH <= 0) { return alert("Preencha as dimensões da chapa!"); }
@@ -902,151 +996,173 @@ function tornarArrastavel(elemento) {
 }
         window.abrirModalCorte = (id) => {
             pecaParaCorte = produtos.find(x => x.id === id);
+            const base = getDimensoesBase(pecaParaCorte);
             document.getElementById('corte-nome-peca').innerText = `${pecaParaCorte.categoria} ${pecaParaCorte.espessura || ''} | ${pecaParaCorte.cor || ''}`;
-            document.getElementById('corte-dimensoes-atuais').innerText = `${pecaParaCorte.dimW} x ${pecaParaCorte.dimH} cm`;
+            document.getElementById('corte-dimensoes-atuais').innerText = `${base.w} x ${base.h} cm`;
             document.getElementById('corte-w').value = '';
             document.getElementById('corte-h').value = '';
+            posicaoCorteCm = { x: 0, y: 0 };
             document.getElementById('modal-corte').style.display = 'flex';
             window.atualizarPreviewCorte();
         };
-        
-        // 👀 ✂️ Início Preview Corte 🔽//
 
-
-        window.atualizarPreviewCorte = () => {
-
-    if (!pecaParaCorte) return;
-
-    let wOriginal = pecaParaCorte.dimW;
-    let hOriginal = pecaParaCorte.dimH;
-
-    // 🔥 AJUSTE DEFINITIVO:
-    // sempre tratar maior como largura
-    if (hOriginal > wOriginal) {
-        [wOriginal, hOriginal] = [hOriginal, wOriginal];
-    }
-
-    const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
-    const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
-
-    // 🚨 validação correta agora
-    if (wCorte > wOriginal || hCorte > hOriginal) {
-        alert(`A medida digitada (${wCorte} x ${hCorte}) 
-é maior que a chapa original (${wOriginal} x ${hOriginal})`);
-        document.getElementById('corte-w').value = '';
-        document.getElementById('corte-h').value = '';
-        return;
-    }
-
-    const bgOriginal = document.getElementById('corte-original-bg');
-    const boxCorte = document.getElementById('corte-pedaco-box');
-
-    const ratio = hOriginal / wOriginal;
-    const basePx = 150;
-
-    const finalW = basePx;
-    const finalH = basePx * ratio;
-
-    bgOriginal.style.width = finalW + 'px';
-    bgOriginal.style.height = finalH + 'px';
-
-    document.getElementById('txt-cota-w-original').innerText = wOriginal + 'cm';
-    document.getElementById('txt-cota-h-original').innerText = hOriginal + 'cm';
-
-    if (wCorte > 0 && hCorte > 0) {
-
-        const percentW = wCorte / wOriginal;
-        const percentH = hCorte / hOriginal;
-
-        boxCorte.style.display = 'flex';
-        boxCorte.style.width = (finalW * percentW) + 'px';
-        boxCorte.style.height = (finalH * percentH) + 'px';
-        boxCorte.innerText = `${wCorte}x${hCorte}`;
-
-        bgOriginal.style.background = '#333';
-
-    } else {
-        boxCorte.style.display = 'none';
-        bgOriginal.style.background = 'var(--orange)';
-    }
-};
-
-        // 👀 ✂️ Final Preview Corte 🔼//
-
-        // 📏 ✂️ Início Executar Corte 🔽//
-
-        window.executarCorte = async () => {
-
-    if (!pecaParaCorte) return;
-
-    const btn = document.getElementById('btn-executar-corte');
-
-    let wOriginal = pecaParaCorte.dimW;
-    let hOriginal = pecaParaCorte.dimH;
-
-    // 🔥 MESMA REGRA AQUI
-    if (hOriginal > wOriginal) {
-        [wOriginal, hOriginal] = [hOriginal, wOriginal];
-    }
-
-    const cw = parseFloat(document.getElementById('corte-w').value) || 0;
-    const ch = parseFloat(document.getElementById('corte-h').value) || 0;
-
-    if (cw <= 0 || ch <= 0)
-        return alert("Informe as medidas válidas para o corte!");
-
-    if (cw > wOriginal || ch > hOriginal)
-        return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça original (${wOriginal} x ${hOriginal} cm)!`);
-
-    btn.disabled = true;
-    btn.innerText = "CORTANDO...";
-
-    try {
-
-        // Lógica de Sobra Inteligente Artesynal
-        let sobraW, sobraH;
-
-        if ((wOriginal - cw) * hOriginal >= (hOriginal - ch) * wOriginal) {
-            // Sobra lateral é maior: Retira a largura, mantém a altura original
-            sobraW = wOriginal - cw;
-            sobraH = hOriginal;
-        } else {
-            // Sobra superior é maior: Mantém a largura original, retira a altura
-            sobraW = wOriginal;
-            sobraH = hOriginal - ch;
+        function tornarCorteArrastavel(box, larguraEscala, alturaEscala, base) {
+            let dragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+            box.onmousedown = (e) => {
+                if (box.style.display === 'none') return;
+                dragging = true;
+                box.style.cursor = 'grabbing';
+                offsetX = e.clientX - box.offsetLeft;
+                offsetY = e.clientY - box.offsetTop;
+                e.preventDefault();
+            };
+            document.onmousemove = (e) => {
+                if (!dragging) return;
+                const maxX = larguraEscala - box.offsetWidth;
+                const maxY = alturaEscala - box.offsetHeight;
+                let nx = e.clientX - offsetX;
+                let ny = e.clientY - offsetY;
+                nx = Math.max(0, Math.min(maxX, nx));
+                ny = Math.max(0, Math.min(maxY, ny));
+                box.style.left = `${nx}px`;
+                box.style.top = `${ny}px`;
+                posicaoCorteCm = {
+                    x: Number(((nx / larguraEscala) * base.w).toFixed(2)),
+                    y: Number(((ny / alturaEscala) * base.h).toFixed(2))
+                };
+            };
+            document.onmouseup = () => {
+                if (!dragging) return;
+                dragging = false;
+                box.style.cursor = 'grab';
+                const corners = [
+                    { x: 0, y: 0 },
+                    { x: base.w - (parseFloat(document.getElementById('corte-w').value) || 0), y: 0 },
+                    { x: 0, y: base.h - (parseFloat(document.getElementById('corte-h').value) || 0) },
+                    { x: base.w - (parseFloat(document.getElementById('corte-w').value) || 0), y: base.h - (parseFloat(document.getElementById('corte-h').value) || 0) }
+                ].map(c => ({ x: Math.max(0, c.x), y: Math.max(0, c.y) }));
+                corners.sort((a,b) => ((a.x-posicaoCorteCm.x)**2 + (a.y-posicaoCorteCm.y)**2) - ((b.x-posicaoCorteCm.x)**2 + (b.y-posicaoCorteCm.y)**2));
+                posicaoCorteCm = corners[0];
+                box.style.left = `${(posicaoCorteCm.x / base.w) * larguraEscala}px`;
+                box.style.top = `${(posicaoCorteCm.y / base.h) * alturaEscala}px`;
+            };
         }
 
-        const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
+        window.atualizarPreviewCorte = () => {
+            if (!pecaParaCorte) return;
+            const base = getDimensoesBase(pecaParaCorte);
 
-        await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
-            dimW: sobraW > 0 ? sobraW : wOriginal,
-            dimH: sobraH > 0 ? sobraH : hOriginal,
-            status: "Usado",
-            nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)"
-        });
+            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
+            const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
 
-        const novaPeca = { ...pecaParaCorte };
-        delete novaPeca.id;
+            if (wCorte > base.w || hCorte > base.h) {
+                alert(`A medida digitada (${wCorte} x ${hCorte}) é maior que a chapa (${base.w} x ${base.h}).`);
+                document.getElementById('corte-w').value = '';
+                document.getElementById('corte-h').value = '';
+                return;
+            }
 
-        novaPeca.dimW = cw;
-        novaPeca.dimH = ch;
-        novaPeca.status = "Usado";
-        novaPeca.data_criacao = serverTimestamp();
-        novaPeca.nome = nomeBase.replace(" (Sobra)", "") + " (Corte)";
+            const bgOriginal = document.getElementById('corte-original-bg');
+            const boxCorte = document.getElementById('corte-pedaco-box');
+            const maxW = 150;
+            const maxH = 150;
+            const escalaPreview = Math.min(maxW / base.w, maxH / base.h);
+            const finalW = Math.max(24, base.w * escalaPreview);
+            const finalH = Math.max(24, base.h * escalaPreview);
 
-        await addDoc(collection(db, "estoque"), novaPeca);
+            bgOriginal.style.width = finalW + 'px';
+            bgOriginal.style.height = finalH + 'px';
+            document.getElementById('txt-cota-w-original').innerText = base.w + 'cm';
+            document.getElementById('txt-cota-h-original').innerText = base.h + 'cm';
 
-        alert("Corte realizado! O estoque foi atualizado.");
-        window.fecharModal('modal-corte');
+            if (wCorte > 0 && hCorte > 0) {
+                const percentW = wCorte / base.w;
+                const percentH = hCorte / base.h;
+                boxCorte.style.display = 'flex';
+                boxCorte.style.width = (finalW * percentW) + 'px';
+                boxCorte.style.height = (finalH * percentH) + 'px';
+                boxCorte.innerText = `${wCorte}x${hCorte}`;
+                boxCorte.style.left = `${(posicaoCorteCm.x / base.w) * finalW}px`;
+                boxCorte.style.top = `${(posicaoCorteCm.y / base.h) * finalH}px`;
+                bgOriginal.style.background = '#333';
+                tornarCorteArrastavel(boxCorte, finalW, finalH, base);
+            } else {
+                boxCorte.style.display = 'none';
+                bgOriginal.style.background = 'var(--orange)';
+            }
+        };
 
-    } catch (e) {
-        console.error(e);
-        alert("Erro ao executar o corte.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "✂️ CONFIRMAR CORTE";
-    }
-};
+        window.executarCorte = async () => {
+            if (!pecaParaCorte) return;
+            const btn = document.getElementById('btn-executar-corte');
+            const base = getDimensoesBase(pecaParaCorte);
+            const cw = parseFloat(document.getElementById('corte-w').value) || 0;
+            const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+
+            if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
+            if (cw > base.w || ch > base.h) return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça (${base.w} x ${base.h} cm)!`);
+            if ((posicaoCorteCm.x + cw) > base.w || (posicaoCorteCm.y + ch) > base.h) return alert('O corte está fora da área da chapa.');
+
+            btn.disabled = true;
+            btn.innerText = "CORTANDO...";
+
+            try {
+                const nomeBase = (pecaParaCorte.nome || pecaParaCorte.categoria || '').replace(' (Sobra)', '');
+                const recortesAtuais = Array.isArray(pecaParaCorte.recortes) ? pecaParaCorte.recortes : [];
+                const corteLinear = recortesAtuais.length === 0 && (
+                    (Math.abs(ch - base.h) < 0.01 && (Math.abs(posicaoCorteCm.y) < 0.01)) ||
+                    (Math.abs(cw - base.w) < 0.01 && (Math.abs(posicaoCorteCm.x) < 0.01))
+                );
+
+                if (corteLinear) {
+                    const sobraW = Math.abs(ch - base.h) < 0.01 ? base.w - cw : base.w;
+                    const sobraH = Math.abs(cw - base.w) < 0.01 ? base.h - ch : base.h;
+                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
+                        dimW: Number(sobraW.toFixed(2)),
+                        dimH: Number(sobraH.toFixed(2)),
+                        baseDimW: Number(sobraW.toFixed(2)),
+                        baseDimH: Number(sobraH.toFixed(2)),
+                        recortes: [],
+                        status: "Usado",
+                        nome: nomeBase + " (Sobra)"
+                    });
+                } else {
+                    const novoRecorte = { x: posicaoCorteCm.x, y: posicaoCorteCm.y, w: cw, h: ch };
+                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
+                        dimW: base.w,
+                        dimH: base.h,
+                        baseDimW: base.w,
+                        baseDimH: base.h,
+                        recortes: [...recortesAtuais, novoRecorte],
+                        status: "Usado",
+                        nome: nomeBase.includes('(Sobra)') ? nomeBase : nomeBase + " (Sobra)"
+                    });
+                }
+
+                const novaPeca = { ...pecaParaCorte };
+                delete novaPeca.id;
+                novaPeca.dimW = cw;
+                novaPeca.dimH = ch;
+                novaPeca.baseDimW = cw;
+                novaPeca.baseDimH = ch;
+                novaPeca.recortes = [];
+                novaPeca.status = "Usado";
+                novaPeca.data_criacao = serverTimestamp();
+                novaPeca.nome = nomeBase + " (Corte)";
+                await addDoc(collection(db, "estoque"), novaPeca);
+
+                alert("Corte realizado com sucesso!");
+                window.fecharModal('modal-corte');
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao executar o corte.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "✂️ CONFIRMAR CORTE";
+            }
+        };
 window.confirmarPosicionamentoSimulador = () => {
     // Verifica se existem peças criadas no grid visual
     const pecasNoGrid = document.querySelectorAll('.peca-simulada'); 
