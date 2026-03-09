@@ -76,15 +76,15 @@
         .etiqueta-toolbar { display: flex; justify-content: flex-end; margin: 10px 0 12px; }
         .btn-pdf-etiqueta { background: linear-gradient(90deg, #ff6b00, #ff8f3d); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 900; padding: 9px 12px; cursor: pointer; }
         .btn-pdf-etiqueta:hover { filter: brightness(1.08); }
-        .etiqueta-print-area { width: 800px; height: 300px; max-width: 100%; border-radius: 16px; border: 2px solid #111; background: linear-gradient(135deg, #f9fafb, #e5e7eb); padding: 12px; color: #101010; display: grid; grid-template-columns: 32% 68%; gap: 12px; overflow: hidden; }
-        .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
-        .etiqueta-preview-peca { flex: 1; border: 1px solid #d4d4d4; border-radius: 8px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
-        .etiqueta-preview-peca .card-preview { margin: 0; background: transparent; border: none; padding: 4px; }
-        .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 6px; min-height: 108px; }
-        .etiqueta-qr img { width: 100%; max-width: 96px; image-rendering: pixelated; }
+        .etiqueta-print-area { width: 800px; height: 300px; max-width: 100%; border-radius: 16px; border: 2px solid #111; background: linear-gradient(135deg, #f9fafb, #e5e7eb); padding: 12px; color: #101010; display: grid; grid-template-columns: 28% 72%; gap: 12px; overflow: hidden; }
+        .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 12px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+        .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 8px; min-height: 250px; width: 100%; }
+        .etiqueta-qr img { width: 100%; max-width: 170px; image-rendering: pixelated; }
         .etiqueta-col-dir { display: grid; grid-template-rows: repeat(3, 1fr); gap: 10px; }
         .etiqueta-bloco { background: #ffffffd9; border: 1px solid #d0d0d0; border-radius: 10px; padding: 8px 10px; }
         .etiqueta-label { font-size: 13px; font-weight: 900; letter-spacing: 0.4px; }
+        .etiqueta-valor-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .etiqueta-cor-chip { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #666; flex-shrink: 0; }
         .etiqueta-valor { font-size: 18px; font-weight: 800; margin-top: 4px; word-break: break-word; }
         .etiqueta-valor.sm { font-size: 16px; }
         .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
@@ -1535,18 +1535,18 @@ window.confirmarPosicionamentoSimulador = () => {
             const material = `${itemParaDetalhes.categoria || ''} ${itemParaDetalhes.cor || ''} ${itemParaDetalhes.espessura || ''} ${itemParaDetalhes.acabamento || ''}`.replace(/\s+/g, ' ').trim();
             const medida = getDimensaoEtiqueta(itemParaDetalhes);
             const registro = itemParaDetalhes.registroSerial || '---';
+            const corEtiqueta = corPreviewChapa(itemParaDetalhes);
             const urlDestino = `${window.location.origin}${window.location.pathname}#item-${itemParaDetalhes.id}`;
-            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(urlDestino)}`;
+            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&data=${encodeURIComponent(urlDestino)}`;
 
             document.getElementById('etiqueta-card').innerHTML = `
                 <div class="etiqueta-col-esq">
-                    <div class="etiqueta-preview-peca">${gerarPreviewCard(itemParaDetalhes)}</div>
                     <div class="etiqueta-qr"><img src="${qrSrc}" alt="QR Code da chapa"></div>
                 </div>
                 <div class="etiqueta-col-dir">
                     <div class="etiqueta-bloco">
                         <div class="etiqueta-label">MATERIAL</div>
-                        <div class="etiqueta-valor sm">${material || 'N/A'}</div>
+                        <div class="etiqueta-valor-linha"><div class="etiqueta-valor sm">${material || 'N/A'}</div><span class="etiqueta-cor-chip" style="background:${corEtiqueta};" title="Cor da chapa"></span></div>
                     </div>
                     <div class="etiqueta-bloco">
                         <div class="etiqueta-label">MEDIDA</div>
