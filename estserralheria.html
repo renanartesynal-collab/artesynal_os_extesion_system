@@ -83,18 +83,17 @@
         .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 12px; padding: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 6px; width: 190px; height: 190px; aspect-ratio: 1 / 1; box-sizing: border-box; overflow: hidden; }
         .etiqueta-qr img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-        .etiqueta-col-dir { display: grid; grid-template-rows: 1.15fr 1fr 1fr 1.1fr; gap: 7px; }
-        .etiqueta-bloco { background: #ffffffd9; border: 1px solid #d0d0d0; border-radius: 10px; padding: 6px 8px; }
-        .etiqueta-label { font-size: 11px; font-weight: 900; letter-spacing: 0.4px; }
+        .etiqueta-col-dir { display: grid; grid-template-rows: auto auto auto 1fr; gap: 6px; min-height: 0; }
+        .etiqueta-bloco { background: #ffffffd9; border: 1px solid #d0d0d0; border-radius: 10px; padding: 5px 7px; min-height: 0; }
+        .etiqueta-label { font-size: 10px; font-weight: 900; letter-spacing: 0.35px; line-height: 1.1; }
         .etiqueta-valor-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
         .etiqueta-cor-chip { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #666; flex-shrink: 0; }
-        .etiqueta-valor { font-size: 15px; font-weight: 800; margin-top: 2px; word-break: break-word; }
-        .etiqueta-valor.sm { font-size: 13px; }
+        .etiqueta-valor { font-size: 14px; font-weight: 800; margin-top: 1px; line-height: 1.1; word-break: break-word; }
+        .etiqueta-valor.sm { font-size: 12px; }
         .etiqueta-par-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .etiqueta-subcampo { background: rgba(255,255,255,0.6); border: 1px solid #d7d7d7; border-radius: 8px; padding: 4px 6px; }
-        .etiqueta-material-extra { font-size: 12px; font-weight: 700; color: #333; margin-top: 3px; }
+        .etiqueta-subcampo { background: rgba(255,255,255,0.6); border: 1px solid #d7d7d7; border-radius: 8px; padding: 3px 5px; min-height: 0; }
         .etiqueta-anotacoes { min-height: 0; }
-        .etiqueta-anotacoes-texto { font-size: 11px; margin-top: 3px; line-height: 1.2; white-space: pre-wrap; word-break: break-word; max-height: 50px; overflow: hidden; }
+        .etiqueta-anotacoes-texto { font-size: 11px; margin-top: 2px; line-height: 1.15; white-space: pre-wrap; word-break: break-word; max-height: 54px; overflow: hidden; }
         .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
@@ -426,7 +425,7 @@
             </div>
 
             <label class="label-standard" style="margin-top:16px; margin-bottom: 8px;">Número da O.S. (5 dígitos)</label>
-            <input id="detalhes-os" type="text" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)">
+            <input id="detalhes-os" type="text" maxlength="5" placeholder="12345" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5).replace(/^0+(?=\d)/,'')">
 
             <label class="label-standard" style="margin-top:16px; margin-bottom: 8px;">Anotações (Serviços e O.S.)</label>
             <textarea id="detalhes-anotacoes" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
@@ -589,9 +588,9 @@
         function getDimensaoEtiqueta(item) {
             const w = Number(item.dimW || 0);
             const h = Number(item.dimH || 0);
-            if (w > 0 && h > 0) return `${w} cm por ${h} cm`;
+            if (w > 0 && h > 0) return `${w} cm X ${h} cm`;
             const base = getDimensoesBase(item);
-            return `${base.w} cm por ${base.h} cm`;
+            return `${base.w} cm X ${base.h} cm`;
         }
 
 
@@ -607,7 +606,7 @@
 
         function formatarOsNumero(valor) {
             const nums = String(valor || '').replace(/\D/g, '').slice(0, 5);
-            return nums ? nums.padStart(5, '0') : '';
+            return nums ? nums.replace(/^0+(?=\d)/, '') : '';
         }
 
         function renderizarSeletorMateriais() {
@@ -1599,6 +1598,7 @@ window.confirmarPosicionamentoSimulador = () => {
             if (!itemParaDetalhes) return;
             const descricaoBase = `${itemParaDetalhes.categoria || ''} ${itemParaDetalhes.espessura || ''}`.replace(/\s+/g, ' ').trim();
             const corAcabamento = `${itemParaDetalhes.cor || ''} ${itemParaDetalhes.acabamento || ''}`.replace(/\s+/g, ' ').trim();
+            const descricaoCompleta = [descricaoBase, corAcabamento].filter(Boolean).join(' - ');
             const medida = getDimensaoEtiqueta(itemParaDetalhes);
             const dataRegistro = formatarDataEtiqueta(itemParaDetalhes);
             const registro = itemParaDetalhes.registroSerial || '---';
@@ -1614,8 +1614,7 @@ window.confirmarPosicionamentoSimulador = () => {
                 <div class="etiqueta-col-dir">
                     <div class="etiqueta-bloco">
                         <div class="etiqueta-label">DESCRIÇÃO</div>
-                        <div class="etiqueta-valor sm">${descricaoBase || 'N/A'}</div>
-                        <div class="etiqueta-material-extra">${corAcabamento || '&nbsp;'}</div>
+                        <div class="etiqueta-valor sm">${descricaoCompleta || 'N/A'}</div>
                     </div>
                     <div class="etiqueta-bloco">
                         <div class="etiqueta-par-linha">
