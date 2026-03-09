@@ -6,12 +6,13 @@
   <title>Painel de Aprovação de Acessos</title>
   <style>
     body{font-family:Arial,sans-serif;background:#1f2937;color:#fff;margin:0;padding:20px}
-    table{width:100%;border-collapse:collapse;background:#334155}
+    table{width:100%;border-collapse:collapse;background:#334155;margin-bottom:24px}
     th,td{padding:10px;border-bottom:1px solid #475569;text-align:left}
     button,select{padding:6px 9px;border:none;border-radius:6px}
     .ok{background:#16a34a;color:#fff}.no{background:#dc2626;color:#fff}.blk{background:#f59e0b;color:#111}
     .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
     a{color:#93c5fd}
+    h2{margin:8px 0}
   </style>
 </head>
 <body>
@@ -19,12 +20,15 @@
     <h1>Painel de verificação de acessos</h1>
     <a href="index.html">Voltar ao painel</a>
   </div>
+  <h2>Solicitações de acesso</h2>
   <div id="lista"></div>
+  <h2>Tentativas de login</h2>
+  <div id="tentativas"></div>
 
   <script type="module">
     import { db } from './config.js';
     import { protegerPagina } from './auth.js';
-    import { collection, getDocs, doc, updateDoc, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { collection, getDocs, doc, updateDoc, orderBy, query, serverTimestamp, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     await protegerPagina({ paginaAtual: 'admin-acessos.html', exigirAdmin: true });
 
@@ -55,6 +59,16 @@
       }
       html.push('</tbody></table>');
       document.getElementById('lista').innerHTML = html.join('');
+
+      const tentSnap = await getDocs(query(collection(db, 'access_attempts'), orderBy('created_at', 'desc'), limit(50)));
+      const tent = ['<table><thead><tr><th>Data</th><th>E-mail</th><th>Nome</th><th>Categoria</th><th>Motivo</th></tr></thead><tbody>'];
+      tentSnap.forEach((d) => {
+        const t = d.data();
+        const dt = t.created_at?.seconds ? new Date(t.created_at.seconds * 1000).toLocaleString('pt-BR') : '-';
+        tent.push(`<tr><td>${dt}</td><td>${t.email || ''}</td><td>${t.nome || ''}</td><td>${t.categoria || ''}</td><td>${t.motivo || ''}</td></tr>`);
+      });
+      tent.push('</tbody></table>');
+      document.getElementById('tentativas').innerHTML = tent.join('');
     }
 
     window.atualizar = async (id, status, blocked) => {

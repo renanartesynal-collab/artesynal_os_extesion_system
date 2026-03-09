@@ -51,60 +51,69 @@
   </div>
 
   <script type="module">
-    import { auth, db } from './config.js';
-    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-    import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { db } from './config.js';
+    import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { emailParaId, hashSenha, realizarLogin } from './auth.js';
 
     const loginStatus = document.getElementById('login-status');
     const regStatus = document.getElementById('reg-status');
 
-    const p = new URLSearchParams(window.location.search);
-    if (p.get('status') === 'pending') loginStatus.innerHTML = '<span class="err">Seu cadastro ainda não foi aprovado.</span>';
-    if (p.get('status') === 'blocked') loginStatus.innerHTML = '<span class="err">Seu acesso foi bloqueado.</span>';
-
     document.getElementById('btn-login').addEventListener('click', async () => {
       try {
         loginStatus.textContent = 'Validando...';
-        await signInWithEmailAndPassword(auth,
-          document.getElementById('login-email').value.trim(),
-          document.getElementById('login-password').value
-        );
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const senha = document.getElementById('login-password').value;
+        const res = await realizarLogin(email, senha);
+        if (!res.ok) {
+          loginStatus.innerHTML = `<span class="err">${res.mensagem}</span>`;
+          return;
+        }
         window.location.href = 'index.html';
       } catch (e) {
-        loginStatus.innerHTML = `<span class="err">${e.message}</span>`;
+        loginStatus.innerHTML = `<span class="err">Falha no login: ${e.message}</span>`;
       }
     });
 
     document.getElementById('btn-register').addEventListener('click', async () => {
       try {
-        regStatus.textContent = 'Criando cadastro...';
+        regStatus.textContent = 'Criando solicitação...';
         const nome = document.getElementById('reg-name').value.trim();
-        const email = document.getElementById('reg-email').value.trim();
+        const email = document.getElementById('reg-email').value.trim().toLowerCase();
         const senha = document.getElementById('reg-password').value;
         const categoria = document.getElementById('reg-role').value;
 
-        const cred = await createUserWithEmailAndPassword(auth, email, senha);
-        await updateProfile(cred.user, { displayName: nome });
+        if (!nome || !email || !senha) {
+          regStatus.innerHTML = '<span class="err">Preencha nome, e-mail e senha.</span>';
+          return;
+        }
 
-        await setDoc(doc(db, 'access_requests', cred.user.uid), {
-          uid: cred.user.uid,
+        const id = emailParaId(email);
+        const ref = doc(db, 'access_requests', id);
+        const snap = await getDoc(ref);
+
+        if (snap.exists() && snap.data().status === 'approved') {
+          regStatus.innerHTML = '<span class="err">Este usuário já está aprovado. Use o login.</span>';
+          return;
+        }
+
+        await setDoc(ref, {
           nome,
           email,
           categoria,
+          senha_hash: await hashSenha(senha),
           status: 'pending',
           blocked: false,
-          created_at: serverTimestamp(),
-          updated_at: serverTimestamp(),
-          notify_admin_email: 'PREENCHER_EMAIL_DA_EMPRESA@dominio.com'
-        });
+          created_at: snap.exists() ? snap.data().created_at : serverTimestamp(),
+          updated_at: serverTimestamp()
+        }, { merge: true });
 
         const assunto = encodeURIComponent('Novo cadastro pendente - Sistema Artesynal');
-        const corpo = encodeURIComponent(`Nome: ${nome}\nEmail: ${email}\nCategoria: ${categoria}\nUID: ${cred.user.uid}`);
-        window.location.href = `mailto:PREENCHER_EMAIL_DA_EMPRESA@dominio.com?subject=${assunto}&body=${corpo}`;
+        const corpo = encodeURIComponent(`Nome: ${nome}\nEmail: ${email}\nCategoria: ${categoria}`);
+        window.open(`mailto:PREENCHER_EMAIL_DA_EMPRESA@dominio.com?subject=${assunto}&body=${corpo}`, '_blank');
 
         regStatus.innerHTML = '<span class="ok">Cadastro enviado. Aguarde aprovação da administração.</span>';
       } catch (e) {
-        regStatus.innerHTML = `<span class="err">${e.message}</span>`;
+        regStatus.innerHTML = `<span class="err">Falha ao cadastrar: ${e.message}</span>`;
       }
     });
   </script>
