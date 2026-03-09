@@ -83,13 +83,15 @@
         .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 12px; padding: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 6px; width: 240px; height: 240px; aspect-ratio: 1 / 1; box-sizing: border-box; overflow: hidden; }
         .etiqueta-qr img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-        .etiqueta-col-dir { display: grid; grid-template-rows: repeat(3, 1fr); gap: 10px; }
+        .etiqueta-col-dir { display: grid; grid-template-rows: 1fr 1fr 1fr 1.2fr; gap: 8px; }
         .etiqueta-bloco { background: #ffffffd9; border: 1px solid #d0d0d0; border-radius: 10px; padding: 8px 10px; }
         .etiqueta-label { font-size: 13px; font-weight: 900; letter-spacing: 0.4px; }
         .etiqueta-valor-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
         .etiqueta-cor-chip { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #666; flex-shrink: 0; }
         .etiqueta-valor { font-size: 18px; font-weight: 800; margin-top: 4px; word-break: break-word; }
         .etiqueta-valor.sm { font-size: 16px; }
+        .etiqueta-anotacoes { min-height: 0; }
+        .etiqueta-anotacoes-texto { font-size: 13px; margin-top: 4px; line-height: 1.25; white-space: pre-wrap; word-break: break-word; max-height: 62px; overflow: hidden; }
         .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
@@ -438,7 +440,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo
@@ -451,7 +453,8 @@
         let materialSelecionado = null;
         let posicaoCorteCm = { x: 0, y: 0 };
         let termoBuscaEstoque = "";
-        let mapaCoresMateriais = carregarCoresMateriaisConfig();
+        let mapaCoresMateriais = {};
+        const coresConfigRef = doc(db, "configuracoes", "serralheria_cores_preview");
         const itemHashFoco = window.location.hash ? window.location.hash.replace('#item-', '') : null;
         let abriuInfoViaHash = false;
 
@@ -481,6 +484,7 @@
                 aplicarConfigCorPreviewUI();
             });
             aplicarConfigCorPreviewUI();
+            ouvirConfigCores();
             ouvirEstoque();
         });
 
@@ -492,18 +496,22 @@
             return normalizarCategoria(cat) === 'OUTROS-SERR' ? 'Outros Materiais' : cat;
         }
 
-
-        function carregarCoresMateriaisConfig() {
-            try {
-                const raw = localStorage.getItem('serralheria_cores_materiais');
-                return raw ? JSON.parse(raw) : {};
-            } catch {
-                return {};
-            }
+        function escaparHtml(texto = '') {
+            return String(texto)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
-        function salvarCoresMateriaisConfig() {
-            localStorage.setItem('serralheria_cores_materiais', JSON.stringify(mapaCoresMateriais));
+        function ouvirConfigCores() {
+            onSnapshot(coresConfigRef, (snap) => {
+                const dados = snap.exists() ? snap.data() : {};
+                mapaCoresMateriais = dados && typeof dados.mapa === 'object' && dados.mapa ? dados.mapa : {};
+                carregarOpcoesConfigCores();
+                renderizarCards();
+            });
         }
 
         function chaveMaterial(item) {
@@ -540,14 +548,22 @@
             if (panel.style.display === 'block') carregarOpcoesConfigCores();
         };
 
-        window.salvarCorMaterialConfig = () => {
+        window.salvarCorMaterialConfig = async () => {
             const select = document.getElementById('config-material-select');
             const cor = document.getElementById('config-cor-input').value;
             if (!select.value) return alert('Selecione um material para salvar a cor.');
             mapaCoresMateriais[select.value] = cor;
-            salvarCoresMateriaisConfig();
-            renderizarCards();
-            alert('Cor da prévia salva com sucesso!');
+            try {
+                await setDoc(coresConfigRef, {
+                    mapa: mapaCoresMateriais,
+                    atualizadoEm: serverTimestamp()
+                }, { merge: true });
+                renderizarCards();
+                alert('Cor da prévia salva com sucesso para todos os dispositivos!');
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao salvar cor global.');
+            }
         };
 
         async function proximoRegistroSerralheria() {
@@ -1559,6 +1575,7 @@ window.confirmarPosicionamentoSimulador = () => {
             const medida = getDimensaoEtiqueta(itemParaDetalhes);
             const registro = itemParaDetalhes.registroSerial || '---';
             const corEtiqueta = corPreviewChapa(itemParaDetalhes);
+            const anotacoesEtiqueta = escaparHtml(itemParaDetalhes.anotacoes || "");
             const urlDestino = `${window.location.origin}${window.location.pathname}#item-${itemParaDetalhes.id}`;
             const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(urlDestino)}`;
 
@@ -1578,6 +1595,10 @@ window.confirmarPosicionamentoSimulador = () => {
                     <div class="etiqueta-bloco">
                         <div class="etiqueta-label">REGISTRO</div>
                         <div class="etiqueta-valor">${registro}</div>
+                    </div>
+                    <div class="etiqueta-bloco etiqueta-anotacoes">
+                        <div class="etiqueta-label">ANOTAÇÕES</div>
+                        <div class="etiqueta-anotacoes-texto">${anotacoesEtiqueta || '&nbsp;'}</div>
                     </div>
                 </div>
             `;
