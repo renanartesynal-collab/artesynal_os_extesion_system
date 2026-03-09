@@ -1712,5 +1712,10 @@ window.confirmarPosicionamentoSimulador = () => {
             finally { btn.disabled = false; btn.innerText = "💾 SALVAR ANOTAÇÕES"; }
         };
     </script>
+
+    <script type="module">
+        import { protegerPagina } from './auth.js';
+        await protegerPagina({ paginaAtual: 'estserralheria.html' });
+    </script>
 </body>
 </html>

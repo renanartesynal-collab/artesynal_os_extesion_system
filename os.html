@@ -795,5 +795,10 @@
             document.getElementById('mobile-zoom-control').style.display = 'none';
         }
     </script>
+
+    <script type="module">
+        import { protegerPagina } from './auth.js';
+        await protegerPagina({ paginaAtual: 'os.html' });
+    </script>
 </body>
 </html>
