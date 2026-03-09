@@ -453,6 +453,7 @@
         let termoBuscaEstoque = "";
         let mapaCoresMateriais = carregarCoresMateriaisConfig();
         const itemHashFoco = window.location.hash ? window.location.hash.replace('#item-', '') : null;
+        let abriuInfoViaHash = false;
 
         // Constantes e Padrões de Fábrica da Serralheria
         const CATS_SERR = ['ACM', 'PVC', 'PS', 'Acrilico', 'MDF', 'Galvanizada', 'Policarbonato'];
@@ -651,17 +652,24 @@
                 carregarOpcoesConfigCores();
                 renderizarCards();
 
-                if (itemHashFoco) {
+                if (itemHashFoco && !abriuInfoViaHash) {
                     const itemFoco = produtos.find((p) => p.id === itemHashFoco);
-                    if (itemFoco && !materialSelecionado) {
-                        selecionarMaterial(itemFoco.categoria || '');
+                    if (itemFoco) {
+                        const categoriaAtualNorm = normalizarCategoria(materialSelecionado || '');
+                        const categoriaFocoNorm = normalizarCategoria(itemFoco.categoria || '');
+                        if (!materialSelecionado || categoriaAtualNorm !== categoriaFocoNorm) {
+                            selecionarMaterial(itemFoco.categoria || '');
+                        }
+
                         setTimeout(() => {
                             const card = document.querySelector(`[data-item-id="${itemHashFoco}"]`);
                             if (card) {
                                 card.classList.add('card-focus');
                                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             }
-                        }, 150);
+                            abrirModalDetalhes(itemHashFoco);
+                            abriuInfoViaHash = true;
+                        }, 220);
                     }
                 }
             });
