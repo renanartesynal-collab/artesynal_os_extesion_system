@@ -77,10 +77,6 @@ export async function garantirAdministradorPadrao() {
   const ref = doc(db, "access_requests", id);
   const snap = await getDoc(ref);
 
-  if (snap.exists()) {
-    return;
-  }
-
   await setDoc(ref, {
     nome: ADMIN_PADRAO.nome,
     email: ADMIN_PADRAO.email,
@@ -88,9 +84,9 @@ export async function garantirAdministradorPadrao() {
     senha_hash: ADMIN_PADRAO.senhaHash,
     status: "approved",
     blocked: false,
-    created_at: serverTimestamp(),
+    created_at: snap.exists() ? snap.data().created_at : serverTimestamp(),
     updated_at: serverTimestamp()
-  });
+  }, { merge: true });
 }
 
 export async function registrarTentativa({ email, nome = "", motivo, categoria = "" }) {
