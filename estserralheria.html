@@ -42,7 +42,7 @@
         .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
         .kanban-col { background: #161616; border-radius: 10px; padding: 15px; min-width: 320px; width: 320px; border: 1px solid #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: #000; background: var(--orange); text-transform: uppercase; text-align: center; }
-        .grid-est { display: flex; flex-direction: column; gap: 12px; min-height: 50px; }
+        .grid-est { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; min-height: 50px; }
         .material-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
         .material-option { background: #161616; border: 1px solid #2b2b2b; border-radius: 12px; padding: 20px; color: var(--white); text-align: left; cursor: pointer; transition: 0.2s; }
         .material-option:hover { border-color: var(--orange); transform: translateY(-2px); }
@@ -63,7 +63,9 @@
         .card-preview { margin: 10px 0; padding: 10px; background: #0d0d0d; border: 1px solid #2d2d2d; border-radius: 8px; display: flex; justify-content: center; }
         .card-preview-sheet { position: relative; background: var(--orange); border: 1px solid #fff; min-width: 60px; min-height: 40px; }
         .card-preview-cut { position: absolute; background: #111; border: 1px dashed #7dd3fc; }
-        .stock-tools { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+        .stock-tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .stock-search { flex: 1; min-width: 250px; max-width: 460px; padding: 10px 12px; border-radius: 8px; border: 1px solid #444; background: #121212; color: #fff; font-size: 13px; font-weight: 600; }
+        .stock-search:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255,107,0,0.2); }
         .btn-config-preview { background: #1e1e1e; color: var(--white); border: 1px solid #444; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .btn-config-preview:hover { border-color: var(--orange); }
         .config-panel { background: #131313; border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
@@ -76,10 +78,10 @@
         .etiqueta-toolbar { display: flex; justify-content: flex-end; margin: 10px 0 12px; }
         .btn-pdf-etiqueta { background: linear-gradient(90deg, #ff6b00, #ff8f3d); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 900; padding: 9px 12px; cursor: pointer; }
         .btn-pdf-etiqueta:hover { filter: brightness(1.08); }
-        .etiqueta-print-area { width: 800px; height: 300px; max-width: 100%; border-radius: 16px; border: 2px solid #111; background: linear-gradient(135deg, #f9fafb, #e5e7eb); padding: 12px; color: #101010; display: grid; grid-template-columns: 28% 72%; gap: 12px; overflow: hidden; }
+        .etiqueta-print-area { width: 900px; height: 300px; max-width: 100%; border-radius: 16px; border: 2px solid #111; background: linear-gradient(135deg, #f9fafb, #e5e7eb); padding: 12px; color: #101010; display: grid; grid-template-columns: 30% 70%; gap: 12px; overflow: hidden; }
         .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 12px; padding: 8px; display: flex; align-items: center; justify-content: center; }
-        .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 8px; min-height: 250px; width: 100%; }
-        .etiqueta-qr img { width: 100%; max-width: 170px; image-rendering: pixelated; }
+        .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 8px; width: 240px; height: 240px; aspect-ratio: 1 / 1; }
+        .etiqueta-qr img { width: 92%; max-width: 220px; image-rendering: pixelated; }
         .etiqueta-col-dir { display: grid; grid-template-rows: repeat(3, 1fr); gap: 10px; }
         .etiqueta-bloco { background: #ffffffd9; border: 1px solid #d0d0d0; border-radius: 10px; padding: 8px 10px; }
         .etiqueta-label { font-size: 13px; font-weight: 900; letter-spacing: 0.4px; }
@@ -171,6 +173,7 @@
                 <div><h1 id="stock-title">🛠️ Estoque</h1></div>
             </div>
             <div class="stock-tools">
+                <input class="stock-search" id="stock-search" type="text" placeholder="🔎 Pesquisar por cor ou espessura..." oninput="atualizarFiltroEstoque(this.value)">
                 <button class="btn-config-preview" onclick="toggleConfigCores()">🎨 CONFIGURAR CORES</button>
             </div>
             <div id="config-cores-panel" class="config-panel" style="display:none;">
@@ -191,7 +194,7 @@
                 </div>
             </div>
             <div id="kanban-serralheria" class="kanban-container">
-                <div class="kanban-col" style="width:100%; max-width:480px;">
+                <div class="kanban-col" style="width:100%; max-width:none;">
                     <div class="kanban-header" id="selected-material-header">Material</div>
                     <div class="grid-est" id="grid-material-selecionado"></div>
                 </div>
@@ -425,7 +428,7 @@
         <div class="modal-box" style="max-width: 760px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-etiqueta')">Fechar</button>
             <h2 style="margin-top:0; color:var(--orange); border-bottom:1px solid #333; padding-bottom:10px;">Etiqueta da Chapa</h2>
-            <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiqueta()">📄 GERAR PDF (8x3 cm)</button></div>
+            <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiqueta()">📄 GERAR PDF (9x3 cm)</button></div>
             <div id="etiqueta-card" class="etiqueta-print-area"></div>
         </div>
     </div>
@@ -446,6 +449,7 @@
         let coresDinamicas = [];
         let materialSelecionado = null;
         let posicaoCorteCm = { x: 0, y: 0 };
+        let termoBuscaEstoque = "";
         let mapaCoresMateriais = carregarCoresMateriaisConfig();
         const itemHashFoco = window.location.hash ? window.location.hash.replace('#item-', '') : null;
 
@@ -662,6 +666,11 @@
             });
         }
 
+        window.atualizarFiltroEstoque = (valor = '') => {
+            termoBuscaEstoque = String(valor || '').trim().toLowerCase();
+            renderizarCards();
+        };
+
         function renderizarCards() {
             const grid = document.getElementById('grid-material-selecionado');
             if (!grid) return;
@@ -672,10 +681,15 @@
             const categoriaSelecionadaNorm = normalizarCategoria(materialSelecionado);
             const filtrados = produtos.filter((p) => {
                 const catNorm = normalizarCategoria(p.categoria || '');
-                if (categoriaSelecionadaNorm === 'OUTROS-SERR') {
-                    return !CATS_SERR.map(normalizarCategoria).includes(catNorm);
-                }
-                return catNorm === categoriaSelecionadaNorm;
+                const passaMaterial = (categoriaSelecionadaNorm === 'OUTROS-SERR')
+                    ? !CATS_SERR.map(normalizarCategoria).includes(catNorm)
+                    : catNorm === categoriaSelecionadaNorm;
+
+                if (!passaMaterial) return false;
+                if (!termoBuscaEstoque) return true;
+
+                const alvoBusca = `${p.cor || ''} ${p.espessura || ''} ${p.categoria || ''} ${p.acabamento || ''}`.toLowerCase();
+                return alvoBusca.includes(termoBuscaEstoque);
             });
 
             filtrados.forEach(p => {
@@ -1537,7 +1551,7 @@ window.confirmarPosicionamentoSimulador = () => {
             const registro = itemParaDetalhes.registroSerial || '---';
             const corEtiqueta = corPreviewChapa(itemParaDetalhes);
             const urlDestino = `${window.location.origin}${window.location.pathname}#item-${itemParaDetalhes.id}`;
-            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&data=${encodeURIComponent(urlDestino)}`;
+            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(urlDestino)}`;
 
             document.getElementById('etiqueta-card').innerHTML = `
                 <div class="etiqueta-col-esq">
@@ -1579,8 +1593,8 @@ window.confirmarPosicionamentoSimulador = () => {
             });
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'cm', format: [8, 3] });
-            pdf.addImage(imgData, 'PNG', 0, 0, 8, 3, undefined, 'FAST');
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'cm', format: [9, 3] });
+            pdf.addImage(imgData, 'PNG', 0, 0, 9, 3, undefined, 'FAST');
 
             const reg = itemParaDetalhes?.registroSerial || 'sem-registro';
             pdf.save(`etiqueta-${reg}.pdf`);
