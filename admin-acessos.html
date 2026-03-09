@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Aprovação de Acessos</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#1f2937;color:#fff;margin:0;padding:20px}
+    table{width:100%;border-collapse:collapse;background:#334155;margin-bottom:24px}
+    th,td{padding:10px;border-bottom:1px solid #475569;text-align:left}
+    button,select{padding:6px 9px;border:none;border-radius:6px}
+    .ok{background:#16a34a;color:#fff}.no{background:#dc2626;color:#fff}.blk{background:#f59e0b;color:#111}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    a{color:#93c5fd}
+    h2{margin:8px 0}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>Painel de verificação de acessos</h1>
+    <a href="index.html">Voltar ao painel</a>
+  </div>
+  <h2>Solicitações de acesso</h2>
+  <div id="lista"></div>
+  <h2>Tentativas de login</h2>
+  <div id="tentativas"></div>
+
+  <script type="module">
+    import { db } from './config.js';
+    import { protegerPagina } from './auth.js';
+    import { collection, getDocs, doc, updateDoc, orderBy, query, serverTimestamp, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    await protegerPagina({ paginaAtual: 'admin-acessos.html', exigirAdmin: true });
+
+    async function carregar() {
+      const snap = await getDocs(query(collection(db, 'access_requests'), orderBy('created_at', 'desc')));
+      const rows = [];
+      snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
+
+      const html = [`<table><thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Categoria</th><th>Status</th><th>Ações</th></tr></thead><tbody>`];
+      for (const r of rows) {
+        html.push(`<tr>
+          <td>${r.nome || ''}</td>
+          <td>${r.email || ''}</td>
+          <td>${r.whatsapp || '-'}</td>
+          <td>
+            <select onchange="window.mudarCategoria('${r.id}', this.value)">
+              <option value="producao" ${r.categoria === 'producao' ? 'selected' : ''}>Produção</option>
+              <option value="instalacao" ${r.categoria === 'instalacao' ? 'selected' : ''}>Instalação</option>
+              <option value="administracao" ${r.categoria === 'administracao' ? 'selected' : ''}>Administração</option>
+            </select>
+          </td>
+          <td>${r.blocked ? 'bloqueado' : (r.status || 'pending')}</td>
+          <td>
+            <button class="ok" onclick="window.atualizar('${r.id}','approved',false)">Autorizar</button>
+            <button class="no" onclick="window.atualizar('${r.id}','rejected',false)">Reprovar</button>
+            <button class="blk" onclick="window.atualizar('${r.id}','approved',true)">Bloquear</button>
+            <button onclick="window.chamarWhatsApp('${r.whatsapp || ''}')">WhatsApp</button>
+          </td>
+        </tr>`);
+      }
+      html.push('</tbody></table>');
+      document.getElementById('lista').innerHTML = html.join('');
+
+      const tentSnap = await getDocs(query(collection(db, 'access_attempts'), orderBy('created_at', 'desc'), limit(50)));
+      const tent = ['<table><thead><tr><th>Data</th><th>E-mail</th><th>Nome</th><th>Categoria</th><th>Motivo</th></tr></thead><tbody>'];
+      tentSnap.forEach((d) => {
+        const t = d.data();
+        const dt = t.created_at?.seconds ? new Date(t.created_at.seconds * 1000).toLocaleString('pt-BR') : '-';
+        tent.push(`<tr><td>${dt}</td><td>${t.email || ''}</td><td>${t.nome || ''}</td><td>${t.categoria || ''}</td><td>${t.motivo || ''}</td></tr>`);
+      });
+      tent.push('</tbody></table>');
+      document.getElementById('tentativas').innerHTML = tent.join('');
+    }
+
+    window.atualizar = async (id, status, blocked) => {
+      await updateDoc(doc(db, 'access_requests', id), { status, blocked, updated_at: serverTimestamp() });
+      carregar();
+    };
+
+    window.mudarCategoria = async (id, categoria) => {
+      await updateDoc(doc(db, 'access_requests', id), { categoria, updated_at: serverTimestamp() });
+    };
+
+    window.chamarWhatsApp = (numero) => {
+      const num = (numero || '').replace(/\D/g, '');
+      if (!num) {
+        alert('Este solicitante não informou WhatsApp.');
+        return;
+      }
+      const final = num.startsWith('55') ? num : `55${num}`;
+      window.open(`https://wa.me/${final}`, '_blank');
+    };
+
+    carregar();
+  </script>
+</body>
+</html>

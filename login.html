@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acesso ao Sistema - Artesynal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; font-family:'Montserrat',sans-serif; background:#1f2833; color:#fff; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .box { width:min(900px,95%); background:#2c3e50; border-radius:16px; padding:28px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .card { background:#23313f; border-radius:12px; padding:18px; }
+    h1 { margin:0 0 18px; font-size:24px; }
+    h2 { margin:0 0 14px; font-size:18px; color:#f1c40f; }
+    input, select, button { width:100%; padding:11px; border-radius:8px; border:none; margin-bottom:10px; box-sizing:border-box; }
+    input, select { background:#fff; }
+    button { font-weight:700; cursor:pointer; }
+    .btn-primary { background:#00aeef; color:#fff; }
+    .btn-secondary { background:#f1c40f; color:#111; }
+    .helper { font-size:12px; color:#bdc3c7; }
+    .status { font-size:13px; margin-top:10px; min-height:16px; }
+    .ok { color:#6ee7b7; } .err { color:#ff7f7f; }
+    @media(max-width:760px){ .box{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="card">
+      <h1>Sistema Artesynal</h1>
+      <h2>Entrar</h2>
+      <input id="login-email" type="email" placeholder="E-mail" />
+      <input id="login-password" type="password" placeholder="Senha" />
+      <button class="btn-primary" id="btn-login">Acessar</button>
+      <div class="helper">Somente usuários aprovados podem entrar.</div>
+      <div class="status" id="login-status"></div>
+    </div>
+
+    <div class="card">
+      <h2>Primeiro acesso (cadastro)</h2>
+      <input id="reg-name" type="text" placeholder="Nome completo" />
+      <input id="reg-email" type="email" placeholder="E-mail" />
+      <input id="reg-password" type="password" placeholder="Senha" />
+      <input id="reg-whatsapp" type="text" placeholder="WhatsApp (ex: 11999998888)" />
+      <select id="reg-role">
+        <option value="producao">Produção</option>
+        <option value="instalacao">Instalação</option>
+        <option value="administracao">Administração</option>
+      </select>
+      <button class="btn-secondary" id="btn-register">Solicitar acesso</button>
+      <div class="helper">Após cadastro, o usuário fica pendente até aprovação.</div>
+      <div class="status" id="reg-status"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db } from './config.js';
+    import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { emailParaId, garantirAdminPadrao, hashSenha, realizarLogin } from './auth.js';
+
+    const loginStatus = document.getElementById('login-status');
+    const regStatus = document.getElementById('reg-status');
+
+    await garantirAdminPadrao();
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      try {
+        loginStatus.textContent = 'Validando...';
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const senha = document.getElementById('login-password').value;
+        const res = await realizarLogin(email, senha);
+        if (!res.ok) {
+          loginStatus.innerHTML = `<span class="err">${res.mensagem}</span>`;
+          return;
+        }
+        window.location.href = 'index.html';
+      } catch (e) {
+        loginStatus.innerHTML = `<span class="err">Falha no login: ${e.message}</span>`;
+      }
+    });
+
+    document.getElementById('btn-register').addEventListener('click', async () => {
+      try {
+        regStatus.textContent = 'Criando solicitação...';
+        const nome = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const senha = document.getElementById('reg-password').value;
+        const categoria = document.getElementById('reg-role').value;
+        const whatsapp = document.getElementById('reg-whatsapp').value.trim();
+
+        if (!nome || !email || !senha) {
+          regStatus.innerHTML = '<span class="err">Preencha nome, e-mail e senha.</span>';
+          return;
+        }
+
+        const id = emailParaId(email);
+        const ref = doc(db, 'access_requests', id);
+        const snap = await getDoc(ref);
+
+        if (snap.exists() && snap.data().status === 'approved') {
+          regStatus.innerHTML = '<span class="err">Este usuário já está aprovado. Use o login.</span>';
+          return;
+        }
+
+        await setDoc(ref, {
+          nome,
+          email,
+          categoria,
+          senha_hash: await hashSenha(senha),
+          status: 'pending',
+          blocked: false,
+          created_at: snap.exists() ? snap.data().created_at : serverTimestamp(),
+          updated_at: serverTimestamp(),
+          whatsapp
+        }, { merge: true });
+
+        const assunto = encodeURIComponent('Novo cadastro pendente - Sistema Artesynal');
+        const corpo = encodeURIComponent(`Nome: ${nome}\nEmail: ${email}\nCategoria: ${categoria}\nWhatsApp: ${whatsapp || '-'} `);
+        window.open(`mailto:PREENCHER_EMAIL_DA_EMPRESA@dominio.com?subject=${assunto}&body=${corpo}`, '_blank');
+
+        regStatus.innerHTML = '<span class="ok">Cadastro enviado. Aguarde aprovação da administração.</span>';
+      } catch (e) {
+        regStatus.innerHTML = `<span class="err">Falha ao cadastrar: ${e.message}</span>`;
+      }
+    });
+  </script>
+</body>
+</html>
