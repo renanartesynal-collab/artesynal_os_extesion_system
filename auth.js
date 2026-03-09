@@ -75,11 +75,17 @@ export async function registrarTentativa({ email, nome = "", motivo, categoria =
 }
 
 export async function realizarLogin(email, senha) {
-  const acesso = await obterAcessoPorEmail(email);
+  const emailNormalizado = (email || "").trim().toLowerCase();
+
+  if (!emailNormalizado || !senha) {
+    return { ok: false, codigo: "dados-invalidos", mensagem: "Informe e-mail e senha para continuar." };
+  }
+
+  const acesso = await obterAcessoPorEmail(emailNormalizado);
   const senhaHash = await hashSenha(senha);
 
   if (!acesso) {
-    await registrarTentativa({ email, motivo: "email_nao_cadastrado" });
+    await registrarTentativa({ email: emailNormalizado, motivo: "email_nao_cadastrado" });
     return { ok: false, codigo: "nao-cadastrado", mensagem: "Usuário não encontrado. Faça o primeiro cadastro." };
   }
 
@@ -94,7 +100,7 @@ export async function realizarLogin(email, senha) {
   }
 
   if (acesso.senha_hash !== senhaHash) {
-    await registrarTentativa({ email, nome: acesso.nome, categoria: acesso.categoria, motivo: "senha_incorreta" });
+    await registrarTentativa({ email: emailNormalizado, nome: acesso.nome, categoria: acesso.categoria, motivo: "senha_incorreta" });
     return { ok: false, codigo: "senha-incorreta", mensagem: "Senha inválida." };
   }
 
@@ -104,13 +110,13 @@ export async function realizarLogin(email, senha) {
 
 export function logout() {
   localStorage.removeItem(SESSAO_KEY);
-  window.location.href = "login.html";
+  window.location.replace("login.html");
 }
 
 export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) {
   const sessao = lerSessao();
   if (!sessao?.email) {
-    window.location.href = "login.html";
+    window.location.replace("login.html");
     return null;
   }
 
@@ -131,13 +137,13 @@ export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) 
   const admin = perfil === "administracao";
 
   if (exigirAdmin && !admin) {
-    window.location.href = "index.html";
+    window.location.replace("index.html");
     return null;
   }
 
   if (paginaAtual && !permitido && !admin) {
     alert("Você não tem acesso a esta área.");
-    window.location.href = "index.html";
+    window.location.replace("index.html");
     return null;
   }
 
