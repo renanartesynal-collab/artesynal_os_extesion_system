@@ -496,5 +496,10 @@
         // Inicialização
         carregarLista();
     </script>
+
+    <script type="module">
+        import { protegerPagina } from './auth.js';
+        await protegerPagina({ paginaAtual: 'orcamentos.html' });
+    </script>
 </body>
 </html>
