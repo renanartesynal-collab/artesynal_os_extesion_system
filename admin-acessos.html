@@ -17,10 +17,10 @@
 </head>
 <body>
   <div class="top">
-    <h1>Painel de verificação de acessos</h1>
+    <h1>Gerenciamento de acessos</h1>
     <a href="index.html">Voltar ao painel</a>
   </div>
-  <h2>Solicitações de acesso</h2>
+  <h2>Solicitantes de acesso</h2>
   <div id="lista"></div>
   <h2>Tentativas de login</h2>
   <div id="tentativas"></div>
@@ -37,11 +37,12 @@
       const rows = [];
       snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
 
-      const html = [`<table><thead><tr><th>Nome</th><th>E-mail</th><th>Categoria</th><th>Status</th><th>Ações</th></tr></thead><tbody>`];
+      const html = [`<table><thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Categoria</th><th>Status</th><th>Ações</th></tr></thead><tbody>`];
       for (const r of rows) {
         html.push(`<tr>
           <td>${r.nome || ''}</td>
           <td>${r.email || ''}</td>
+          <td>${r.whatsapp || '-'}</td>
           <td>
             <select onchange="window.mudarCategoria('${r.id}', this.value)">
               <option value="producao" ${r.categoria === 'producao' ? 'selected' : ''}>Produção</option>
@@ -51,9 +52,9 @@
           </td>
           <td>${r.blocked ? 'bloqueado' : (r.status || 'pending')}</td>
           <td>
-            <button class="ok" onclick="window.atualizar('${r.id}','approved',false)">Autorizar</button>
-            <button class="no" onclick="window.atualizar('${r.id}','rejected',false)">Negar</button>
-            <button class="blk" onclick="window.atualizar('${r.id}','approved',true)">Bloquear</button>
+            <button class="ok" onclick="window.atualizar('${r.id}','approved',false)">Aprovar</button>
+            <button class="no" onclick="window.atualizar('${r.id}','rejected',false)">Reprovar</button>
+            <button class="blk" onclick="window.abrirWhatsapp('${r.whatsapp || ''}','${r.nome || ''}')">WhatsApp</button>
           </td>
         </tr>`);
       }
@@ -78,6 +79,17 @@
 
     window.mudarCategoria = async (id, categoria) => {
       await updateDoc(doc(db, 'access_requests', id), { categoria, updated_at: serverTimestamp() });
+    };
+
+    window.abrirWhatsapp = (whatsapp, nome) => {
+      const numero = (whatsapp || '').replace(/\D/g, '');
+      if (!numero) {
+        alert('Solicitante sem WhatsApp cadastrado.');
+        return;
+      }
+
+      const msg = encodeURIComponent(`Olá ${nome || ''}, seu cadastro no Sistema Artesynal está em análise.`);
+      window.open(`https://wa.me/55${numero}?text=${msg}`, '_blank');
     };
 
     carregar();

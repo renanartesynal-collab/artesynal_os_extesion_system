@@ -38,6 +38,7 @@
       <h2>Primeiro acesso (cadastro)</h2>
       <input id="reg-name" type="text" placeholder="Nome completo" />
       <input id="reg-email" type="email" placeholder="E-mail" />
+      <input id="reg-whatsapp" type="text" placeholder="WhatsApp (somente números)" />
       <input id="reg-password" type="password" placeholder="Senha" />
       <select id="reg-role">
         <option value="producao">Produção</option>
@@ -53,10 +54,12 @@
   <script type="module">
     import { db } from './config.js';
     import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-    import { emailParaId, hashSenha, realizarLogin } from './auth.js';
+    import { emailParaId, garantirAdministradorPadrao, hashSenha, realizarLogin } from './auth.js';
 
     const loginStatus = document.getElementById('login-status');
     const regStatus = document.getElementById('reg-status');
+
+    await garantirAdministradorPadrao();
 
     document.getElementById('btn-login').addEventListener('click', async () => {
       try {
@@ -79,6 +82,7 @@
         regStatus.textContent = 'Criando solicitação...';
         const nome = document.getElementById('reg-name').value.trim();
         const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const whatsapp = document.getElementById('reg-whatsapp').value.trim().replace(/\D/g, '');
         const senha = document.getElementById('reg-password').value;
         const categoria = document.getElementById('reg-role').value;
 
@@ -100,6 +104,7 @@
           nome,
           email,
           categoria,
+          whatsapp,
           senha_hash: await hashSenha(senha),
           status: 'pending',
           blocked: false,
@@ -108,7 +113,7 @@
         }, { merge: true });
 
         const assunto = encodeURIComponent('Novo cadastro pendente - Sistema Artesynal');
-        const corpo = encodeURIComponent(`Nome: ${nome}\nEmail: ${email}\nCategoria: ${categoria}`);
+        const corpo = encodeURIComponent(`Nome: ${nome}\nEmail: ${email}\nWhatsApp: ${whatsapp || 'não informado'}\nCategoria: ${categoria}`);
         window.open(`mailto:PREENCHER_EMAIL_DA_EMPRESA@dominio.com?subject=${assunto}&body=${corpo}`, '_blank');
 
         regStatus.innerHTML = '<span class="ok">Cadastro enviado. Aguarde aprovação da administração.</span>';

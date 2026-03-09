@@ -4,10 +4,18 @@ import {
   collection,
   doc,
   getDoc,
-  serverTimestamp
+  serverTimestamp,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const SESSAO_KEY = "artesynal_session";
+
+const ADMIN_PADRAO = {
+  email: "wartesynal@gmail.com",
+  nome: "warte",
+  senhaHash: "d698de9e71d6f74167eeaca437370d1be6cacfcef16f2e61e2eb97b3017747b7",
+  categoria: "administracao"
+};
 
 export const PERFIS = {
   producao: {
@@ -64,6 +72,27 @@ function lerSessao() {
   }
 }
 
+export async function garantirAdministradorPadrao() {
+  const id = emailParaId(ADMIN_PADRAO.email);
+  const ref = doc(db, "access_requests", id);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    return;
+  }
+
+  await setDoc(ref, {
+    nome: ADMIN_PADRAO.nome,
+    email: ADMIN_PADRAO.email,
+    categoria: ADMIN_PADRAO.categoria,
+    senha_hash: ADMIN_PADRAO.senhaHash,
+    status: "approved",
+    blocked: false,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp()
+  });
+}
+
 export async function registrarTentativa({ email, nome = "", motivo, categoria = "" }) {
   await addDoc(collection(db, "access_attempts"), {
     email: (email || "").trim().toLowerCase(),
@@ -90,12 +119,12 @@ export async function realizarLogin(email, senha) {
   }
 
   if (acesso.blocked) {
-    await registrarTentativa({ email, nome: acesso.nome, categoria: acesso.categoria, motivo: "usuario_bloqueado" });
+    await registrarTentativa({ email: emailNormalizado, nome: acesso.nome, categoria: acesso.categoria, motivo: "usuario_bloqueado" });
     return { ok: false, codigo: "bloqueado", mensagem: "Seu acesso está bloqueado pela administração." };
   }
 
   if (acesso.status !== "approved") {
-    await registrarTentativa({ email, nome: acesso.nome, categoria: acesso.categoria, motivo: "usuario_nao_aprovado" });
+    await registrarTentativa({ email: emailNormalizado, nome: acesso.nome, categoria: acesso.categoria, motivo: "usuario_nao_aprovado" });
     return { ok: false, codigo: "pendente", mensagem: "Cadastro pendente de aprovação." };
   }
 
