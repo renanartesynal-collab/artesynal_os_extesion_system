@@ -14,6 +14,9 @@
     input, select, button { width:100%; padding:11px; border-radius:8px; border:none; margin-bottom:10px; box-sizing:border-box; }
     input, select { background:#fff; }
     button { font-weight:700; cursor:pointer; }
+    .password-wrap { position:relative; margin-bottom:10px; }
+    .password-wrap input { margin-bottom:0; padding-right:48px; }
+    .toggle-password { position:absolute; right:6px; top:50%; transform:translateY(-50%); width:36px; height:36px; margin:0; padding:0; border-radius:8px; background:#d1d5db; color:#111; font-size:16px; line-height:1; }
     .btn-primary { background:#00aeef; color:#fff; }
     .btn-secondary { background:#f1c40f; color:#111; }
     .helper { font-size:12px; color:#bdc3c7; }
@@ -28,7 +31,10 @@
       <h1>Sistema Artesynal</h1>
       <h2>Entrar</h2>
       <input id="login-email" type="email" placeholder="E-mail" />
+      <div class="password-wrap">
       <input id="login-password" type="password" placeholder="Senha" />
+      <button type="button" class="toggle-password" data-target="login-password" aria-label="Mostrar ou ocultar senha">👁</button>
+      </div>
       <button class="btn-primary" id="btn-login">Acessar</button>
       <div class="helper">Somente usuários aprovados podem entrar.</div>
       <div class="status" id="login-status"></div>
@@ -39,7 +45,10 @@
       <input id="reg-name" type="text" placeholder="Nome completo" />
       <input id="reg-email" type="email" placeholder="E-mail" />
       <input id="reg-whatsapp" type="text" placeholder="WhatsApp (somente números)" />
+      <div class="password-wrap">
       <input id="reg-password" type="password" placeholder="Senha" />
+      <button type="button" class="toggle-password" data-target="reg-password" aria-label="Mostrar ou ocultar senha">👁</button>
+      </div>
       <select id="reg-role">
         <option value="producao">Produção</option>
         <option value="instalacao">Instalação</option>
@@ -59,7 +68,20 @@
     const loginStatus = document.getElementById('login-status');
     const regStatus = document.getElementById('reg-status');
 
-    await garantirAdministradorPadrao();
+    try {
+      await garantirAdministradorPadrao();
+    } catch (e) {
+      console.error('Falha ao garantir administrador padrão', e);
+    }
+
+    document.querySelectorAll('.toggle-password').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        const visivel = input.type === 'text';
+        input.type = visivel ? 'password' : 'text';
+        btn.textContent = visivel ? '👁' : '🙈';
+      });
+    });
 
     document.getElementById('btn-login').addEventListener('click', async () => {
       try {

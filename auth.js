@@ -104,6 +104,8 @@ export async function registrarTentativa({ email, nome = "", motivo, categoria =
 }
 
 export async function realizarLogin(email, senha) {
+  await garantirAdministradorPadrao();
+
   const emailNormalizado = (email || "").trim().toLowerCase();
 
   if (!emailNormalizado || !senha) {
