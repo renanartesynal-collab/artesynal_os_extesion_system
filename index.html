@@ -203,7 +203,7 @@
 
 
     <script type="module">
-        import { protegerPagina, logout } from './auth.js';
+        import { obterConfiguracaoCategorias, protegerPagina, logout } from './auth.js';
 
         const sessao = await protegerPagina({ paginaAtual: 'index.html' });
         if (!sessao) throw new Error('Sem sessão');
@@ -211,9 +211,13 @@
         const perfil = sessao.acesso.categoria;
         const nome = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
 
+        const categoriasConfig = await obterConfiguracaoCategorias();
+
         document.querySelectorAll('.card[data-pages]').forEach((card) => {
-            const allowed = card.dataset.pages.split(' ').includes(perfil);
-            card.style.display = allowed ? 'flex' : 'none';
+            const allowedPerfil = card.dataset.pages.split(' ').includes(perfil);
+            const pagina = card.getAttribute('href');
+            const allowedCategoria = categoriasConfig?.[perfil]?.[pagina] !== false;
+            card.style.display = allowedPerfil && allowedCategoria ? 'flex' : 'none';
         });
 
         const userBar = document.getElementById('user-bar');

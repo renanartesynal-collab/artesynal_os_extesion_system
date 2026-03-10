@@ -37,11 +37,20 @@
     .modal input,.modal select{width:100%;box-sizing:border-box}
     .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
     .muted{font-size:12px;color:#cbd5e1;margin:0 0 8px}
+    .btn-categorias{background:#0f172a;color:#fff;border:1px solid #334155;padding:8px 16px;border-radius:8px}
+    .categorias-grid{width:100%;border-collapse:collapse;background:#334155;margin-top:10px}
+    .categorias-grid th,.categorias-grid td{padding:8px;border-bottom:1px solid #475569;text-align:center}
+    .categorias-grid th:first-child,.categorias-grid td:first-child{text-align:left}
+    .switch-cat{width:42px;height:22px;appearance:none;background:#9ca3af;border-radius:999px;position:relative;cursor:pointer;outline:none}
+    .switch-cat:checked{background:#22c55e}
+    .switch-cat::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:all .18s}
+    .switch-cat:checked::after{left:23px}
   </style>
 </head>
 <body>
   <div class="top">
     <h1>Gerenciamento de acessos</h1>
+    <button type="button" class="btn-categorias" id="btn-categorias">Categorias</button>
     <a href="index.html">Voltar ao painel</a>
   </div>
   <h2>Solicitantes de acesso</h2>
@@ -101,18 +110,50 @@
     </div>
   </div>
 
+  <div class="modal-bg" id="categorias-modal-bg">
+    <div class="modal" style="width:min(760px,100%)">
+      <h3 style="margin-top:0">Gerenciamento das categorias do menu</h3>
+      <p class="muted">Desligue para esconder a aba no menu inicial para aquela categoria.</p>
+      <div id="categorias-wrapper"></div>
+      <div class="modal-actions">
+        <button type="button" onclick="window.fecharCategorias()">Cancelar</button>
+        <button type="button" class="ok" onclick="window.salvarCategorias()">Salvar categorias</button>
+      </div>
+    </div>
+  </div>
+
+
   <script type="module">
     import { db } from './config.js';
-    import { protegerPagina, emailParaId, hashSenha } from './auth.js';
+    import { MODULOS_MENU, obterConfiguracaoCategorias, protegerPagina, salvarConfiguracaoCategorias, emailParaId, hashSenha } from './auth.js';
     import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     await protegerPagina({ paginaAtual: 'admin-acessos.html', exigirAdmin: true });
 
     const modalBg = document.getElementById('edit-modal-bg');
+    const categoriasModalBg = document.getElementById('categorias-modal-bg');
+    const categoriasWrapper = document.getElementById('categorias-wrapper');
     let editandoId = null;
+    let categoriasConfig = null;
     const acessosMap = new Map();
 
     const esc = (v) => String(v || '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+
+
+    function renderTabelaCategorias() {
+      if (!categoriasConfig) return;
+
+      const linhas = MODULOS_MENU.map((modulo) => {
+        return `<tr>
+          <td>${esc(modulo.label)}</td>
+          <td><input class="switch-cat" type="checkbox" data-categoria="producao" data-pagina="${modulo.pagina}" ${categoriasConfig.producao?.[modulo.pagina] ? 'checked' : ''} /></td>
+          <td><input class="switch-cat" type="checkbox" data-categoria="instalacao" data-pagina="${modulo.pagina}" ${categoriasConfig.instalacao?.[modulo.pagina] ? 'checked' : ''} /></td>
+          <td><input class="switch-cat" type="checkbox" data-categoria="administracao" data-pagina="${modulo.pagina}" ${categoriasConfig.administracao?.[modulo.pagina] ? 'checked' : ''} /></td>
+        </tr>`;
+      }).join('');
+
+      categoriasWrapper.innerHTML = `<table class="categorias-grid"><thead><tr><th>Aba</th><th>Produção</th><th>Instalação</th><th>Administração</th></tr></thead><tbody>${linhas}</tbody></table>`;
+    }
 
     async function carregar() {
       const snap = await getDocs(query(collection(db, 'access_requests'), orderBy('created_at', 'desc')));
@@ -167,14 +208,14 @@
 
     window.atualizar = async (id, status, blocked) => {
       await updateDoc(doc(db, 'access_requests', id), { status, blocked, updated_at: serverTimestamp() });
-      carregar();
+      await carregar();
     };
 
     window.alternarStatus = async (id, ativoAgora) => {
       const status = ativoAgora ? 'rejected' : 'approved';
       const blocked = !!ativoAgora;
       await updateDoc(doc(db, 'access_requests', id), { status, blocked, updated_at: serverTimestamp() });
-      carregar();
+      await carregar();
     };
 
 
@@ -271,6 +312,29 @@
     };
 
 
+    window.abrirCategorias = () => {
+      renderTabelaCategorias();
+      categoriasModalBg.style.display = 'flex';
+    };
+
+    window.fecharCategorias = () => {
+      categoriasModalBg.style.display = 'none';
+    };
+
+    window.salvarCategorias = async () => {
+      if (!categoriasConfig) return;
+
+      document.querySelectorAll('.switch-cat').forEach((el) => {
+        const categoria = el.dataset.categoria;
+        const pagina = el.dataset.pagina;
+        categoriasConfig[categoria][pagina] = el.checked;
+      });
+
+      categoriasConfig = await salvarConfiguracaoCategorias(categoriasConfig);
+      window.fecharCategorias();
+      alert('Configuração de categorias salva com sucesso.');
+    };
+
     window.excluirUsuario = async (id, nome) => {
       const confirmar = window.confirm(`O usuário ${nome || ''} será excluído permanentemente.
 
@@ -280,6 +344,10 @@ CONFIRMAR?`);
       await deleteDoc(doc(db, 'access_requests', id));
       await carregar();
     };
+
+    categoriasConfig = await obterConfiguracaoCategorias();
+
+    document.getElementById('btn-categorias').addEventListener('click', window.abrirCategorias);
 
     carregar();
   </script>

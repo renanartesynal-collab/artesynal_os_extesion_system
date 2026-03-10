@@ -40,6 +40,79 @@ export const PERFIS = {
   }
 };
 
+
+export const MODULOS_MENU = [
+  { pagina: "os.html", label: "Gerar O.S." },
+  { pagina: "lista.html", label: "Lista de O.S." },
+  { pagina: "orcamentos.html", label: "Orçamentos" },
+  { pagina: "estimpressao.html", label: "Impressão" },
+  { pagina: "estserralheria.html", label: "Serralheria" },
+  { pagina: "admin-acessos.html", label: "Gerenciamento de Acessos" }
+];
+
+const VISIBILIDADE_PADRAO = {
+  producao: {
+    "os.html": true,
+    "lista.html": true,
+    "orcamentos.html": true,
+    "estimpressao.html": false,
+    "estserralheria.html": false,
+    "admin-acessos.html": false
+  },
+  instalacao: {
+    "os.html": false,
+    "lista.html": false,
+    "orcamentos.html": false,
+    "estimpressao.html": true,
+    "estserralheria.html": true,
+    "admin-acessos.html": false
+  },
+  administracao: {
+    "os.html": true,
+    "lista.html": true,
+    "orcamentos.html": true,
+    "estimpressao.html": true,
+    "estserralheria.html": true,
+    "admin-acessos.html": true
+  }
+};
+
+function normalizarConfiguracaoCategorias(categorias = {}) {
+  const base = structuredClone(VISIBILIDADE_PADRAO);
+
+  for (const categoria of Object.keys(base)) {
+    for (const pagina of Object.keys(base[categoria])) {
+      if (typeof categorias?.[categoria]?.[pagina] === "boolean") {
+        base[categoria][pagina] = categorias[categoria][pagina];
+      }
+    }
+  }
+
+  return base;
+}
+
+export async function obterConfiguracaoCategorias() {
+  const ref = doc(db, "system_config", "menu_categorias");
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    const categorias = structuredClone(VISIBILIDADE_PADRAO);
+    await setDoc(ref, { categorias, created_at: serverTimestamp(), updated_at: serverTimestamp() }, { merge: true });
+    return categorias;
+  }
+
+  const categorias = normalizarConfiguracaoCategorias(snap.data()?.categorias);
+  await setDoc(ref, { categorias, updated_at: serverTimestamp() }, { merge: true });
+  return categorias;
+}
+
+export async function salvarConfiguracaoCategorias(categorias) {
+  const ref = doc(db, "system_config", "menu_categorias");
+  const normalizada = normalizarConfiguracaoCategorias(categorias);
+  await setDoc(ref, { categorias: normalizada, updated_at: serverTimestamp() }, { merge: true });
+  return normalizada;
+}
+
 export function emailParaId(email) {
   return btoa(unescape(encodeURIComponent(email.trim().toLowerCase())))
     .replace(/\+/g, "-")
