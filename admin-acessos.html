@@ -8,11 +8,21 @@
     body{font-family:Arial,sans-serif;background:#1f2937;color:#fff;margin:0;padding:20px}
     table{width:100%;border-collapse:collapse;background:#334155;margin-bottom:24px}
     th,td{padding:10px;border-bottom:1px solid #475569;text-align:left}
-    button,select{padding:6px 9px;border:none;border-radius:6px}
+    button,select,input{padding:6px 9px;border:none;border-radius:6px}
     .ok{background:#16a34a;color:#fff}.no{background:#dc2626;color:#fff}.blk{background:#f59e0b;color:#111}
+    .edit{background:#0ea5e9;color:#fff}
     .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
     a{color:#93c5fd}
     h2{margin:8px 0}
+    .acoes{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+    .modal{width:min(640px,100%);background:#1e293b;border-radius:12px;padding:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid .full{grid-column:1 / -1}
+    .modal label{font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px}
+    .modal input,.modal select{width:100%;box-sizing:border-box}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+    .muted{font-size:12px;color:#cbd5e1;margin:0 0 8px}
   </style>
 </head>
 <body>
@@ -25,24 +35,87 @@
   <h2>Tentativas de login</h2>
   <div id="tentativas"></div>
 
+  <div class="modal-bg" id="edit-modal-bg">
+    <div class="modal">
+      <h3 style="margin-top:0">Editar usuário</h3>
+      <p class="muted">Altere todas as informações do usuário. Se preencher "Nova senha", ela será atualizada.</p>
+      <div class="grid">
+        <div>
+          <label for="edit-nome">Nome</label>
+          <input id="edit-nome" type="text" />
+        </div>
+        <div>
+          <label for="edit-email">E-mail</label>
+          <input id="edit-email" type="email" />
+        </div>
+        <div>
+          <label for="edit-whatsapp">WhatsApp</label>
+          <input id="edit-whatsapp" type="text" />
+        </div>
+        <div>
+          <label for="edit-categoria">Categoria</label>
+          <select id="edit-categoria">
+            <option value="producao">Produção</option>
+            <option value="instalacao">Instalação</option>
+            <option value="administracao">Administração</option>
+          </select>
+        </div>
+        <div>
+          <label for="edit-status">Status</label>
+          <select id="edit-status">
+            <option value="pending">Pendente</option>
+            <option value="approved">Aprovado</option>
+            <option value="rejected">Reprovado</option>
+          </select>
+        </div>
+        <div>
+          <label for="edit-blocked">Bloqueio</label>
+          <select id="edit-blocked">
+            <option value="false">Não bloqueado</option>
+            <option value="true">Bloqueado</option>
+          </select>
+        </div>
+        <div class="full">
+          <label for="edit-password">Nova senha (opcional)</label>
+          <input id="edit-password" type="password" placeholder="Deixe em branco para manter a senha atual" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" onclick="window.fecharEdicao()">Cancelar</button>
+        <button type="button" class="ok" onclick="window.salvarEdicao()">Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { db } from './config.js';
-    import { protegerPagina } from './auth.js';
-    import { collection, getDocs, doc, updateDoc, orderBy, query, serverTimestamp, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { protegerPagina, emailParaId, hashSenha } from './auth.js';
+    import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     await protegerPagina({ paginaAtual: 'admin-acessos.html', exigirAdmin: true });
+
+    const modalBg = document.getElementById('edit-modal-bg');
+    let editandoId = null;
+    const acessosMap = new Map();
+
+    const esc = (v) => String(v || '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 
     async function carregar() {
       const snap = await getDocs(query(collection(db, 'access_requests'), orderBy('created_at', 'desc')));
       const rows = [];
-      snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
+      acessosMap.clear();
+      snap.forEach((d) => {
+        const row = { id: d.id, ...d.data() };
+        rows.push(row);
+        acessosMap.set(d.id, row);
+      });
 
       const html = [`<table><thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Categoria</th><th>Status</th><th>Ações</th></tr></thead><tbody>`];
       for (const r of rows) {
         html.push(`<tr>
-          <td>${r.nome || ''}</td>
-          <td>${r.email || ''}</td>
-          <td>${r.whatsapp || '-'}</td>
+          <td>${esc(r.nome)}</td>
+          <td>${esc(r.email)}</td>
+          <td>${esc(r.whatsapp || '-')}</td>
           <td>
             <select onchange="window.mudarCategoria('${r.id}', this.value)">
               <option value="producao" ${r.categoria === 'producao' ? 'selected' : ''}>Produção</option>
@@ -52,9 +125,12 @@
           </td>
           <td>${r.blocked ? 'bloqueado' : (r.status || 'pending')}</td>
           <td>
-            <button class="ok" onclick="window.atualizar('${r.id}','approved',false)">Aprovar</button>
-            <button class="no" onclick="window.atualizar('${r.id}','rejected',false)">Reprovar</button>
-            <button class="blk" onclick="window.abrirWhatsapp('${r.whatsapp || ''}','${r.nome || ''}')">WhatsApp</button>
+            <div class="acoes">
+              <button class="ok" onclick="window.atualizar('${r.id}','approved',false)">Aprovar</button>
+              <button class="no" onclick="window.atualizar('${r.id}','rejected',false)">Reprovar</button>
+              <button class="blk" onclick="window.abrirWhatsapp('${esc(r.whatsapp || '')}','${esc(r.nome || '')}')">WhatsApp</button>
+              <button class="edit" onclick="window.abrirEdicao('${r.id}')">✏️</button>
+            </div>
           </td>
         </tr>`);
       }
@@ -66,7 +142,7 @@
       tentSnap.forEach((d) => {
         const t = d.data();
         const dt = t.created_at?.seconds ? new Date(t.created_at.seconds * 1000).toLocaleString('pt-BR') : '-';
-        tent.push(`<tr><td>${dt}</td><td>${t.email || ''}</td><td>${t.nome || ''}</td><td>${t.categoria || ''}</td><td>${t.motivo || ''}</td></tr>`);
+        tent.push(`<tr><td>${dt}</td><td>${esc(t.email)}</td><td>${esc(t.nome)}</td><td>${esc(t.categoria)}</td><td>${esc(t.motivo)}</td></tr>`);
       });
       tent.push('</tbody></table>');
       document.getElementById('tentativas').innerHTML = tent.join('');
@@ -90,6 +166,83 @@
 
       const msg = encodeURIComponent(`Olá ${nome || ''}, seu cadastro no Sistema Artesynal está em análise.`);
       window.open(`https://wa.me/55${numero}?text=${msg}`, '_blank');
+    };
+
+    window.abrirEdicao = (id) => {
+      const user = acessosMap.get(id);
+      if (!user) return;
+      editandoId = id;
+      document.getElementById('edit-nome').value = user.nome || '';
+      document.getElementById('edit-email').value = user.email || '';
+      document.getElementById('edit-whatsapp').value = user.whatsapp || '';
+      document.getElementById('edit-categoria').value = user.categoria || 'producao';
+      document.getElementById('edit-status').value = user.status || 'pending';
+      document.getElementById('edit-blocked').value = String(!!user.blocked);
+      document.getElementById('edit-password').value = '';
+      modalBg.style.display = 'flex';
+    };
+
+    window.fecharEdicao = () => {
+      editandoId = null;
+      modalBg.style.display = 'none';
+    };
+
+    window.salvarEdicao = async () => {
+      if (!editandoId) return;
+
+      const atual = acessosMap.get(editandoId);
+      if (!atual) return;
+
+      const nome = document.getElementById('edit-nome').value.trim();
+      const email = document.getElementById('edit-email').value.trim().toLowerCase();
+      const whatsapp = document.getElementById('edit-whatsapp').value.trim().replace(/\D/g, '');
+      const categoria = document.getElementById('edit-categoria').value;
+      const status = document.getElementById('edit-status').value;
+      const blocked = document.getElementById('edit-blocked').value === 'true';
+      const novaSenha = document.getElementById('edit-password').value;
+
+      if (!nome || !email) {
+        alert('Nome e e-mail são obrigatórios.');
+        return;
+      }
+
+      const payload = {
+        nome,
+        email,
+        whatsapp,
+        categoria,
+        status,
+        blocked,
+        updated_at: serverTimestamp()
+      };
+
+      if (novaSenha) {
+        payload.senha_hash = await hashSenha(novaSenha);
+      }
+
+      const novoId = emailParaId(email);
+
+      if (novoId !== editandoId) {
+        const novoRef = doc(db, 'access_requests', novoId);
+        const jaExiste = await getDoc(novoRef);
+        if (jaExiste.exists()) {
+          alert('Já existe um usuário com esse e-mail.');
+          return;
+        }
+
+        await setDoc(novoRef, {
+          ...atual,
+          ...payload,
+          created_at: atual.created_at || serverTimestamp()
+        }, { merge: true });
+
+        await deleteDoc(doc(db, 'access_requests', editandoId));
+      } else {
+        await updateDoc(doc(db, 'access_requests', editandoId), payload);
+      }
+
+      window.fecharEdicao();
+      await carregar();
     };
 
     carregar();
