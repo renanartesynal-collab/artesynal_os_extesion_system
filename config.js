@@ -24,7 +24,7 @@ export const ROTAS = {
     painel: "index.html",
     os: "os.html",
     lista: "lista.html",
-    estoque: "estoque.html",
+    estoque: "estserralheria.html",
     orcamentos: "orcamentos.html",
     solicitacao: "solicitacao.html"
 };
