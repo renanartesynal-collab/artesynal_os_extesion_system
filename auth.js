@@ -233,8 +233,9 @@ export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) 
   }
 
   const perfil = acesso.categoria;
-  const permitido = PERFIS[perfil]?.paginas?.includes(paginaAtual);
   const admin = perfil === "administracao";
+  const categoriasConfig = await obterConfiguracaoCategorias();
+  const permitido = !!categoriasConfig?.[perfil]?.[paginaAtual];
 
   if (exigirAdmin && !admin) {
     window.location.replace("index.html");

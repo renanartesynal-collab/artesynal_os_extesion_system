@@ -214,10 +214,9 @@
         const categoriasConfig = await obterConfiguracaoCategorias();
 
         document.querySelectorAll('.card[data-pages]').forEach((card) => {
-            const allowedPerfil = card.dataset.pages.split(' ').includes(perfil);
             const pagina = card.getAttribute('href');
-            const allowedCategoria = categoriasConfig?.[perfil]?.[pagina] !== false;
-            card.style.display = allowedPerfil && allowedCategoria ? 'flex' : 'none';
+            const allowedCategoria = categoriasConfig?.[perfil]?.[pagina] === true;
+            card.style.display = allowedCategoria ? 'flex' : 'none';
         });
 
         const userBar = document.getElementById('user-bar');
