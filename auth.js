@@ -213,6 +213,20 @@ export function logout() {
   window.location.replace("login.html");
 }
 
+function paginaPermitidaParaPerfil({ perfil, paginaAtual, categoriasConfig }) {
+  if (!paginaAtual || paginaAtual === "index.html") {
+    return true;
+  }
+
+  const regraCategorias = categoriasConfig?.[perfil]?.[paginaAtual];
+  if (typeof regraCategorias === "boolean") {
+    return regraCategorias;
+  }
+
+  const paginasPadrao = PERFIS?.[perfil]?.paginas || [];
+  return paginasPadrao.includes(paginaAtual);
+}
+
 export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) {
   const sessao = lerSessao();
   if (!sessao?.email) {
@@ -235,7 +249,7 @@ export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) 
   const perfil = acesso.categoria;
   const admin = perfil === "administracao";
   const categoriasConfig = await obterConfiguracaoCategorias();
-  const permitido = !!categoriasConfig?.[perfil]?.[paginaAtual];
+  const permitido = paginaPermitidaParaPerfil({ perfil, paginaAtual, categoriasConfig });
 
   if (exigirAdmin && !admin) {
     window.location.replace("index.html");
@@ -243,7 +257,6 @@ export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) 
   }
 
   if (paginaAtual && !permitido && !admin) {
-    alert("Você não tem acesso a esta área.");
     window.location.replace("index.html");
     return null;
   }
