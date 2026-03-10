@@ -49,6 +49,7 @@
         .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1.1; }
         .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 5px; display: block; }
         .prod-details { font-size: 11px; color: var(--text-gray); display: block; margin-bottom: 10px;}
+        .prod-qtd { position: absolute; top: 46px; right: 15px; text-align: right; color: var(--orange); font-size: 12px; font-weight: 700; }
         .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
@@ -194,7 +195,7 @@
                         <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
                 </div>
-                <div class="form-row" style="margin-bottom: 0;">
+                <div class="form-row" style="margin-bottom: 0; align-items:flex-end;">
                     <div class="field-group">
                         <label class="sub-label-right">Largura (L)</label>
                         <div class="input-suffix-wrapper"><input type="number" id="prod-dim-w" placeholder="0" oninput="atualizarPlanoCorte()"></div>
@@ -202,6 +203,10 @@
                     <div class="field-group">
                         <label class="sub-label-right">Altura (A)</label>
                         <div class="input-suffix-wrapper"><input type="number" id="prod-dim-h" placeholder="0" oninput="atualizarPlanoCorte()"></div>
+                    </div>
+                    <div class="field-group" style="max-width: 115px;">
+                        <label class="sub-label-right">Quantidade</label>
+                        <input type="number" id="prod-qtd" min="1" step="1" value="1" placeholder="1">
                     </div>
                 </div>
 
@@ -266,7 +271,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo
@@ -311,10 +316,41 @@
             });
         }
 
+        function identificarTipoMedida(produto) {
+            const catLower = (produto.categoria || '').toLowerCase();
+            const medidasPadrao = CONFIG_FABRICA[catLower]?.medidas || [];
+            const isPadrao = medidasPadrao.some(m => Number(m.w) === Number(produto.dimW) && Number(m.h) === Number(produto.dimH));
+            return isPadrao ? 'fabrica' : 'corte';
+        }
+
+        function montarChaveAgrupamento(produto) {
+            return [
+                (produto.categoria || '').toUpperCase(),
+                (produto.espessura || '').toUpperCase(),
+                (produto.cor || '').toUpperCase(),
+                Number(produto.dimW) || 0,
+                Number(produto.dimH) || 0,
+                identificarTipoMedida(produto)
+            ].join('|');
+        }
+
         function renderizarCards() {
             document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
+            const grupos = new Map();
 
             produtos.forEach(p => {
+                const chave = montarChaveAgrupamento(p);
+                if (!grupos.has(chave)) {
+                    grupos.set(chave, { ...p, qtd: Number(p.qtd) || 1, ids: [p.id] });
+                    return;
+                }
+                const grupo = grupos.get(chave);
+                grupo.qtd += Number(p.qtd) || 1;
+                grupo.ids.push(p.id);
+                if (grupo.data_criacao < (p.data_criacao || '')) grupo.data_criacao = p.data_criacao;
+            });
+
+            grupos.forEach(p => {
                 let catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 let gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : 'OUTROS-SERR';
                 const grid = document.getElementById(`grid-${gridID}`);
@@ -346,6 +382,7 @@ if (dataExibir) {
      font-family: 'Montserrat', sans-serif; opacity: 0.6;
       vertical-align: middle;">${dataExibir}</span>`;
 }
+                    conteudo += `<div class="prod-qtd">Un.<br>${p.qtd}</div>`;
                     
                     conteudo += `
                         <div style="display:flex; gap:10px; margin-top:10px;">
@@ -384,6 +421,7 @@ if (dataExibir) {
             document.getElementById('prod-espessura').innerHTML = '<option value="">Selecione a Matéria...</option>';
             document.getElementById('prod-dim-w').value = '';
             document.getElementById('prod-dim-h').value = '';
+            document.getElementById('prod-qtd').value = 1;
             document.getElementById('div-dims').style.display = 'none';
             
             window.atualizarPlanoCorte();
@@ -639,11 +677,30 @@ if (dataExibir) {
                 qtd: 1
             };
             dados.nome = `${cat} ${dados.espessura}`.trim();
+            const qtdAdicionar = Math.max(1, parseInt(document.getElementById('prod-qtd').value, 10) || 1);
 
             if (dados.dimW <= 0 || dados.dimH <= 0) { return alert("Preencha as dimensões da chapa!"); }
 
             btn.disabled = true; btn.innerText = "SALVANDO...";
-            try { await addDoc(collection(db, "estoque"), dados); window.fecharModal('modal-prod'); } 
+            try {
+                const itemExistente = produtos.find(p =>
+                    (p.setor === dados.setor) &&
+                    (p.categoria === dados.categoria) &&
+                    ((p.espessura || '') === (dados.espessura || '')) &&
+                    ((p.cor || '') === (dados.cor || '')) &&
+                    (Number(p.dimW) === Number(dados.dimW)) &&
+                    (Number(p.dimH) === Number(dados.dimH)) &&
+                    (identificarTipoMedida(p) === identificarTipoMedida(dados))
+                );
+
+                if (itemExistente) {
+                    await updateDoc(doc(db, "estoque", itemExistente.id), { qtd: increment(qtdAdicionar) });
+                } else {
+                    dados.qtd = qtdAdicionar;
+                    await addDoc(collection(db, "estoque"), dados);
+                }
+                window.fecharModal('modal-prod');
+            } 
             catch(e) { console.error(e); alert("Erro ao salvar"); }
             btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE";
         };
@@ -692,15 +749,32 @@ if (dataExibir) {
 
             try {
                 const sobraW = pecaParaCorte.dimW - cw; const sobraH = pecaParaCorte.dimH - ch; const nomeBase = pecaParaCorte.nome || pecaParaCorte.categoria;
-                await updateDoc(doc(db, "estoque", pecaParaCorte.id), { 
-                    dimW: sobraW > 0 ? sobraW : pecaParaCorte.dimW, 
-                    dimH: sobraH > 0 ? sobraH : pecaParaCorte.dimH, 
-                    status: "Usado", 
-                    nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)" 
-                });
+                const qtdAtual = Number(pecaParaCorte.qtd) || 1;
+                if (qtdAtual > 1) {
+                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), { qtd: qtdAtual - 1 });
+                    const sobraPeca = { ...pecaParaCorte };
+                    delete sobraPeca.id;
+                    sobraPeca.qtd = 1;
+                    sobraPeca.dimW = sobraW > 0 ? sobraW : pecaParaCorte.dimW;
+                    sobraPeca.dimH = sobraH > 0 ? sobraH : pecaParaCorte.dimH;
+                    sobraPeca.status = "Usado";
+                    sobraPeca.data_criacao = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                    sobraPeca.nome = nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)";
+                    await addDoc(collection(db, "estoque"), sobraPeca);
+                } else {
+                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), { 
+                        dimW: sobraW > 0 ? sobraW : pecaParaCorte.dimW, 
+                        dimH: sobraH > 0 ? sobraH : pecaParaCorte.dimH, 
+                        status: "Usado", 
+                        nome: nomeBase.includes("(Sobra)") ? nomeBase : nomeBase + " (Sobra)",
+                        qtd: 1
+                    });
+                }
 
                 const novaPeca = { ...pecaParaCorte }; delete novaPeca.id;
-                novaPeca.dimW = cw; novaPeca.dimH = ch; novaPeca.status = "Usado"; novaPeca.data_criacao = serverTimestamp(); novaPeca.nome = nomeBase.replace(" (Sobra)", "") + " (Corte)";
+                novaPeca.dimW = cw; novaPeca.dimH = ch; novaPeca.status = "Usado"; novaPeca.qtd = 1;
+                novaPeca.data_criacao = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                novaPeca.nome = nomeBase.replace(" (Sobra)", "") + " (Corte)";
                 await addDoc(collection(db, "estoque"), novaPeca);
 
                 alert("Corte realizado! O estoque foi atualizado."); window.fecharModal('modal-corte');
