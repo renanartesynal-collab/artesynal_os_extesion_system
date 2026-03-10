@@ -67,6 +67,9 @@
         .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .btn-adj { background: #333; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s;}
         .btn-adj:hover { background: var(--blue-used); }
+        .serr-top-actions { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .serr-qtd-indicador { font-size: 11px; color: var(--white); text-align: right; line-height: 1.1; }
+        .serr-qtd-indicador b { font-size: 24px; display: block; }
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: var(--orange); color: white; border-radius: 50%; border: none; font-size: 35px; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.5); cursor: pointer; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center;}
         .fab-add:hover { transform: scale(1.1); }
 
@@ -243,11 +246,17 @@
             </div>
 
             <div id="div-dims" style="display:none; background:#1a1a1a; padding:15px; border-radius:8px; margin-top:5px; border: 1px solid #333;">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display:flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; gap: 12px;">
                     <label class="label-standard" style="margin-top:0;">Dimensões</label>
-                    <button id="btn-refresh-dims" class="btn-icon-action" onclick="alternarMedidaPadrao()" title="Navegar Medidas">
-                        <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                    </button>
+                    <div style="display:flex; align-items:flex-end; gap:8px; margin-left:auto;">
+                        <div style="min-width:120px;">
+                            <label class="sub-label-right">Qtd.</label>
+                            <input type="number" id="prod-qtd-serr" value="1" min="1" step="1" style="padding: 8px 10px; text-align:right;">
+                        </div>
+                        <button id="btn-refresh-dims" class="btn-icon-action" onclick="alternarMedidaPadrao()" title="Navegar Medidas">
+                            <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-row" style="margin-bottom: 0;">
                     <div class="field-group">
@@ -436,11 +445,28 @@
             });
         }
 
+        function obterChaveAgrupamentoSerr(item) {
+            const cor = (item.cor || '').trim().toLowerCase();
+            const acabamento = (item.acabamento || '').trim().toLowerCase();
+            const categoria = (item.categoria || '').trim().toLowerCase();
+            const espessura = (item.espessura || '').trim().toLowerCase();
+            const dimensoes = `${item.dimW || 0}x${item.dimH || 0}`;
+            return [categoria, espessura, cor, acabamento, dimensoes].join('|');
+        }
+
         function renderizarCards() {
             document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
             const isSerr = window.setorAtual === 'serralheria';
+            const dadosRender = isSerr
+                ? Object.values(produtos.reduce((acc, item) => {
+                    const chave = obterChaveAgrupamentoSerr(item);
+                    if (!acc[chave]) acc[chave] = { ...item, qtd: 0 };
+                    acc[chave].qtd += Number(item.qtd) > 0 ? Number(item.qtd) : 1;
+                    return acc;
+                }, {}))
+                : produtos;
 
-            produtos.forEach(p => {
+            dadosRender.forEach(p => {
                 let catLimpa = p.categoria.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace("ADESIVO DE RECORTE", "RECORTE");
                 let gridID = document.getElementById(`grid-${catLimpa}`) ? catLimpa : (isSerr ? 'OUTROS-SERR' : 'OUTROS-IMP');
                 const grid = document.getElementById(`grid-${gridID}`);
@@ -450,7 +476,10 @@
                     card.className = `card-prod`;
                     card.style.borderLeftColor = isSerr ? 'var(--orange)' : 'var(--purple)';
                     let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--purple); color:white; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
-                    let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
+                    let conteudo = temNotaBadge;
+                    if (!isSerr) {
+                        conteudo += `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
+                    }
                     conteudo += `<span class="prod-cat">${p.categoria}</span>`;
                     
                     if (isSerr) {
@@ -458,6 +487,10 @@
                         conteudo += `<span class="prod-dims">${p.dimW} x ${p.dimH} cm</span>`;
                         conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
                         const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
+                        conteudo += `<div class="serr-top-actions">
+                                        <button class="btn-adj" style="background:#ff4757; padding:4px 10px; font-size:12px;" onclick="abrirAjusteSerr('${encodeURIComponent(obterChaveAgrupamentoSerr(p))}')">BAIXA</button>
+                                        <div class="serr-qtd-indicador"><span>Un.</span><b>${p.qtd || 1}</b></div>
+                                     </div>`;
                         conteudo += `<span class="badge-status" style="background:${bgStatus}; color:white">${p.status}</span>`;
                         conteudo += `<div style="display:flex; gap:10px; margin-top:10px;">
                                         <button class="btn-adj" style="flex:1; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR</button>
@@ -503,6 +536,7 @@
             
             document.getElementById('prod-nome').value = '';
             document.getElementById('prod-qtd').value = '1';
+            document.getElementById('prod-qtd-serr').value = '1';
             document.getElementById('prod-dim-w').value = '';
             document.getElementById('prod-dim-h').value = '';
             document.getElementById('div-dims').style.display = 'none';
@@ -653,7 +687,7 @@
                 dados.espessura = espNode ? espNode.value : ''; dados.cor = corNode ? corNode.value : '';
                 dados.dimW = parseFloat(document.getElementById('prod-dim-w').value) || 0;
                 dados.dimH = parseFloat(document.getElementById('prod-dim-h').value) || 0;
-                dados.status = window.materialStatus; dados.qtd = 1; dados.nome = `${cat} ${dados.espessura}`.trim();
+                dados.status = window.materialStatus; dados.qtd = Math.max(1, parseInt(document.getElementById('prod-qtd-serr').value, 10) || 1); dados.unidade = 'un'; dados.nome = `${cat} ${dados.espessura}`.trim();
                 if (dados.dimW <= 0 || dados.dimH <= 0) { alert("Preencha as dimensões!"); btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE"; return; }
             } else {
                 dados.nome = document.getElementById('prod-nome').value; if(!dados.nome) dados.nome = cat; 
@@ -749,7 +783,9 @@
         };
 
         let idParaAjuste = null;
+        let ajusteSerrContext = null;
         window.abrirAjuste = (id) => {
+            ajusteSerrContext = null;
             idParaAjuste = id; const p = produtos.find(x => x.id === id);
             document.getElementById('mov-nome').innerText = p.nome || p.categoria;
             document.getElementById('mov-qtd-atual-txt').innerText = `${p.qtd} ${p.unidade}`;
@@ -757,21 +793,69 @@
             document.getElementById('modal-mov').style.display = 'flex';
         };
 
+        window.abrirAjusteSerr = (chaveCodificada) => {
+            const chave = decodeURIComponent(chaveCodificada);
+            const itensGrupo = produtos.filter(x => obterChaveAgrupamentoSerr(x) === chave);
+            if (!itensGrupo.length) return;
+            const p = itensGrupo[0];
+            const qtdAtual = itensGrupo.reduce((acc, item) => acc + (Number(item.qtd) > 0 ? Number(item.qtd) : 1), 0);
+            ajusteSerrContext = { itensGrupo, qtdAtual, base: p };
+            idParaAjuste = null;
+            document.getElementById('mov-nome').innerText = `${p.categoria} ${p.espessura || ''}`.trim();
+            document.getElementById('mov-qtd-atual-txt').innerText = `${qtdAtual} un`;
+            document.getElementById('mov-qtd-input').value = '';
+            document.getElementById('mov-os-input').value = '';
+            document.getElementById('mov-tipo').value = 'saida';
+            document.getElementById('modal-mov').style.display = 'flex';
+        };
+
         window.salvarAjusteQtd = async () => {
-            if(!idParaAjuste) return;
-            const p = produtos.find(x => x.id === idParaAjuste);
-            const tipoMovimentacao = document.getElementById('mov-tipo').value; const qtdInformada = parseFloat(document.getElementById('mov-qtd-input').value); const refOS = document.getElementById('mov-os-input').value;
+            const tipoMovimentacao = document.getElementById('mov-tipo').value;
+            const qtdInformada = parseFloat(document.getElementById('mov-qtd-input').value);
+            const refOS = document.getElementById('mov-os-input').value;
             if (isNaN(qtdInformada) || qtdInformada <= 0) return alert("Informe uma quantidade válida maior que zero!");
-            if (tipoMovimentacao === 'saida' && qtdInformada > p.qtd) { return alert("A quantidade de baixa não pode ser maior que o estoque atual!"); }
 
             const btn = document.querySelector('#modal-mov .btn-salvar'); btn.disabled = true; btn.innerText = "SALVANDO...";
-            let novaQtd = tipoMovimentacao === 'saida' ? (p.qtd - qtdInformada) : (p.qtd + qtdInformada);
-            
-            const dataAtual = new Date().toLocaleDateString('pt-BR'); const sinal = tipoMovimentacao === 'saida' ? '🔻 BAIXA: -' : '🟢 ENTRADA: +'; const servicoDesc = refOS ? ` | Ref/O.S: ${refOS}` : '';
-            const logEntry = `\n[${dataAtual}] ${sinal}${qtdInformada}${p.unidade}${servicoDesc}`; const novasAnotacoes = (p.anotacoes || '') + logEntry;
+            try {
+                if (ajusteSerrContext) {
+                    const qtdMov = Math.floor(qtdInformada);
+                    if (tipoMovimentacao === 'saida' && qtdMov > ajusteSerrContext.qtdAtual) {
+                        return alert("A quantidade de baixa não pode ser maior que o estoque atual!");
+                    }
 
-            try { await updateDoc(doc(db, "estoque", idParaAjuste), { qtd: novaQtd, anotacoes: novasAnotacoes }); alert("Movimentação registrada com sucesso!"); window.fecharModal('modal-mov'); } 
-            catch (e) { console.error(e); alert("Erro ao salvar a movimentação."); } 
+                    if (tipoMovimentacao === 'saida') {
+                        const itensRemover = ajusteSerrContext.itensGrupo.slice(0, qtdMov);
+                        for (const item of itensRemover) {
+                            await deleteDoc(doc(db, "estoque", item.id));
+                        }
+                    } else {
+                        const base = ajusteSerrContext.base;
+                        for (let i = 0; i < qtdMov; i++) {
+                            const novoItem = { ...base };
+                            delete novoItem.id;
+                            novoItem.qtd = 1;
+                            novoItem.unidade = 'un';
+                            novoItem.data_criacao = serverTimestamp();
+                            const dataAtual = new Date().toLocaleDateString('pt-BR'); const sinal = '🟢 ENTRADA: +'; const servicoDesc = refOS ? ` | Ref/O.S: ${refOS}` : '';
+                            const logEntry = `
+[${dataAtual}] ${sinal}1un${servicoDesc}`;
+                            novoItem.anotacoes = (novoItem.anotacoes || '') + logEntry;
+                            await addDoc(collection(db, "estoque"), novoItem);
+                        }
+                    }
+                } else {
+                    if(!idParaAjuste) return;
+                    const p = produtos.find(x => x.id === idParaAjuste);
+                    if (tipoMovimentacao === 'saida' && qtdInformada > p.qtd) { return alert("A quantidade de baixa não pode ser maior que o estoque atual!"); }
+
+                    let novaQtd = tipoMovimentacao === 'saida' ? (p.qtd - qtdInformada) : (p.qtd + qtdInformada);
+                    const dataAtual = new Date().toLocaleDateString('pt-BR'); const sinal = tipoMovimentacao === 'saida' ? '🔻 BAIXA: -' : '🟢 ENTRADA: +'; const servicoDesc = refOS ? ` | Ref/O.S: ${refOS}` : '';
+                    const logEntry = `
+[${dataAtual}] ${sinal}${qtdInformada}${p.unidade}${servicoDesc}`; const novasAnotacoes = (p.anotacoes || '') + logEntry;
+                    await updateDoc(doc(db, "estoque", idParaAjuste), { qtd: novaQtd, anotacoes: novasAnotacoes });
+                }
+                alert("Movimentação registrada com sucesso!"); window.fecharModal('modal-mov');
+            } catch (e) { console.error(e); alert("Erro ao salvar a movimentação."); }
             finally { btn.disabled = false; btn.innerText = "💾 CONFIRMAR REGISTRO"; }
         };
 
