@@ -60,6 +60,7 @@
         .prod-name { font-size: 18px; font-weight: 800; color: white; margin-bottom: 5px; line-height: 1.1; }
         .prod-dims { font-size: 14px; color: var(--orange); font-weight: bold; margin-bottom: 5px; display: block; }
         .prod-details { font-size: 11px; color: var(--text-gray); display: block; margin-bottom: 10px;}
+        .prod-qtd { position: absolute; top: 46px; right: 15px; text-align: right; color: var(--orange); font-size: 12px; font-weight: 700; }
         .card-preview { margin: 10px 0; padding: 10px; background: #0d0d0d; border: 1px solid #2d2d2d; border-radius: 8px; display: flex; justify-content: center; }
         .card-preview-sheet { position: relative; background: var(--orange); border: 1px solid #fff; min-width: 60px; min-height: 40px; }
         .card-preview-cut { position: absolute; background: #111; border: 1px dashed #7dd3fc; }
@@ -280,7 +281,7 @@
                         <svg class="icon-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                     </button>
                 </div>
-                <div class="form-row" style="margin-bottom: 0;">
+                <div class="form-row" style="margin-bottom: 0; align-items:flex-end;">
                     <div class="field-group">
                         <label class="sub-label-right">Largura (L)</label>
                         <div class="input-suffix-wrapper"><input type="number" id="prod-dim-w" placeholder="0" oninput="atualizarPlanoCorte()"></div>
@@ -288,6 +289,10 @@
                     <div class="field-group">
                         <label class="sub-label-right">Altura (A)</label>
                         <div class="input-suffix-wrapper"><input type="number" id="prod-dim-h" placeholder="0" oninput="atualizarPlanoCorte()"></div>
+                    </div>
+                    <div class="field-group" style="max-width: 115px;">
+                        <label class="sub-label-right">Quantidade</label>
+                        <input type="number" id="prod-qtd" min="1" step="1" value="1" placeholder="1">
                     </div>
                 </div>
 
@@ -448,7 +453,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo
@@ -659,6 +664,28 @@
             };
         }
 
+        function identificarTipoMedida(peca) {
+            const catLower = (peca.categoria || '').toLowerCase();
+            const base = getDimensoesBase(peca);
+            const temRecorte = Array.isArray(peca.recortes) && peca.recortes.length > 0;
+            if (temRecorte) return 'corte';
+            const medidasPadrao = CONFIG_FABRICA[catLower]?.medidas || [];
+            const isPadrao = medidasPadrao.some(m => Number(m.w) === Number(base.w) && Number(m.h) === Number(base.h));
+            return isPadrao ? 'fabrica' : 'corte';
+        }
+
+        function montarChaveAgrupamento(peca) {
+            const base = getDimensoesBase(peca);
+            return [
+                normalizarCategoria(peca.categoria || ''),
+                (peca.espessura || '').toUpperCase(),
+                (peca.cor || '').toUpperCase(),
+                Number(base.w) || 0,
+                Number(base.h) || 0,
+                identificarTipoMedida(peca)
+            ].join('|');
+        }
+
         function gerarPreviewCard(peca) {
             const base = getDimensoesBase(peca);
             if (base.w <= 0 || base.h <= 0) return '';
@@ -741,7 +768,19 @@
                 return alvoBusca.includes(termoBuscaEstoque);
             });
 
-            filtrados.forEach(p => {
+            const grupos = new Map();
+            filtrados.forEach((p) => {
+                const chave = montarChaveAgrupamento(p);
+                if (!grupos.has(chave)) {
+                    grupos.set(chave, { ...p, qtd: Number(p.qtd) || 1, ids: [p.id] });
+                    return;
+                }
+                const grupo = grupos.get(chave);
+                grupo.qtd += Number(p.qtd) || 1;
+                grupo.ids.push(p.id);
+            });
+
+            grupos.forEach(p => {
                 const card = document.createElement('div');
                 card.className = `card-prod`;
                 card.dataset.itemId = p.id;
@@ -753,6 +792,7 @@
                 const dimsCard = getDimensoesBase(p);
                 conteudo += `<span class="prod-dims">${dimsCard.w} x ${dimsCard.h} cm</span>`;
                 conteudo += `<span class="prod-details">Cor: ${p.cor || 'N/A'} ${p.acabamento ? '| ' + p.acabamento : ''}</span>`;
+                conteudo += `<div class="prod-qtd">Un.<br>${p.qtd}</div>`;
                 conteudo += gerarPreviewCard(p);
 
                 const bgStatus = p.status === 'Novo' ? 'var(--green-new)' : 'var(--blue-used)';
@@ -771,7 +811,16 @@
         }
 
         window.deletarItem = async (id) => {
-            if(confirm("Tem certeza que deseja apagar essa peça permanentemente?")) { await deleteDoc(doc(db, "estoque", id)); }
+            const item = produtos.find((p) => p.id === id);
+            if (!item) return;
+            if (confirm("Tem certeza que deseja dar baixa nessa peça?")) {
+                const qtdAtual = Number(item.qtd) || 1;
+                if (qtdAtual > 1) {
+                    await updateDoc(doc(db, "estoque", id), { qtd: increment(-1) });
+                } else {
+                    await deleteDoc(doc(db, "estoque", id));
+                }
+            }
         };
 
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
@@ -794,6 +843,7 @@
             document.getElementById('prod-espessura').innerHTML = '<option value="">Selecione a Matéria...</option>';
             document.getElementById('prod-dim-w').value = '';
             document.getElementById('prod-dim-h').value = '';
+            document.getElementById('prod-qtd').value = 1;
             document.getElementById('div-dims').style.display = 'none';
             
             window.atualizarPlanoCorte();
@@ -1056,13 +1106,29 @@
             dados.baseDimW = dimensoesNormalizadas.w;
             dados.baseDimH = dimensoesNormalizadas.h;
             dados.nome = `${cat} ${dados.espessura}`.trim();
+            const qtdAdicionar = Math.max(1, parseInt(document.getElementById('prod-qtd').value, 10) || 1);
 
             if (dados.dimW <= 0 || dados.dimH <= 0) { return alert("Preencha as dimensões da chapa!"); }
 
             btn.disabled = true; btn.innerText = "SALVANDO...";
             try {
-                dados.registroSerial = await proximoRegistroSerralheria();
-                await addDoc(collection(db, "estoque"), dados);
+                const itemExistente = produtos.find(p =>
+                    (p.setor === dados.setor) &&
+                    (normalizarCategoria(p.categoria || '') === normalizarCategoria(dados.categoria || '')) &&
+                    ((p.espessura || '') === (dados.espessura || '')) &&
+                    ((p.cor || '') === (dados.cor || '')) &&
+                    (Number(getDimensoesBase(p).w) === Number(dados.baseDimW)) &&
+                    (Number(getDimensoesBase(p).h) === Number(dados.baseDimH)) &&
+                    (identificarTipoMedida(p) === identificarTipoMedida(dados))
+                );
+
+                if (itemExistente) {
+                    await updateDoc(doc(db, "estoque", itemExistente.id), { qtd: increment(qtdAdicionar) });
+                } else {
+                    dados.qtd = qtdAdicionar;
+                    dados.registroSerial = await proximoRegistroSerralheria();
+                    await addDoc(collection(db, "estoque"), dados);
+                }
                 window.fecharModal('modal-prod');
             } 
             catch(e) { console.error(e); alert("Erro ao salvar"); }
@@ -1500,30 +1566,41 @@ function tornarArrastavel(elemento) {
                     (Math.abs(cw - base.w) < 0.01 && (Math.abs(posicaoCorteCm.x) < 0.01))
                 );
 
-                if (corteLinear) {
-                    const sobraW = Math.abs(ch - base.h) < 0.01 ? base.w - cw : base.w;
-                    const sobraH = Math.abs(cw - base.w) < 0.01 ? base.h - ch : base.h;
-                    const sobraNormalizada = normalizarDimensoesChapa(sobraW, sobraH);
-                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
-                        dimW: Number(sobraNormalizada.w.toFixed(2)),
-                        dimH: Number(sobraNormalizada.h.toFixed(2)),
-                        baseDimW: Number(sobraNormalizada.w.toFixed(2)),
-                        baseDimH: Number(sobraNormalizada.h.toFixed(2)),
-                        recortes: [],
-                        status: "Usado",
-                        nome: nomeBase + " (Sobra)"
-                    });
-                } else {
-                    const novoRecorte = { x: posicaoCorteCm.x, y: posicaoCorteCm.y, w: cw, h: ch };
-                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), {
+                const qtdAtual = Number(pecaParaCorte.qtd) || 1;
+                const atualizacaoSobra = corteLinear
+                    ? (() => {
+                        const sobraW = Math.abs(ch - base.h) < 0.01 ? base.w - cw : base.w;
+                        const sobraH = Math.abs(cw - base.w) < 0.01 ? base.h - ch : base.h;
+                        const sobraNormalizada = normalizarDimensoesChapa(sobraW, sobraH);
+                        return {
+                            dimW: Number(sobraNormalizada.w.toFixed(2)),
+                            dimH: Number(sobraNormalizada.h.toFixed(2)),
+                            baseDimW: Number(sobraNormalizada.w.toFixed(2)),
+                            baseDimH: Number(sobraNormalizada.h.toFixed(2)),
+                            recortes: [],
+                            status: "Usado",
+                            nome: nomeBase + " (Sobra)",
+                            qtd: 1
+                        };
+                    })()
+                    : {
                         dimW: base.w,
                         dimH: base.h,
                         baseDimW: base.w,
                         baseDimH: base.h,
-                        recortes: [...recortesAtuais, novoRecorte],
+                        recortes: [...recortesAtuais, { x: posicaoCorteCm.x, y: posicaoCorteCm.y, w: cw, h: ch }],
                         status: "Usado",
-                        nome: nomeBase.includes('(Sobra)') ? nomeBase : nomeBase + " (Sobra)"
-                    });
+                        nome: nomeBase.includes('(Sobra)') ? nomeBase : nomeBase + " (Sobra)",
+                        qtd: 1
+                    };
+
+                if (qtdAtual > 1) {
+                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), { qtd: increment(-1) });
+                    const sobraPeca = { ...pecaParaCorte, ...atualizacaoSobra, data_criacao: serverTimestamp() };
+                    delete sobraPeca.id;
+                    await addDoc(collection(db, "estoque"), sobraPeca);
+                } else {
+                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), atualizacaoSobra);
                 }
 
                 const novaPeca = { ...pecaParaCorte };
@@ -1535,6 +1612,7 @@ function tornarArrastavel(elemento) {
                 novaPeca.baseDimH = pecaRetiradaNormalizada.h;
                 novaPeca.recortes = [];
                 novaPeca.status = "Usado";
+                novaPeca.qtd = 1;
                 novaPeca.data_criacao = serverTimestamp();
                 novaPeca.nome = nomeBase + " (Corte)";
                 await addDoc(collection(db, "estoque"), novaPeca);
