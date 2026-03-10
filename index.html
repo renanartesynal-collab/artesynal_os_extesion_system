@@ -44,11 +44,11 @@
         /* MUDANÇA AQUI: De Grid para Flexbox centralizado */
         .dashboard-container {
             width: 100%; max-width: 1200px;
-            padding: 28px 20px;
+            padding: 18px 16px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center; /* Centraliza os itens */
-            gap: 20px;
+            gap: 14px;
             box-sizing: border-box;
         }
 
@@ -56,77 +56,55 @@
         .card {
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 22px 16px;
+            padding: 18px 14px;
             text-align: center;
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
             text-decoration: none; 
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            flex: 1 1 260px; /* Permite crescer e encolher, tamanho base menor */
-            max-width: 310px; /* Não deixa o cartão ficar largo demais */
-            min-height: 220px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1 1 220px; /* Permite crescer e encolher, tamanho base menor */
+            max-width: 280px; /* Não deixa o cartão ficar largo demais */
+            min-height: 178px;
             border: 1px solid #34495e;
             position: relative; overflow: hidden;
             box-sizing: border-box;
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
             border-color: var(--yellow);
         }
 
         .icon-box {
-            font-size: 42px;
-            margin-bottom: 12px;
+            font-size: 34px;
+            margin-bottom: 10px;
             background: rgba(255,255,255,0.1);
-            width: 78px; height: 78px;
+            width: 62px; height: 62px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
         }
 
-        .card-title { color: white; font-weight: 800; font-size: 17px; margin-bottom: 6px; text-transform: uppercase; }
-        .card-desc { color: var(--text-gray); font-size: 12px; margin-bottom: 16px; line-height: 1.4; padding: 0 8px; }
-
-        .btn-acessar {
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: 900;
-            font-size: 12px;
-            text-transform: uppercase;
-            border: none;
-            width: 90%;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .card:hover .btn-acessar {
-            opacity: 0.9;
-        }
+        .card-title { color: white; font-weight: 800; font-size: 14px; margin-bottom: 4px; text-transform: uppercase; }
+        .card-desc { color: var(--text-gray); font-size: 10px; margin-bottom: 0; line-height: 1.35; padding: 0 4px; }
 
         /* CORES ESPECÍFICAS POR MÓDULO */
         .mod-os .icon-box { color: var(--green); border: 2px solid var(--green); }
-        .mod-os .btn-acessar { background: var(--green); color: white; }
         
         .mod-lista .icon-box { color: var(--blue); border: 2px solid var(--blue); }
-        .mod-lista .btn-acessar { background: var(--blue); color: white; }
 
         .mod-orc .icon-box { color: var(--yellow); border: 2px solid var(--yellow); }
-        .mod-orc .btn-acessar { background: var(--yellow); color: #333; }
 
         .mod-imp .icon-box { color: var(--purple); border: 2px solid var(--purple); }
-        .mod-imp .btn-acessar { background: var(--purple); color: white; }
 
         .mod-serr .icon-box { color: var(--orange); border: 2px solid var(--orange); }
-        .mod-serr .btn-acessar { background: var(--orange); color: white; }
 
         /* RESPONSIVIDADE PARA CELULAR */
         @media (max-width: 600px) {
             .dashboard-container { padding: 20px; flex-direction: column; align-items: center; }
-            .card { flex-direction: row; min-height: auto; text-align: left; align-items: center; padding: 20px; max-width: 100%; width: 100%; }
+            .card { flex-direction: row; min-height: auto; text-align: left; align-items: center; padding: 14px; max-width: 100%; width: 100%; }
             .icon-box { font-size: 30px; width: 60px; height: 60px; margin-bottom: 0; margin-right: 15px; }
             .card-content { flex: 1; }
-            .btn-acessar { display: none; }
             .card-desc { margin-bottom: 5px; padding: 0; }
         }
     </style>
@@ -147,7 +125,6 @@
                 <div class="card-title">Gerar O.S.</div>
                 <div class="card-desc">Criar nova ordem de serviço, imprimir e salvar.</div>
             </div>
-            <button class="btn-acessar">ACESSAR</button>
         </a>
 
         <a href="lista.html" class="card mod-lista" data-pages="producao administracao">
@@ -156,7 +133,6 @@
                 <div class="card-title">Lista de O.S.</div>
                 <div class="card-desc">Visualizar, filtrar e editar serviços salvos.</div>
             </div>
-            <button class="btn-acessar">ACESSAR</button>
         </a>
 
         <a href="orcamentos.html" class="card mod-orc" data-pages="producao administracao">
@@ -165,7 +141,6 @@
                 <div class="card-title">Orçamentos</div>
                 <div class="card-desc">Solicitações, materiais e galeria de fotos.</div>
             </div>
-            <button class="btn-acessar">ACESSAR</button>
         </a>
 
         <a href="estimpressao.html" class="card mod-imp" data-pages="instalacao administracao">
@@ -174,7 +149,6 @@
                 <div class="card-title">Impressão</div>
                 <div class="card-desc">Controle de lonas, adesivos, recortes e tintas.</div>
             </div>
-            <button class="btn-acessar">ACESSAR</button>
         </a>
 
         <a href="estserralheria.html" class="card mod-serr" data-pages="instalacao administracao">
@@ -183,7 +157,6 @@
                 <div class="card-title">Serralheria</div>
                 <div class="card-desc">Controle de chapas, retalhos de corte e MDF.</div>
             </div>
-            <button class="btn-acessar">ACESSAR</button>
         </a>
 
 
@@ -193,7 +166,6 @@
                 <div class="card-title">Gerenciamento de Acessos</div>
                 <div class="card-desc">Visualizar solicitantes, aprovar, reprovar e iniciar contato no WhatsApp.</div>
             </div>
-            <button class="btn-acessar">ACESSAR</button>
         </a>
     </div>
 
