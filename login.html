@@ -14,21 +14,31 @@
     input, select, button { width:100%; padding:11px; border-radius:8px; border:none; margin-bottom:10px; box-sizing:border-box; }
     input, select { background:#fff; }
     button { font-weight:700; cursor:pointer; }
+    .password-wrap { position:relative; margin-bottom:10px; }
+    .password-wrap input { margin-bottom:0; padding-right:48px; }
+    .toggle-password { position:absolute; right:6px; top:50%; transform:translateY(-50%); width:36px; height:36px; margin:0; padding:0; border-radius:8px; background:#d1d5db; color:#111; font-size:16px; line-height:1; }
     .btn-primary { background:#00aeef; color:#fff; }
     .btn-secondary { background:#f1c40f; color:#111; }
     .helper { font-size:12px; color:#bdc3c7; }
     .status { font-size:13px; margin-top:10px; min-height:16px; }
     .ok { color:#6ee7b7; } .err { color:#ff7f7f; }
+    .popup-top { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:#0f766e; color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:10px; padding:12px 16px; box-shadow:0 8px 20px rgba(0,0,0,.35); z-index:1000; width:min(720px,92%); display:none; }
+    .popup-top.show { display:block; }
+    .popup-top strong { display:block; font-size:15px; margin-bottom:4px; }
     @media(max-width:760px){ .box{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
+  <div id="top-popup" class="popup-top" role="status" aria-live="polite"></div>
   <div class="box">
     <div class="card">
       <h1>Sistema Artesynal</h1>
       <h2>Entrar</h2>
       <input id="login-email" type="email" placeholder="E-mail" />
+      <div class="password-wrap">
       <input id="login-password" type="password" placeholder="Senha" />
+      <button type="button" class="toggle-password" data-target="login-password" aria-label="Mostrar ou ocultar senha">👁</button>
+      </div>
       <button class="btn-primary" id="btn-login">Acessar</button>
       <div class="helper">Somente usuários aprovados podem entrar.</div>
       <div class="status" id="login-status"></div>
@@ -38,7 +48,11 @@
       <h2>Primeiro acesso (cadastro)</h2>
       <input id="reg-name" type="text" placeholder="Nome completo" />
       <input id="reg-email" type="email" placeholder="E-mail" />
+      <input id="reg-whatsapp" type="text" placeholder="WhatsApp (somente números)" />
+      <div class="password-wrap">
       <input id="reg-password" type="password" placeholder="Senha" />
+      <button type="button" class="toggle-password" data-target="reg-password" aria-label="Mostrar ou ocultar senha">👁</button>
+      </div>
       <select id="reg-role">
         <option value="producao">Produção</option>
         <option value="instalacao">Instalação</option>
@@ -53,10 +67,34 @@
   <script type="module">
     import { db } from './config.js';
     import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-    import { emailParaId, hashSenha, realizarLogin } from './auth.js';
+    import { emailParaId, garantirAdministradorPadrao, hashSenha, realizarLogin } from './auth.js';
 
     const loginStatus = document.getElementById('login-status');
     const regStatus = document.getElementById('reg-status');
+
+    const topPopup = document.getElementById('top-popup');
+
+    function mostrarPopupCadastro() {
+      topPopup.innerHTML = '<strong>Solicitação está preenchida.</strong><div>Entre em contato com os administradores para validar seu acesso.</div>';
+      topPopup.classList.add('show');
+      setTimeout(() => topPopup.classList.remove('show'), 7000);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    try {
+      await garantirAdministradorPadrao();
+    } catch (e) {
+      console.error('Falha ao garantir administrador padrão', e);
+    }
+
+    document.querySelectorAll('.toggle-password').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        const visivel = input.type === 'text';
+        input.type = visivel ? 'password' : 'text';
+        btn.textContent = visivel ? '👁' : '🙈';
+      });
+    });
 
     document.getElementById('btn-login').addEventListener('click', async () => {
       try {
@@ -79,6 +117,7 @@
         regStatus.textContent = 'Criando solicitação...';
         const nome = document.getElementById('reg-name').value.trim();
         const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const whatsapp = document.getElementById('reg-whatsapp').value.trim().replace(/\D/g, '');
         const senha = document.getElementById('reg-password').value;
         const categoria = document.getElementById('reg-role').value;
 
@@ -100,6 +139,7 @@
           nome,
           email,
           categoria,
+          whatsapp,
           senha_hash: await hashSenha(senha),
           status: 'pending',
           blocked: false,
@@ -107,11 +147,14 @@
           updated_at: serverTimestamp()
         }, { merge: true });
 
-        const assunto = encodeURIComponent('Novo cadastro pendente - Sistema Artesynal');
-        const corpo = encodeURIComponent(`Nome: ${nome}\nEmail: ${email}\nCategoria: ${categoria}`);
-        window.open(`mailto:PREENCHER_EMAIL_DA_EMPRESA@dominio.com?subject=${assunto}&body=${corpo}`, '_blank');
-
-        regStatus.innerHTML = '<span class="ok">Cadastro enviado. Aguarde aprovação da administração.</span>';
+        regStatus.innerHTML = '';
+        document.getElementById('reg-name').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-whatsapp').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-role').value = 'producao';
+        document.getElementById('login-email').focus();
+        mostrarPopupCadastro();
       } catch (e) {
         regStatus.innerHTML = `<span class="err">Falha ao cadastrar: ${e.message}</span>`;
       }

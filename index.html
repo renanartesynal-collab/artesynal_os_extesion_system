@@ -190,8 +190,8 @@
         <a href="admin-acessos.html" class="card mod-lista" data-pages="administracao" id="card-admin" style="display:none;">
             <div class="icon-box">🔐</div>
             <div class="card-content">
-                <div class="card-title">Aprovação de Acesso</div>
-                <div class="card-desc">Autorizar, negar e bloquear solicitações de usuários.</div>
+                <div class="card-title">Gerenciamento de Acessos</div>
+                <div class="card-desc">Visualizar solicitantes, aprovar, reprovar e iniciar contato no WhatsApp.</div>
             </div>
             <button class="btn-acessar">ACESSAR</button>
         </a>
@@ -203,7 +203,7 @@
 
 
     <script type="module">
-        import { protegerPagina, logout } from './auth.js';
+        import { obterConfiguracaoCategorias, protegerPagina, logout } from './auth.js';
 
         const sessao = await protegerPagina({ paginaAtual: 'index.html' });
         if (!sessao) throw new Error('Sem sessão');
@@ -211,9 +211,12 @@
         const perfil = sessao.acesso.categoria;
         const nome = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
 
+        const categoriasConfig = await obterConfiguracaoCategorias();
+
         document.querySelectorAll('.card[data-pages]').forEach((card) => {
-            const allowed = card.dataset.pages.split(' ').includes(perfil);
-            card.style.display = allowed ? 'flex' : 'none';
+            const pagina = card.getAttribute('href');
+            const allowedCategoria = categoriasConfig?.[perfil]?.[pagina] === true;
+            card.style.display = allowedCategoria ? 'flex' : 'none';
         });
 
         const userBar = document.getElementById('user-bar');
