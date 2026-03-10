@@ -44,11 +44,11 @@
         /* MUDANÇA AQUI: De Grid para Flexbox centralizado */
         .dashboard-container {
             width: 100%; max-width: 1200px;
-            padding: 40px 20px;
+            padding: 28px 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center; /* Centraliza os itens */
-            gap: 25px;
+            gap: 20px;
             box-sizing: border-box;
         }
 
@@ -56,15 +56,15 @@
         .card {
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 30px 20px;
+            padding: 22px 16px;
             text-align: center;
             transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
             text-decoration: none; 
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            flex: 1 1 300px; /* Permite crescer e encolher, tamanho base 300px */
-            max-width: 350px; /* Não deixa o cartão ficar largo demais */
-            min-height: 250px; /* Aumentei a altura para não espremer */
+            flex: 1 1 260px; /* Permite crescer e encolher, tamanho base menor */
+            max-width: 310px; /* Não deixa o cartão ficar largo demais */
+            min-height: 220px;
             border: 1px solid #34495e;
             position: relative; overflow: hidden;
             box-sizing: border-box;
@@ -77,22 +77,22 @@
         }
 
         .icon-box {
-            font-size: 50px;
-            margin-bottom: 15px;
+            font-size: 42px;
+            margin-bottom: 12px;
             background: rgba(255,255,255,0.1);
-            width: 90px; height: 90px;
+            width: 78px; height: 78px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
         }
 
-        .card-title { color: white; font-weight: 800; font-size: 20px; margin-bottom: 8px; text-transform: uppercase; }
-        .card-desc { color: var(--text-gray); font-size: 13px; margin-bottom: 25px; line-height: 1.5; padding: 0 10px; }
+        .card-title { color: white; font-weight: 800; font-size: 17px; margin-bottom: 6px; text-transform: uppercase; }
+        .card-desc { color: var(--text-gray); font-size: 12px; margin-bottom: 16px; line-height: 1.4; padding: 0 8px; }
 
         .btn-acessar {
-            padding: 12px 25px;
+            padding: 10px 20px;
             border-radius: 25px;
             font-weight: 900;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             border: none;
             width: 90%;
