@@ -159,6 +159,26 @@
         .linha-cota-h { width: 1px; background-color: var(--orange); height: 100%; margin-right: 5px; position: relative; }
         .linha-cota-h::before, .linha-cota-h::after { content: ''; position: absolute; left: -4px; width: 9px; height: 1px; background-color: var(--orange); }
         .linha-cota-h::before { top: 0; } .linha-cota-h::after { bottom: 0; }
+
+        .modal-divisao-box { max-width: 760px; width: calc(100% - 24px); background:#070707; border:1px solid #2f2f2f; }
+        .divisao-question { font-size: 30px; font-weight: 900; color: var(--orange); text-transform: uppercase; margin-bottom: 20px; }
+        .divisao-actions { display:flex; gap:16px; margin-top: 24px; }
+        .btn-divisao-nao, .btn-divisao-sim { flex:1; border:none; border-radius: 10px; padding:14px; font-weight: 900; cursor:pointer; font-size: 24px; text-transform: uppercase; }
+        .btn-divisao-nao { background:#2f2f33; color:#fff; }
+        .btn-divisao-sim { background:var(--orange); color:#fff; }
+        .divisao-toolbar { display:flex; align-items:center; gap:10px; flex-wrap: wrap; }
+        .divisao-toolbar input { width: 92px; text-align:center; }
+        .btn-plus-verde { width:34px; height:34px; border:none; border-radius:6px; background:var(--green-new); color:#fff; font-size:24px; font-weight:800; cursor:pointer; line-height:1; }
+        .divisao-canvas { position:relative; border:1px solid var(--orange); background-color:#ebebeb; overflow:hidden; touch-action:none; }
+        .divisao-marcador { position:absolute; border:2px solid var(--orange); background: rgba(255, 107, 0, 0.30); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; cursor:move; user-select:none; }
+        .divisao-marcador.ativo { outline: 2px dashed #fff; }
+        .grid-cm { background-image:
+            linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px),
+            linear-gradient(to right, rgba(0,0,0,0.25) 2px, transparent 2px),
+            linear-gradient(to bottom, rgba(0,0,0,0.25) 2px, transparent 2px);
+        }
+
     </style>
 </head>
 <body>
@@ -372,6 +392,36 @@
             </div>
         </div>
     </div>
+
+    <div id="modal-divisao-confirm" class="modal-overlay">
+        <div class="modal-box modal-divisao-box" style="text-align:center;">
+            <h2 class="divisao-question">DIVISÃO DE MATERIAL</h2>
+            <p style="font-size:32px; margin-bottom:8px;">Essa chapa foi dividida em partes?</p>
+            <div class="divisao-actions">
+                <button type="button" class="btn-divisao-nao" onclick="responderDivisaoMaterial(false)">NÃO</button>
+                <button type="button" class="btn-divisao-sim" onclick="responderDivisaoMaterial(true)">SIM</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-divisao-editor" class="modal-overlay">
+        <div class="modal-box modal-divisao-box">
+            <h2 style="margin-top:0; color:var(--orange);">PREVISÃO DE CORTE</h2>
+            <div class="divisao-toolbar">
+                <button type="button" class="btn-adj" onclick="adicionarMarcadorDivisao()">ADICIONAR MARCADOR</button>
+                <input type="number" id="divisao-default-w" placeholder="Largura (cm)" value="100">
+                <input type="number" id="divisao-default-h" placeholder="Altura (cm)" value="100">
+                <button type="button" class="btn-plus-verde" onclick="adicionarMarcadorDivisao()">+</button>
+                <span style="margin-left:auto; color:#d1d5db; font-size:12px;">Arraste para mover as partes</span>
+            </div>
+            <div id="lista-marcadores-divisao" style="display:flex; flex-direction:column; gap:8px; margin:12px 0;"></div>
+            <div id="divisao-canvas" class="divisao-canvas grid-cm"></div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn-cancelar" style="flex:1;" onclick="cancelarDivisaoMaterial()">CANCELAR</button>
+                <button class="btn-salvar" style="flex:1;" onclick="salvarCorteDividido()">SALVAR CORTE</button>
+            </div>
+        </div>
+    </div>
 <div id="modal-simulador" class="modal-overlay">
     <div class="modal-box" style="max-width:90%; width:900px;">
         
@@ -473,6 +523,10 @@
         let posicaoCorteCm = { x: 0, y: 0 };
         let posicoesCortePorLinha = {};
         let sequenciaLinhaCorte = 1;
+        let cortePendente = null;
+        let marcadoresDivisao = [];
+        let marcadorDivisaoAtivoId = null;
+        let escalaDivisaoCm = 1;
         let termoBuscaEstoque = "";
         let mapaCoresMateriais = {};
         const coresConfigRef = doc(db, "configuracoes", "serralheria_cores_preview");
@@ -1637,16 +1691,174 @@ function tornarArrastavel(elemento) {
             renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, recortesAtuais, planos);
         };
 
+        function obterDadosCorteAtual() {
+            if (!pecaParaCorte) return null;
+            const base = getDimensoesBase(pecaParaCorte);
+            const recortesAtuais = normalizarRecortes(pecaParaCorte.recortes);
+            const linhas = obterLinhasCorteComValores().filter((l) => l.w > 0 && l.h > 0 && l.qtd > 0);
+            if (!linhas.length) {
+                alert('Informe ao menos uma linha de corte válida.');
+                return null;
+            }
+            const planos = gerarPlanoCortes(base, linhas, recortesAtuais);
+            if (!planos || !planos.length) {
+                alert('As linhas de corte não cabem na área livre da chapa.');
+                return null;
+            }
+            return { base, recortesAtuais, linhas, planos };
+        }
+
+        function abrirConfirmacaoDivisao() {
+            document.getElementById('modal-divisao-confirm').style.display = 'flex';
+        }
+
+        window.responderDivisaoMaterial = (dividida) => {
+            document.getElementById('modal-divisao-confirm').style.display = 'none';
+            if (!cortePendente) return;
+            if (!dividida) {
+                executarCorteDireto(cortePendente.linhas, cortePendente.planos);
+                return;
+            }
+            abrirEditorDivisao();
+        };
+
+        function abrirEditorDivisao() {
+            if (!cortePendente) return;
+            const canvas = document.getElementById('divisao-canvas');
+            const maxW = 720;
+            const maxH = 460;
+            escalaDivisaoCm = Math.min(maxW / cortePendente.base.w, maxH / cortePendente.base.h);
+            canvas.style.width = `${Math.max(180, cortePendente.base.w * escalaDivisaoCm)}px`;
+            canvas.style.height = `${Math.max(160, cortePendente.base.h * escalaDivisaoCm)}px`;
+            canvas.style.backgroundSize = `${5 * escalaDivisaoCm}px ${5 * escalaDivisaoCm}px, ${5 * escalaDivisaoCm}px ${5 * escalaDivisaoCm}px, ${10 * escalaDivisaoCm}px ${10 * escalaDivisaoCm}px, ${10 * escalaDivisaoCm}px ${10 * escalaDivisaoCm}px`;
+            document.getElementById('lista-marcadores-divisao').innerHTML = '';
+            canvas.innerHTML = '';
+            marcadoresDivisao = [];
+            marcadorDivisaoAtivoId = null;
+            document.getElementById('modal-divisao-editor').style.display = 'flex';
+            adicionarMarcadorDivisao();
+        }
+
+        function atualizarMarcadorVisual(m) {
+            if (!m?.el) return;
+            m.el.style.left = `${m.x * escalaDivisaoCm}px`;
+            m.el.style.top = `${m.y * escalaDivisaoCm}px`;
+            m.el.style.width = `${m.w * escalaDivisaoCm}px`;
+            m.el.style.height = `${m.h * escalaDivisaoCm}px`;
+            m.el.innerText = `${Number(m.w.toFixed(1))}x${Number(m.h.toFixed(1))}cm`;
+            m.el.classList.toggle('ativo', marcadorDivisaoAtivoId === m.id);
+        }
+
+        function ativarMarcadorDivisao(id) {
+            marcadorDivisaoAtivoId = id;
+            marcadoresDivisao.forEach((m) => atualizarMarcadorVisual(m));
+        }
+
+        function tornarMarcadorArrastavel(marcador) {
+            let dragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+            marcador.el.onpointerdown = (e) => {
+                dragging = true;
+                ativarMarcadorDivisao(marcador.id);
+                offsetX = e.clientX - marcador.el.offsetLeft;
+                offsetY = e.clientY - marcador.el.offsetTop;
+                marcador.el.setPointerCapture?.(e.pointerId);
+            };
+            marcador.el.onpointermove = (e) => {
+                if (!dragging) return;
+                const canvas = document.getElementById('divisao-canvas');
+                const maxX = (canvas.clientWidth / escalaDivisaoCm) - marcador.w;
+                const maxY = (canvas.clientHeight / escalaDivisaoCm) - marcador.h;
+                marcador.x = Math.max(0, Math.min(maxX, (e.clientX - offsetX) / escalaDivisaoCm));
+                marcador.y = Math.max(0, Math.min(maxY, (e.clientY - offsetY) / escalaDivisaoCm));
+                atualizarMarcadorVisual(marcador);
+            };
+            marcador.el.onpointerup = () => { dragging = false; };
+            marcador.el.onpointercancel = () => { dragging = false; };
+        }
+
+        window.adicionarMarcadorDivisao = () => {
+            const canvas = document.getElementById('divisao-canvas');
+            if (!canvas || !cortePendente) return;
+            const id = `m${Date.now()}${Math.floor(Math.random() * 1000)}`;
+            const w = Math.max(1, parseFloat(document.getElementById('divisao-default-w').value) || 1);
+            const h = Math.max(1, parseFloat(document.getElementById('divisao-default-h').value) || 1);
+            const marcador = { id, w: Math.min(w, cortePendente.base.w), h: Math.min(h, cortePendente.base.h), x: 0, y: 0 };
+
+            const el = document.createElement('div');
+            el.className = 'divisao-marcador';
+            marcador.el = el;
+            canvas.appendChild(el);
+            tornarMarcadorArrastavel(marcador);
+            marcadoresDivisao.push(marcador);
+
+            const row = document.createElement('div');
+            row.className = 'form-row';
+            row.style.marginBottom = '0';
+            row.innerHTML = `<input type="number" class="div-m-w" value="${marcador.w}" placeholder="Largura (cm)"><input type="number" class="div-m-h" value="${marcador.h}" placeholder="Altura (cm)"><button type="button" class="btn-adj" style="max-width:44px;" onclick="removerMarcadorDivisao('${id}')">X</button>`;
+            row.onclick = () => ativarMarcadorDivisao(id);
+            row.querySelector('.div-m-w').oninput = (e) => { marcador.w = Math.max(1, parseFloat(e.target.value) || 1); atualizarMarcadorVisual(marcador); };
+            row.querySelector('.div-m-h').oninput = (e) => { marcador.h = Math.max(1, parseFloat(e.target.value) || 1); atualizarMarcadorVisual(marcador); };
+            marcador.row = row;
+            document.getElementById('lista-marcadores-divisao').appendChild(row);
+
+            atualizarMarcadorVisual(marcador);
+            ativarMarcadorDivisao(id);
+        };
+
+        window.removerMarcadorDivisao = (id) => {
+            const index = marcadoresDivisao.findIndex((m) => m.id === id);
+            if (index < 0) return;
+            const [m] = marcadoresDivisao.splice(index, 1);
+            m.el?.remove();
+            m.row?.remove();
+            if (marcadorDivisaoAtivoId === id) marcadorDivisaoAtivoId = marcadoresDivisao[0]?.id || null;
+            marcadoresDivisao.forEach((item) => atualizarMarcadorVisual(item));
+        };
+
+        window.cancelarDivisaoMaterial = () => {
+            document.getElementById('modal-divisao-editor').style.display = 'none';
+            cortePendente = null;
+        };
+
+        window.salvarCorteDividido = () => {
+            if (!cortePendente || !marcadoresDivisao.length) return alert('Adicione ao menos um marcador.');
+            const usados = [];
+            const linhas = [];
+            const planos = [];
+            for (const m of marcadoresDivisao) {
+                const w = Number((parseFloat(m.w) || 0).toFixed(2));
+                const h = Number((parseFloat(m.h) || 0).toFixed(2));
+                const x = Number((parseFloat(m.x) || 0).toFixed(2));
+                const y = Number((parseFloat(m.y) || 0).toFixed(2));
+                if (w <= 0 || h <= 0) continue;
+                const ok = posicaoValidaComBloqueios(cortePendente.base, x, y, w, h, cortePendente.recortesAtuais, usados);
+                if (!ok) return alert('Existe marcador fora da chapa ou sobrepondo outra área. Ajuste antes de salvar.');
+                usados.push({ x, y, w, h });
+                linhas.push({ id: m.id, w, h, qtd: 1 });
+                planos.push({ linhaId: m.id, index: 0, x, y, w, h });
+            }
+            if (!linhas.length) return alert('Os marcadores precisam ter largura e altura válidas.');
+            document.getElementById('modal-divisao-editor').style.display = 'none';
+            executarCorteDireto(linhas, planos);
+        };
+
         window.executarCorte = async () => {
+            const dados = obterDadosCorteAtual();
+            if (!dados) return;
+            cortePendente = dados;
+            abrirConfirmacaoDivisao();
+        };
+
+        async function executarCorteDireto(linhasOverride, planosOverride) {
             if (!pecaParaCorte) return;
             const btn = document.getElementById('btn-executar-corte');
             const base = getDimensoesBase(pecaParaCorte);
             const recortesAtuais = normalizarRecortes(pecaParaCorte.recortes);
-            const linhas = obterLinhasCorteComValores().filter((l) => l.w > 0 && l.h > 0 && l.qtd > 0);
-            if (!linhas.length) return alert('Informe ao menos uma linha de corte válida.');
-
-            const planos = gerarPlanoCortes(base, linhas, recortesAtuais);
-            if (!planos || !planos.length) return alert('As linhas de corte não cabem na área livre da chapa.');
+            const linhas = linhasOverride || obterLinhasCorteComValores().filter((l) => l.w > 0 && l.h > 0 && l.qtd > 0);
+            const planos = planosOverride || gerarPlanoCortes(base, linhas, recortesAtuais);
+            if (!linhas.length || !planos?.length) return;
 
             btn.disabled = true;
             btn.innerText = 'CORTANDO...';
@@ -1732,6 +1944,7 @@ function tornarArrastavel(elemento) {
                 }
 
                 alert('Corte realizado com sucesso!');
+                cortePendente = null;
                 window.fecharModal('modal-corte');
             } catch (e) {
                 console.error(e);
@@ -1740,7 +1953,7 @@ function tornarArrastavel(elemento) {
                 btn.disabled = false;
                 btn.innerText = '✂️ CONFIRMAR CORTE';
             }
-        };
+        }
 
 window.confirmarPosicionamentoSimulador = () => {
     // Verifica se existem peças criadas no grid visual
