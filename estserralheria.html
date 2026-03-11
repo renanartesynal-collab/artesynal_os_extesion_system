@@ -324,6 +324,7 @@
                 <div class="form-row" style="margin-bottom:0; margin-top:10px; align-items: stretch;">
                     <input type="number" id="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
                     <input type="number" id="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                    <input type="number" id="corte-qtd" min="1" step="1" value="1" placeholder="Qtd" oninput="atualizarPreviewCorte()" style="max-width: 84px;">
                     <button type="button" class="btn-adj" onclick="inverterMedidasCorte()" style="padding: 0 12px; white-space: nowrap;">↔️ INVERTER</button>
                 </div>
                 <div id="msg-corte-status" style="margin-top:8px; min-height:18px; font-size:12px; color:#fca5a5;"></div>
@@ -465,6 +466,7 @@
         let coresDinamicas = [];
         let materialSelecionado = null;
         let posicaoCorteCm = { x: 0, y: 0 };
+        let posicoesCorteCm = [];
         let termoBuscaEstoque = "";
         let mapaCoresMateriais = {};
         const coresConfigRef = doc(db, "configuracoes", "serralheria_cores_preview");
@@ -665,6 +667,7 @@
         }
 
         function identificarTipoMedida(peca) {
+            if (peca.tipoMedida === 'corte' || peca.tipoMedida === 'fabrica') return peca.tipoMedida;
             const catLower = (peca.categoria || '').toLowerCase();
             const base = getDimensoesBase(peca);
             const temRecorte = Array.isArray(peca.recortes) && peca.recortes.length > 0;
@@ -1101,7 +1104,8 @@
                 dimH: dimensoesNormalizadas.h,
                 status: window.materialStatus,
                 qtd: 1,
-                recortes: []
+                recortes: [],
+                tipoMedida: 'fabrica'
             };
             dados.baseDimW = dimensoesNormalizadas.w;
             dados.baseDimH = dimensoesNormalizadas.h;
@@ -1310,7 +1314,9 @@ function tornarArrastavel(elemento) {
             document.getElementById('corte-dimensoes-atuais').innerText = `${base.w} x ${base.h} cm`;
             document.getElementById('corte-w').value = '';
             document.getElementById('corte-h').value = '';
+            document.getElementById('corte-qtd').value = '1';
             posicaoCorteCm = { x: 0, y: 0 };
+            posicoesCorteCm = [{ x: 0, y: 0 }];
             document.getElementById('msg-corte-status').innerText = '';
             document.getElementById('modal-corte').style.display = 'flex';
             window.atualizarPreviewCorte();
@@ -1402,17 +1408,51 @@ function tornarArrastavel(elemento) {
             window.atualizarPreviewCorte();
         };
 
-        function tornarCorteArrastavel(box, larguraEscala, alturaEscala, base) {
+        function rectSobrepoe(a, b) {
+            const semIntersecao =
+                (a.x + a.w) <= b.x ||
+                a.x >= (b.x + b.w) ||
+                (a.y + a.h) <= b.y ||
+                a.y >= (b.y + b.h);
+            return !semIntersecao;
+        }
+
+        function posicaoValidaComBloqueios(base, x, y, w, h, recortesBase = [], recortesExtras = []) {
+            if (!corteCabeEmPosicao(base, x, y, w, h, recortesBase)) return false;
+            const atual = { x, y, w, h };
+            return !recortesExtras.some((r) => rectSobrepoe(atual, r));
+        }
+
+        function gerarPosicoesParaCorte(base, w, h, qtd, recortesBase = [], preferidas = []) {
+            const usadas = [];
+            const posicoes = [];
+
+            for (let i = 0; i < qtd; i += 1) {
+                const pref = preferidas[i];
+                const prefOk = pref && posicaoValidaComBloqueios(base, pref.x, pref.y, w, h, recortesBase, usadas);
+                if (prefOk) {
+                    posicoes.push({ x: pref.x, y: pref.y });
+                    usadas.push({ x: pref.x, y: pref.y, w, h });
+                    continue;
+                }
+
+                const ocupadas = [...recortesBase, ...usadas];
+                const livre = encontrarPrimeiraPosicaoLivre(base, w, h, ocupadas);
+                if (!livre) return null;
+                posicoes.push(livre);
+                usadas.push({ x: livre.x, y: livre.y, w, h });
+            }
+
+            return posicoes;
+        }
+
+        function tornarCorteArrastavelMultiplo(box, indice, larguraEscala, alturaEscala, base, wCorte, hCorte, recortesBase) {
             let dragging = false;
             let offsetX = 0;
             let offsetY = 0;
             let pointerIdAtivo = null;
 
             const moverCorte = (clientX, clientY) => {
-                const cw = parseFloat(document.getElementById('corte-w').value) || 0;
-                const ch = parseFloat(document.getElementById('corte-h').value) || 0;
-                const recortesAtuais = normalizarRecortes(pecaParaCorte?.recortes);
-
                 const maxX = larguraEscala - box.offsetWidth;
                 const maxY = alturaEscala - box.offsetHeight;
                 let nx = clientX - offsetX;
@@ -1423,14 +1463,19 @@ function tornarArrastavel(elemento) {
                 const candidatoX = Number(((nx / larguraEscala) * base.w).toFixed(2));
                 const candidatoY = Number(((ny / alturaEscala) * base.h).toFixed(2));
 
-                if (!corteCabeEmPosicao(base, candidatoX, candidatoY, cw, ch, recortesAtuais)) {
+                const outrosCortes = posicoesCorteCm
+                    .map((p, idx) => idx === indice ? null : ({ x: p.x, y: p.y, w: wCorte, h: hCorte }))
+                    .filter(Boolean);
+
+                if (!posicaoValidaComBloqueios(base, candidatoX, candidatoY, wCorte, hCorte, recortesBase, outrosCortes)) {
                     atualizarEstiloValidadeCorte(box, true);
                     return;
                 }
 
                 box.style.left = `${nx}px`;
                 box.style.top = `${ny}px`;
-                posicaoCorteCm = { x: candidatoX, y: candidatoY };
+                posicoesCorteCm[indice] = { x: candidatoX, y: candidatoY };
+                posicaoCorteCm = { ...posicoesCorteCm[0] };
                 atualizarEstiloValidadeCorte(box, false);
                 setMensagemCorte('');
             };
@@ -1442,9 +1487,7 @@ function tornarArrastavel(elemento) {
                 box.style.cursor = 'grabbing';
                 offsetX = e.clientX - box.offsetLeft;
                 offsetY = e.clientY - box.offsetTop;
-                if (typeof box.setPointerCapture === 'function') {
-                    box.setPointerCapture(e.pointerId);
-                }
+                if (typeof box.setPointerCapture === 'function') box.setPointerCapture(e.pointerId);
                 e.preventDefault();
             };
 
@@ -1458,9 +1501,7 @@ function tornarArrastavel(elemento) {
                 if (!dragging || (pointerIdAtivo !== null && e.pointerId !== pointerIdAtivo)) return;
                 dragging = false;
                 box.style.cursor = 'grab';
-                if (typeof box.releasePointerCapture === 'function' && pointerIdAtivo !== null) {
-                    box.releasePointerCapture(pointerIdAtivo);
-                }
+                if (typeof box.releasePointerCapture === 'function' && pointerIdAtivo !== null) box.releasePointerCapture(pointerIdAtivo);
                 pointerIdAtivo = null;
             };
 
@@ -1473,25 +1514,62 @@ function tornarArrastavel(elemento) {
             };
         }
 
+        function renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, wCorte, hCorte, recortesBase) {
+            bgOriginal.querySelectorAll('.preview-corte-item').forEach((el) => el.remove());
+            const percentW = wCorte / base.w;
+            const percentH = hCorte / base.h;
+
+            posicoesCorteCm.forEach((pos, idx) => {
+                const box = document.createElement('div');
+                box.className = 'preview-corte-item';
+                box.style.background = 'rgba(255, 59, 59, 0.8)';
+                box.style.border = '2px dashed #fff';
+                box.style.position = 'absolute';
+                box.style.display = 'flex';
+                box.style.alignItems = 'center';
+                box.style.justifyContent = 'center';
+                box.style.fontSize = '10px';
+                box.style.color = 'white';
+                box.style.fontWeight = 'bold';
+                box.style.overflow = 'hidden';
+                box.style.transition = 'all 0.2s ease';
+                box.style.cursor = 'grab';
+                box.style.touchAction = 'none';
+                box.style.userSelect = 'none';
+                box.style.zIndex = '2';
+                box.style.width = (finalW * percentW) + 'px';
+                box.style.height = (finalH * percentH) + 'px';
+                box.style.left = `${(pos.x / base.w) * finalW}px`;
+                box.style.top = `${(pos.y / base.h) * finalH}px`;
+                box.innerText = `#${idx + 1}`;
+                bgOriginal.appendChild(box);
+
+                const outros = posicoesCorteCm
+                    .map((p, i) => i === idx ? null : ({ x: p.x, y: p.y, w: wCorte, h: hCorte }))
+                    .filter(Boolean);
+                const invalido = !posicaoValidaComBloqueios(base, pos.x, pos.y, wCorte, hCorte, recortesBase, outros);
+                atualizarEstiloValidadeCorte(box, invalido);
+                tornarCorteArrastavelMultiplo(box, idx, finalW, finalH, base, wCorte, hCorte, recortesBase);
+            });
+        }
+
         window.atualizarPreviewCorte = () => {
             if (!pecaParaCorte) return;
             const base = getDimensoesBase(pecaParaCorte);
 
             const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
             const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
+            const qtdCorte = Math.max(1, parseInt(document.getElementById('corte-qtd').value, 10) || 1);
             const recortesAtuais = normalizarRecortes(pecaParaCorte?.recortes);
 
             setMensagemCorte('');
 
             if (wCorte > base.w || hCorte > base.h) {
                 setMensagemCorte(`Corte (${wCorte}x${hCorte}) maior que a chapa (${base.w}x${base.h}).`);
-                document.getElementById('corte-w').value = '';
-                document.getElementById('corte-h').value = '';
                 return;
             }
 
             const bgOriginal = document.getElementById('corte-original-bg');
-            const boxCorte = document.getElementById('corte-pedaco-box');
             const maxW = 180;
             const maxH = 180;
             const escalaPreview = Math.min(maxW / base.w, maxH / base.h);
@@ -1505,37 +1583,24 @@ function tornarArrastavel(elemento) {
             renderizarRecortesExistentesNoPreview(bgOriginal, base, finalW, finalH);
 
             if (wCorte > 0 && hCorte > 0) {
-                const percentW = wCorte / base.w;
-                const percentH = hCorte / base.h;
-
-                const posicaoAtualValida = corteCabeEmPosicao(base, posicaoCorteCm.x, posicaoCorteCm.y, wCorte, hCorte, recortesAtuais);
-                if (!posicaoAtualValida) {
-                    const posLivre = encontrarPrimeiraPosicaoLivre(base, wCorte, hCorte, recortesAtuais);
-                    if (posLivre) {
-                        posicaoCorteCm = posLivre;
-                        setMensagemCorte('Posição ajustada automaticamente para área livre.', '#93c5fd');
-                    } else {
-                        boxCorte.style.display = 'none';
-                        bgOriginal.style.background = '#333';
-                        setMensagemCorte('Esse corte não cabe em nenhuma área livre da chapa.');
-                        return;
-                    }
+                const posicoes = gerarPosicoesParaCorte(base, wCorte, hCorte, qtdCorte, recortesAtuais, posicoesCorteCm);
+                if (!posicoes) {
+                    posicoesCorteCm = [];
+                    posicaoCorteCm = { x: 0, y: 0 };
+                    bgOriginal.querySelectorAll('.preview-corte-item').forEach((el) => el.remove());
+                    bgOriginal.style.background = '#333';
+                    setMensagemCorte('A quantidade solicitada não cabe nas áreas livres da chapa.');
+                    return;
                 }
 
-                boxCorte.style.display = 'flex';
-                boxCorte.style.zIndex = '2';
-                boxCorte.style.width = (finalW * percentW) + 'px';
-                boxCorte.style.height = (finalH * percentH) + 'px';
-                boxCorte.innerText = `${wCorte}x${hCorte}`;
-                boxCorte.style.left = `${(posicaoCorteCm.x / base.w) * finalW}px`;
-                boxCorte.style.top = `${(posicaoCorteCm.y / base.h) * finalH}px`;
+                posicoesCorteCm = posicoes;
+                posicaoCorteCm = { ...posicoesCorteCm[0] };
                 bgOriginal.style.background = '#333';
-
-                const invalido = corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, wCorte, hCorte, recortesAtuais);
-                atualizarEstiloValidadeCorte(boxCorte, invalido);
-                tornarCorteArrastavel(boxCorte, finalW, finalH, base);
+                renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, wCorte, hCorte, recortesAtuais);
             } else {
-                boxCorte.style.display = 'none';
+                posicoesCorteCm = [];
+                posicaoCorteCm = { x: 0, y: 0 };
+                bgOriginal.querySelectorAll('.preview-corte-item').forEach((el) => el.remove());
                 bgOriginal.style.background = 'var(--orange)';
             }
         };
@@ -1546,13 +1611,15 @@ function tornarArrastavel(elemento) {
             const base = getDimensoesBase(pecaParaCorte);
             const cw = parseFloat(document.getElementById('corte-w').value) || 0;
             const ch = parseFloat(document.getElementById('corte-h').value) || 0;
+            const qtdCorte = Math.max(1, parseInt(document.getElementById('corte-qtd').value, 10) || 1);
 
             if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
             if (cw > base.w || ch > base.h) return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça (${base.w} x ${base.h} cm)!`);
-            if ((posicaoCorteCm.x + cw) > base.w || (posicaoCorteCm.y + ch) > base.h) return alert('O corte está fora da área da chapa.');
+
             const recortesAtuaisValidacao = normalizarRecortes(pecaParaCorte.recortes);
-            if (corteSobrepoeRecorteExistente(posicaoCorteCm.x, posicaoCorteCm.y, cw, ch, recortesAtuaisValidacao)) {
-                return alert('Este corte sobrepõe uma área já cortada. Posicione em uma área íntegra da chapa.');
+            const posicoesValidadas = gerarPosicoesParaCorte(base, cw, ch, qtdCorte, recortesAtuaisValidacao, posicoesCorteCm);
+            if (!posicoesValidadas) {
+                return alert('A quantidade/posicionamento de cortes não cabe na área livre da chapa.');
             }
 
             btn.disabled = true;
@@ -1561,9 +1628,9 @@ function tornarArrastavel(elemento) {
             try {
                 const nomeBase = (pecaParaCorte.nome || pecaParaCorte.categoria || '').replace(' (Sobra)', '');
                 const recortesAtuais = normalizarRecortes(pecaParaCorte.recortes);
-                const corteLinear = recortesAtuais.length === 0 && (
-                    (Math.abs(ch - base.h) < 0.01 && (Math.abs(posicaoCorteCm.y) < 0.01)) ||
-                    (Math.abs(cw - base.w) < 0.01 && (Math.abs(posicaoCorteCm.x) < 0.01))
+                const corteLinear = qtdCorte === 1 && recortesAtuais.length === 0 && (
+                    (Math.abs(ch - base.h) < 0.01 && (Math.abs(posicoesValidadas[0].y) < 0.01)) ||
+                    (Math.abs(cw - base.w) < 0.01 && (Math.abs(posicoesValidadas[0].x) < 0.01))
                 );
 
                 const qtdAtual = Number(pecaParaCorte.qtd) || 1;
@@ -1578,6 +1645,7 @@ function tornarArrastavel(elemento) {
                             baseDimW: Number(sobraNormalizada.w.toFixed(2)),
                             baseDimH: Number(sobraNormalizada.h.toFixed(2)),
                             recortes: [],
+                            tipoMedida: 'corte',
                             status: "Usado",
                             nome: nomeBase + " (Sobra)",
                             qtd: 1
@@ -1588,7 +1656,8 @@ function tornarArrastavel(elemento) {
                         dimH: base.h,
                         baseDimW: base.w,
                         baseDimH: base.h,
-                        recortes: [...recortesAtuais, { x: posicaoCorteCm.x, y: posicaoCorteCm.y, w: cw, h: ch }],
+                        recortes: [...recortesAtuais, ...posicoesValidadas.map((p) => ({ x: p.x, y: p.y, w: cw, h: ch }))],
+                        tipoMedida: 'corte',
                         status: "Usado",
                         nome: nomeBase.includes('(Sobra)') ? nomeBase : nomeBase + " (Sobra)",
                         qtd: 1
@@ -1612,7 +1681,8 @@ function tornarArrastavel(elemento) {
                 novaPeca.baseDimH = pecaRetiradaNormalizada.h;
                 novaPeca.recortes = [];
                 novaPeca.status = "Usado";
-                novaPeca.qtd = 1;
+                novaPeca.tipoMedida = 'corte';
+                novaPeca.qtd = qtdCorte;
                 novaPeca.data_criacao = serverTimestamp();
                 novaPeca.nome = nomeBase + " (Corte)";
                 await addDoc(collection(db, "estoque"), novaPeca);
