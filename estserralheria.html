@@ -320,12 +320,17 @@
             <p id="corte-dimensoes-atuais" style="color:var(--orange); font-size:18px; font-weight:900; margin-bottom: 20px;">0 x 0 cm</p>
 
             <div style="background:#1a1a1a; padding:15px; border-radius:8px; border: 1px solid #333; text-align: left;">
-                <label class="label-standard" style="margin-top:0;">Tamanho do Pedaço a Retirar (cm)</label>
-                <div class="form-row" style="margin-bottom:0; margin-top:10px; align-items: stretch;">
-                    <input type="number" id="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
-                    <input type="number" id="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
-                    <input type="number" id="corte-qtd" min="1" step="1" value="1" placeholder="Qtd" oninput="atualizarPreviewCorte()" style="max-width: 84px;">
-                    <button type="button" class="btn-adj" onclick="inverterMedidasCorte()" style="padding: 0 12px; white-space: nowrap;">↔️ INVERTER</button>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <label class="label-standard" style="margin-top:0;">Tamanho do Pedaço a Retirar (cm)</label>
+                    <button type="button" class="btn-icon-action" onclick="adicionarLinhaCorte()" title="Adicionar corte">➕</button>
+                </div>
+                <div id="lista-linhas-corte" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                    <div class="form-row linha-corte" data-linha-id="1" style="margin-bottom:0; align-items: stretch;">
+                        <input type="number" id="corte-w" class="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
+                        <input type="number" id="corte-h" class="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                        <input type="number" id="corte-qtd" class="corte-qtd" min="1" step="1" value="1" placeholder="Qtd" oninput="atualizarPreviewCorte()" style="max-width: 84px;">
+                        <button type="button" class="btn-adj" onclick="inverterMedidasCorte(1)" style="padding: 0 12px; white-space: nowrap;">↔️ INVERTER</button>
+                    </div>
                 </div>
                 <div id="msg-corte-status" style="margin-top:8px; min-height:18px; font-size:12px; color:#fca5a5;"></div>
 
@@ -466,7 +471,8 @@
         let coresDinamicas = [];
         let materialSelecionado = null;
         let posicaoCorteCm = { x: 0, y: 0 };
-        let posicoesCorteCm = [];
+        let posicoesCortePorLinha = {};
+        let sequenciaLinhaCorte = 1;
         let termoBuscaEstoque = "";
         let mapaCoresMateriais = {};
         const coresConfigRef = doc(db, "configuracoes", "serralheria_cores_preview");
@@ -1312,11 +1318,19 @@ function tornarArrastavel(elemento) {
             const base = getDimensoesBase(pecaParaCorte);
             document.getElementById('corte-nome-peca').innerText = `${pecaParaCorte.categoria} ${pecaParaCorte.espessura || ''} | ${pecaParaCorte.cor || ''}`;
             document.getElementById('corte-dimensoes-atuais').innerText = `${base.w} x ${base.h} cm`;
-            document.getElementById('corte-w').value = '';
-            document.getElementById('corte-h').value = '';
-            document.getElementById('corte-qtd').value = '1';
+            const listaLinhas = document.getElementById('lista-linhas-corte');
+            if (listaLinhas) {
+                listaLinhas.innerHTML = `
+                    <div class="form-row linha-corte" data-linha-id="1" style="margin-bottom:0; align-items: stretch;">
+                        <input type="number" id="corte-w" class="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
+                        <input type="number" id="corte-h" class="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                        <input type="number" id="corte-qtd" class="corte-qtd" min="1" step="1" value="1" placeholder="Qtd" oninput="atualizarPreviewCorte()" style="max-width: 84px;">
+                        <button type="button" class="btn-adj" onclick="inverterMedidasCorte(1)" style="padding: 0 12px; white-space: nowrap;">↔️ INVERTER</button>
+                    </div>`;
+            }
+            sequenciaLinhaCorte = 1;
             posicaoCorteCm = { x: 0, y: 0 };
-            posicoesCorteCm = [{ x: 0, y: 0 }];
+            posicoesCortePorLinha = { '1': [{ x: 0, y: 0 }] };
             document.getElementById('msg-corte-status').innerText = '';
             document.getElementById('modal-corte').style.display = 'flex';
             window.atualizarPreviewCorte();
@@ -1399,9 +1413,53 @@ function tornarArrastavel(elemento) {
             msg.style.color = cor;
         }
 
-        window.inverterMedidasCorte = () => {
-            const inputW = document.getElementById('corte-w');
-            const inputH = document.getElementById('corte-h');
+        function obterLinhasCorteComValores() {
+            return Array.from(document.querySelectorAll('#lista-linhas-corte .linha-corte')).map((linha) => {
+                const id = linha.dataset.linhaId;
+                const w = parseFloat(linha.querySelector('.corte-w')?.value) || 0;
+                const h = parseFloat(linha.querySelector('.corte-h')?.value) || 0;
+                const qtd = Math.max(1, parseInt(linha.querySelector('.corte-qtd')?.value, 10) || 1);
+                return { id, w, h, qtd };
+            });
+        }
+
+        window.adicionarLinhaCorte = () => {
+            const container = document.getElementById('lista-linhas-corte');
+            if (!container) return;
+            sequenciaLinhaCorte += 1;
+            const id = String(sequenciaLinhaCorte);
+            const row = document.createElement('div');
+            row.className = 'form-row linha-corte';
+            row.dataset.linhaId = id;
+            row.style.marginBottom = '0';
+            row.style.alignItems = 'stretch';
+            row.innerHTML = `
+                <input type="number" class="corte-w" placeholder="Largura (L)" oninput="atualizarPreviewCorte()">
+                <input type="number" class="corte-h" placeholder="Altura (A)" oninput="atualizarPreviewCorte()">
+                <input type="number" class="corte-qtd" min="1" step="1" value="1" placeholder="Qtd" oninput="atualizarPreviewCorte()" style="max-width: 84px;">
+                <button type="button" class="btn-adj" onclick="inverterMedidasCorte('${id}')" style="padding: 0 12px; white-space: nowrap;">↔️ INVERTER</button>
+                <button type="button" class="btn-adj" onclick="removerLinhaCorte('${id}')" style="padding: 0 12px; background:#7f1d1d; white-space: nowrap;">🗑</button>
+            `;
+            container.appendChild(row);
+            posicoesCortePorLinha[id] = [{ x: 0, y: 0 }];
+            window.atualizarPreviewCorte();
+        };
+
+        window.removerLinhaCorte = (idLinha) => {
+            const rows = Array.from(document.querySelectorAll('#lista-linhas-corte .linha-corte'));
+            if (rows.length <= 1) return;
+            const target = rows.find((r) => r.dataset.linhaId === String(idLinha));
+            if (!target) return;
+            target.remove();
+            delete posicoesCortePorLinha[String(idLinha)];
+            window.atualizarPreviewCorte();
+        };
+
+        window.inverterMedidasCorte = (idLinha = '1') => {
+            const linha = document.querySelector(`#lista-linhas-corte .linha-corte[data-linha-id="${idLinha}"]`);
+            if (!linha) return;
+            const inputW = linha.querySelector('.corte-w');
+            const inputH = linha.querySelector('.corte-h');
             const atualW = inputW.value;
             inputW.value = inputH.value;
             inputH.value = atualW;
@@ -1426,7 +1484,6 @@ function tornarArrastavel(elemento) {
         function gerarPosicoesParaCorte(base, w, h, qtd, recortesBase = [], preferidas = []) {
             const usadas = [];
             const posicoes = [];
-
             for (let i = 0; i < qtd; i += 1) {
                 const pref = preferidas[i];
                 const prefOk = pref && posicaoValidaComBloqueios(base, pref.x, pref.y, w, h, recortesBase, usadas);
@@ -1435,139 +1492,94 @@ function tornarArrastavel(elemento) {
                     usadas.push({ x: pref.x, y: pref.y, w, h });
                     continue;
                 }
-
-                const ocupadas = [...recortesBase, ...usadas];
-                const livre = encontrarPrimeiraPosicaoLivre(base, w, h, ocupadas);
+                const livre = encontrarPrimeiraPosicaoLivre(base, w, h, [...recortesBase, ...usadas]);
                 if (!livre) return null;
                 posicoes.push(livre);
                 usadas.push({ x: livre.x, y: livre.y, w, h });
             }
-
             return posicoes;
         }
 
-        function tornarCorteArrastavelMultiplo(box, indice, larguraEscala, alturaEscala, base, wCorte, hCorte, recortesBase) {
-            let dragging = false;
-            let offsetX = 0;
-            let offsetY = 0;
-            let pointerIdAtivo = null;
-
-            const moverCorte = (clientX, clientY) => {
-                const maxX = larguraEscala - box.offsetWidth;
-                const maxY = alturaEscala - box.offsetHeight;
-                let nx = clientX - offsetX;
-                let ny = clientY - offsetY;
-                nx = Math.max(0, Math.min(maxX, nx));
-                ny = Math.max(0, Math.min(maxY, ny));
-
-                const candidatoX = Number(((nx / larguraEscala) * base.w).toFixed(2));
-                const candidatoY = Number(((ny / alturaEscala) * base.h).toFixed(2));
-
-                const outrosCortes = posicoesCorteCm
-                    .map((p, idx) => idx === indice ? null : ({ x: p.x, y: p.y, w: wCorte, h: hCorte }))
-                    .filter(Boolean);
-
-                if (!posicaoValidaComBloqueios(base, candidatoX, candidatoY, wCorte, hCorte, recortesBase, outrosCortes)) {
-                    atualizarEstiloValidadeCorte(box, true);
-                    return;
-                }
-
-                box.style.left = `${nx}px`;
-                box.style.top = `${ny}px`;
-                posicoesCorteCm[indice] = { x: candidatoX, y: candidatoY };
-                posicaoCorteCm = { ...posicoesCorteCm[0] };
-                atualizarEstiloValidadeCorte(box, false);
-                setMensagemCorte('');
-            };
-
-            box.onpointerdown = (e) => {
-                if (box.style.display === 'none') return;
-                dragging = true;
-                pointerIdAtivo = e.pointerId;
-                box.style.cursor = 'grabbing';
-                offsetX = e.clientX - box.offsetLeft;
-                offsetY = e.clientY - box.offsetTop;
-                if (typeof box.setPointerCapture === 'function') box.setPointerCapture(e.pointerId);
-                e.preventDefault();
-            };
-
-            box.onpointermove = (e) => {
-                if (!dragging || (pointerIdAtivo !== null && e.pointerId !== pointerIdAtivo)) return;
-                moverCorte(e.clientX, e.clientY);
-                e.preventDefault();
-            };
-
-            const finalizarArraste = (e) => {
-                if (!dragging || (pointerIdAtivo !== null && e.pointerId !== pointerIdAtivo)) return;
-                dragging = false;
-                box.style.cursor = 'grab';
-                if (typeof box.releasePointerCapture === 'function' && pointerIdAtivo !== null) box.releasePointerCapture(pointerIdAtivo);
-                pointerIdAtivo = null;
-            };
-
-            box.onpointerup = finalizarArraste;
-            box.onpointercancel = finalizarArraste;
-            box.onlostpointercapture = () => {
-                dragging = false;
-                pointerIdAtivo = null;
-                box.style.cursor = 'grab';
-            };
+        function gerarPlanoCortes(base, linhas, recortesAtuais) {
+            const extras = [];
+            const planos = [];
+            for (const linha of linhas) {
+                if (linha.w <= 0 || linha.h <= 0) continue;
+                if (linha.w > base.w || linha.h > base.h) return null;
+                const preferidas = posicoesCortePorLinha[linha.id] || [];
+                const posicoes = gerarPosicoesParaCorte(base, linha.w, linha.h, linha.qtd, [...recortesAtuais, ...extras], preferidas);
+                if (!posicoes) return null;
+                posicoesCortePorLinha[linha.id] = posicoes;
+                posicoes.forEach((pos, idx) => {
+                    planos.push({ linhaId: linha.id, index: idx, w: linha.w, h: linha.h, x: pos.x, y: pos.y });
+                    extras.push({ x: pos.x, y: pos.y, w: linha.w, h: linha.h });
+                });
+            }
+            return planos;
         }
 
-        function renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, wCorte, hCorte, recortesBase) {
+        function renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, recortesBase, planos) {
             bgOriginal.querySelectorAll('.preview-corte-item').forEach((el) => el.remove());
-            const percentW = wCorte / base.w;
-            const percentH = hCorte / base.h;
-
-            posicoesCorteCm.forEach((pos, idx) => {
+            planos.forEach((plano) => {
                 const box = document.createElement('div');
                 box.className = 'preview-corte-item';
-                box.style.background = 'rgba(255, 59, 59, 0.8)';
-                box.style.border = '2px dashed #fff';
-                box.style.position = 'absolute';
-                box.style.display = 'flex';
-                box.style.alignItems = 'center';
-                box.style.justifyContent = 'center';
-                box.style.fontSize = '10px';
-                box.style.color = 'white';
-                box.style.fontWeight = 'bold';
-                box.style.overflow = 'hidden';
-                box.style.transition = 'all 0.2s ease';
-                box.style.cursor = 'grab';
-                box.style.touchAction = 'none';
-                box.style.userSelect = 'none';
-                box.style.zIndex = '2';
-                box.style.width = (finalW * percentW) + 'px';
-                box.style.height = (finalH * percentH) + 'px';
-                box.style.left = `${(pos.x / base.w) * finalW}px`;
-                box.style.top = `${(pos.y / base.h) * finalH}px`;
-                box.innerText = `#${idx + 1}`;
+                box.dataset.linhaId = plano.linhaId;
+                box.dataset.index = String(plano.index);
+                box.style.cssText = 'background: rgba(255, 59, 59, 0.8); border: 2px dashed #fff; position: absolute; display:flex; align-items:center; justify-content:center; font-size:10px; color:white; font-weight:bold; overflow:hidden; transition:all .2s ease; cursor:grab; touch-action:none; user-select:none; z-index:2;';
+                box.style.width = `${(finalW * plano.w) / base.w}px`;
+                box.style.height = `${(finalH * plano.h) / base.h}px`;
+                box.style.left = `${(plano.x / base.w) * finalW}px`;
+                box.style.top = `${(plano.y / base.h) * finalH}px`;
+                box.innerText = `L${plano.linhaId}-${plano.index + 1}`;
                 bgOriginal.appendChild(box);
 
-                const outros = posicoesCorteCm
-                    .map((p, i) => i === idx ? null : ({ x: p.x, y: p.y, w: wCorte, h: hCorte }))
-                    .filter(Boolean);
-                const invalido = !posicaoValidaComBloqueios(base, pos.x, pos.y, wCorte, hCorte, recortesBase, outros);
-                atualizarEstiloValidadeCorte(box, invalido);
-                tornarCorteArrastavelMultiplo(box, idx, finalW, finalH, base, wCorte, hCorte, recortesBase);
+                let dragging = false;
+                let offsetX = 0;
+                let offsetY = 0;
+                box.onpointerdown = (e) => {
+                    dragging = true;
+                    offsetX = e.clientX - box.offsetLeft;
+                    offsetY = e.clientY - box.offsetTop;
+                    if (box.setPointerCapture) box.setPointerCapture(e.pointerId);
+                    e.preventDefault();
+                };
+                box.onpointermove = (e) => {
+                    if (!dragging) return;
+                    const maxX = finalW - box.offsetWidth;
+                    const maxY = finalH - box.offsetHeight;
+                    let nx = Math.max(0, Math.min(maxX, e.clientX - offsetX));
+                    let ny = Math.max(0, Math.min(maxY, e.clientY - offsetY));
+                    const cx = Number(((nx / finalW) * base.w).toFixed(2));
+                    const cy = Number(((ny / finalH) * base.h).toFixed(2));
+
+                    const outros = planos
+                        .filter((p) => !(p.linhaId === plano.linhaId && p.index === plano.index))
+                        .map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h }));
+
+                    if (!posicaoValidaComBloqueios(base, cx, cy, plano.w, plano.h, recortesBase, outros)) {
+                        atualizarEstiloValidadeCorte(box, true);
+                        return;
+                    }
+                    box.style.left = `${nx}px`;
+                    box.style.top = `${ny}px`;
+                    plano.x = cx;
+                    plano.y = cy;
+                    const arr = posicoesCortePorLinha[plano.linhaId] || [];
+                    arr[plano.index] = { x: cx, y: cy };
+                    posicoesCortePorLinha[plano.linhaId] = arr;
+                    atualizarEstiloValidadeCorte(box, false);
+                };
+                box.onpointerup = () => { dragging = false; box.style.cursor = 'grab'; };
+                box.onpointercancel = () => { dragging = false; box.style.cursor = 'grab'; };
             });
         }
 
         window.atualizarPreviewCorte = () => {
             if (!pecaParaCorte) return;
             const base = getDimensoesBase(pecaParaCorte);
-
-            const wCorte = parseFloat(document.getElementById('corte-w').value) || 0;
-            const hCorte = parseFloat(document.getElementById('corte-h').value) || 0;
-            const qtdCorte = Math.max(1, parseInt(document.getElementById('corte-qtd').value, 10) || 1);
             const recortesAtuais = normalizarRecortes(pecaParaCorte?.recortes);
-
+            const linhas = obterLinhasCorteComValores();
             setMensagemCorte('');
-
-            if (wCorte > base.w || hCorte > base.h) {
-                setMensagemCorte(`Corte (${wCorte}x${hCorte}) maior que a chapa (${base.w}x${base.h}).`);
-                return;
-            }
 
             const bgOriginal = document.getElementById('corte-original-bg');
             const maxW = 180;
@@ -1575,69 +1587,51 @@ function tornarArrastavel(elemento) {
             const escalaPreview = Math.min(maxW / base.w, maxH / base.h);
             const finalW = Math.max(24, base.w * escalaPreview);
             const finalH = Math.max(24, base.h * escalaPreview);
-
             bgOriginal.style.width = finalW + 'px';
             bgOriginal.style.height = finalH + 'px';
             document.getElementById('txt-cota-w-original').innerText = base.w + 'cm';
             document.getElementById('txt-cota-h-original').innerText = base.h + 'cm';
             renderizarRecortesExistentesNoPreview(bgOriginal, base, finalW, finalH);
 
-            if (wCorte > 0 && hCorte > 0) {
-                const posicoes = gerarPosicoesParaCorte(base, wCorte, hCorte, qtdCorte, recortesAtuais, posicoesCorteCm);
-                if (!posicoes) {
-                    posicoesCorteCm = [];
-                    posicaoCorteCm = { x: 0, y: 0 };
-                    bgOriginal.querySelectorAll('.preview-corte-item').forEach((el) => el.remove());
-                    bgOriginal.style.background = '#333';
-                    setMensagemCorte('A quantidade solicitada não cabe nas áreas livres da chapa.');
-                    return;
-                }
-
-                posicoesCorteCm = posicoes;
-                posicaoCorteCm = { ...posicoesCorteCm[0] };
-                bgOriginal.style.background = '#333';
-                renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, wCorte, hCorte, recortesAtuais);
-            } else {
-                posicoesCorteCm = [];
-                posicaoCorteCm = { x: 0, y: 0 };
+            const planos = gerarPlanoCortes(base, linhas, recortesAtuais);
+            if (!planos) {
                 bgOriginal.querySelectorAll('.preview-corte-item').forEach((el) => el.remove());
-                bgOriginal.style.background = 'var(--orange)';
+                bgOriginal.style.background = '#333';
+                setMensagemCorte('Uma ou mais linhas de corte não cabem na área livre da chapa.');
+                return;
             }
+
+            const possuiCorte = planos.length > 0;
+            bgOriginal.style.background = possuiCorte ? '#333' : 'var(--orange)';
+            renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, recortesAtuais, planos);
         };
 
         window.executarCorte = async () => {
             if (!pecaParaCorte) return;
             const btn = document.getElementById('btn-executar-corte');
             const base = getDimensoesBase(pecaParaCorte);
-            const cw = parseFloat(document.getElementById('corte-w').value) || 0;
-            const ch = parseFloat(document.getElementById('corte-h').value) || 0;
-            const qtdCorte = Math.max(1, parseInt(document.getElementById('corte-qtd').value, 10) || 1);
+            const recortesAtuais = normalizarRecortes(pecaParaCorte.recortes);
+            const linhas = obterLinhasCorteComValores().filter((l) => l.w > 0 && l.h > 0 && l.qtd > 0);
+            if (!linhas.length) return alert('Informe ao menos uma linha de corte válida.');
 
-            if (cw <= 0 || ch <= 0) return alert("Informe as medidas válidas para o corte!");
-            if (cw > base.w || ch > base.h) return alert(`O corte (${cw} x ${ch} cm) não pode ser maior que a peça (${base.w} x ${base.h} cm)!`);
-
-            const recortesAtuaisValidacao = normalizarRecortes(pecaParaCorte.recortes);
-            const posicoesValidadas = gerarPosicoesParaCorte(base, cw, ch, qtdCorte, recortesAtuaisValidacao, posicoesCorteCm);
-            if (!posicoesValidadas) {
-                return alert('A quantidade/posicionamento de cortes não cabe na área livre da chapa.');
-            }
+            const planos = gerarPlanoCortes(base, linhas, recortesAtuais);
+            if (!planos || !planos.length) return alert('As linhas de corte não cabem na área livre da chapa.');
 
             btn.disabled = true;
-            btn.innerText = "CORTANDO...";
+            btn.innerText = 'CORTANDO...';
 
             try {
                 const nomeBase = (pecaParaCorte.nome || pecaParaCorte.categoria || '').replace(' (Sobra)', '');
-                const recortesAtuais = normalizarRecortes(pecaParaCorte.recortes);
-                const corteLinear = qtdCorte === 1 && recortesAtuais.length === 0 && (
-                    (Math.abs(ch - base.h) < 0.01 && (Math.abs(posicoesValidadas[0].y) < 0.01)) ||
-                    (Math.abs(cw - base.w) < 0.01 && (Math.abs(posicoesValidadas[0].x) < 0.01))
+                const qtdAtual = Number(pecaParaCorte.qtd) || 1;
+                const corteLinear = linhas.length === 1 && linhas[0].qtd === 1 && recortesAtuais.length === 0 && (
+                    (Math.abs(linhas[0].h - base.h) < 0.01 && Math.abs(planos[0].y) < 0.01) ||
+                    (Math.abs(linhas[0].w - base.w) < 0.01 && Math.abs(planos[0].x) < 0.01)
                 );
 
-                const qtdAtual = Number(pecaParaCorte.qtd) || 1;
                 const atualizacaoSobra = corteLinear
                     ? (() => {
-                        const sobraW = Math.abs(ch - base.h) < 0.01 ? base.w - cw : base.w;
-                        const sobraH = Math.abs(cw - base.w) < 0.01 ? base.h - ch : base.h;
+                        const sobraW = Math.abs(linhas[0].h - base.h) < 0.01 ? base.w - linhas[0].w : base.w;
+                        const sobraH = Math.abs(linhas[0].w - base.w) < 0.01 ? base.h - linhas[0].h : base.h;
                         const sobraNormalizada = normalizarDimensoesChapa(sobraW, sobraH);
                         return {
                             dimW: Number(sobraNormalizada.w.toFixed(2)),
@@ -1646,8 +1640,8 @@ function tornarArrastavel(elemento) {
                             baseDimH: Number(sobraNormalizada.h.toFixed(2)),
                             recortes: [],
                             tipoMedida: 'corte',
-                            status: "Usado",
-                            nome: nomeBase + " (Sobra)",
+                            status: 'Usado',
+                            nome: nomeBase + ' (Sobra)',
                             qtd: 1
                         };
                     })()
@@ -1656,47 +1650,50 @@ function tornarArrastavel(elemento) {
                         dimH: base.h,
                         baseDimW: base.w,
                         baseDimH: base.h,
-                        recortes: [...recortesAtuais, ...posicoesValidadas.map((p) => ({ x: p.x, y: p.y, w: cw, h: ch }))],
+                        recortes: [...recortesAtuais, ...planos.map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h }))],
                         tipoMedida: 'corte',
-                        status: "Usado",
-                        nome: nomeBase.includes('(Sobra)') ? nomeBase : nomeBase + " (Sobra)",
+                        status: 'Usado',
+                        nome: nomeBase.includes('(Sobra)') ? nomeBase : nomeBase + ' (Sobra)',
                         qtd: 1
                     };
 
                 if (qtdAtual > 1) {
-                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), { qtd: increment(-1) });
+                    await updateDoc(doc(db, 'estoque', pecaParaCorte.id), { qtd: increment(-1) });
                     const sobraPeca = { ...pecaParaCorte, ...atualizacaoSobra, data_criacao: serverTimestamp() };
                     delete sobraPeca.id;
-                    await addDoc(collection(db, "estoque"), sobraPeca);
+                    await addDoc(collection(db, 'estoque'), sobraPeca);
                 } else {
-                    await updateDoc(doc(db, "estoque", pecaParaCorte.id), atualizacaoSobra);
+                    await updateDoc(doc(db, 'estoque', pecaParaCorte.id), atualizacaoSobra);
                 }
 
-                const novaPeca = { ...pecaParaCorte };
-                delete novaPeca.id;
-                const pecaRetiradaNormalizada = normalizarDimensoesChapa(cw, ch);
-                novaPeca.dimW = pecaRetiradaNormalizada.w;
-                novaPeca.dimH = pecaRetiradaNormalizada.h;
-                novaPeca.baseDimW = pecaRetiradaNormalizada.w;
-                novaPeca.baseDimH = pecaRetiradaNormalizada.h;
-                novaPeca.recortes = [];
-                novaPeca.status = "Usado";
-                novaPeca.tipoMedida = 'corte';
-                novaPeca.qtd = qtdCorte;
-                novaPeca.data_criacao = serverTimestamp();
-                novaPeca.nome = nomeBase + " (Corte)";
-                await addDoc(collection(db, "estoque"), novaPeca);
+                for (const linha of linhas) {
+                    const pecaRetiradaNormalizada = normalizarDimensoesChapa(linha.w, linha.h);
+                    const novaPeca = { ...pecaParaCorte };
+                    delete novaPeca.id;
+                    novaPeca.dimW = pecaRetiradaNormalizada.w;
+                    novaPeca.dimH = pecaRetiradaNormalizada.h;
+                    novaPeca.baseDimW = pecaRetiradaNormalizada.w;
+                    novaPeca.baseDimH = pecaRetiradaNormalizada.h;
+                    novaPeca.recortes = [];
+                    novaPeca.status = 'Usado';
+                    novaPeca.tipoMedida = 'corte';
+                    novaPeca.qtd = linha.qtd;
+                    novaPeca.data_criacao = serverTimestamp();
+                    novaPeca.nome = nomeBase + ' (Corte)';
+                    await addDoc(collection(db, 'estoque'), novaPeca);
+                }
 
-                alert("Corte realizado com sucesso!");
+                alert('Corte realizado com sucesso!');
                 window.fecharModal('modal-corte');
             } catch (e) {
                 console.error(e);
-                alert("Erro ao executar o corte.");
+                alert('Erro ao executar o corte.');
             } finally {
                 btn.disabled = false;
-                btn.innerText = "✂️ CONFIRMAR CORTE";
+                btn.innerText = '✂️ CONFIRMAR CORTE';
             }
         };
+
 window.confirmarPosicionamentoSimulador = () => {
     // Verifica se existem peças criadas no grid visual
     const pecasNoGrid = document.querySelectorAll('.peca-simulada'); 
