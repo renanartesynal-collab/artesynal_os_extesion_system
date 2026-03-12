@@ -5,16 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel de Aprovação de Acessos</title>
   <style>
-    body{font-family:Arial,sans-serif;background:#1f2937;color:#fff;margin:0;padding:20px}
-    table{width:100%;border-collapse:collapse;background:#334155;margin-bottom:24px}
-    th,td{padding:10px;border-bottom:1px solid #475569;text-align:left}
+    :root{--bg:#333;--panel:#2c3e50;--panel-dark:#231f20;--yellow:#f1c40f;--blue:#00aeef;--green:#00a651;--red:#ed1c24;--text:#ecf0f1;--muted:#bdc3c7}
+    *{box-sizing:border-box}
+    body{font-family:'Mitra LT','Montserrat',Arial,sans-serif;background:linear-gradient(165deg,#2b2b2b,#1f2937 65%);color:var(--text);margin:0;min-height:100vh}
+    .page{width:min(1280px,100%);margin:0 auto;padding:22px 16px 26px}
+    .panel{background:var(--panel);border:1px solid #34495e;border-radius:14px;box-shadow:0 12px 24px rgba(0,0,0,.3);padding:14px 14px 10px;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;background:transparent;margin-bottom:8px}
+    th,td{padding:10px;border-bottom:1px solid #425a70;text-align:left}
+    th{font-size:15px;font-weight:800;color:#fff;background:rgba(255,255,255,.03)}
     .th-acoes,.td-acoes{text-align:center}
-    button,select,input{padding:6px 9px;border:none;border-radius:6px}
+    button,select,input{padding:6px 9px;border:none;border-radius:8px}
+    input,select{background:#f8fafc;color:#0f172a;font-weight:600}
     .ok{background:#16a34a;color:#fff}.no{background:#dc2626;color:#fff}.blk{background:#f59e0b;color:#111}
     .edit{background:#0ea5e9;color:#fff}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-    a{color:#93c5fd}
-    h2{margin:8px 0}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--panel-dark);padding:16px 18px;border:1px solid #3a4e63;border-radius:14px;box-shadow:0 8px 18px rgba(0,0,0,.26);margin-bottom:16px;flex-wrap:wrap}
+    .actions-top{display:flex;gap:10px;align-items:center;margin-left:auto}
+    a{color:#93c5fd;font-weight:700}
+    h1{margin:0;font-size:42px;line-height:1}
+    h2{margin:4px 0 10px;font-size:34px;line-height:1}
+    .subtitle{margin:6px 0 0;color:var(--muted);font-size:13px;letter-spacing:.3px}
     .acoes{display:grid;grid-template-columns:1.8fr repeat(3,1fr);gap:4px;align-items:center;width:100%;max-width:250px;margin:0 auto}
     .icon-btn{width:100%;height:28px;padding:0 6px;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
     .status-toggle{position:relative;width:100%;height:28px;border-radius:20px;border:2px solid #2b2b2b;cursor:pointer;font-weight:800;font-size:24px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box}
@@ -30,14 +39,14 @@
     .edit-separado{margin-left:0}
     .del{background:#dc2626;color:#fff}
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
-    .modal{width:min(640px,100%);background:#1e293b;border-radius:12px;padding:16px}
+    .modal{width:min(640px,100%);background:#1e293b;border-radius:12px;padding:16px;border:1px solid #334155}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .grid .full{grid-column:1 / -1}
     .modal label{font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px}
     .modal input,.modal select{width:100%;box-sizing:border-box}
     .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
     .muted{font-size:12px;color:#cbd5e1;margin:0 0 8px}
-    .btn-categorias{background:#0f172a;color:#fff;border:1px solid #334155;padding:8px 16px;border-radius:8px}
+    .btn-categorias{background:#0f172a;color:#fff;border:1px solid #334155;padding:8px 16px;border-radius:8px;font-weight:700}
     .categorias-grid{width:100%;border-collapse:collapse;background:#334155;margin-top:10px}
     .categorias-grid th,.categorias-grid td{padding:8px;border-bottom:1px solid #475569;text-align:center}
     .categorias-grid th:first-child,.categorias-grid td:first-child{text-align:left}
@@ -45,18 +54,33 @@
     .switch-cat:checked{background:#22c55e}
     .switch-cat::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:all .18s}
     .switch-cat:checked::after{left:23px}
+    @media (max-width:900px){h1{font-size:33px}h2{font-size:26px}.top{padding:14px}}
+    @media (max-width:720px){.page{padding:14px 10px}.top{flex-direction:column;align-items:flex-start}.actions-top{width:100%;justify-content:space-between;margin-left:0}table{font-size:13px}th,td{padding:8px}}
   </style>
 </head>
 <body>
-  <div class="top">
-    <h1>Gerenciamento de acessos</h1>
-    <button type="button" class="btn-categorias" id="btn-categorias">Categorias</button>
-    <a href="index.html">Voltar ao painel</a>
+  <div class="page">
+    <div class="top">
+      <div>
+        <h1>Gerenciamento de acessos</h1>
+        <p class="subtitle">Controle central de perfis, permissões e segurança do sistema.</p>
+      </div>
+      <div class="actions-top">
+        <button type="button" class="btn-categorias" id="btn-categorias">Categorias</button>
+        <a href="index.html">Voltar ao painel</a>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h2>Solicitantes de acesso</h2>
+      <div id="lista"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Tentativas de login</h2>
+      <div id="tentativas"></div>
+    </section>
   </div>
-  <h2>Solicitantes de acesso</h2>
-  <div id="lista"></div>
-  <h2>Tentativas de login</h2>
-  <div id="tentativas"></div>
 
   <div class="modal-bg" id="edit-modal-bg">
     <div class="modal">
