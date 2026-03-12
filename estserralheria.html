@@ -42,7 +42,7 @@
         .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
         .kanban-col { background: #161616; border-radius: 10px; padding: 15px; min-width: 320px; width: 320px; border: 1px solid #222; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .kanban-header { padding: 12px; font-weight: 900; font-size: 13px; border-radius: 6px; margin-bottom: 15px; color: #000; background: var(--orange); text-transform: uppercase; text-align: center; }
-        .grid-est { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; min-height: 50px; }
+        .grid-est { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; min-height: 50px; }
         .material-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
         .material-option { background: #161616; border: 1px solid #2b2b2b; border-radius: 12px; padding: 20px; color: var(--white); text-align: left; cursor: pointer; transition: 0.2s; }
         .material-option:hover { border-color: var(--orange); transform: translateY(-2px); }
@@ -52,8 +52,11 @@
         .btn-voltar-material:hover { color: var(--white); border-color: #555; }
         
         /* Cards Chapa */
-        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 12px; position: relative; border-left: 4px solid var(--orange); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card-prod { background: var(--card-bg); border-radius: 10px; padding: 12px; position: relative; border-left: 4px solid var(--orange); box-shadow: 0 4px 10px rgba(0,0,0,0.3); min-height: 285px; }
         .card-prod.card-focus { outline: 2px solid #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.25); }
+        .card-prod.card-selected { outline: 2px solid #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,.22); }
+        .card-select-pill { position:absolute; top:10px; right:92px; background:#0f172a; border:1px solid #334155; color:#cbd5e1; border-radius:6px; font-size:10px; font-weight:800; padding:3px 7px; display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+        .card-select-pill input { accent-color:#38bdf8; cursor:pointer; }
         .btn-del-card { position: absolute; top: 10px; right: 10px; background: var(--red-cancel); border: none; color: white; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s; padding: 5px 8px; border-radius: 6px; letter-spacing: 0.3px; }
         .btn-del-card:hover { filter: brightness(1.1); }
         .prod-cat { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; margin-bottom: 8px; display: inline-block; }
@@ -68,6 +71,8 @@
         .stock-search { flex: 1; min-width: 250px; max-width: 460px; padding: 10px 12px; border-radius: 8px; border: 1px solid #444; background: #121212; color: #fff; font-size: 13px; font-weight: 600; }
         .stock-search:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255,107,0,0.2); }
         .btn-config-preview { background: #1e1e1e; color: var(--white); border: 1px solid #444; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .btn-baixa-selecao { background: linear-gradient(90deg,#ef4444,#dc2626); color:#fff; border:1px solid #b91c1c; border-radius:8px; padding:8px 12px; font-size:12px; font-weight:800; cursor:pointer; }
+        .btn-baixa-selecao:disabled { opacity:.45; cursor:not-allowed; }
         .btn-config-preview:hover { border-color: var(--orange); }
         .config-panel { background: #131313; border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
         .config-row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
@@ -160,6 +165,7 @@
         .linha-cota-h { width: 1px; background-color: var(--orange); height: 100%; margin-right: 5px; position: relative; }
         .linha-cota-h::before, .linha-cota-h::after { content: ''; position: absolute; left: -4px; width: 9px; height: 1px; background-color: var(--orange); }
         .linha-cota-h::before { top: 0; } .linha-cota-h::after { bottom: 0; }
+    @media (max-width: 980px) { .grid-est { grid-template-columns: 1fr; } .stock-search { max-width: none; width: 100%; } .stock-tools { align-items: stretch; } }
     </style>
 </head>
 <body>
@@ -181,6 +187,7 @@
             </div>
             <div class="stock-tools">
                 <input class="stock-search" id="stock-search" type="text" placeholder="🔎 Pesquisar por cor ou espessura..." oninput="atualizarFiltroEstoque(this.value)">
+                <button class="btn-baixa-selecao" id="btn-baixa-selecionados" onclick="darBaixaSelecionados()" disabled>🗑️ BAIXA SELECIONADOS (0)</button>
                 <button class="btn-config-preview" onclick="toggleConfigCores()">🎨 CONFIGURAR CORES</button>
             </div>
             <div id="config-cores-panel" class="config-panel" style="display:none;">
@@ -517,6 +524,8 @@
         let posicoesCortePorLinha = {};
         let sequenciaLinhaCorte = 1;
         let termoBuscaEstoque = "";
+        let selecaoCardsBaixa = new Set();
+        let gruposVisiveis = new Map();
         let mapaCoresMateriais = {};
         const coresConfigRef = doc(db, "configuracoes", "serralheria_cores_preview");
         const itemHashFoco = window.location.hash ? window.location.hash.replace('#item-', '') : null;
@@ -863,13 +872,18 @@
                 grupo.ids.push(p.id);
             });
 
+            gruposVisiveis = grupos;
+            selecaoCardsBaixa = new Set([...selecaoCardsBaixa].filter((id) => gruposVisiveis.has(id)));
+
             grupos.forEach(p => {
                 const card = document.createElement('div');
                 card.className = `card-prod`;
                 card.dataset.itemId = p.id;
 
+                const marcado = selecaoCardsBaixa.has(p.id);
+                if (marcado) card.classList.add("card-selected");
                 let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--orange); color:black; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
-                let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">BAIXA</button>`;
+                let conteudo = temNotaBadge + `<label class="card-select-pill"><input type="checkbox" ${marcado ? "checked" : ""} onchange="toggleSelecaoCard('${p.id}', this.checked)">Selecionar</label>` + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">BAIXA</button>`;
                 conteudo += `<span class="prod-cat">${p.categoria}</span>`;
                 conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
                 const dimsCard = getDimensoesBase(p);
@@ -891,7 +905,43 @@
                 card.innerHTML = conteudo;
                 grid.appendChild(card);
             });
+
+            atualizarBotaoBaixaSelecionados();
         }
+
+        function atualizarBotaoBaixaSelecionados() {
+            const btn = document.getElementById('btn-baixa-selecionados');
+            if (!btn) return;
+            const total = selecaoCardsBaixa.size;
+            btn.disabled = total === 0;
+            btn.innerText = `🗑️ BAIXA SELECIONADOS (${total})`;
+        }
+
+        window.toggleSelecaoCard = (id, checked) => {
+            if (checked) selecaoCardsBaixa.add(id);
+            else selecaoCardsBaixa.delete(id);
+            atualizarBotaoBaixaSelecionados();
+        };
+
+        window.darBaixaSelecionados = async () => {
+            if (!selecaoCardsBaixa.size) return;
+            const ok = confirm(`Dar baixa completa em ${selecaoCardsBaixa.size} card(s) selecionado(s)?`);
+            if (!ok) return;
+
+            const idsRemover = [];
+            selecaoCardsBaixa.forEach((idGrupo) => {
+                const grupo = gruposVisiveis.get(idGrupo);
+                if (!grupo) return;
+                (grupo.ids || [idGrupo]).forEach((docId) => idsRemover.push(docId));
+            });
+
+            for (const docId of idsRemover) {
+                await deleteDoc(doc(db, "estoque", docId));
+            }
+
+            selecaoCardsBaixa.clear();
+            atualizarBotaoBaixaSelecionados();
+        };
 
         window.deletarItem = async (id) => {
             const item = produtos.find((p) => p.id === id);
