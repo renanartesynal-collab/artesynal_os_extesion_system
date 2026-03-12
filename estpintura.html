@@ -16,320 +16,92 @@
       --line: #3a4a60;
       --danger: #ef4444;
       --label-bg: #ffffff;
-      --label-fg: #111827;
+      --label-fg: #111111;
     }
 
     * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Montserrat', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .page { max-width: 1260px; margin: 0 auto; padding: 24px 16px 36px; }
+    .back { color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 13px; }
 
-    body {
-      margin: 0;
-      font-family: 'Montserrat', Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    .header { margin-top: 14px; background: linear-gradient(180deg, #1c2633, #131b26); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 18px; }
+    h1 { margin: 0; font-size: 28px; text-transform: uppercase; }
+    .subtitle { margin-top: 6px; color: var(--muted); font-size: 13px; }
 
-    .page {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 24px 16px 36px;
-    }
+    .toolbar { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .categorias { display: flex; gap: 8px; flex-wrap: wrap; }
+    .categoria-btn { background: #1a2330; color: #cfd8e3; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .categoria-btn.active { background: var(--accent); color: #fff; border-color: #ff7a80; }
 
-    .back {
-      color: var(--yellow);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .header {
-      margin-top: 14px;
-      background: linear-gradient(180deg, #1c2633, #131b26);
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--accent);
-      border-radius: 12px;
-      padding: 18px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 28px;
-      text-transform: uppercase;
-    }
-
-    .subtitle {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .toolbar {
-      margin-top: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .categorias {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .categoria-btn {
-      background: #1a2330;
-      color: #cfd8e3;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .categoria-btn.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: #ff7a80;
-    }
-
-    .btn {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 12px;
-      background: #1b2431;
-      color: #fff;
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
+    .btn { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: #1b2431; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer; }
     .btn:hover { filter: brightness(1.08); }
+    .btn-primary { background: var(--accent); border-color: #ff7a80; }
+    .btn-danger { background: #2b1516; border-color: #4f1d1f; color: #ffd1d3; }
 
-    .btn-primary {
-      background: var(--accent);
-      border-color: #ff7a80;
-    }
-
-    .btn-danger {
-      background: #2b1516;
-      border-color: #4f1d1f;
-      color: #ffd1d3;
-    }
-
-    .panel {
-      margin-top: 14px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px;
-    }
-
-    .panel-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
+    .panel { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .panel-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
     .muted { color: var(--muted); font-size: 12px; }
 
-    .slots-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 12px;
-    }
-
-    .slot {
-      background: var(--panel-soft);
-      border: 1px dashed #576983;
-      border-radius: 10px;
-      min-height: 200px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      gap: 8px;
-    }
-
-    .slot.filled {
-      border-style: solid;
-      align-items: stretch;
-      text-align: left;
-      justify-content: flex-start;
-      gap: 6px;
-    }
-
+    .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .slot { background: var(--panel-soft); border: 1px dashed #576983; border-radius: 10px; min-height: 200px; padding: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 8px; }
+    .slot.filled { border-style: solid; align-items: stretch; text-align: left; justify-content: flex-start; gap: 6px; }
     .slot-title { font-weight: 800; font-size: 14px; }
     .slot-meta { color: var(--muted); font-size: 12px; }
+    .slot-actions { margin-top: auto; display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 
-    .slot-actions {
-      margin-top: auto;
-      display: flex;
-      gap: 6px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; padding: 14px; z-index: 30; }
+    .modal { width: min(1160px, 100%); background: #161e29; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+    .modal-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
 
-    .modal-bg {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      z-index: 30;
-    }
-
-    .modal {
-      width: min(1100px, 100%);
-      background: #161e29;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    .modal-layout {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .full { grid-column: 1 / -1; }
-
     label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+    input { width: 100%; border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 8px; font-family: inherit; font-size: 13px; }
+    input.readonly { background: #0b1017; color: #95a4b8; }
 
-    input {
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #3d4f67;
-      background: #0f141c;
-      color: #fff;
-      padding: 8px;
-      font-family: inherit;
-      font-size: 13px;
-    }
+    .calc-panel { margin-top: 8px; border: 1px dashed #3e5674; border-radius: 10px; padding: 10px; background: #111925; }
+    .calc-title { font-size: 12px; color: #b7c5d8; margin-bottom: 8px; font-weight: 700; }
 
-    .modal-actions {
-      margin-top: 12px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
+    .etiqueta-wrap { background: #0f141c; border: 1px solid #32455e; border-radius: 10px; padding: 10px; }
+    .etiqueta-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; color: var(--muted); }
 
-    .etiqueta-wrap {
-      background: #0f141c;
-      border: 1px solid #32455e;
-      border-radius: 10px;
-      padding: 10px;
-    }
-
-    .etiqueta-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
+    /* Etiqueta preta e branca */
     .etiqueta {
       width: 6cm;
       height: 3cm;
       max-width: 100%;
+      margin: 0 auto;
       background: var(--label-bg);
       color: var(--label-fg);
-      border: 2px solid #111827;
+      border: 2px solid #111;
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 7px 8px;
       display: grid;
-      grid-template-columns: 1fr 1.7cm;
+      grid-template-columns: 1fr 1.5cm;
       grid-template-rows: auto auto auto auto 1fr;
-      gap: 4px 8px;
-      margin: 0 auto;
+      gap: 4px 6px;
+      font-family: 'Arial', sans-serif;
     }
 
-    .linha {
-      border-bottom: 1.5px solid #111827;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .e-line { border-bottom: 1.5px solid #111; display: flex; gap: 4px; align-items: baseline; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .e-line strong { font-size: 10px; line-height: 1; }
+    .e-line span { font-size: 10px; line-height: 1; }
+    .e-desc { border-bottom: 1.5px solid #111; font-size: 10px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .e-code-color { font-weight: 700; }
 
-    .linha strong { font-size: 10px; }
-    .linha.span2 { grid-column: 1 / 2; }
+    .qr-box { grid-column: 2 / 3; grid-row: 2 / 6; align-self: end; justify-self: end; width: 1.45cm; height: 1.45cm; border: 1px solid #111; border-radius: 3px; overflow: hidden; background: #fff; display:flex; align-items:center; justify-content:center; }
+    .qr-box img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 
-    .descricao {
-      grid-column: 1 / 2;
-      border-bottom: 1.5px solid #111827;
-      font-size: 10px;
-      display: flex;
-      align-items: center;
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .qr-box {
-      grid-column: 2 / 3;
-      grid-row: 3 / 6;
-      align-self: end;
-      justify-self: end;
-      width: 1.45cm;
-      height: 1.45cm;
-      border: 1px solid #111827;
-      border-radius: 4px;
-      overflow: hidden;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .qr-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      image-rendering: pixelated;
-    }
-
-    .preview-actions {
-      margin-top: 8px;
-      display: flex;
-      justify-content: flex-end;
-    }
+    .preview-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+    .modal-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; }
 
     @media print {
       body * { visibility: hidden; }
       .print-target, .print-target * { visibility: visible; }
-      .print-target {
-        position: absolute;
-        left: 0;
-        top: 0;
-        margin: 0;
-      }
+      .print-target { position: absolute; left: 0; top: 0; margin: 0; }
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 980px) {
       .modal-layout { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
     }
@@ -341,7 +113,7 @@
 
     <section class="header">
       <h1>🎨 Pintura</h1>
-      <div class="subtitle">Gerencie categorias, slots e etiquetas 6cm x 3cm para latas de tinta.</div>
+      <div class="subtitle">Gerencie categorias, slots e etiquetas P&B 6cm x 3cm para latas de tinta.</div>
     </section>
 
     <section class="toolbar">
@@ -368,28 +140,52 @@
         <div>
           <div class="grid">
             <div>
+              <label for="tinta-codigo">Código</label>
+              <input id="tinta-codigo" type="text" placeholder="Código do produto/lote" />
+            </div>
+            <div>
               <label for="tinta-cor">Cor</label>
               <input id="tinta-cor" type="text" placeholder="Ex.: Azul Royal" />
             </div>
+
             <div>
-              <label for="tinta-os">Ordem de Serviço (5 dígitos)</label>
+              <label for="tinta-os">OS. (5 dígitos)</label>
               <input id="tinta-os" type="text" inputmode="numeric" maxlength="5" placeholder="00000" />
-            </div>
-            <div class="full">
-              <label for="tinta-descricao">Descrição (1 linha)</label>
-              <input id="tinta-descricao" type="text" maxlength="90" placeholder="Descrição livre" />
-            </div>
-            <div>
-              <label for="tinta-quantidade">Quantidade (ml)</label>
-              <input id="tinta-quantidade" type="number" min="0" step="1" placeholder="0" />
             </div>
             <div>
               <label for="tinta-validade">Validade (MM/AAAA)</label>
               <input id="tinta-validade" type="text" maxlength="7" placeholder="MM/AAAA" />
             </div>
+
             <div class="full">
-              <label for="tinta-codigo">Código</label>
-              <input id="tinta-codigo" type="text" placeholder="Código do produto/lote" />
+              <label for="tinta-descricao">Descrição (1 linha)</label>
+              <input id="tinta-descricao" type="text" maxlength="90" placeholder="Descrição livre" />
+            </div>
+          </div>
+
+          <div class="calc-panel">
+            <div class="calc-title">Cálculo de quantidade por peso (regra de três)</div>
+            <div class="grid">
+              <div>
+                <label for="tinta-tara">Peso da tara (g)</label>
+                <input id="tinta-tara" type="number" min="0" step="0.1" placeholder="0" />
+              </div>
+              <div>
+                <label for="tinta-peso-total">Peso total (g)</label>
+                <input id="tinta-peso-total" type="number" min="0" step="0.1" placeholder="0" />
+              </div>
+              <div>
+                <label for="tinta-densidade">Fator g/ml</label>
+                <input id="tinta-densidade" type="number" min="0.001" step="0.001" value="1" />
+              </div>
+              <div>
+                <label for="tinta-peso-liquido">Peso da tinta (g)</label>
+                <input id="tinta-peso-liquido" class="readonly" type="text" readonly />
+              </div>
+              <div class="full">
+                <label for="tinta-quantidade">Quantidade final (ml)</label>
+                <input id="tinta-quantidade" type="number" min="0" step="1" placeholder="0" />
+              </div>
             </div>
           </div>
 
@@ -401,17 +197,17 @@
 
         <div class="etiqueta-wrap">
           <div class="etiqueta-head">
-            <span>Pré-visualização da etiqueta</span>
+            <span>Pré-visualização da etiqueta (P&B)</span>
             <span>6cm x 3cm</span>
           </div>
 
           <div class="etiqueta print-target" id="etiqueta-preview">
-            <div class="linha"><strong>Cor:</strong><span id="lbl-cor">________________</span></div>
-            <div class="linha"><strong>Ordem de Serviço:</strong><span id="lbl-os">_____</span></div>
-            <div class="descricao" id="lbl-desc">________________________</div>
-            <div class="linha"><strong>Quantidade:</strong><span id="lbl-quantidade">___ ml</span></div>
-            <div class="linha"><strong>Validade:</strong><span id="lbl-validade">MM/AAAA</span></div>
-            <div class="linha"><strong>Código:</strong><span id="lbl-codigo">____________</span></div>
+            <div class="e-line e-code-color" style="grid-column:1/2;"><strong>Código/Cor:</strong><span id="lbl-codigo-cor">____________</span></div>
+            <div class="e-line" style="grid-column:1/2;"><strong>OS.:</strong><span id="lbl-os">_____</span></div>
+            <div class="e-desc" id="lbl-desc" style="grid-column:1/2;">________________________</div>
+            <div class="e-line" style="grid-column:1/2;"><strong>Peso:</strong><span id="lbl-peso">___ g</span></div>
+            <div class="e-line" style="grid-column:1/2;"><strong>Quantidade:</strong><span id="lbl-quantidade">___ ml</span></div>
+            <div class="e-line" style="grid-column:1/2;"><strong>Validade:</strong><span id="lbl-validade">MM/AAAA</span></div>
             <div class="qr-box"><img id="lbl-qr" alt="QR Code da etiqueta" /></div>
           </div>
 
@@ -427,23 +223,15 @@
     import { protegerPagina } from './auth.js';
 
     const previewMode = new URLSearchParams(window.location.search).get('preview') === '1';
-    if (!previewMode) {
-      await protegerPagina({ paginaAtual: 'estpintura.html' });
-    }
+    if (!previewMode) await protegerPagina({ paginaAtual: 'estpintura.html' });
 
-    const STORAGE_KEY = 'artesynal_pintura_v3';
-    const estadoPadrao = {
-      categorias: {
-        tinta: { label: 'Tinta', slots: Array(8).fill(null) }
-      },
-      categoriaAtual: 'tinta'
-    };
+    const STORAGE_KEY = 'artesynal_pintura_v4';
+    const estadoPadrao = { categorias: { tinta: { label: 'Tinta', slots: Array(8).fill(null) } }, categoriaAtual: 'tinta' };
 
     const categoriasEl = document.getElementById('categorias');
     const slotsGridEl = document.getElementById('slots-grid');
     const tituloCategoriaEl = document.getElementById('titulo-categoria');
     const contadorSlotsEl = document.getElementById('contador-slots');
-
     const modalBg = document.getElementById('modal-tinta-bg');
 
     let estado = carregarEstado();
@@ -455,27 +243,18 @@
         if (!bruto?.categorias || typeof bruto.categorias !== 'object') return structuredClone(estadoPadrao);
         if (!bruto.categorias.tinta) bruto.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
         bruto.categoriaAtual = bruto.categoriaAtual && bruto.categorias[bruto.categoriaAtual] ? bruto.categoriaAtual : 'tinta';
-
-        for (const key of Object.keys(bruto.categorias)) {
-          if (!Array.isArray(bruto.categorias[key].slots)) bruto.categorias[key].slots = Array(4).fill(null);
-        }
-
+        for (const key of Object.keys(bruto.categorias)) if (!Array.isArray(bruto.categorias[key].slots)) bruto.categorias[key].slots = Array(4).fill(null);
         return bruto;
-      } catch {
-        return structuredClone(estadoPadrao);
-      }
+      } catch { return structuredClone(estadoPadrao); }
     }
 
-    function salvarEstado() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
-    }
+    function salvarEstado() { localStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }
 
     function renderCategorias() {
       const keys = Object.keys(estado.categorias);
       categoriasEl.innerHTML = keys.map((key) => {
         const c = estado.categorias[key];
-        const activeClass = key === estado.categoriaAtual ? 'active' : '';
-        return `<button class="categoria-btn ${activeClass}" data-cat="${key}">${escapeHtml(c.label)}</button>`;
+        return `<button class="categoria-btn ${key === estado.categoriaAtual ? 'active' : ''}" data-cat="${key}">${escapeHtml(c.label)}</button>`;
       }).join('');
 
       categoriasEl.querySelectorAll('.categoria-btn').forEach((btn) => {
@@ -490,29 +269,20 @@
     function renderSlots() {
       const categoria = estado.categorias[estado.categoriaAtual];
       const slots = categoria.slots;
-
       tituloCategoriaEl.textContent = `Categoria: ${categoria.label}`;
-      const preenchidos = slots.filter(Boolean).length;
-      contadorSlotsEl.textContent = `${preenchidos}/${slots.length} slots preenchidos`;
+      contadorSlotsEl.textContent = `${slots.filter(Boolean).length}/${slots.length} slots preenchidos`;
 
       slotsGridEl.innerHTML = slots.map((item, idx) => {
         if (!item) {
-          return `
-            <article class="slot" data-slot="${idx}">
-              <div class="slot-title">Slot ${idx + 1}</div>
-              <div class="slot-meta">Vazio</div>
-              <button class="btn btn-primary" data-action="add" data-slot="${idx}">+ Adicionar card</button>
-            </article>
-          `;
+          return `<article class="slot"><div class="slot-title">Slot ${idx + 1}</div><div class="slot-meta">Vazio</div><button class="btn btn-primary" data-action="add" data-slot="${idx}">+ Adicionar card</button></article>`;
         }
-
         return `
-          <article class="slot filled" data-slot="${idx}">
-            <div class="slot-title">${escapeHtml(item.cor || 'Sem cor')}</div>
-            <div class="slot-meta">Ordem de Serviço: ${escapeHtml(item.ordemServico || '_____')}</div>
+          <article class="slot filled">
+            <div class="slot-title">${escapeHtml(item.codigo || '-')} • ${escapeHtml(item.cor || 'Sem cor')}</div>
+            <div class="slot-meta">OS.: ${escapeHtml(item.ordemServico || '_____')}</div>
+            <div class="slot-meta">Peso: ${escapeHtml(item.pesoLiquidoG || '0')} g</div>
             <div class="slot-meta">Quantidade: ${escapeHtml(item.quantidadeMl || '0')} ml</div>
             <div class="slot-meta">Validade: ${escapeHtml(item.validade || 'MM/AAAA')}</div>
-            <div class="slot-meta">Código: ${escapeHtml(item.codigo || '-')}</div>
             <div class="slot-actions">
               <button class="btn" data-action="label" data-slot="${idx}">Etiqueta</button>
               <button class="btn" data-action="edit" data-slot="${idx}">Editar</button>
@@ -527,8 +297,7 @@
         const action = btn.dataset.action;
         btn.addEventListener('click', () => {
           if (action === 'add') abrirModalTinta(idx);
-          if (action === 'edit') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
-          if (action === 'label') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
+          if (action === 'edit' || action === 'label') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
           if (action === 'delete') {
             if (!confirm('Deseja remover este card de tinta?')) return;
             estado.categorias[estado.categoriaAtual].slots[idx] = null;
@@ -539,37 +308,48 @@
       });
     }
 
-    function renderTudo() {
-      renderCategorias();
-      renderSlots();
+    function renderTudo() { renderCategorias(); renderSlots(); }
+
+    function escapeHtml(valor) {
+      return String(valor ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function slugify(texto) {
-      return (texto || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+      return (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     }
 
-    function escapeHtml(valor) {
-      return String(valor ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    function normalizarOS(v) { return (v || '').replace(/\D/g, '').slice(0, 5); }
+    function normalizarValidade(v) {
+      const d = (v || '').replace(/\D/g, '').slice(0, 6);
+      if (d.length <= 2) return d;
+      return `${d.slice(0, 2)}/${d.slice(2)}`;
+    }
+
+    function calcularPesoEQuantidade() {
+      const tara = Number(document.getElementById('tinta-tara').value || 0);
+      const total = Number(document.getElementById('tinta-peso-total').value || 0);
+      const densidade = Number(document.getElementById('tinta-densidade').value || 1);
+
+      const liquido = Math.max(total - tara, 0);
+      document.getElementById('tinta-peso-liquido').value = liquido.toFixed(1);
+
+      if (densidade > 0) {
+        const ml = liquido / densidade;
+        if (!document.getElementById('tinta-quantidade').dataset.manual) {
+          document.getElementById('tinta-quantidade').value = Math.round(ml);
+        }
+      }
     }
 
     function qrPayload(dados) {
       return JSON.stringify({
+        codigo: dados.codigo || '',
         cor: dados.cor || '',
-        ordemServico: dados.ordemServico || '',
+        os: dados.ordemServico || '',
         descricao: dados.descricao || '',
+        pesoLiquidoG: dados.pesoLiquidoG || '',
         quantidadeMl: dados.quantidadeMl || '',
-        validade: dados.validade || '',
-        codigo: dados.codigo || ''
+        validade: dados.validade || ''
       });
     }
 
@@ -579,44 +359,39 @@
 
     function atualizarPreviewEtiqueta() {
       const dados = {
+        codigo: document.getElementById('tinta-codigo').value.trim(),
         cor: document.getElementById('tinta-cor').value.trim(),
         ordemServico: normalizarOS(document.getElementById('tinta-os').value),
         descricao: document.getElementById('tinta-descricao').value.trim(),
+        pesoLiquidoG: document.getElementById('tinta-peso-liquido').value.trim(),
         quantidadeMl: document.getElementById('tinta-quantidade').value.trim(),
-        validade: normalizarValidade(document.getElementById('tinta-validade').value),
-        codigo: document.getElementById('tinta-codigo').value.trim()
+        validade: normalizarValidade(document.getElementById('tinta-validade').value)
       };
 
-      document.getElementById('lbl-cor').textContent = dados.cor || '________________';
+      document.getElementById('lbl-codigo-cor').textContent = `${dados.codigo || '_____'} ${dados.cor ? '• ' + dados.cor : ''}`.trim();
       document.getElementById('lbl-os').textContent = dados.ordemServico || '_____';
       document.getElementById('lbl-desc').textContent = dados.descricao || '________________________';
+      document.getElementById('lbl-peso').textContent = `${dados.pesoLiquidoG || '___'} g`;
       document.getElementById('lbl-quantidade').textContent = `${dados.quantidadeMl || '___'} ml`;
       document.getElementById('lbl-validade').textContent = dados.validade || 'MM/AAAA';
-      document.getElementById('lbl-codigo').textContent = dados.codigo || '____________';
-
-      const payload = qrPayload(dados);
-      document.getElementById('lbl-qr').src = qrUrl(payload);
-    }
-
-    function normalizarOS(valor) {
-      return (valor || '').replace(/\D/g, '').slice(0, 5);
-    }
-
-    function normalizarValidade(valor) {
-      const digits = (valor || '').replace(/\D/g, '').slice(0, 6);
-      if (digits.length <= 2) return digits;
-      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+      document.getElementById('lbl-qr').src = qrUrl(qrPayload(dados));
     }
 
     function abrirModalTinta(slot, dados = null) {
       slotAtual = slot;
+      document.getElementById('tinta-codigo').value = dados?.codigo || '';
       document.getElementById('tinta-cor').value = dados?.cor || '';
       document.getElementById('tinta-os').value = dados?.ordemServico || '';
-      document.getElementById('tinta-descricao').value = dados?.descricao || '';
-      document.getElementById('tinta-quantidade').value = dados?.quantidadeMl || '';
       document.getElementById('tinta-validade').value = dados?.validade || '';
-      document.getElementById('tinta-codigo').value = dados?.codigo || '';
+      document.getElementById('tinta-descricao').value = dados?.descricao || '';
+      document.getElementById('tinta-tara').value = dados?.taraG || '';
+      document.getElementById('tinta-peso-total').value = dados?.pesoTotalG || '';
+      document.getElementById('tinta-densidade').value = dados?.densidade || 1;
+      document.getElementById('tinta-peso-liquido').value = dados?.pesoLiquidoG || '';
+      document.getElementById('tinta-quantidade').value = dados?.quantidadeMl || '';
+      document.getElementById('tinta-quantidade').dataset.manual = '';
       modalBg.style.display = 'flex';
+      calcularPesoEQuantidade();
       atualizarPreviewEtiqueta();
     }
 
@@ -625,12 +400,18 @@
       modalBg.style.display = 'none';
     }
 
-    ['tinta-cor', 'tinta-os', 'tinta-descricao', 'tinta-quantidade', 'tinta-validade', 'tinta-codigo'].forEach((id) => {
+    ['tinta-codigo', 'tinta-cor', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-tara', 'tinta-peso-total', 'tinta-densidade'].forEach((id) => {
       document.getElementById(id).addEventListener('input', (ev) => {
         if (id === 'tinta-os') ev.target.value = normalizarOS(ev.target.value);
         if (id === 'tinta-validade') ev.target.value = normalizarValidade(ev.target.value);
+        if (id === 'tinta-tara' || id === 'tinta-peso-total' || id === 'tinta-densidade') calcularPesoEQuantidade();
         atualizarPreviewEtiqueta();
       });
+    });
+
+    document.getElementById('tinta-quantidade').addEventListener('input', (ev) => {
+      ev.target.dataset.manual = '1';
+      atualizarPreviewEtiqueta();
     });
 
     document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
@@ -639,28 +420,22 @@
       if (slotAtual === null) return;
 
       const payload = {
+        codigo: document.getElementById('tinta-codigo').value.trim(),
         cor: document.getElementById('tinta-cor').value.trim(),
         ordemServico: normalizarOS(document.getElementById('tinta-os').value),
-        descricao: document.getElementById('tinta-descricao').value.trim(),
-        quantidadeMl: document.getElementById('tinta-quantidade').value.trim(),
         validade: normalizarValidade(document.getElementById('tinta-validade').value),
-        codigo: document.getElementById('tinta-codigo').value.trim()
+        descricao: document.getElementById('tinta-descricao').value.trim(),
+        taraG: document.getElementById('tinta-tara').value.trim(),
+        pesoTotalG: document.getElementById('tinta-peso-total').value.trim(),
+        densidade: document.getElementById('tinta-densidade').value.trim(),
+        pesoLiquidoG: document.getElementById('tinta-peso-liquido').value.trim(),
+        quantidadeMl: document.getElementById('tinta-quantidade').value.trim()
       };
 
-      if (!payload.cor) {
-        alert('Informe a cor da tinta.');
-        return;
-      }
-
-      if (payload.ordemServico.length !== 5) {
-        alert('A Ordem de Serviço deve ter exatamente 5 dígitos.');
-        return;
-      }
-
-      if (payload.validade && !/^\d{2}\/\d{4}$/.test(payload.validade)) {
-        alert('A validade deve estar no formato MM/AAAA.');
-        return;
-      }
+      if (!payload.codigo) return alert('Informe o código.');
+      if (!payload.cor) return alert('Informe a cor da tinta.');
+      if (payload.ordemServico.length !== 5) return alert('A OS. deve ter exatamente 5 dígitos.');
+      if (payload.validade && !/^\d{2}\/\d{4}$/.test(payload.validade)) return alert('A validade deve estar no formato MM/AAAA.');
 
       estado.categorias[estado.categoriaAtual].slots[slotAtual] = payload;
       salvarEstado();
@@ -668,9 +443,7 @@
       fecharModalTinta();
     });
 
-    document.getElementById('btn-imprimir-etiqueta').addEventListener('click', () => {
-      window.print();
-    });
+    document.getElementById('btn-imprimir-etiqueta').addEventListener('click', () => window.print());
 
     document.getElementById('btn-adicionar-slot').addEventListener('click', () => {
       estado.categorias[estado.categoriaAtual].slots.push(null);
@@ -681,18 +454,9 @@
     document.getElementById('btn-nova-categoria').addEventListener('click', () => {
       const nome = prompt('Nome da nova categoria (ex.: Verniz, Primer, Tinta):');
       if (!nome) return;
-
       const id = slugify(nome);
-      if (!id) {
-        alert('Nome inválido para categoria.');
-        return;
-      }
-
-      if (estado.categorias[id]) {
-        alert('Essa categoria já existe.');
-        return;
-      }
-
+      if (!id) return alert('Nome inválido para categoria.');
+      if (estado.categorias[id]) return alert('Essa categoria já existe.');
       estado.categorias[id] = { label: nome.trim(), slots: Array(6).fill(null) };
       estado.categoriaAtual = id;
       salvarEstado();
