@@ -57,8 +57,7 @@
         .card-prod.card-selected { outline: 2px solid #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,.22); }
         .card-select-pill { position:absolute; top:10px; right:92px; background:#0f172a; border:1px solid #334155; color:#cbd5e1; border-radius:6px; font-size:10px; font-weight:800; padding:3px 7px; display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
         .card-select-pill input { accent-color:#38bdf8; cursor:pointer; }
-        .btn-del-card { position: absolute; top: 10px; right: 10px; background: var(--red-cancel); border: none; color: white; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s; padding: 5px 8px; border-radius: 6px; letter-spacing: 0.3px; }
-        .btn-del-card:hover { filter: brightness(1.1); }
+        .btn-del-card { display:none; }
         .prod-cat { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; margin-bottom: 8px; display: inline-block; }
         .prod-name { font-size: 16px; font-weight: 800; color: white; margin-bottom: 4px; line-height: 1.1; }
         .prod-dims { font-size: 13px; color: var(--orange); font-weight: bold; margin-bottom: 4px; display: block; }
@@ -864,7 +863,7 @@
             filtrados.forEach((p) => {
                 const chave = montarChaveAgrupamento(p);
                 if (!grupos.has(chave)) {
-                    grupos.set(chave, { ...p, qtd: Number(p.qtd) || 1, ids: [p.id] });
+                    grupos.set(chave, { ...p, groupKey: chave, qtd: Number(p.qtd) || 1, ids: [p.id] });
                     return;
                 }
                 const grupo = grupos.get(chave);
@@ -873,17 +872,17 @@
             });
 
             gruposVisiveis = grupos;
-            selecaoCardsBaixa = new Set([...selecaoCardsBaixa].filter((id) => gruposVisiveis.has(id)));
+            selecaoCardsBaixa = new Set([...selecaoCardsBaixa].filter((groupKey) => gruposVisiveis.has(groupKey)));
 
             grupos.forEach(p => {
                 const card = document.createElement('div');
                 card.className = `card-prod`;
                 card.dataset.itemId = p.id;
 
-                const marcado = selecaoCardsBaixa.has(p.id);
+                const marcado = selecaoCardsBaixa.has(p.groupKey);
                 if (marcado) card.classList.add("card-selected");
                 let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--orange); color:black; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
-                let conteudo = temNotaBadge + `<label class="card-select-pill"><input type="checkbox" ${marcado ? "checked" : ""} onchange="toggleSelecaoCard('${p.id}', this.checked)">Selecionar</label>` + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">BAIXA</button>`;
+                let conteudo = temNotaBadge + `<label class="card-select-pill"><input type="checkbox" ${marcado ? "checked" : ""} onchange="toggleSelecaoCard('${p.groupKey}', this.checked)">Selecionar</label>`;
                 conteudo += `<span class="prod-cat">${p.categoria}</span>`;
                 conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
                 const dimsCard = getDimensoesBase(p);
