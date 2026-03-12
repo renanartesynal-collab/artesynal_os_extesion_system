@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setor de Pintura - Artesynal</title>
+  <style>
+    :root { --bg:#111; --panel:#1f2937; --accent:#ed1c24; --text:#fff; --muted:#cbd5e1; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'Montserrat',Arial,sans-serif; background:var(--bg); color:var(--text); }
+    .page { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
+    .back { color:#f1c40f; text-decoration:none; font-weight:700; font-size:13px; }
+    .card { margin-top:16px; background:var(--panel); border:1px solid #334155; border-left:4px solid var(--accent); border-radius:12px; padding:20px; }
+    h1 { margin: 0 0 10px; font-size: 28px; text-transform: uppercase; }
+    p { margin: 6px 0; color: var(--muted); }
+    ul { margin: 14px 0 0; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">⬅ Voltar ao painel</a>
+    <div class="card">
+      <h1>🎨 Pintura</h1>
+      <p>Módulo criado para centralizar informações do setor de pintura.</p>
+      <ul>
+        <li>Controle de materiais e insumos.</li>
+        <li>Status das peças em preparo e finalização.</li>
+        <li>Planejamento de demandas diárias.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script type="module">
+    import { protegerPagina } from './auth.js';
+    await protegerPagina({ paginaAtual: 'estpintura.html' });
+  </script>
+</body>
+</html>
