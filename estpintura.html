@@ -14,8 +14,9 @@
       --muted: #cbd5e1;
       --yellow: #f1c40f;
       --line: #3a4a60;
-      --ok: #22c55e;
       --danger: #ef4444;
+      --label-bg: #ffffff;
+      --label-fg: #111827;
     }
 
     * { box-sizing: border-box; }
@@ -29,7 +30,7 @@
     }
 
     .page {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 24px 16px 36px;
     }
@@ -138,7 +139,7 @@
 
     .slots-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
       gap: 12px;
     }
 
@@ -146,7 +147,7 @@
       background: var(--panel-soft);
       border: 1px dashed #576983;
       border-radius: 10px;
-      min-height: 170px;
+      min-height: 200px;
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -162,16 +163,6 @@
       text-align: left;
       justify-content: flex-start;
       gap: 6px;
-    }
-
-    .ink-chip {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.35);
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 6px;
     }
 
     .slot-title { font-weight: 800; font-size: 14px; }
@@ -197,11 +188,18 @@
     }
 
     .modal {
-      width: min(560px, 100%);
+      width: min(1100px, 100%);
       background: #161e29;
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 16px;
+    }
+
+    .modal-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 16px;
+      align-items: start;
     }
 
     .grid {
@@ -214,7 +212,7 @@
 
     label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
 
-    input, textarea, select {
+    input {
       width: 100%;
       border-radius: 8px;
       border: 1px solid #3d4f67;
@@ -225,8 +223,6 @@
       font-size: 13px;
     }
 
-    textarea { resize: vertical; min-height: 70px; }
-
     .modal-actions {
       margin-top: 12px;
       display: flex;
@@ -234,9 +230,108 @@
       gap: 8px;
     }
 
-    @media (max-width: 700px) {
+    .etiqueta-wrap {
+      background: #0f141c;
+      border: 1px solid #32455e;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .etiqueta-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .etiqueta {
+      width: 6cm;
+      height: 3cm;
+      max-width: 100%;
+      background: var(--label-bg);
+      color: var(--label-fg);
+      border: 2px solid #111827;
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: 1fr 1.7cm;
+      grid-template-rows: auto auto auto auto 1fr;
+      gap: 4px 8px;
+      margin: 0 auto;
+    }
+
+    .linha {
+      border-bottom: 1.5px solid #111827;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .linha strong { font-size: 10px; }
+    .linha.span2 { grid-column: 1 / 2; }
+
+    .descricao {
+      grid-column: 1 / 2;
+      border-bottom: 1.5px solid #111827;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .qr-box {
+      grid-column: 2 / 3;
+      grid-row: 3 / 6;
+      align-self: end;
+      justify-self: end;
+      width: 1.45cm;
+      height: 1.45cm;
+      border: 1px solid #111827;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      image-rendering: pixelated;
+    }
+
+    .preview-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      .print-target, .print-target * { visibility: visible; }
+      .print-target {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .modal-layout { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
-      h1 { font-size: 23px; }
     }
   </style>
 </head>
@@ -246,7 +341,7 @@
 
     <section class="header">
       <h1>🎨 Pintura</h1>
-      <div class="subtitle">Gerencie categorias e organize os cards de materiais por slots.</div>
+      <div class="subtitle">Gerencie categorias, slots e etiquetas 6cm x 3cm para latas de tinta.</div>
     </section>
 
     <section class="toolbar">
@@ -269,50 +364,61 @@
   <div class="modal-bg" id="modal-tinta-bg">
     <div class="modal">
       <h3 style="margin-top:0">Cadastrar tinta no slot</h3>
-      <div class="grid">
+      <div class="modal-layout">
         <div>
-          <label for="tinta-nome">Nome da tinta</label>
-          <input id="tinta-nome" type="text" placeholder="Ex.: Azul Royal" />
+          <div class="grid">
+            <div>
+              <label for="tinta-cor">Cor</label>
+              <input id="tinta-cor" type="text" placeholder="Ex.: Azul Royal" />
+            </div>
+            <div>
+              <label for="tinta-os">Ordem de Serviço (5 dígitos)</label>
+              <input id="tinta-os" type="text" inputmode="numeric" maxlength="5" placeholder="00000" />
+            </div>
+            <div class="full">
+              <label for="tinta-descricao">Descrição (1 linha)</label>
+              <input id="tinta-descricao" type="text" maxlength="90" placeholder="Descrição livre" />
+            </div>
+            <div>
+              <label for="tinta-quantidade">Quantidade (ml)</label>
+              <input id="tinta-quantidade" type="number" min="0" step="1" placeholder="0" />
+            </div>
+            <div>
+              <label for="tinta-validade">Validade (MM/AAAA)</label>
+              <input id="tinta-validade" type="text" maxlength="7" placeholder="MM/AAAA" />
+            </div>
+            <div class="full">
+              <label for="tinta-codigo">Código</label>
+              <input id="tinta-codigo" type="text" placeholder="Código do produto/lote" />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn" id="btn-cancelar-tinta">Cancelar</button>
+            <button class="btn btn-primary" id="btn-salvar-tinta">Salvar tinta</button>
+          </div>
         </div>
-        <div>
-          <label for="tinta-cor">Cor</label>
-          <input id="tinta-cor" type="color" value="#ed1c24" />
+
+        <div class="etiqueta-wrap">
+          <div class="etiqueta-head">
+            <span>Pré-visualização da etiqueta</span>
+            <span>6cm x 3cm</span>
+          </div>
+
+          <div class="etiqueta print-target" id="etiqueta-preview">
+            <div class="linha"><strong>Cor:</strong><span id="lbl-cor">________________</span></div>
+            <div class="linha"><strong>Ordem de Serviço:</strong><span id="lbl-os">_____</span></div>
+            <div class="descricao" id="lbl-desc">________________________</div>
+            <div class="linha"><strong>Quantidade:</strong><span id="lbl-quantidade">___ ml</span></div>
+            <div class="linha"><strong>Validade:</strong><span id="lbl-validade">MM/AAAA</span></div>
+            <div class="linha"><strong>Código:</strong><span id="lbl-codigo">____________</span></div>
+            <div class="qr-box"><img id="lbl-qr" alt="QR Code da etiqueta" /></div>
+          </div>
+
+          <div class="preview-actions">
+            <button class="btn" id="btn-imprimir-etiqueta">Imprimir etiqueta</button>
+          </div>
         </div>
-        <div>
-          <label for="tinta-tipo">Tipo</label>
-          <select id="tinta-tipo">
-            <option>PU</option>
-            <option>Esmalte</option>
-            <option>Epóxi</option>
-            <option>Acrílica</option>
-            <option>Outro</option>
-          </select>
-        </div>
-        <div>
-          <label for="tinta-quantidade">Quantidade</label>
-          <input id="tinta-quantidade" type="number" min="0" step="0.1" placeholder="0" />
-        </div>
-        <div>
-          <label for="tinta-unidade">Unidade</label>
-          <select id="tinta-unidade">
-            <option value="L">Litros (L)</option>
-            <option value="ml">Mililitros (ml)</option>
-            <option value="kg">Quilos (kg)</option>
-            <option value="un">Unidades (un)</option>
-          </select>
-        </div>
-        <div>
-          <label for="tinta-marca">Marca/Fabricante</label>
-          <input id="tinta-marca" type="text" placeholder="Ex.: Suvinil" />
-        </div>
-        <div class="full">
-          <label for="tinta-observacoes">Observações</label>
-          <textarea id="tinta-observacoes" placeholder="Detalhes adicionais da tinta..."></textarea>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn" id="btn-cancelar-tinta">Cancelar</button>
-        <button class="btn btn-primary" id="btn-salvar-tinta">Salvar tinta</button>
       </div>
     </div>
   </div>
@@ -320,9 +426,12 @@
   <script type="module">
     import { protegerPagina } from './auth.js';
 
-    await protegerPagina({ paginaAtual: 'estpintura.html' });
+    const previewMode = new URLSearchParams(window.location.search).get('preview') === '1';
+    if (!previewMode) {
+      await protegerPagina({ paginaAtual: 'estpintura.html' });
+    }
 
-    const STORAGE_KEY = 'artesynal_pintura_v2';
+    const STORAGE_KEY = 'artesynal_pintura_v3';
     const estadoPadrao = {
       categorias: {
         tinta: { label: 'Tinta', slots: Array(8).fill(null) }
@@ -344,15 +453,11 @@
       try {
         const bruto = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
         if (!bruto?.categorias || typeof bruto.categorias !== 'object') return structuredClone(estadoPadrao);
-        if (!bruto.categorias.tinta) {
-          bruto.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
-        }
+        if (!bruto.categorias.tinta) bruto.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
         bruto.categoriaAtual = bruto.categoriaAtual && bruto.categorias[bruto.categoriaAtual] ? bruto.categoriaAtual : 'tinta';
 
         for (const key of Object.keys(bruto.categorias)) {
-          if (!Array.isArray(bruto.categorias[key].slots)) {
-            bruto.categorias[key].slots = Array(4).fill(null);
-          }
+          if (!Array.isArray(bruto.categorias[key].slots)) bruto.categorias[key].slots = Array(4).fill(null);
         }
 
         return bruto;
@@ -370,7 +475,7 @@
       categoriasEl.innerHTML = keys.map((key) => {
         const c = estado.categorias[key];
         const activeClass = key === estado.categoriaAtual ? 'active' : '';
-        return `<button class="categoria-btn ${activeClass}" data-cat="${key}">${c.label}</button>`;
+        return `<button class="categoria-btn ${activeClass}" data-cat="${key}">${escapeHtml(c.label)}</button>`;
       }).join('');
 
       categoriasEl.querySelectorAll('.categoria-btn').forEach((btn) => {
@@ -403,12 +508,13 @@
 
         return `
           <article class="slot filled" data-slot="${idx}">
-            <div class="slot-title"><span class="ink-chip" style="background:${item.cor || '#ed1c24'}"></span>${escapeHtml(item.nome || 'Sem nome')}</div>
-            <div class="slot-meta">Tipo: ${escapeHtml(item.tipo || '-')}</div>
-            <div class="slot-meta">Qtd: ${escapeHtml(item.quantidade || '0')} ${escapeHtml(item.unidade || '')}</div>
-            <div class="slot-meta">Marca: ${escapeHtml(item.marca || '-')}</div>
-            <div class="slot-meta">Obs: ${escapeHtml(item.observacoes || '-')}</div>
+            <div class="slot-title">${escapeHtml(item.cor || 'Sem cor')}</div>
+            <div class="slot-meta">Ordem de Serviço: ${escapeHtml(item.ordemServico || '_____')}</div>
+            <div class="slot-meta">Quantidade: ${escapeHtml(item.quantidadeMl || '0')} ml</div>
+            <div class="slot-meta">Validade: ${escapeHtml(item.validade || 'MM/AAAA')}</div>
+            <div class="slot-meta">Código: ${escapeHtml(item.codigo || '-')}</div>
             <div class="slot-actions">
+              <button class="btn" data-action="label" data-slot="${idx}">Etiqueta</button>
               <button class="btn" data-action="edit" data-slot="${idx}">Editar</button>
               <button class="btn btn-danger" data-action="delete" data-slot="${idx}">Remover</button>
             </div>
@@ -422,6 +528,7 @@
         btn.addEventListener('click', () => {
           if (action === 'add') abrirModalTinta(idx);
           if (action === 'edit') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
+          if (action === 'label') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
           if (action === 'delete') {
             if (!confirm('Deseja remover este card de tinta?')) return;
             estado.categorias[estado.categoriaAtual].slots[idx] = null;
@@ -455,16 +562,62 @@
         .replace(/'/g, '&#39;');
     }
 
+    function qrPayload(dados) {
+      return JSON.stringify({
+        cor: dados.cor || '',
+        ordemServico: dados.ordemServico || '',
+        descricao: dados.descricao || '',
+        quantidadeMl: dados.quantidadeMl || '',
+        validade: dados.validade || '',
+        codigo: dados.codigo || ''
+      });
+    }
+
+    function qrUrl(payload) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=${encodeURIComponent(payload)}`;
+    }
+
+    function atualizarPreviewEtiqueta() {
+      const dados = {
+        cor: document.getElementById('tinta-cor').value.trim(),
+        ordemServico: normalizarOS(document.getElementById('tinta-os').value),
+        descricao: document.getElementById('tinta-descricao').value.trim(),
+        quantidadeMl: document.getElementById('tinta-quantidade').value.trim(),
+        validade: normalizarValidade(document.getElementById('tinta-validade').value),
+        codigo: document.getElementById('tinta-codigo').value.trim()
+      };
+
+      document.getElementById('lbl-cor').textContent = dados.cor || '________________';
+      document.getElementById('lbl-os').textContent = dados.ordemServico || '_____';
+      document.getElementById('lbl-desc').textContent = dados.descricao || '________________________';
+      document.getElementById('lbl-quantidade').textContent = `${dados.quantidadeMl || '___'} ml`;
+      document.getElementById('lbl-validade').textContent = dados.validade || 'MM/AAAA';
+      document.getElementById('lbl-codigo').textContent = dados.codigo || '____________';
+
+      const payload = qrPayload(dados);
+      document.getElementById('lbl-qr').src = qrUrl(payload);
+    }
+
+    function normalizarOS(valor) {
+      return (valor || '').replace(/\D/g, '').slice(0, 5);
+    }
+
+    function normalizarValidade(valor) {
+      const digits = (valor || '').replace(/\D/g, '').slice(0, 6);
+      if (digits.length <= 2) return digits;
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+
     function abrirModalTinta(slot, dados = null) {
       slotAtual = slot;
-      document.getElementById('tinta-nome').value = dados?.nome || '';
-      document.getElementById('tinta-cor').value = dados?.cor || '#ed1c24';
-      document.getElementById('tinta-tipo').value = dados?.tipo || 'PU';
-      document.getElementById('tinta-quantidade').value = dados?.quantidade || '';
-      document.getElementById('tinta-unidade').value = dados?.unidade || 'L';
-      document.getElementById('tinta-marca').value = dados?.marca || '';
-      document.getElementById('tinta-observacoes').value = dados?.observacoes || '';
+      document.getElementById('tinta-cor').value = dados?.cor || '';
+      document.getElementById('tinta-os').value = dados?.ordemServico || '';
+      document.getElementById('tinta-descricao').value = dados?.descricao || '';
+      document.getElementById('tinta-quantidade').value = dados?.quantidadeMl || '';
+      document.getElementById('tinta-validade').value = dados?.validade || '';
+      document.getElementById('tinta-codigo').value = dados?.codigo || '';
       modalBg.style.display = 'flex';
+      atualizarPreviewEtiqueta();
     }
 
     function fecharModalTinta() {
@@ -472,31 +625,51 @@
       modalBg.style.display = 'none';
     }
 
+    ['tinta-cor', 'tinta-os', 'tinta-descricao', 'tinta-quantidade', 'tinta-validade', 'tinta-codigo'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', (ev) => {
+        if (id === 'tinta-os') ev.target.value = normalizarOS(ev.target.value);
+        if (id === 'tinta-validade') ev.target.value = normalizarValidade(ev.target.value);
+        atualizarPreviewEtiqueta();
+      });
+    });
+
     document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
 
     document.getElementById('btn-salvar-tinta').addEventListener('click', () => {
       if (slotAtual === null) return;
 
-      const nome = document.getElementById('tinta-nome').value.trim();
-      if (!nome) {
-        alert('Informe o nome da tinta.');
+      const payload = {
+        cor: document.getElementById('tinta-cor').value.trim(),
+        ordemServico: normalizarOS(document.getElementById('tinta-os').value),
+        descricao: document.getElementById('tinta-descricao').value.trim(),
+        quantidadeMl: document.getElementById('tinta-quantidade').value.trim(),
+        validade: normalizarValidade(document.getElementById('tinta-validade').value),
+        codigo: document.getElementById('tinta-codigo').value.trim()
+      };
+
+      if (!payload.cor) {
+        alert('Informe a cor da tinta.');
         return;
       }
 
-      const payload = {
-        nome,
-        cor: document.getElementById('tinta-cor').value,
-        tipo: document.getElementById('tinta-tipo').value,
-        quantidade: document.getElementById('tinta-quantidade').value.trim(),
-        unidade: document.getElementById('tinta-unidade').value,
-        marca: document.getElementById('tinta-marca').value.trim(),
-        observacoes: document.getElementById('tinta-observacoes').value.trim()
-      };
+      if (payload.ordemServico.length !== 5) {
+        alert('A Ordem de Serviço deve ter exatamente 5 dígitos.');
+        return;
+      }
+
+      if (payload.validade && !/^\d{2}\/\d{4}$/.test(payload.validade)) {
+        alert('A validade deve estar no formato MM/AAAA.');
+        return;
+      }
 
       estado.categorias[estado.categoriaAtual].slots[slotAtual] = payload;
       salvarEstado();
       renderSlots();
       fecharModalTinta();
+    });
+
+    document.getElementById('btn-imprimir-etiqueta').addEventListener('click', () => {
+      window.print();
     });
 
     document.getElementById('btn-adicionar-slot').addEventListener('click', () => {
