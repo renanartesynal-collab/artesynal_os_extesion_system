@@ -405,10 +405,10 @@
                         <span id="cota-left-previsao" style="position:absolute; left:-52px; top:50%; transform:translateY(-50%) rotate(-90deg);"></span>
                         <span id="cota-right-previsao" style="position:absolute; right:-52px; top:50%; transform:translateY(-50%) rotate(90deg);"></span>
                     </div>
-                    <button type="button" onclick="selecionarMarcadorAtivo('A')" style="position:absolute; left:-52px; top:50%; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">A</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('B')" style="position:absolute; left:50%; bottom:-22px; transform:translate(-50%,50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">B</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('C')" style="position:absolute; right:-52px; top:50%; transform:translate(50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">C</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('D')" style="position:absolute; left:50%; top:-22px; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">D</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('A')" style="position:absolute; left:-76px; top:50%; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">A</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('B')" style="position:absolute; left:50%; bottom:-36px; transform:translate(-50%,50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">B</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('C')" style="position:absolute; right:-76px; top:50%; transform:translate(50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">C</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('D')" style="position:absolute; left:50%; top:-36px; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">D</button>
                 </div>
             </div>
             <div id="msg-descarte" style="min-height:22px; font-size:15px; font-weight:700; margin-bottom:8px;"></div>
@@ -591,7 +591,7 @@
             const usuario = obterNomeUsuarioLogado();
             const { data, hora } = formatarDataHoraCorte(dataRef);
             return linhas.map((linha) =>
-                `${usuario} cortou (${linha.qtd}) unidades ${linha.w}cm X ${linha.h}cm dia ${data} às ${hora}h`
+                `**${usuario}** cortou **${linha.qtd} unidade(s)** **${linha.w}cm X ${linha.h}cm** dia ${data} às ${hora}h`
             ).join('\n');
         }
 
@@ -1744,17 +1744,21 @@ function tornarArrastavel(elemento) {
 
                 descartes.forEach((item) => {
                     if (item.marcador === 'A' && sobraInferior > 0) {
+                        // A: esquerda -> direita
                         const largura = Math.min(item.medida, planoExistente.w);
                         areasRemovidas.push({ x: 0, y: base.h - sobraInferior, w: largura, h: sobraInferior });
-                    } else if (item.marcador === 'D') {
-                        const largura = Math.min(item.medida, Math.max(1, base.w - planoExistente.w));
-                        areasRemovidas.push({ x: base.w - largura, y: 0, w: largura, h: base.h });
                     } else if (item.marcador === 'B' && sobraDireita > 0) {
+                        // B: baixo -> cima
                         const altura = Math.min(item.medida, base.h);
                         areasRemovidas.push({ x: base.w - sobraDireita, y: base.h - altura, w: sobraDireita, h: altura });
                     } else if (item.marcador === 'C') {
+                        // C: direita -> esquerda
+                        const largura = Math.min(item.medida, base.w);
+                        areasRemovidas.push({ x: base.w - largura, y: 0, w: largura, h: base.h });
+                    } else if (item.marcador === 'D' && sobraDireita > 0) {
+                        // D: cima -> baixo
                         const altura = Math.min(item.medida, base.h);
-                        areasRemovidas.push({ x: base.w - Math.max(1, base.w - planoExistente.w), y: base.h - altura, w: Math.max(1, base.w - planoExistente.w), h: altura });
+                        areasRemovidas.push({ x: base.w - sobraDireita, y: 0, w: sobraDireita, h: altura });
                     }
                 });
             }
@@ -1934,7 +1938,7 @@ function tornarArrastavel(elemento) {
                     const { data, hora } = formatarDataHoraCorte(dataCorteRef);
                     const detalhe = aplicarAjusteDescarteNoCorte.descarteDetalhes?.[0];
                     const textoMedida = detalhe ? `Marcador ${detalhe.marcador} ${detalhe.medida}` : 'Marcador A medida não calculada';
-                    const linhaDescarte = `**${usuario}** descartou **1 unidade** ( ${textoMedida.replace(/(\d+(?:\.\d+)?cm X \d+(?:\.\d+)?cm)/, '**$1**')} ) ${data} ${hora}h`;
+                    const linhaDescarte = `**${usuario}** descartou **1 unidade** ( **${textoMedida}** ) ${data} ${hora}h`;
                     anotacoesComHistorico = anexarHistoricoAnotacoes(anotacoesComHistorico, linhaDescarte);
                 }
                 const corteLinear = linhas.length === 1 && linhas[0].qtd === 1 && recortesAtuais.length === 0 && (
