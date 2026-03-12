@@ -406,10 +406,15 @@
                         <span id="cota-left-previsao" style="position:absolute; left:-52px; top:50%; transform:translateY(-50%) rotate(-90deg);"></span>
                         <span id="cota-right-previsao" style="position:absolute; right:-52px; top:50%; transform:translateY(-50%) rotate(90deg);"></span>
                     </div>
-                    <button type="button" onclick="selecionarMarcadorAtivo('A')" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">A</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('B')" style="position:absolute; left:50%; bottom:10px; transform:translateX(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">B</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('C')" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">C</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('D')" style="position:absolute; left:50%; top:10px; transform:translateX(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">D</button>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin:-2px 0 10px;">
+                <div style="display:flex; gap:8px; align-items:center; background:rgba(255,255,255,.04); border:1px solid #2f2f2f; border-radius:999px; padding:6px 8px;">
+                    <span style="font-size:12px; color:#cbd5e1; margin-right:4px;">Marcadores</span>
+                    <button type="button" onclick="selecionarMarcadorAtivo('A')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">A</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('B')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">B</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('C')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">C</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('D')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">D</button>
                 </div>
             </div>
             <div id="msg-descarte" style="min-height:22px; font-size:15px; font-weight:700; margin-bottom:8px;"></div>
@@ -1714,11 +1719,11 @@ function tornarArrastavel(elemento) {
                 : `<button type="button" class="btn-adj" onclick="removerLinhaMarcador(${linha.id})" style="width:42px; height:42px; margin-top:0; padding:0; font-size:24px;">−</button>`;
             return `
                 <div class="form-row" style="margin-bottom:0; align-items:center;" data-marcador-id="${linha.id}">
+                    <div class="input-suffix-wrapper" style="max-width:130px;"><input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" type="number" min="0" placeholder="cm" value="${linha.medida}" onfocus="marcarLinhaAtiva(${linha.id})" oninput="alterarMedidaLinha(${linha.id}, this.value)"></div>
                     <select autocomplete="off" style="max-width:220px; min-width:220px;" onchange="alterarMarcadorLinha(${linha.id}, this.value)" onclick="marcarLinhaAtiva(${linha.id})">
                         <option value="">Selecione um marcador</option>
                         ${opcoes}
                     </select>
-                    <div class="input-suffix-wrapper" style="max-width:130px;"><input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" type="number" min="0" placeholder="cm" value="${linha.medida}" onfocus="marcarLinhaAtiva(${linha.id})" oninput="alterarMedidaLinha(${linha.id}, this.value)"></div>
                     ${btn}
                 </div>`;
         }
