@@ -132,6 +132,7 @@
         .btn-icon-action { background: #222; color: var(--orange); border: 1px solid #444; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: bold;}
         input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; outline: none; font-size: 14px; font-family: inherit; box-sizing: border-box;}
         textarea { resize: vertical; min-height: 100px; }
+        #detalhes-anotacoes { font-weight: 700; }
         .input-suffix-wrapper { position: relative; display: flex; align-items: center; }
         .input-suffix-wrapper::after { content: "cm"; position: absolute; right: 12px; color: var(--text-gray); font-size: 12px; pointer-events: none; }
         .form-row { display: flex; gap: 12px; margin-bottom: 15px; width: 100%;}
@@ -372,6 +373,52 @@
             </div>
         </div>
     </div>
+
+    <div id="modal-divisao-material" class="modal-overlay">
+        <div class="modal-box" style="max-width:520px; text-align:center; padding:22px 24px;">
+            <h2 style="margin-top:0; color:var(--orange); text-transform:uppercase; font-size:36px;">Divisão de material</h2>
+            <p style="font-size:16px; margin: 16px 0 18px;">Gostaria de ajustar a medida restante da chapa?</p>
+            <div style="display:flex; gap:14px; justify-content:center;">
+                <button class="btn-adj" style="flex:1; height:48px; font-size:18px; font-weight:900; margin-top:0;" onclick="responderDivisaoMaterial(false)">NÃO</button>
+                <button class="btn-salvar" style="flex:1; height:48px; font-size:18px; font-weight:900; margin-top:0;" onclick="responderDivisaoMaterial(true)">SIM</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-previsao-descarte" class="modal-overlay">
+        <div class="modal-box" style="max-width:760px; max-height:86vh; overflow:auto; padding:14px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;">
+                <h2 style="margin-top:0; color:var(--orange); text-transform:uppercase; font-size:28px; margin-bottom:0;">Previsão de corte</h2>
+                <div id="previsao-medida-final" style="font-weight:800; font-size:18px; margin-bottom:0;">ÁREA DA CHAPA: 0cm X 0cm</div>
+            </div>
+            <div id="linhas-marcador" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;"></div>
+            <div id="previsao-chapa-wrap" style="position:relative; background:#0a0a0a; border:1px solid #333; border-radius:10px; padding:32px 62px 52px; margin-bottom:8px; overflow:visible;">
+                <div id="previsao-chapa" style="position:relative; width:100%; height:210px; border:1px solid #fff; background:
+                    linear-gradient(to right, rgba(255,255,255,.10) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255,255,255,.10) 1px, transparent 1px),
+                    linear-gradient(to right, rgba(255,255,255,.20) 2px, transparent 2px),
+                    linear-gradient(to bottom, rgba(255,255,255,.20) 2px, transparent 2px);
+                    background-size: 10px 10px, 10px 10px, 50px 50px, 50px 50px;">
+                    <div id="previsao-area-removida" style="position:absolute; inset:0; pointer-events:none;"></div>
+                    <div id="previsao-cotas" style="position:absolute; inset:0; pointer-events:none; color:#ef4444; font-size:14px; font-weight:800;">
+                        <span id="cota-top-previsao" style="position:absolute; top:-22px; left:50%; transform:translateX(-50%);"></span>
+                        <span id="cota-bottom-previsao" style="position:absolute; bottom:-22px; left:50%; transform:translateX(-50%);"></span>
+                        <span id="cota-left-previsao" style="position:absolute; left:-52px; top:50%; transform:translateY(-50%) rotate(-90deg);"></span>
+                        <span id="cota-right-previsao" style="position:absolute; right:-52px; top:50%; transform:translateY(-50%) rotate(90deg);"></span>
+                    </div>
+                    <button type="button" onclick="selecionarMarcadorAtivo('A')" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">A</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('B')" style="position:absolute; left:50%; bottom:10px; transform:translateX(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">B</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('C')" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">C</button>
+                    <button type="button" onclick="selecionarMarcadorAtivo('D')" style="position:absolute; left:50%; top:10px; transform:translateX(-50%); width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">D</button>
+                </div>
+            </div>
+            <div id="msg-descarte" style="min-height:22px; font-size:15px; font-weight:700; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-adj" style="flex:1; margin-top:0; text-transform:uppercase; font-weight:900; height:50px; font-size:16px;" onclick="voltarEditorCorte()">Voltar ao editor de corte</button>
+                <button class="btn-salvar" style="flex:1; margin-top:0; height:50px; font-size:16px;" onclick="confirmarDescarteCorte()">Confirmar corte!</button>
+            </div>
+        </div>
+    </div>
 <div id="modal-simulador" class="modal-overlay">
     <div class="modal-box" style="max-width:90%; width:900px;">
         
@@ -439,7 +486,7 @@
             <input id="detalhes-os" type="text" maxlength="5" placeholder="12345" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5).replace(/^0+(?=\d)/,'')">
 
             <label class="label-standard" style="margin-top:16px; margin-bottom: 8px;">Anotações (Serviços e O.S.)</label>
-            <textarea id="detalhes-anotacoes" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
+            <textarea id="detalhes-anotacoes" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
 
             <button class="btn-salvar" id="btn-salvar-anotacoes" onclick="salvarAnotacoes()" style="margin-top:15px; background:#444; border: 1px solid #666;">💾 SALVAR ANOTAÇÕES</button>
         </div>
@@ -545,7 +592,7 @@
             const usuario = obterNomeUsuarioLogado();
             const { data, hora } = formatarDataHoraCorte(dataRef);
             return linhas.map((linha) =>
-                `${usuario} cortou (${linha.qtd}) unidades ${linha.w}cm X ${linha.h}cm dia ${data} às ${hora}h`
+                `${usuario} cortou ${linha.qtd} unidade(s) ${linha.w}cm X ${linha.h}cm dia ${data} às ${hora}h`
             ).join('\n');
         }
 
@@ -1180,6 +1227,10 @@
            SISTEMA DE TESOURA - CORTES DE CHAPA
            ========================================================================== */
         let pecaParaCorte = null;
+        let contextoDivisaoMaterial = null;
+        let ajustesMarcadoresDivisao = [{ id: 1, marcador: '', medida: '' }];
+        let marcadorLinhaAtiva = 1;
+        let aplicarAjusteDescarteNoCorte = null;
 // 🔵 ================= SIMULADOR DE CORTE =================
 
 let pecasSimuladas = [];
@@ -1637,7 +1688,227 @@ function tornarArrastavel(elemento) {
             renderizarCortesNoPreview(bgOriginal, base, finalW, finalH, recortesAtuais, planos);
         };
 
-        window.executarCorte = async () => {
+
+        function deveAbrirDivisaoMaterial(base, linhas, planos, recortesAtuais) {
+            if (!pecaParaCorte) return false;
+            if (recortesAtuais.length > 0) return false;
+            if (linhas.length !== 1 || linhas[0].qtd !== 1 || planos.length !== 1) return false;
+            const plano = planos[0];
+            const corteLinearHorizontal = Math.abs(plano.h - base.h) < 0.01;
+            const corteLinearVertical = Math.abs(plano.w - base.w) < 0.01;
+            return !(corteLinearHorizontal || corteLinearVertical);
+        }
+
+        function linhasMarcadorTemplate(linha, index) {
+            const marcadoresUsados = ajustesMarcadoresDivisao
+                .filter((l) => l.id !== linha.id && l.marcador)
+                .map((l) => l.marcador);
+            const opcoes = ['A', 'B', 'C', 'D'].map((m) => {
+                const selected = linha.marcador === m ? 'selected' : '';
+                const disabled = marcadoresUsados.includes(m) ? 'disabled' : '';
+                return `<option value="${m}" ${selected} ${disabled}>${m}</option>`;
+            }).join('');
+            const ultimaLinha = index === (ajustesMarcadoresDivisao.length - 1);
+            const btn = ultimaLinha
+                ? `<button type="button" class="btn-salvar" onclick="adicionarLinhaMarcador()" style="width:42px; height:42px; margin-top:0; padding:0; font-size:24px;">+</button>`
+                : `<button type="button" class="btn-adj" onclick="removerLinhaMarcador(${linha.id})" style="width:42px; height:42px; margin-top:0; padding:0; font-size:24px;">−</button>`;
+            return `
+                <div class="form-row" style="margin-bottom:0; align-items:center;" data-marcador-id="${linha.id}">
+                    <select autocomplete="off" style="max-width:220px; min-width:220px;" onchange="alterarMarcadorLinha(${linha.id}, this.value)" onclick="marcarLinhaAtiva(${linha.id})">
+                        <option value="">Selecione um marcador</option>
+                        ${opcoes}
+                    </select>
+                    <div class="input-suffix-wrapper" style="max-width:130px;"><input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" type="number" min="0" placeholder="cm" value="${linha.medida}" onfocus="marcarLinhaAtiva(${linha.id})" oninput="alterarMedidaLinha(${linha.id}, this.value)"></div>
+                    ${btn}
+                </div>`;
+        }
+
+        function montarPayloadDescarte(base, planoExistente = null) {
+            const totais = { A: 0, B: 0, C: 0, D: 0 };
+            const descartes = ajustesMarcadoresDivisao
+                .map((l) => ({ marcador: l.marcador, medida: Number(l.medida) || 0 }))
+                .filter((l) => l.marcador && l.medida > 0);
+
+            descartes.forEach((l) => {
+                if (totais[l.marcador] != null) totais[l.marcador] += l.medida;
+            });
+
+            const removerW = totais.A + totais.D;
+            const removerH = totais.B + totais.C;
+            const finalW = Math.max(0, Number((base.w - removerW).toFixed(2)));
+            const finalH = Math.max(0, Number((base.h - removerH).toFixed(2)));
+
+            const areasRemovidas = [];
+            if (planoExistente) {
+                const sobraInferior = Math.max(0, Number((base.h - (planoExistente.y + planoExistente.h)).toFixed(2)));
+                const sobraDireita = Math.max(0, Number((base.w - (planoExistente.x + planoExistente.w)).toFixed(2)));
+
+                descartes.forEach((item) => {
+                    if (item.marcador === 'A' && sobraInferior > 0) {
+                        // A: esquerda -> direita
+                        const largura = Math.min(item.medida, planoExistente.w);
+                        areasRemovidas.push({ x: 0, y: base.h - sobraInferior, w: largura, h: sobraInferior });
+                    } else if (item.marcador === 'B') {
+                        // B: baixo -> cima (largura total da chapa)
+                        const altura = Math.min(item.medida, base.h);
+                        areasRemovidas.push({ x: 0, y: base.h - altura, w: base.w, h: altura });
+                    } else if (item.marcador === 'C') {
+                        // C: direita -> esquerda
+                        const largura = Math.min(item.medida, base.w);
+                        areasRemovidas.push({ x: base.w - largura, y: 0, w: largura, h: base.h });
+                    } else if (item.marcador === 'D' && sobraDireita > 0) {
+                        // D: cima -> baixo
+                        const altura = Math.min(item.medida, base.h);
+                        areasRemovidas.push({ x: base.w - sobraDireita, y: 0, w: sobraDireita, h: altura });
+                    }
+                });
+            }
+
+            if (!areasRemovidas.length && (removerW > 0 || removerH > 0)) {
+                areasRemovidas.push({ x: 0, y: base.h - Math.max(removerH, 1), w: Math.max(removerW, 1), h: Math.max(removerH, 1) });
+            }
+
+            const medidasFormatadas = areasRemovidas
+                .filter((a) => a.w > 0 && a.h > 0)
+                .map((a) => `${Number(a.w.toFixed(2))}cm X ${Number(a.h.toFixed(2))}cm`);
+
+            const descarteDetalhes = descartes.map((d, idx) => ({
+                marcador: d.marcador,
+                medida: medidasFormatadas[idx] || `${d.medida}cm X 0cm`
+            }));
+
+            return { totais, removerW, removerH, finalW, finalH, descartes, areasRemovidas, medidasFormatadas, descarteDetalhes };
+        }
+
+        function atualizarPreviewDescarte() {
+            if (!contextoDivisaoMaterial) return;
+            const { base, planos } = contextoDivisaoMaterial;
+            const planoExistente = planos?.[0] || null;
+            const payload = montarPayloadDescarte(base, planoExistente);
+            const area = document.getElementById('previsao-area-removida');
+            const chapa = document.getElementById('previsao-chapa');
+            const msg = document.getElementById('msg-descarte');
+            document.getElementById('previsao-medida-final').innerText = `ÁREA DA CHAPA: ${payload.finalW}cm X ${payload.finalH}cm`;
+            document.getElementById('cota-top-previsao').innerText = `${base.w} cm`;
+            document.getElementById('cota-bottom-previsao').innerText = `${base.w} cm`;
+            document.getElementById('cota-left-previsao').innerText = `${base.h} cm`;
+            document.getElementById('cota-right-previsao').innerText = `${base.h} cm`;
+
+            if (!area || !chapa) return;
+            area.innerHTML = '';
+
+            payload.areasRemovidas.forEach((ar) => {
+                if (ar.w <= 0 || ar.h <= 0) return;
+                const bloco = document.createElement('div');
+                bloco.style.position = 'absolute';
+                bloco.style.left = `${(ar.x / base.w) * 100}%`;
+                bloco.style.top = `${(ar.y / base.h) * 100}%`;
+                bloco.style.width = `${(ar.w / base.w) * 100}%`;
+                bloco.style.height = `${(ar.h / base.h) * 100}%`;
+                bloco.style.background = 'rgba(14, 165, 233, 0.55)';
+                bloco.style.border = '1px solid #38bdf8';
+                area.appendChild(bloco);
+            });
+
+            if (payload.areasRemovidas.length) {
+                msg.innerHTML = 'A área em <span style="color:#38bdf8;">AZUL</span> será removida permanentemente por se tratar de descarte!';
+            } else {
+                msg.innerText = '';
+            }
+
+            if (planoExistente) {
+                const corte = document.createElement('div');
+                corte.className = 'bloco-corte-existente';
+                corte.style.position = 'absolute';
+                corte.style.background = 'rgba(251,146,60,0.55)';
+                corte.style.border = '2px solid #fb923c';
+                corte.style.left = `${(planoExistente.x / base.w) * 100}%`;
+                corte.style.top = `${(planoExistente.y / base.h) * 100}%`;
+                corte.style.width = `${(planoExistente.w / base.w) * 100}%`;
+                corte.style.height = `${(planoExistente.h / base.h) * 100}%`;
+                corte.style.display = 'flex';
+                corte.style.alignItems = 'center';
+                corte.style.justifyContent = 'center';
+                corte.style.fontWeight = '800';
+                corte.style.color = '#fff';
+                corte.innerText = `${planoExistente.w}cm X ${planoExistente.h}cm`;
+                area.appendChild(corte);
+            }
+        }
+
+        function renderizarLinhasMarcador() {
+            const box = document.getElementById('linhas-marcador');
+            if (!box) return;
+            box.innerHTML = ajustesMarcadoresDivisao.map(linhasMarcadorTemplate).join('');
+        }
+
+        window.marcarLinhaAtiva = (id) => { marcadorLinhaAtiva = id; };
+        window.alterarMarcadorLinha = (id, marcador) => {
+            ajustesMarcadoresDivisao = ajustesMarcadoresDivisao.map((l) => l.id === id ? { ...l, marcador } : l);
+            renderizarLinhasMarcador();
+            atualizarPreviewDescarte();
+        };
+        window.alterarMedidaLinha = (id, medida) => {
+            ajustesMarcadoresDivisao = ajustesMarcadoresDivisao.map((l) => l.id === id ? { ...l, medida } : l);
+            atualizarPreviewDescarte();
+        };
+        window.adicionarLinhaMarcador = () => {
+            const id = Date.now();
+            ajustesMarcadoresDivisao.push({ id, marcador: '', medida: '' });
+            marcadorLinhaAtiva = id;
+            renderizarLinhasMarcador();
+        };
+        window.removerLinhaMarcador = (id) => {
+            if (ajustesMarcadoresDivisao.length <= 1) return;
+            ajustesMarcadoresDivisao = ajustesMarcadoresDivisao.filter((l) => l.id !== id);
+            if (!ajustesMarcadoresDivisao.some((l) => l.id === marcadorLinhaAtiva)) marcadorLinhaAtiva = ajustesMarcadoresDivisao[0].id;
+            renderizarLinhasMarcador();
+            atualizarPreviewDescarte();
+        };
+        window.selecionarMarcadorAtivo = (marcador) => {
+            const alvo = ajustesMarcadoresDivisao.find((l) => l.id === marcadorLinhaAtiva) || ajustesMarcadoresDivisao[0];
+            if (!alvo) return;
+            const jaUsado = ajustesMarcadoresDivisao.some((l) => l.id !== alvo.id && l.marcador === marcador);
+            if (jaUsado) return;
+            alvo.marcador = marcador;
+            ajustesMarcadoresDivisao = ajustesMarcadoresDivisao.map((l) => l.id === alvo.id ? alvo : l);
+            renderizarLinhasMarcador();
+            atualizarPreviewDescarte();
+        };
+
+        window.responderDivisaoMaterial = (ajustar) => {
+            window.fecharModal('modal-divisao-material');
+            if (!ajustar) {
+                aplicarAjusteDescarteNoCorte = null;
+                window.executarCorte(true);
+                return;
+            }
+            ajustesMarcadoresDivisao = [{ id: 1, marcador: '', medida: '' }];
+            marcadorLinhaAtiva = 1;
+            renderizarLinhasMarcador();
+            atualizarPreviewDescarte();
+            document.getElementById('modal-previsao-descarte').style.display = 'flex';
+        };
+
+        window.confirmarDescarteCorte = () => {
+            if (!contextoDivisaoMaterial) return;
+            const payload = montarPayloadDescarte(contextoDivisaoMaterial.base, contextoDivisaoMaterial.planos?.[0] || null);
+            if (payload.finalW <= 0 || payload.finalH <= 0) {
+                alert('As medidas de descarte excedem a área da chapa.');
+                return;
+            }
+            if (!payload.descartes.length) return alert('Informe ao menos um marcador com medida para descarte.');
+            aplicarAjusteDescarteNoCorte = payload;
+            window.fecharModal('modal-previsao-descarte');
+            window.executarCorte(true);
+        };
+
+        window.voltarEditorCorte = () => {
+            window.fecharModal('modal-previsao-descarte');
+            document.getElementById('modal-corte').style.display = 'flex';
+        };
+
+        window.executarCorte = async (ignorarFluxoDivisao = false) => {
             if (!pecaParaCorte) return;
             const btn = document.getElementById('btn-executar-corte');
             const base = getDimensoesBase(pecaParaCorte);
@@ -1648,6 +1919,13 @@ function tornarArrastavel(elemento) {
             const planos = gerarPlanoCortes(base, linhas, recortesAtuais);
             if (!planos || !planos.length) return alert('As linhas de corte não cabem na área livre da chapa.');
 
+            if (!ignorarFluxoDivisao && deveAbrirDivisaoMaterial(base, linhas, planos, recortesAtuais)) {
+                contextoDivisaoMaterial = { base, linhas, planos };
+                aplicarAjusteDescarteNoCorte = null;
+                document.getElementById('modal-divisao-material').style.display = 'flex';
+                return;
+            }
+
             btn.disabled = true;
             btn.innerText = 'CORTANDO...';
 
@@ -1655,13 +1933,37 @@ function tornarArrastavel(elemento) {
                 const nomeBase = (pecaParaCorte.nome || pecaParaCorte.categoria || '').replace(' (Sobra)', '');
                 const dataCorteRef = new Date();
                 const historicoCorteLote = montarHistoricoCorte(linhas, dataCorteRef);
-                const anotacoesComHistorico = anexarHistoricoAnotacoes(pecaParaCorte.anotacoes, historicoCorteLote);
+                let anotacoesComHistorico = anexarHistoricoAnotacoes(pecaParaCorte.anotacoes, historicoCorteLote);
+                if (aplicarAjusteDescarteNoCorte?.descartes?.length) {
+                    const usuario = obterNomeUsuarioLogado();
+                    const { data, hora } = formatarDataHoraCorte(dataCorteRef);
+                    const detalhe = aplicarAjusteDescarteNoCorte.descarteDetalhes?.[0];
+                    const textoMedida = detalhe ? `Marcador ${detalhe.marcador} ${detalhe.medida}` : 'Marcador A medida não calculada';
+                    const linhaDescarte = `${usuario} descartou 1 unidade ( ${textoMedida} ) ${data} ${hora}h`;
+                    anotacoesComHistorico = anexarHistoricoAnotacoes(anotacoesComHistorico, linhaDescarte);
+                }
                 const corteLinear = linhas.length === 1 && linhas[0].qtd === 1 && recortesAtuais.length === 0 && (
                     (Math.abs(linhas[0].h - base.h) < 0.01 && Math.abs(planos[0].y) < 0.01) ||
                     (Math.abs(linhas[0].w - base.w) < 0.01 && Math.abs(planos[0].x) < 0.01)
                 );
 
-                const atualizacaoSobra = corteLinear
+                const atualizacaoSobra = aplicarAjusteDescarteNoCorte
+                    ? (() => {
+                        const sobraNormalizada = normalizarDimensoesChapa(aplicarAjusteDescarteNoCorte.finalW, aplicarAjusteDescarteNoCorte.finalH);
+                        return {
+                            dimW: Number(sobraNormalizada.w.toFixed(2)),
+                            dimH: Number(sobraNormalizada.h.toFixed(2)),
+                            baseDimW: Number(sobraNormalizada.w.toFixed(2)),
+                            baseDimH: Number(sobraNormalizada.h.toFixed(2)),
+                            recortes: [],
+                            tipoMedida: 'corte',
+                            status: 'Usado',
+                            nome: nomeBase + ' (Sobra)',
+                            qtd: 1,
+                            anotacoes: anotacoesComHistorico
+                        };
+                    })()
+                    : corteLinear
                     ? (() => {
                         const sobraW = Math.abs(linhas[0].h - base.h) < 0.01 ? base.w - linhas[0].w : base.w;
                         const sobraH = Math.abs(linhas[0].w - base.w) < 0.01 ? base.h - linhas[0].h : base.h;
@@ -1737,6 +2039,8 @@ function tornarArrastavel(elemento) {
                 console.error(e);
                 alert('Erro ao executar o corte.');
             } finally {
+                aplicarAjusteDescarteNoCorte = null;
+                contextoDivisaoMaterial = null;
                 btn.disabled = false;
                 btn.innerText = '✂️ CONFIRMAR CORTE';
             }
