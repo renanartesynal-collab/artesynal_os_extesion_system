@@ -65,7 +65,7 @@
     .etiqueta-wrap { background: #0f141c; border: 1px solid #32455e; border-radius: 10px; padding: 10px; }
     .etiqueta-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; color: var(--muted); }
 
-    /* Etiqueta preta e branca */
+    /* Etiqueta preta e branca - layout estilo cartão técnico */
     .etiqueta {
       width: 6cm;
       height: 3cm;
@@ -75,22 +75,91 @@
       color: var(--label-fg);
       border: 2px solid #111;
       border-radius: 10px;
-      padding: 7px 8px;
+      padding: 5px;
       display: grid;
-      grid-template-columns: 1fr 1.5cm;
-      grid-template-rows: auto auto auto auto 1fr;
-      gap: 4px 6px;
+      grid-template-columns: 1.75cm 1fr;
+      gap: 5px;
       font-family: 'Arial', sans-serif;
     }
 
-    .e-line { border-bottom: 1.5px solid #111; display: flex; gap: 4px; align-items: baseline; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .e-line strong { font-size: 10px; line-height: 1; }
-    .e-line span { font-size: 10px; line-height: 1; }
-    .e-desc { border-bottom: 1.5px solid #111; font-size: 10px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .e-code-color { font-weight: 700; }
+    .etq-qr-panel {
+      border: 1px solid #b5b5b5;
+      border-radius: 8px;
+      background: #efefef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+    }
 
-    .qr-box { grid-column: 2 / 3; grid-row: 2 / 6; align-self: end; justify-self: end; width: 1.45cm; height: 1.45cm; border: 1px solid #111; border-radius: 3px; overflow: hidden; background: #fff; display:flex; align-items:center; justify-content:center; }
+    .qr-box {
+      width: 1.45cm;
+      height: 1.45cm;
+      border: 1px solid #111;
+      border-radius: 2px;
+      overflow: hidden;
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
     .qr-box img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+
+    .etq-right {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .etq-box {
+      border: 1px solid #b5b5b5;
+      border-radius: 6px;
+      background: #efefef;
+      padding: 3px 5px;
+      min-width: 0;
+    }
+
+    .etq-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .etq-label {
+      font-size: 7px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      margin-bottom: 1px;
+    }
+
+    .etq-value {
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .etq-notes {
+      border: 1px solid #b5b5b5;
+      border-radius: 8px;
+      background: #efefef;
+      padding: 3px 5px;
+      min-width: 0;
+    }
+
+    .etq-notes .etq-value {
+      white-space: normal;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
 
     .preview-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
     .modal-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; }
@@ -202,13 +271,43 @@
           </div>
 
           <div class="etiqueta print-target" id="etiqueta-preview">
-            <div class="e-line e-code-color" style="grid-column:1/2;"><strong>Código/Cor:</strong><span id="lbl-codigo-cor">____________</span></div>
-            <div class="e-line" style="grid-column:1/2;"><strong>OS.:</strong><span id="lbl-os">_____</span></div>
-            <div class="e-desc" id="lbl-desc" style="grid-column:1/2;">________________________</div>
-            <div class="e-line" style="grid-column:1/2;"><strong>Peso:</strong><span id="lbl-peso">___ g</span></div>
-            <div class="e-line" style="grid-column:1/2;"><strong>Quantidade:</strong><span id="lbl-quantidade">___ ml</span></div>
-            <div class="e-line" style="grid-column:1/2;"><strong>Validade:</strong><span id="lbl-validade">MM/AAAA</span></div>
-            <div class="qr-box"><img id="lbl-qr" alt="QR Code da etiqueta" /></div>
+            <div class="etq-qr-panel">
+              <div class="qr-box"><img id="lbl-qr" alt="QR Code da etiqueta" /></div>
+            </div>
+
+            <div class="etq-right">
+              <div class="etq-box">
+                <div class="etq-label">Código / Cor</div>
+                <div class="etq-value" id="lbl-codigo-cor">_____ • _____</div>
+              </div>
+
+              <div class="etq-row-2">
+                <div class="etq-box">
+                  <div class="etq-label">Quantidade</div>
+                  <div class="etq-value" id="lbl-quantidade">___ ml</div>
+                </div>
+                <div class="etq-box">
+                  <div class="etq-label">Validade</div>
+                  <div class="etq-value" id="lbl-validade">MM/AAAA</div>
+                </div>
+              </div>
+
+              <div class="etq-row-2">
+                <div class="etq-box">
+                  <div class="etq-label">Registro</div>
+                  <div class="etq-value" id="lbl-registro">_____</div>
+                </div>
+                <div class="etq-box">
+                  <div class="etq-label">O.S.</div>
+                  <div class="etq-value" id="lbl-os">_____</div>
+                </div>
+              </div>
+
+              <div class="etq-notes">
+                <div class="etq-label">Anotações</div>
+                <div class="etq-value" id="lbl-anotacoes">________________________</div>
+              </div>
+            </div>
           </div>
 
           <div class="preview-actions">
@@ -368,12 +467,23 @@
         validade: normalizarValidade(document.getElementById('tinta-validade').value)
       };
 
-      document.getElementById('lbl-codigo-cor').textContent = `${dados.codigo || '_____'} ${dados.cor ? '• ' + dados.cor : ''}`.trim();
-      document.getElementById('lbl-os').textContent = dados.ordemServico || '_____';
-      document.getElementById('lbl-desc').textContent = dados.descricao || '________________________';
-      document.getElementById('lbl-peso').textContent = `${dados.pesoLiquidoG || '___'} g`;
-      document.getElementById('lbl-quantidade').textContent = `${dados.quantidadeMl || '___'} ml`;
-      document.getElementById('lbl-validade').textContent = dados.validade || 'MM/AAAA';
+      const codigo = dados.codigo || '_____';
+      const cor = dados.cor || '_____';
+      const qtd = `${dados.quantidadeMl || '___'} ml`;
+      const validade = dados.validade || 'MM/AAAA';
+      const os = dados.ordemServico || '_____';
+      const anotacoes = [
+        dados.descricao || '',
+        dados.pesoLiquidoG ? `Peso ${dados.pesoLiquidoG} g` : '',
+        dados.quantidadeMl ? `Qtd ${dados.quantidadeMl} ml` : ''
+      ].filter(Boolean).join(' • ');
+
+      document.getElementById('lbl-codigo-cor').textContent = `${codigo} • ${cor}`;
+      document.getElementById('lbl-registro').textContent = codigo;
+      document.getElementById('lbl-os').textContent = os;
+      document.getElementById('lbl-quantidade').textContent = qtd;
+      document.getElementById('lbl-validade').textContent = validade;
+      document.getElementById('lbl-anotacoes').textContent = anotacoes || '________________________';
       document.getElementById('lbl-qr').src = qrUrl(qrPayload(dados));
     }
 
