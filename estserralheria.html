@@ -1794,6 +1794,19 @@ function tornarArrastavel(elemento) {
             document.getElementById('cota-right-previsao').innerText = `${base.h} cm`;
 
             if (!area || !chapa) return;
+
+            const wrap = document.getElementById('previsao-chapa-wrap');
+            const larguraMax = Math.min(620, Math.max(240, (wrap?.clientWidth || 620) - 124));
+            const larguraPx = larguraMax;
+            const alturaPx = Math.max(120, Number((larguraPx * (base.h / base.w)).toFixed(2)));
+            const escalaPxPorCm = larguraPx / base.w;
+            const gradeMenor = Math.max(3, Number((escalaPxPorCm * 5).toFixed(2)));
+            const gradeMaior = Math.max(12, Number((escalaPxPorCm * 25).toFixed(2)));
+
+            chapa.style.width = `${larguraPx}px`;
+            chapa.style.height = `${alturaPx}px`;
+            chapa.style.backgroundSize = `${gradeMenor}px ${gradeMenor}px, ${gradeMenor}px ${gradeMenor}px, ${gradeMaior}px ${gradeMaior}px, ${gradeMaior}px ${gradeMaior}px`;
+
             area.innerHTML = '';
 
             payload.areasRemovidas.forEach((ar) => {
