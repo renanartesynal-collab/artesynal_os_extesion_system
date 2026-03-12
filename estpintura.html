@@ -5,34 +5,528 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Setor de Pintura - Artesynal</title>
   <style>
-    :root { --bg:#111; --panel:#1f2937; --accent:#ed1c24; --text:#fff; --muted:#cbd5e1; }
+    :root {
+      --bg: #0f1115;
+      --panel: #1f2937;
+      --panel-soft: #243447;
+      --accent: #ed1c24;
+      --text: #fff;
+      --muted: #cbd5e1;
+      --yellow: #f1c40f;
+      --line: #3a4a60;
+      --ok: #22c55e;
+      --danger: #ef4444;
+    }
+
     * { box-sizing: border-box; }
-    body { margin:0; font-family:'Montserrat',Arial,sans-serif; background:var(--bg); color:var(--text); }
-    .page { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
-    .back { color:#f1c40f; text-decoration:none; font-weight:700; font-size:13px; }
-    .card { margin-top:16px; background:var(--panel); border:1px solid #334155; border-left:4px solid var(--accent); border-radius:12px; padding:20px; }
-    h1 { margin: 0 0 10px; font-size: 28px; text-transform: uppercase; }
-    p { margin: 6px 0; color: var(--muted); }
-    ul { margin: 14px 0 0; color: var(--muted); }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 36px;
+    }
+
+    .back {
+      color: var(--yellow);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .header {
+      margin-top: 14px;
+      background: linear-gradient(180deg, #1c2633, #131b26);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .categorias {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .categoria-btn {
+      background: #1a2330;
+      color: #cfd8e3;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .categoria-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: #ff7a80;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #1b2431;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn:hover { filter: brightness(1.08); }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: #ff7a80;
+    }
+
+    .btn-danger {
+      background: #2b1516;
+      border-color: #4f1d1f;
+      color: #ffd1d3;
+    }
+
+    .panel {
+      margin-top: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .slot {
+      background: var(--panel-soft);
+      border: 1px dashed #576983;
+      border-radius: 10px;
+      min-height: 170px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+
+    .slot.filled {
+      border-style: solid;
+      align-items: stretch;
+      text-align: left;
+      justify-content: flex-start;
+      gap: 6px;
+    }
+
+    .ink-chip {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.35);
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .slot-title { font-weight: 800; font-size: 14px; }
+    .slot-meta { color: var(--muted); font-size: 12px; }
+
+    .slot-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 30;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      background: #161e29;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+
+    input, textarea, select {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #3d4f67;
+      background: #0f141c;
+      color: #fff;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    .modal-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 23px; }
+    }
   </style>
 </head>
 <body>
   <div class="page">
     <a class="back" href="index.html">⬅ Voltar ao painel</a>
-    <div class="card">
+
+    <section class="header">
       <h1>🎨 Pintura</h1>
-      <p>Módulo criado para centralizar informações do setor de pintura.</p>
-      <ul>
-        <li>Controle de materiais e insumos.</li>
-        <li>Status das peças em preparo e finalização.</li>
-        <li>Planejamento de demandas diárias.</li>
-      </ul>
+      <div class="subtitle">Gerencie categorias e organize os cards de materiais por slots.</div>
+    </section>
+
+    <section class="toolbar">
+      <div id="categorias" class="categorias"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" id="btn-nova-categoria">+ Nova categoria</button>
+        <button class="btn btn-primary" id="btn-adicionar-slot">+ Adicionar slot</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <strong id="titulo-categoria">Categoria</strong>
+        <span class="muted" id="contador-slots"></span>
+      </div>
+      <div id="slots-grid" class="slots-grid"></div>
+    </section>
+  </div>
+
+  <div class="modal-bg" id="modal-tinta-bg">
+    <div class="modal">
+      <h3 style="margin-top:0">Cadastrar tinta no slot</h3>
+      <div class="grid">
+        <div>
+          <label for="tinta-nome">Nome da tinta</label>
+          <input id="tinta-nome" type="text" placeholder="Ex.: Azul Royal" />
+        </div>
+        <div>
+          <label for="tinta-cor">Cor</label>
+          <input id="tinta-cor" type="color" value="#ed1c24" />
+        </div>
+        <div>
+          <label for="tinta-tipo">Tipo</label>
+          <select id="tinta-tipo">
+            <option>PU</option>
+            <option>Esmalte</option>
+            <option>Epóxi</option>
+            <option>Acrílica</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div>
+          <label for="tinta-quantidade">Quantidade</label>
+          <input id="tinta-quantidade" type="number" min="0" step="0.1" placeholder="0" />
+        </div>
+        <div>
+          <label for="tinta-unidade">Unidade</label>
+          <select id="tinta-unidade">
+            <option value="L">Litros (L)</option>
+            <option value="ml">Mililitros (ml)</option>
+            <option value="kg">Quilos (kg)</option>
+            <option value="un">Unidades (un)</option>
+          </select>
+        </div>
+        <div>
+          <label for="tinta-marca">Marca/Fabricante</label>
+          <input id="tinta-marca" type="text" placeholder="Ex.: Suvinil" />
+        </div>
+        <div class="full">
+          <label for="tinta-observacoes">Observações</label>
+          <textarea id="tinta-observacoes" placeholder="Detalhes adicionais da tinta..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-cancelar-tinta">Cancelar</button>
+        <button class="btn btn-primary" id="btn-salvar-tinta">Salvar tinta</button>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import { protegerPagina } from './auth.js';
+
     await protegerPagina({ paginaAtual: 'estpintura.html' });
+
+    const STORAGE_KEY = 'artesynal_pintura_v2';
+    const estadoPadrao = {
+      categorias: {
+        tinta: { label: 'Tinta', slots: Array(8).fill(null) }
+      },
+      categoriaAtual: 'tinta'
+    };
+
+    const categoriasEl = document.getElementById('categorias');
+    const slotsGridEl = document.getElementById('slots-grid');
+    const tituloCategoriaEl = document.getElementById('titulo-categoria');
+    const contadorSlotsEl = document.getElementById('contador-slots');
+
+    const modalBg = document.getElementById('modal-tinta-bg');
+
+    let estado = carregarEstado();
+    let slotAtual = null;
+
+    function carregarEstado() {
+      try {
+        const bruto = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!bruto?.categorias || typeof bruto.categorias !== 'object') return structuredClone(estadoPadrao);
+        if (!bruto.categorias.tinta) {
+          bruto.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
+        }
+        bruto.categoriaAtual = bruto.categoriaAtual && bruto.categorias[bruto.categoriaAtual] ? bruto.categoriaAtual : 'tinta';
+
+        for (const key of Object.keys(bruto.categorias)) {
+          if (!Array.isArray(bruto.categorias[key].slots)) {
+            bruto.categorias[key].slots = Array(4).fill(null);
+          }
+        }
+
+        return bruto;
+      } catch {
+        return structuredClone(estadoPadrao);
+      }
+    }
+
+    function salvarEstado() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    }
+
+    function renderCategorias() {
+      const keys = Object.keys(estado.categorias);
+      categoriasEl.innerHTML = keys.map((key) => {
+        const c = estado.categorias[key];
+        const activeClass = key === estado.categoriaAtual ? 'active' : '';
+        return `<button class="categoria-btn ${activeClass}" data-cat="${key}">${c.label}</button>`;
+      }).join('');
+
+      categoriasEl.querySelectorAll('.categoria-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          estado.categoriaAtual = btn.dataset.cat;
+          salvarEstado();
+          renderTudo();
+        });
+      });
+    }
+
+    function renderSlots() {
+      const categoria = estado.categorias[estado.categoriaAtual];
+      const slots = categoria.slots;
+
+      tituloCategoriaEl.textContent = `Categoria: ${categoria.label}`;
+      const preenchidos = slots.filter(Boolean).length;
+      contadorSlotsEl.textContent = `${preenchidos}/${slots.length} slots preenchidos`;
+
+      slotsGridEl.innerHTML = slots.map((item, idx) => {
+        if (!item) {
+          return `
+            <article class="slot" data-slot="${idx}">
+              <div class="slot-title">Slot ${idx + 1}</div>
+              <div class="slot-meta">Vazio</div>
+              <button class="btn btn-primary" data-action="add" data-slot="${idx}">+ Adicionar card</button>
+            </article>
+          `;
+        }
+
+        return `
+          <article class="slot filled" data-slot="${idx}">
+            <div class="slot-title"><span class="ink-chip" style="background:${item.cor || '#ed1c24'}"></span>${escapeHtml(item.nome || 'Sem nome')}</div>
+            <div class="slot-meta">Tipo: ${escapeHtml(item.tipo || '-')}</div>
+            <div class="slot-meta">Qtd: ${escapeHtml(item.quantidade || '0')} ${escapeHtml(item.unidade || '')}</div>
+            <div class="slot-meta">Marca: ${escapeHtml(item.marca || '-')}</div>
+            <div class="slot-meta">Obs: ${escapeHtml(item.observacoes || '-')}</div>
+            <div class="slot-actions">
+              <button class="btn" data-action="edit" data-slot="${idx}">Editar</button>
+              <button class="btn btn-danger" data-action="delete" data-slot="${idx}">Remover</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      slotsGridEl.querySelectorAll('button[data-action]').forEach((btn) => {
+        const idx = Number(btn.dataset.slot);
+        const action = btn.dataset.action;
+        btn.addEventListener('click', () => {
+          if (action === 'add') abrirModalTinta(idx);
+          if (action === 'edit') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
+          if (action === 'delete') {
+            if (!confirm('Deseja remover este card de tinta?')) return;
+            estado.categorias[estado.categoriaAtual].slots[idx] = null;
+            salvarEstado();
+            renderSlots();
+          }
+        });
+      });
+    }
+
+    function renderTudo() {
+      renderCategorias();
+      renderSlots();
+    }
+
+    function slugify(texto) {
+      return (texto || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+    }
+
+    function escapeHtml(valor) {
+      return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function abrirModalTinta(slot, dados = null) {
+      slotAtual = slot;
+      document.getElementById('tinta-nome').value = dados?.nome || '';
+      document.getElementById('tinta-cor').value = dados?.cor || '#ed1c24';
+      document.getElementById('tinta-tipo').value = dados?.tipo || 'PU';
+      document.getElementById('tinta-quantidade').value = dados?.quantidade || '';
+      document.getElementById('tinta-unidade').value = dados?.unidade || 'L';
+      document.getElementById('tinta-marca').value = dados?.marca || '';
+      document.getElementById('tinta-observacoes').value = dados?.observacoes || '';
+      modalBg.style.display = 'flex';
+    }
+
+    function fecharModalTinta() {
+      slotAtual = null;
+      modalBg.style.display = 'none';
+    }
+
+    document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
+
+    document.getElementById('btn-salvar-tinta').addEventListener('click', () => {
+      if (slotAtual === null) return;
+
+      const nome = document.getElementById('tinta-nome').value.trim();
+      if (!nome) {
+        alert('Informe o nome da tinta.');
+        return;
+      }
+
+      const payload = {
+        nome,
+        cor: document.getElementById('tinta-cor').value,
+        tipo: document.getElementById('tinta-tipo').value,
+        quantidade: document.getElementById('tinta-quantidade').value.trim(),
+        unidade: document.getElementById('tinta-unidade').value,
+        marca: document.getElementById('tinta-marca').value.trim(),
+        observacoes: document.getElementById('tinta-observacoes').value.trim()
+      };
+
+      estado.categorias[estado.categoriaAtual].slots[slotAtual] = payload;
+      salvarEstado();
+      renderSlots();
+      fecharModalTinta();
+    });
+
+    document.getElementById('btn-adicionar-slot').addEventListener('click', () => {
+      estado.categorias[estado.categoriaAtual].slots.push(null);
+      salvarEstado();
+      renderSlots();
+    });
+
+    document.getElementById('btn-nova-categoria').addEventListener('click', () => {
+      const nome = prompt('Nome da nova categoria (ex.: Verniz, Primer, Tinta):');
+      if (!nome) return;
+
+      const id = slugify(nome);
+      if (!id) {
+        alert('Nome inválido para categoria.');
+        return;
+      }
+
+      if (estado.categorias[id]) {
+        alert('Essa categoria já existe.');
+        return;
+      }
+
+      estado.categorias[id] = { label: nome.trim(), slots: Array(6).fill(null) };
+      estado.categoriaAtual = id;
+      salvarEstado();
+      renderTudo();
+    });
+
+    renderTudo();
   </script>
 </body>
 </html>
