@@ -408,15 +408,6 @@
                     </div>
                 </div>
             </div>
-            <div style="display:flex; justify-content:flex-end; margin:-2px 0 10px;">
-                <div style="display:flex; gap:8px; align-items:center; background:rgba(255,255,255,.04); border:1px solid #2f2f2f; border-radius:999px; padding:6px 8px;">
-                    <span style="font-size:12px; color:#cbd5e1; margin-right:4px;">Marcadores</span>
-                    <button type="button" onclick="selecionarMarcadorAtivo('A')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">A</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('B')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">B</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('C')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">C</button>
-                    <button type="button" onclick="selecionarMarcadorAtivo('D')" style="width:24px; height:24px; border-radius:50%; background:#fff; color:#ef4444; border:none; font-weight:900;">D</button>
-                </div>
-            </div>
             <div id="msg-descarte" style="min-height:22px; font-size:15px; font-weight:700; margin-bottom:8px;"></div>
             <div style="display:flex; gap:10px;">
                 <button class="btn-adj" style="flex:1; margin-top:0; text-transform:uppercase; font-weight:900; height:50px; font-size:16px;" onclick="voltarEditorCorte()">Voltar ao editor de corte</button>
@@ -1709,21 +1700,24 @@ function tornarArrastavel(elemento) {
                 .filter((l) => l.id !== linha.id && l.marcador)
                 .map((l) => l.marcador);
             const opcoes = ['A', 'B', 'C', 'D'].map((m) => {
-                const selected = linha.marcador === m ? 'selected' : '';
-                const disabled = marcadoresUsados.includes(m) ? 'disabled' : '';
-                return `<option value="${m}" ${selected} ${disabled}>${m}</option>`;
+                const disabled = marcadoresUsados.includes(m);
+                const ativo = linha.marcador === m;
+                return `<button type="button" onclick="window.selecionarMarcadorLinha(${linha.id}, '${m}')" ${disabled ? 'disabled' : ''} style="height:30px; border-radius:8px; border:1px solid ${ativo ? '#fb923c' : '#334155'}; background:${ativo ? 'rgba(251,146,60,.2)' : '#111827'}; color:${disabled ? '#64748b' : '#fff'}; font-weight:800; cursor:${disabled ? 'not-allowed' : 'pointer'};">${m}</button>`;
             }).join('');
             const ultimaLinha = index === (ajustesMarcadoresDivisao.length - 1);
             const btn = ultimaLinha
                 ? `<button type="button" class="btn-salvar" onclick="adicionarLinhaMarcador()" style="width:42px; height:42px; margin-top:0; padding:0; font-size:24px;">+</button>`
                 : `<button type="button" class="btn-adj" onclick="removerLinhaMarcador(${linha.id})" style="width:42px; height:42px; margin-top:0; padding:0; font-size:24px;">−</button>`;
+            const rotulo = linha.marcador ? `Marcador: ${linha.marcador}` : 'Marcadores';
             return `
-                <div class="form-row" style="margin-bottom:0; align-items:center;" data-marcador-id="${linha.id}">
+                <div class="form-row" style="margin-bottom:0; align-items:center; gap:8px;" data-marcador-id="${linha.id}">
+                    <div style="position:relative; min-width:220px; max-width:220px;">
+                        <button type="button" onclick="window.toggleMenuMarcadores(${linha.id})" style="width:100%; height:42px; border-radius:10px; border:1px solid #334155; background:#111827; color:#fff; font-weight:800; text-align:left; padding:0 12px;">${rotulo}</button>
+                        <div id="menu-marcador-${linha.id}" style="display:none; position:absolute; z-index:12; left:0; right:0; top:46px; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:8px; box-shadow:0 12px 24px rgba(0,0,0,.45);">
+                            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">${opcoes}</div>
+                        </div>
+                    </div>
                     <div class="input-suffix-wrapper" style="max-width:130px;"><input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" type="number" min="0" placeholder="cm" value="${linha.medida}" onfocus="marcarLinhaAtiva(${linha.id})" oninput="alterarMedidaLinha(${linha.id}, this.value)"></div>
-                    <select autocomplete="off" style="max-width:220px; min-width:220px;" onchange="alterarMarcadorLinha(${linha.id}, this.value)" onclick="marcarLinhaAtiva(${linha.id})">
-                        <option value="">Selecione um marcador</option>
-                        ${opcoes}
-                    </select>
                     ${btn}
                 </div>`;
         }
@@ -1848,6 +1842,25 @@ function tornarArrastavel(elemento) {
         }
 
         window.marcarLinhaAtiva = (id) => { marcadorLinhaAtiva = id; };
+        window.toggleMenuMarcadores = (id) => {
+            document.querySelectorAll('[id^="menu-marcador-"]').forEach((el) => {
+                if (el.id !== `menu-marcador-${id}`) el.style.display = 'none';
+            });
+            const menu = document.getElementById(`menu-marcador-${id}`);
+            if (!menu) return;
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            marcadorLinhaAtiva = id;
+        };
+
+        window.selecionarMarcadorLinha = (id, marcador) => {
+            window.alterarMarcadorLinha(id, marcador);
+        };
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-marcador-id]')) return;
+            document.querySelectorAll('[id^="menu-marcador-"]').forEach((el) => el.style.display = 'none');
+        });
+
         window.alterarMarcadorLinha = (id, marcador) => {
             ajustesMarcadoresDivisao = ajustesMarcadoresDivisao.map((l) => l.id === id ? { ...l, marcador } : l);
             renderizarLinhasMarcador();
