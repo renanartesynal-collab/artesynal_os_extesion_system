@@ -149,15 +149,16 @@ export async function garantirAdministradorPadrao() {
   const id = emailParaId(ADMIN_PADRAO.email);
   const ref = doc(db, "access_requests", id);
   const snap = await getDoc(ref);
+  const atual = snap.exists() ? snap.data() : {};
 
   await setDoc(ref, {
-    nome: ADMIN_PADRAO.nome,
-    email: ADMIN_PADRAO.email,
-    categoria: ADMIN_PADRAO.categoria,
-    senha_hash: ADMIN_PADRAO.senhaHash,
+    nome: atual.nome || ADMIN_PADRAO.nome,
+    email: atual.email || ADMIN_PADRAO.email,
+    categoria: atual.categoria || ADMIN_PADRAO.categoria,
+    senha_hash: atual.senha_hash || ADMIN_PADRAO.senhaHash,
     status: "approved",
     blocked: false,
-    created_at: snap.exists() ? snap.data().created_at : serverTimestamp(),
+    created_at: atual.created_at || serverTimestamp(),
     updated_at: serverTimestamp()
   }, { merge: true });
 }

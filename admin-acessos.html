@@ -5,58 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel de Aprovação de Acessos</title>
   <style>
-    body{font-family:Arial,sans-serif;background:#1f2937;color:#fff;margin:0;padding:20px}
-    table{width:100%;border-collapse:collapse;background:#334155;margin-bottom:24px}
-    th,td{padding:10px;border-bottom:1px solid #475569;text-align:left}
+    :root{--bg:#111111;--panel:#1a1a1a;--panel-dark:#000000;--orange:#ff6b00;--orange-soft:#ff8c33;--white:#ffffff;--text:#ffffff;--muted:#ffd7bf;--toggle-w:44px;--toggle-h:14px;--toggle-ball:10px}
+    *{box-sizing:border-box}
+    body{font-family:'Mitra LT','Montserrat',Arial,sans-serif;background:linear-gradient(165deg,#000,#181818 65%);color:var(--text);margin:0;min-height:100vh}
+    .page{width:min(1280px,100%);margin:0 auto;padding:22px 16px 26px}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));border:1px solid rgba(255,107,0,.45);border-radius:16px;box-shadow:0 18px 30px rgba(0,0,0,.46);padding:14px 14px 10px;margin-bottom:16px;backdrop-filter:blur(2px)}
+    table{width:100%;border-collapse:collapse;background:transparent;margin-bottom:8px}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.16);text-align:left}
+    th{font-size:15px;font-weight:800;color:var(--orange-soft);background:rgba(255,107,0,.08)}
     .th-acoes,.td-acoes{text-align:center}
-    button,select,input{padding:6px 9px;border:none;border-radius:6px}
-    .ok{background:#16a34a;color:#fff}.no{background:#dc2626;color:#fff}.blk{background:#f59e0b;color:#111}
-    .edit{background:#0ea5e9;color:#fff}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-    a{color:#93c5fd}
-    h2{margin:8px 0}
-    .acoes{display:grid;grid-template-columns:1.8fr repeat(3,1fr);gap:4px;align-items:center;width:100%;max-width:250px;margin:0 auto}
-    .icon-btn{width:100%;height:28px;padding:0 6px;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
-    .status-toggle{position:relative;width:100%;height:28px;border-radius:20px;border:2px solid #2b2b2b;cursor:pointer;font-weight:800;font-size:24px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box}
-    .status-toggle::after{content:"";position:absolute;top:1px;width:22px;height:22px;border-radius:50%;background:#2f2f2f;box-shadow:inset 0 2px 4px rgba(255,255,255,.15), 0 2px 5px rgba(0,0,0,.4)}
-    .status-toggle.on{background:#14f014;color:#fff}
-    .status-toggle.on::after{left:2px}
-    .status-toggle.on .off-label{display:none}
-    .status-toggle.off{background:#ff0909;color:#fff}
-    .status-toggle.off::after{right:2px}
-    .status-toggle.off .on-label{display:none}
-    .status-toggle .label{font-size:13px;letter-spacing:.4px}
-    .wa{background:#22c55e;color:#052e16}
+    button,select,input{padding:6px 9px;border:none;border-radius:8px}
+    input,select{background:#fff;color:#111;font-weight:600}
+    .ok{background:var(--orange);color:#111}.no{background:#dc2626;color:#fff}.blk{background:#f59e0b;color:#111}
+    .edit{background:var(--orange);color:#111}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(135deg,#000,#1b1b1b);padding:16px 18px;border:1px solid rgba(255,107,0,.5);border-radius:14px;box-shadow:0 8px 18px rgba(0,0,0,.36);margin-bottom:16px;flex-wrap:wrap}
+    .actions-top{display:flex;gap:10px;align-items:center;margin-left:auto}
+    a{color:var(--white);font-weight:700}
+    h1{margin:0;font-size:42px;line-height:1}
+    h2{margin:4px 0 10px;font-size:34px;line-height:1}
+    .subtitle{margin:6px 0 0;color:var(--muted);font-size:13px;letter-spacing:.3px}
+    .acoes{display:grid;grid-template-columns:var(--toggle-w) repeat(3,30px);gap:5px;align-items:center;width:100%;max-width:150px;margin:0 auto;justify-content:center}
+    .icon-btn{width:100%;height:24px;padding:0 4px;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:transform .16s ease,filter .2s ease}
+    .status-toggle{position:relative;width:var(--toggle-w);min-width:var(--toggle-w);max-width:var(--toggle-w);height:var(--toggle-h);border-radius:999px;border:1px solid #1f1f1f;cursor:pointer;padding:0;display:block;overflow:hidden;box-sizing:border-box;transition:background .2s,border-color .2s,box-shadow .2s,transform .16s ease;margin:0 auto}
+    .status-toggle::after{content:"";position:absolute;top:1px;width:var(--toggle-ball);height:var(--toggle-ball);border-radius:50%;background:#242424;box-shadow:0 1px 3px rgba(0,0,0,.45);transition:left .2s,right .2s,background .2s}
+    .status-toggle.on{background:#1ef01e;border-color:#0f9c0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+    .status-toggle.on::after{left:1px;background:#2f2f2f}
+    .status-toggle.off{background:#ff2222;border-color:#bb0f0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+    .status-toggle.off::after{right:1px;background:#2f2f2f}
+    .status-toggle:hover,.icon-btn:hover{transform:translateY(-1px);filter:brightness(1.07)}
+    .status-toggle .label{display:none}
+    .wa{background:#1f1f1f;color:var(--orange-soft);border:1px solid var(--orange)}
     .edit-separado{margin-left:0}
     .del{background:#dc2626;color:#fff}
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
-    .modal{width:min(640px,100%);background:#1e293b;border-radius:12px;padding:16px}
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:16px;z-index:20;backdrop-filter:blur(3px)}
+    .modal{width:min(640px,100%);background:linear-gradient(160deg,#121212,#0b0b0b);border-radius:14px;padding:16px;border:1px solid rgba(255,107,0,.55);box-shadow:0 20px 40px rgba(0,0,0,.58)}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .grid .full{grid-column:1 / -1}
-    .modal label{font-size:12px;color:#cbd5e1;display:block;margin-bottom:4px}
+    .modal label{font-size:12px;color:#ffe3cf;display:block;margin-bottom:4px}
     .modal input,.modal select{width:100%;box-sizing:border-box}
     .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-    .muted{font-size:12px;color:#cbd5e1;margin:0 0 8px}
-    .btn-categorias{background:#0f172a;color:#fff;border:1px solid #334155;padding:8px 16px;border-radius:8px}
-    .categorias-grid{width:100%;border-collapse:collapse;background:#334155;margin-top:10px}
-    .categorias-grid th,.categorias-grid td{padding:8px;border-bottom:1px solid #475569;text-align:center}
+    .muted{font-size:12px;color:#ffd7bf;margin:0 0 8px}
+    .btn-categorias{background:#1f1f1f;color:#fff;border:1px solid var(--orange);padding:8px 16px;border-radius:8px;font-weight:700}
+    .categorias-grid{width:100%;border-collapse:collapse;background:#1d1d1d;margin-top:10px}
+    .categorias-grid th,.categorias-grid td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.16);text-align:center}
     .categorias-grid th:first-child,.categorias-grid td:first-child{text-align:left}
-    .switch-cat{width:42px;height:22px;appearance:none;background:#9ca3af;border-radius:999px;position:relative;cursor:pointer;outline:none}
-    .switch-cat:checked{background:#22c55e}
-    .switch-cat::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:all .18s}
-    .switch-cat:checked::after{left:23px}
+    .switch-cat{width:var(--toggle-w);min-width:var(--toggle-w);max-width:var(--toggle-w);height:var(--toggle-h);appearance:none;background:#ff2222;border-radius:999px;position:relative;cursor:pointer;outline:none;border:1px solid #bb0f0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:background .2s,border-color .2s,box-shadow .2s,transform .16s ease;padding:0;display:inline-block;box-sizing:border-box;vertical-align:middle}
+    .switch-cat:checked{background:#1ef01e;border-color:#0f9c0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+    .switch-cat::after{content:"";position:absolute;top:1px;left:1px;width:var(--toggle-ball);height:var(--toggle-ball);border-radius:50%;background:#2f2f2f;box-shadow:0 1px 3px rgba(0,0,0,.45);transition:left .2s,right .2s,background .2s}
+    .switch-cat:checked::after{left:33px;background:#2f2f2f}
+    .switch-cat:hover{transform:translateY(-1px);filter:brightness(1.07)}
+    a:hover{text-decoration:none;color:var(--orange-soft)}
+    .btn-categorias:hover{background:var(--orange);color:#111}
+    @media (max-width:900px){h1{font-size:33px}h2{font-size:26px}.top{padding:14px}}
+    @media (max-width:720px){.page{padding:14px 10px}.top{flex-direction:column;align-items:flex-start}.actions-top{width:100%;justify-content:space-between;margin-left:0}table{font-size:13px}th,td{padding:8px}}
   </style>
 </head>
 <body>
-  <div class="top">
-    <h1>Gerenciamento de acessos</h1>
-    <button type="button" class="btn-categorias" id="btn-categorias">Categorias</button>
-    <a href="index.html">Voltar ao painel</a>
+  <div class="page">
+    <div class="top">
+      <div>
+        <h1>Gerenciamento de acessos</h1>
+        <p class="subtitle">Controle central de perfis, permissões e segurança do sistema.</p>
+      </div>
+      <div class="actions-top">
+        <button type="button" class="btn-categorias" id="btn-categorias">Categorias</button>
+        <a href="index.html">Voltar ao painel</a>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h2>Solicitantes de acesso</h2>
+      <div id="lista"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Tentativas de login</h2>
+      <div id="tentativas"></div>
+    </section>
   </div>
-  <h2>Solicitantes de acesso</h2>
-  <div id="lista"></div>
-  <h2>Tentativas de login</h2>
-  <div id="tentativas"></div>
 
   <div class="modal-bg" id="edit-modal-bg">
     <div class="modal">
@@ -182,8 +208,7 @@
           <td class="td-acoes">
             <div class="acoes">
               <button class="status-toggle ${r.blocked || r.status !== 'approved' ? 'off' : 'on'}" title="Ativar ou desativar usuário" onclick="window.alternarStatus('${r.id}', ${r.blocked || r.status !== 'approved' ? 'false' : 'true'})">
-                <span class="label on-label">ON</span>
-                <span class="label off-label">OFF</span>
+
               </button>
               <button class="icon-btn wa" title="Mensagem via WhatsApp" onclick="window.abrirWhatsapp('${esc(r.whatsapp || '')}','${esc(r.nome || '')}')">💬</button>
               <button class="icon-btn edit edit-separado" title="Editar usuário" onclick="window.abrirEdicao('${r.id}')">✏️</button>
