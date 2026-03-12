@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel de Aprovação de Acessos</title>
   <style>
-    :root{--bg:#111111;--panel:#1a1a1a;--panel-dark:#000000;--orange:#ff6b00;--orange-soft:#ff8c33;--white:#ffffff;--text:#ffffff;--muted:#ffd7bf}
+    :root{--bg:#111111;--panel:#1a1a1a;--panel-dark:#000000;--orange:#ff6b00;--orange-soft:#ff8c33;--white:#ffffff;--text:#ffffff;--muted:#ffd7bf;--toggle-w:44px;--toggle-h:14px;--toggle-ball:10px}
     *{box-sizing:border-box}
     body{font-family:'Mitra LT','Montserrat',Arial,sans-serif;background:linear-gradient(165deg,#000,#181818 65%);color:var(--text);margin:0;min-height:100vh}
     .page{width:min(1280px,100%);margin:0 auto;padding:22px 16px 26px}
@@ -26,8 +26,8 @@
     .subtitle{margin:6px 0 0;color:var(--muted);font-size:13px;letter-spacing:.3px}
     .acoes{display:grid;grid-template-columns:1fr repeat(3,30px);gap:5px;align-items:center;width:100%;max-width:150px;margin:0 auto}
     .icon-btn{width:100%;height:24px;padding:0 4px;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:transform .16s ease,filter .2s ease}
-    .status-toggle{position:relative;width:100%;height:14px;border-radius:999px;border:1px solid #1f1f1f;cursor:pointer;padding:0;display:block;overflow:hidden;box-sizing:border-box;transition:background .2s,border-color .2s,box-shadow .2s,transform .16s ease}
-    .status-toggle::after{content:"";position:absolute;top:1px;width:10px;height:10px;border-radius:50%;background:#242424;box-shadow:0 1px 3px rgba(0,0,0,.45);transition:left .2s,right .2s,background .2s}
+    .status-toggle{position:relative;width:var(--toggle-w);height:var(--toggle-h);border-radius:999px;border:1px solid #1f1f1f;cursor:pointer;padding:0;display:block;overflow:hidden;box-sizing:border-box;transition:background .2s,border-color .2s,box-shadow .2s,transform .16s ease;margin:0 auto}
+    .status-toggle::after{content:"";position:absolute;top:1px;width:var(--toggle-ball);height:var(--toggle-ball);border-radius:50%;background:#242424;box-shadow:0 1px 3px rgba(0,0,0,.45);transition:left .2s,right .2s,background .2s}
     .status-toggle.on{background:#1ef01e;border-color:#0f9c0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
     .status-toggle.on::after{left:1px;background:#2f2f2f}
     .status-toggle.off{background:#ff2222;border-color:#bb0f0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
@@ -49,10 +49,10 @@
     .categorias-grid{width:100%;border-collapse:collapse;background:#1d1d1d;margin-top:10px}
     .categorias-grid th,.categorias-grid td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.16);text-align:center}
     .categorias-grid th:first-child,.categorias-grid td:first-child{text-align:left}
-    .switch-cat{width:42px;height:22px;appearance:none;background:#ff2222;border-radius:999px;position:relative;cursor:pointer;outline:none;border:1px solid #bb0f0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:background .2s,border-color .2s,box-shadow .2s,transform .16s ease}
+    .switch-cat{width:var(--toggle-w);height:var(--toggle-h);appearance:none;background:#ff2222;border-radius:999px;position:relative;cursor:pointer;outline:none;border:1px solid #bb0f0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:background .2s,border-color .2s,box-shadow .2s,transform .16s ease}
     .switch-cat:checked{background:#1ef01e;border-color:#0f9c0f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
-    .switch-cat::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#f5f5f5;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:all .18s}
-    .switch-cat:checked::after{left:23px}
+    .switch-cat::after{content:"";position:absolute;top:1px;left:1px;width:var(--toggle-ball);height:var(--toggle-ball);border-radius:50%;background:#f5f5f5;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:all .18s}
+    .switch-cat:checked::after{left:33px}
     .switch-cat:hover{transform:translateY(-1px)}
     a:hover{text-decoration:none;color:var(--orange-soft)}
     .btn-categorias:hover{background:var(--orange);color:#111}
