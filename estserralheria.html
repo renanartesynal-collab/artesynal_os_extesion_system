@@ -132,6 +132,7 @@
         .btn-icon-action { background: #222; color: var(--orange); border: 1px solid #444; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: bold;}
         input, select, textarea { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #333; border-radius: 8px; color: white; outline: none; font-size: 14px; font-family: inherit; box-sizing: border-box;}
         textarea { resize: vertical; min-height: 100px; }
+        #detalhes-anotacoes { font-weight: 700; }
         .input-suffix-wrapper { position: relative; display: flex; align-items: center; }
         .input-suffix-wrapper::after { content: "cm"; position: absolute; right: 12px; color: var(--text-gray); font-size: 12px; pointer-events: none; }
         .form-row { display: flex; gap: 12px; margin-bottom: 15px; width: 100%;}
@@ -391,7 +392,7 @@
                 <div id="previsao-medida-final" style="font-weight:800; font-size:18px; margin-bottom:0;">ÁREA DA CHAPA: 0cm X 0cm</div>
             </div>
             <div id="linhas-marcador" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;"></div>
-            <div id="previsao-chapa-wrap" style="position:relative; background:#0a0a0a; border:1px solid #333; border-radius:10px; padding:10px; margin-bottom:8px;">
+            <div id="previsao-chapa-wrap" style="position:relative; background:#0a0a0a; border:1px solid #333; border-radius:10px; padding:24px 34px 38px; margin-bottom:8px; overflow:visible;">
                 <div id="previsao-chapa" style="position:relative; width:100%; height:210px; border:1px solid #fff; background:
                     linear-gradient(to right, rgba(255,255,255,.10) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(255,255,255,.10) 1px, transparent 1px),
@@ -485,7 +486,7 @@
             <input id="detalhes-os" type="text" maxlength="5" placeholder="12345" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5).replace(/^0+(?=\d)/,'')">
 
             <label class="label-standard" style="margin-top:16px; margin-bottom: 8px;">Anotações (Serviços e O.S.)</label>
-            <textarea id="detalhes-anotacoes" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
+            <textarea id="detalhes-anotacoes" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
 
             <button class="btn-salvar" id="btn-salvar-anotacoes" onclick="salvarAnotacoes()" style="margin-top:15px; background:#444; border: 1px solid #666;">💾 SALVAR ANOTAÇÕES</button>
         </div>
@@ -591,7 +592,7 @@
             const usuario = obterNomeUsuarioLogado();
             const { data, hora } = formatarDataHoraCorte(dataRef);
             return linhas.map((linha) =>
-                `**${usuario}** cortou **${linha.qtd} unidade(s)** **${linha.w}cm X ${linha.h}cm** dia ${data} às ${hora}h`
+                `${usuario} cortou ${linha.qtd} unidade(s) ${linha.w}cm X ${linha.h}cm dia ${data} às ${hora}h`
             ).join('\n');
         }
 
@@ -1713,11 +1714,11 @@ function tornarArrastavel(elemento) {
                 : `<button type="button" class="btn-adj" onclick="removerLinhaMarcador(${linha.id})" style="width:42px; height:42px; margin-top:0; padding:0; font-size:24px;">−</button>`;
             return `
                 <div class="form-row" style="margin-bottom:0; align-items:center;" data-marcador-id="${linha.id}">
-                    <select style="max-width:220px; min-width:220px;" onchange="alterarMarcadorLinha(${linha.id}, this.value)" onclick="marcarLinhaAtiva(${linha.id})">
+                    <select autocomplete="off" style="max-width:220px; min-width:220px;" onchange="alterarMarcadorLinha(${linha.id}, this.value)" onclick="marcarLinhaAtiva(${linha.id})">
                         <option value="">Selecione um marcador</option>
                         ${opcoes}
                     </select>
-                    <div class="input-suffix-wrapper" style="max-width:130px;"><input type="number" min="0" placeholder="cm" value="${linha.medida}" onfocus="marcarLinhaAtiva(${linha.id})" oninput="alterarMedidaLinha(${linha.id}, this.value)"></div>
+                    <div class="input-suffix-wrapper" style="max-width:130px;"><input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" type="number" min="0" placeholder="cm" value="${linha.medida}" onfocus="marcarLinhaAtiva(${linha.id})" oninput="alterarMedidaLinha(${linha.id}, this.value)"></div>
                     ${btn}
                 </div>`;
         }
@@ -1747,10 +1748,10 @@ function tornarArrastavel(elemento) {
                         // A: esquerda -> direita
                         const largura = Math.min(item.medida, planoExistente.w);
                         areasRemovidas.push({ x: 0, y: base.h - sobraInferior, w: largura, h: sobraInferior });
-                    } else if (item.marcador === 'B' && sobraDireita > 0) {
-                        // B: baixo -> cima
+                    } else if (item.marcador === 'B') {
+                        // B: baixo -> cima (largura total da chapa)
                         const altura = Math.min(item.medida, base.h);
-                        areasRemovidas.push({ x: base.w - sobraDireita, y: base.h - altura, w: sobraDireita, h: altura });
+                        areasRemovidas.push({ x: 0, y: base.h - altura, w: base.w, h: altura });
                     } else if (item.marcador === 'C') {
                         // C: direita -> esquerda
                         const largura = Math.min(item.medida, base.w);
@@ -1938,7 +1939,7 @@ function tornarArrastavel(elemento) {
                     const { data, hora } = formatarDataHoraCorte(dataCorteRef);
                     const detalhe = aplicarAjusteDescarteNoCorte.descarteDetalhes?.[0];
                     const textoMedida = detalhe ? `Marcador ${detalhe.marcador} ${detalhe.medida}` : 'Marcador A medida não calculada';
-                    const linhaDescarte = `**${usuario}** descartou **1 unidade** ( **${textoMedida}** ) ${data} ${hora}h`;
+                    const linhaDescarte = `${usuario} descartou 1 unidade ( ${textoMedida} ) ${data} ${hora}h`;
                     anotacoesComHistorico = anexarHistoricoAnotacoes(anotacoesComHistorico, linhaDescarte);
                 }
                 const corteLinear = linhas.length === 1 && linhas[0].qtd === 1 && recortesAtuais.length === 0 && (
