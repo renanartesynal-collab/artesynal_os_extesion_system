@@ -520,7 +520,10 @@
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
             <div id="detalhes-registro-wrap" style="display:none; margin:8px 0 4px;">
                 <label class="label-standard" style="margin-bottom:6px;">Registro para editar/cortar</label>
-                <select id="detalhes-registro-select" onchange="selecionarRegistroDetalhes(this.value)"></select>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <select id="detalhes-registro-select" onchange="selecionarRegistroDetalhes(this.value)" style="flex:1;"></select>
+                    <button id="btn-separar-registro" class="btn-adj" onclick="separarRegistroDetalhes()" style="margin-top:0; min-width:110px;">SEPARAR</button>
+                </div>
             </div>
             <div id="detalhes-preview-wrapper"></div>
             <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #333;"></pre>
@@ -2351,6 +2354,16 @@ window.confirmarPosicionamentoSimulador = () => {
         let itemParaDetalhes = null;
         let itensDetalhesGrupo = [];
         let grupoDetalhesAtual = null;
+
+        function atualizarVisibilidadeBotaoSeparar() {
+            const btnSeparar = document.getElementById('btn-separar-registro');
+            if (!btnSeparar) return;
+            const qtdAtual = Number(itemParaDetalhes?.qtd) || 0;
+            btnSeparar.style.display = qtdAtual > 1 ? 'inline-flex' : 'none';
+            btnSeparar.disabled = qtdAtual <= 1;
+            btnSeparar.innerText = qtdAtual > 1 ? `SEPARAR (${qtdAtual})` : 'SEPARAR';
+        }
+
         function preencherModalDetalhes(item) {
             if (!item) return;
             itemParaDetalhes = item;
@@ -2362,6 +2375,7 @@ window.confirmarPosicionamentoSimulador = () => {
 `;
             const dimsDetalhe = getDimensoesBase(item);
             info += `📊 Status: ${item.status}
+📦 Unidades no registro: ${Number(item.qtd) || 1}
 📐 Dimensões: ${dimsDetalhe.w} x ${dimsDetalhe.h} cm
 `;
             info += `🔖 Registro: ${item.registroSerial || '---'}
@@ -2377,12 +2391,68 @@ window.confirmarPosicionamentoSimulador = () => {
 
             const select = document.getElementById('detalhes-registro-select');
             if (select) select.value = item.id;
+            atualizarVisibilidadeBotaoSeparar();
         }
 
         window.selecionarRegistroDetalhes = (id) => {
             const alvo = itensDetalhesGrupo.find((x) => x.id === id);
             if (!alvo) return;
             preencherModalDetalhes(alvo);
+        };
+
+        window.separarRegistroDetalhes = async () => {
+            if (!itemParaDetalhes?.id) return;
+            const qtdAtual = Number(itemParaDetalhes.qtd) || 0;
+            if (qtdAtual <= 1) {
+                alert('Este registro já possui apenas 1 unidade.');
+                return;
+            }
+            const confirmado = confirm('Deseja separar 1 unidade desta chapa em um novo registro?');
+            if (!confirmado) return;
+
+            const btnSeparar = document.getElementById('btn-separar-registro');
+            if (btnSeparar) {
+                btnSeparar.disabled = true;
+                btnSeparar.innerText = 'SEPARANDO...';
+            }
+
+            try {
+                const novaUnidade = {
+                    setor: itemParaDetalhes.setor || window.setorAtual,
+                    categoria: itemParaDetalhes.categoria || '',
+                    acabamento: itemParaDetalhes.acabamento || '',
+                    espessura: itemParaDetalhes.espessura || '',
+                    cor: itemParaDetalhes.cor || '',
+                    dimW: itemParaDetalhes.dimW,
+                    dimH: itemParaDetalhes.dimH,
+                    baseDimW: itemParaDetalhes.baseDimW || itemParaDetalhes.dimW,
+                    baseDimH: itemParaDetalhes.baseDimH || itemParaDetalhes.dimH,
+                    status: itemParaDetalhes.status || 'Novo',
+                    qtd: 1,
+                    recortes: Array.isArray(itemParaDetalhes.recortes) ? [...itemParaDetalhes.recortes] : [],
+                    tipoMedida: itemParaDetalhes.tipoMedida || identificarTipoMedida(itemParaDetalhes),
+                    nome: `${itemParaDetalhes.categoria || ''} ${itemParaDetalhes.espessura || ''}`.trim(),
+                    anotacoes: itemParaDetalhes.anotacoes || '',
+                    osNumero: formatarOsNumero(itemParaDetalhes.osNumero || ''),
+                    data_criacao: serverTimestamp(),
+                    registroSerial: await proximoRegistroSerralheria()
+                };
+
+                await updateDoc(doc(db, 'estoque', itemParaDetalhes.id), {
+                    qtd: qtdAtual - 1
+                });
+                const docNovo = await addDoc(collection(db, 'estoque'), novaUnidade);
+
+                const itemAtualizado = { ...itemParaDetalhes, qtd: qtdAtual - 1 };
+                itensDetalhesGrupo = itensDetalhesGrupo.map((item) => item.id === itemAtualizado.id ? itemAtualizado : item);
+                preencherModalDetalhes(itemAtualizado);
+                setTimeout(() => abrirModalDetalhes(docNovo.id), 80);
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao separar o registro.');
+            } finally {
+                atualizarVisibilidadeBotaoSeparar();
+            }
         };
 
         window.abrirModalDetalhes = (groupKeyOrId) => {
@@ -2403,15 +2473,12 @@ window.confirmarPosicionamentoSimulador = () => {
             const wrap = document.getElementById('detalhes-registro-wrap');
             const select = document.getElementById('detalhes-registro-select');
             if (wrap && select) {
-                if (itensDetalhesGrupo.length > 1) {
-                    wrap.style.display = 'block';
-                    select.innerHTML = itensDetalhesGrupo
-                        .map((item) => `<option value="${item.id}">Registro ${item.registroSerial || '---'} · ${getDimensaoEtiqueta(item)}</option>`)
-                        .join('');
-                } else {
-                    wrap.style.display = 'none';
-                    select.innerHTML = '';
-                }
+                const temMultiplosRegistros = itensDetalhesGrupo.length > 1;
+                const temRegistroComMultiplasUnidades = itensDetalhesGrupo.some((item) => (Number(item.qtd) || 0) > 1);
+                wrap.style.display = (temMultiplosRegistros || temRegistroComMultiplasUnidades) ? 'block' : 'none';
+                select.innerHTML = itensDetalhesGrupo
+                    .map((item) => `<option value="${item.id}">Registro ${item.registroSerial || '---'} · ${getDimensaoEtiqueta(item)}</option>`)
+                    .join('');
             }
 
             preencherModalDetalhes(itensDetalhesGrupo[0]);
