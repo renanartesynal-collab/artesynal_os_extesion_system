@@ -71,7 +71,7 @@
 
     /* Etiqueta preta e branca - layout estilo cartão técnico */
     .etiqueta {
-      width: 6cm;
+      width: 55mm;
       height: 3cm;
       max-width: 100%;
       margin: 0 auto;
@@ -176,7 +176,7 @@
       overflow: hidden;
     }
 
-    .preview-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+    .preview-actions { margin-top: 8px; display: flex; justify-content: flex-end; gap: 8px; }
     .modal-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; }
 
     @media print {
@@ -197,7 +197,7 @@
 
     <section class="header">
       <h1>🎨 Pintura</h1>
-      <div class="subtitle">Gerencie categorias, slots e etiquetas P&B 6cm x 3cm para latas de tinta.</div>
+      <div class="subtitle">Gerencie categorias, slots e etiquetas para impressora 58mm (largura 55mm).</div>
     </section>
 
     <section class="toolbar">
@@ -219,7 +219,7 @@
 
   <div class="modal-bg" id="modal-tinta-bg">
     <div class="modal">
-      <h3 style="margin-top:0">Cadastrar tinta no slot</h3>
+      <h3 style="margin-top:0">Cadastro de tinta</h3>
       <div class="modal-layout">
         <div>
           <div class="grid">
@@ -229,7 +229,7 @@
             </div>
             <div>
               <label for="tinta-os">OS.</label>
-              <input id="tinta-os" class="os-input" type="text" inputmode="numeric" maxlength="5" placeholder="00000" />
+              <input id="tinta-os" class="os-input" type="text" inputmode="numeric" maxlength="5" placeholder="" />
             </div>
             <div>
               <label for="tinta-validade">Validade (MM/AAAA)</label>
@@ -268,8 +268,8 @@
 
         <div class="etiqueta-wrap">
           <div class="etiqueta-head">
-            <span>Pré-visualização da etiqueta (P&B)</span>
-            <span>6cm x 3cm</span>
+            <span>Pré-visualização da etiqueta</span>
+            
           </div>
 
           <div class="etiqueta print-target" id="etiqueta-preview">
@@ -307,6 +307,7 @@
 
           <div class="preview-actions">
             <button class="btn" id="btn-imprimir-etiqueta">Imprimir etiqueta</button>
+            <button class="btn" id="btn-pdf-etiqueta">PDF</button>
           </div>
         </div>
       </div>
@@ -554,6 +555,7 @@
     });
 
     document.getElementById('btn-imprimir-etiqueta').addEventListener('click', () => window.print());
+    document.getElementById('btn-pdf-etiqueta').addEventListener('click', () => window.print());
 
     document.getElementById('btn-adicionar-slot').addEventListener('click', () => {
       estado.categorias[estado.categoriaAtual].slots.push(null);
