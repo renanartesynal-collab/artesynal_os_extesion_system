@@ -600,6 +600,27 @@
             'policarbonato': { medidas: [{w: 105, h: 600}, {w: 210, h: 600}], espessuras: ['4mm', '6mm', '10mm'] }
         };
 
+        const ALIAS_CATEGORIA_FABRICA = {
+            'acrilico': 'acrilico',
+            'acrilicos': 'acrilico',
+            'galvanizada': 'galvanizada',
+            'galvanizadas': 'galvanizada',
+            'galvanzada': 'galvanizada',
+            'galvanzadas': 'galvanizada',
+            'policarbonato': 'policarbonato',
+            'policarbonatos': 'policarbonato',
+            'pvc': 'pvc',
+            'ps': 'ps',
+            'mdf': 'mdf',
+            'acm': 'acm'
+        };
+
+        function getConfigFabricaCategoria(categoria = '') {
+            const categoriaNormalizada = normalizarCategoria(categoria).toLowerCase();
+            const chaveMapeada = ALIAS_CATEGORIA_FABRICA[categoriaNormalizada] || categoriaNormalizada;
+            return CONFIG_FABRICA[chaveMapeada] || null;
+        }
+
         // INICIALIZAÇÃO IMEDIATA
         document.addEventListener('DOMContentLoaded', () => {
             renderizarSeletorMateriais();
@@ -812,11 +833,11 @@
 
         function identificarTipoMedida(peca) {
             if (peca.tipoMedida === 'corte' || peca.tipoMedida === 'fabrica') return peca.tipoMedida;
-            const catLower = (peca.categoria || '').toLowerCase();
+            const configCategoria = getConfigFabricaCategoria(peca.categoria || '');
             const base = getDimensoesBase(peca);
             const temRecorte = Array.isArray(peca.recortes) && peca.recortes.length > 0;
             if (temRecorte) return 'corte';
-            const medidasPadrao = CONFIG_FABRICA[catLower]?.medidas || [];
+            const medidasPadrao = configCategoria?.medidas || [];
             const isPadrao = medidasPadrao.some(m => Number(m.w) === Number(base.w) && Number(m.h) === Number(base.h));
             return isPadrao ? 'fabrica' : 'corte';
         }
@@ -1146,7 +1167,7 @@
 
         window.handleCategoryChange = () => {
     const cat = document.getElementById('prod-cat').value;
-    const catLower = cat.toLowerCase();
+    const configCategoria = getConfigFabricaCategoria(cat);
     const divDims = document.getElementById('div-dims');
     const espContainer = document.getElementById('esp-container'); 
     window.indiceMedidaPadrao = 0;
@@ -1154,8 +1175,8 @@
     let espessurasDisponiveis = [];
 
     // 1. Padrão de fábrica baseado no CONFIG_FABRICA
-    if (CONFIG_FABRICA[catLower]) {
-        espessurasDisponiveis = [...CONFIG_FABRICA[catLower].espessuras];
+    if (configCategoria) {
+        espessurasDisponiveis = [...configCategoria.espessuras];
         divDims.style.display = 'block';
         if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
     } else if (cat !== "") {
@@ -1291,9 +1312,10 @@
 
         // VISUALIZADOR DE CORTES E DIMENSÕES
         window.aplicarMedidasAutomaticas = () => {
-            const cat = document.getElementById('prod-cat').value.toLowerCase();
-            if (CONFIG_FABRICA[cat]) {
-                const medida = CONFIG_FABRICA[cat].medidas[window.indiceMedidaPadrao];
+            const cat = document.getElementById('prod-cat').value;
+            const configCategoria = getConfigFabricaCategoria(cat);
+            if (configCategoria) {
+                const medida = configCategoria.medidas[window.indiceMedidaPadrao];
                 document.getElementById('prod-dim-w').value = medida.w;
                 document.getElementById('prod-dim-h').value = medida.h;
                 window.atualizarPlanoCorte();
@@ -1301,9 +1323,10 @@
         };
 
         window.alternarMedidaPadrao = () => {
-            const cat = document.getElementById('prod-cat').value.toLowerCase();
-            if (CONFIG_FABRICA[cat]) {
-                window.indiceMedidaPadrao = (window.indiceMedidaPadrao + 1) % CONFIG_FABRICA[cat].medidas.length;
+            const cat = document.getElementById('prod-cat').value;
+            const configCategoria = getConfigFabricaCategoria(cat);
+            if (configCategoria) {
+                window.indiceMedidaPadrao = (window.indiceMedidaPadrao + 1) % configCategoria.medidas.length;
                 window.aplicarMedidasAutomaticas();
             }
         };
