@@ -118,17 +118,9 @@
       min-height: 0;
     }
 
-    .etq-box {
-      border: 1px solid #b5b5b5;
-      border-radius: 6px;
-      background: #efefef;
-      padding: 2px 4px;
+    .etq-field {
       min-width: 0;
       min-height: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      overflow: hidden;
     }
 
     .etq-row-2 {
@@ -140,11 +132,24 @@
     }
 
     .etq-label {
-      font-size: 6.2px;
+      font-size: 5.4px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.2px;
-      margin-bottom: 0;
+      margin: 0 0 1px 1px;
+      line-height: 1;
+    }
+
+    .etq-box {
+      border: 1px solid #b5b5b5;
+      border-radius: 6px;
+      background: #efefef;
+      padding: 2px 4px;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
     }
 
     .etq-value {
@@ -157,15 +162,7 @@
       line-height: 1.05;
     }
 
-    .etq-notes {
-      border: 1px solid #b5b5b5;
-      border-radius: 6px;
-      background: #efefef;
-      padding: 2px 4px;
-      min-width: 0;
-      min-height: 0;
-      overflow: hidden;
-    }
+    .etq-notes .etq-box { align-items: flex-start; }
 
     .etq-notes .etq-value {
       white-space: normal;
@@ -286,36 +283,36 @@
             </div>
 
             <div class="etq-right">
-              <div class="etq-box">
+              <div class="etq-field">
                 <div class="etq-label">Código do catálogo e cor</div>
-                <div class="etq-value" id="lbl-codigo-cor">_____</div>
+                <div class="etq-box"><div class="etq-value" id="lbl-codigo-cor">_____</div></div>
               </div>
 
               <div class="etq-row-2">
-                <div class="etq-box">
+                <div class="etq-field">
                   <div class="etq-label">Quantidade</div>
-                  <div class="etq-value" id="lbl-quantidade">___ ml</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-quantidade">___ ml</div></div>
                 </div>
-                <div class="etq-box">
+                <div class="etq-field">
                   <div class="etq-label">Validade</div>
-                  <div class="etq-value" id="lbl-validade">MM/AAAA</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-validade">MM/AAAA</div></div>
                 </div>
               </div>
 
               <div class="etq-row-2">
-                <div class="etq-box">
+                <div class="etq-field">
                   <div class="etq-label">Registro</div>
-                  <div class="etq-value" id="lbl-registro">_____</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-registro">_____</div></div>
                 </div>
-                <div class="etq-box">
+                <div class="etq-field">
                   <div class="etq-label">O.S.</div>
-                  <div class="etq-value" id="lbl-os">_____</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-os">_____</div></div>
                 </div>
               </div>
 
-              <div class="etq-notes">
+              <div class="etq-field etq-notes">
                 <div class="etq-label">Anotações</div>
-                <div class="etq-value" id="lbl-anotacoes">________________________</div>
+                <div class="etq-box"><div class="etq-value" id="lbl-anotacoes">________________________</div></div>
               </div>
             </div>
           </div>
