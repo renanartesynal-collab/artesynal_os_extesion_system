@@ -63,9 +63,9 @@
     .lata-option { display:flex; align-items:center; gap:5px; font-size:12px; color:#dbe7f5; font-weight:600; }
     .lata-option input { width: 14px; height:14px; accent-color: #ed1c24; }
     .tipo-field { position: relative; }
-    .tipo-head { margin-bottom:4px; }
+    .tipo-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
     .tipo-head label { margin-bottom:0; }
-    .btn-add-tipo { position:absolute; top:0; right:0; width:24px; height:24px; padding:0; line-height:1; border-radius:50%; font-size:16px; }
+    .btn-add-tipo { width:24px; height:24px; padding:0; line-height:1; border-radius:50%; font-size:16px; display:inline-flex; align-items:center; justify-content:center; }
     .tipo-box { display:flex; flex-direction:column; gap:6px; margin-top:0; }
 
     .calc-panel { margin-top: 8px; border: 1px dashed #3e5674; border-radius: 10px; padding: 10px; background: #111925; }
@@ -602,6 +602,22 @@
 
     document.querySelectorAll('input[name="tinta-lata"]').forEach((el) => {
       el.addEventListener('change', atualizarPreviewEtiqueta);
+    });
+
+    document.getElementById('btn-add-tipo').addEventListener('click', () => {
+      const nome = prompt('Digite o nome do novo tipo de tinta:');
+      if (!nome) return;
+      const tipo = nome.trim();
+      if (!tipo) return;
+      if (estado.tiposTinta.includes(tipo)) {
+        alert('Esse tipo já existe.');
+        return;
+      }
+      estado.tiposTinta.push(tipo);
+      salvarEstado();
+      renderTiposSelect(tipo);
+      tipoSelecionadoAtual = tipo;
+      atualizarPreviewEtiqueta();
     });
 
     document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
