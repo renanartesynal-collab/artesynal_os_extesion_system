@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setor de Pintura - Artesynal</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1f2937;
+      --panel-soft: #243447;
+      --accent: #ed1c24;
+      --text: #fff;
+      --muted: #cbd5e1;
+      --yellow: #f1c40f;
+      --line: #3a4a60;
+      --danger: #ef4444;
+      --label-bg: #ffffff;
+      --label-fg: #111111;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Montserrat', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .page { max-width: 1260px; margin: 0 auto; padding: 24px 16px 36px; }
+    .back { color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 13px; }
+
+    .header { margin-top: 14px; background: linear-gradient(180deg, #1c2633, #131b26); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 18px; }
+    h1 { margin: 0; font-size: 28px; text-transform: uppercase; }
+    .subtitle { margin-top: 6px; color: var(--muted); font-size: 13px; }
+
+    .toolbar { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .categorias { display: flex; gap: 8px; flex-wrap: wrap; }
+    .categoria-btn { background: #1a2330; color: #cfd8e3; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .categoria-btn.active { background: var(--accent); color: #fff; border-color: #ff7a80; }
+
+    .btn { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: #1b2431; color: #fff; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .btn:hover { filter: brightness(1.08); }
+    .btn-primary { background: var(--accent); border-color: #ff7a80; }
+    .btn-danger { background: #2b1516; border-color: #4f1d1f; color: #ffd1d3; }
+
+    .panel { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .panel-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .slot { background: var(--panel-soft); border: 1px dashed #576983; border-radius: 10px; min-height: 200px; padding: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 8px; }
+    .slot.filled { border-style: solid; align-items: stretch; text-align: left; justify-content: flex-start; gap: 6px; }
+    .slot-title { font-weight: 800; font-size: 14px; }
+    .slot-meta { color: var(--muted); font-size: 12px; }
+    .slot-actions { margin-top: auto; display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; padding: 14px; z-index: 30; }
+    .modal { width: min(1160px, 100%); background: #161e29; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+    .modal-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .full { grid-column: 1 / -1; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+    input, select { width: 100%; border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 8px; font-family: inherit; font-size: 13px; }
+    input.readonly { background: #0b1017; color: #95a4b8; }
+    .os-input { max-width: 110px; text-align: center; letter-spacing: 1px; }
+    .lata-select-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
+    .lata-option { display:flex; align-items:center; gap:5px; font-size:12px; color:#dbe7f5; font-weight:600; }
+    .lata-option input { width: 14px; height:14px; accent-color: #ed1c24; }
+    .tipo-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+    .tipo-head label { margin-bottom:0; }
+    .btn-add-tipo { width:24px; height:24px; padding:0; line-height:1; border-radius:50%; font-size:16px; }
+    .tipo-box { display:flex; flex-direction:column; gap:6px; }
+
+    .calc-panel { margin-top: 8px; border: 1px dashed #3e5674; border-radius: 10px; padding: 10px; background: #111925; }
+    .calc-title { font-size: 12px; color: #b7c5d8; margin-bottom: 8px; font-weight: 700; }
+    .rendimento-line { font-size: 12px; color: var(--muted); font-style: italic; font-weight: 600; }
+    .rendimento-line strong { color: #dbe7f5; font-style: italic; font-weight: 700; }
+
+    .etiqueta-wrap { background: #0f141c; border: 1px solid #32455e; border-radius: 10px; padding: 10px; }
+    .etiqueta-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; color: var(--muted); }
+
+    /* Etiqueta preta e branca - layout estilo cartão técnico */
+    .etiqueta {
+      width: 55mm;
+      height: 3cm;
+      max-width: 100%;
+      margin: 0 auto;
+      background: var(--label-bg);
+      color: var(--label-fg);
+      border: 2px solid #111;
+      border-radius: 10px;
+      padding: 5px;
+      display: grid;
+      grid-template-columns: 1.58cm 1fr;
+      gap: 4px;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .etq-qr-panel {
+      border: 1px solid #b5b5b5;
+      border-radius: 7px;
+      background: #efefef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .qr-box {
+      width: 1.34cm;
+      height: 1.34cm;
+      border: 1px solid #111;
+      border-radius: 2px;
+      overflow: hidden;
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .qr-box img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+
+    .etq-right {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 3px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .etq-field {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .etq-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr .72fr;
+      gap: 3px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .etq-label {
+      font-size: 5.4px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      margin: 0 0 1px 1px;
+      line-height: 1;
+    }
+
+    .etq-box {
+      border: 1px solid #b5b5b5;
+      border-radius: 6px;
+      background: #efefef;
+      padding: 2px 4px;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    .etq-value {
+      font-size: 8px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      line-height: 1.05;
+    }
+
+    .etq-notes .etq-box { align-items: flex-start; }
+
+    .etq-notes .etq-value {
+      white-space: normal;
+      line-height: 1.05;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .preview-actions { margin-top: 8px; display: flex; justify-content: flex-end; gap: 8px; }
+    .modal-actions { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .modal-actions-buttons { display:flex; gap:8px; }
+
+    @media print {
+      body * { visibility: hidden; }
+      .print-target, .print-target * { visibility: visible; }
+      .print-target { position: absolute; left: 0; top: 0; margin: 0; }
+    }
+
+    @media (max-width: 980px) {
+      .modal-layout { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">⬅ Voltar ao painel</a>
+
+    <section class="header">
+      <h1>🎨 Pintura</h1>
+      <div class="subtitle">Gerencie categorias, slots e etiquetas para impressora 58mm (largura 55mm).</div>
+    </section>
+
+    <section class="toolbar">
+      <div id="categorias" class="categorias"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" id="btn-nova-categoria">+ Nova categoria</button>
+        <button class="btn btn-primary" id="btn-adicionar-slot">+ Adicionar slot</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <strong id="titulo-categoria">Categoria</strong>
+        <span class="muted" id="contador-slots"></span>
+      </div>
+      <div id="slots-grid" class="slots-grid"></div>
+    </section>
+  </div>
+
+  <div class="modal-bg" id="modal-tinta-bg">
+    <div class="modal">
+      <h3 style="margin-top:0">Cadastro de tinta</h3>
+      <div class="modal-layout">
+        <div>
+          <div class="grid">
+            <div>
+              <label for="tinta-codigo">Código do catálogo e cor</label>
+              <input id="tinta-codigo" type="text" placeholder="" />
+            </div>
+            <div>
+              <label for="tinta-os">OS.</label>
+              <input id="tinta-os" class="os-input" type="text" inputmode="numeric" maxlength="5" placeholder="" />
+            </div>
+            <div>
+              <label for="tinta-validade">Validade (MM/AAAA)</label>
+              <input id="tinta-validade" type="text" maxlength="7" placeholder="MM/AAAA" />
+            </div>
+            <div>
+              <div class="tipo-head">
+                <label for="tinta-tipo">Tipo</label>
+                <button type="button" class="btn btn-add-tipo" id="btn-add-tipo" title="Adicionar tipo">+</button>
+              </div>
+              <div class="tipo-box" id="tipo-box">
+                <select id="tinta-tipo"></select>
+              </div>
+            </div>
+
+            <div class="full">
+              <label for="tinta-descricao">Anotação</label>
+              <input id="tinta-descricao" type="text" maxlength="90" placeholder="Descrição livre" />
+            </div>
+          </div>
+
+          <div class="calc-panel">
+            <div class="calc-title">Cálculo de quantidade por peso</div>
+            <div class="grid">
+              <div>
+                <label>Tara</label>
+                <div class="lata-select-row">
+                  <label class="lata-option"><input type="radio" name="tinta-lata" value="900" />Lata 900ml</label>
+                  <label class="lata-option"><input type="radio" name="tinta-lata" value="3600" />Lata 3,6</label>
+                  <label class="lata-option"><input type="radio" name="tinta-lata" value="18000" />Lata 18 litros</label>
+                </div>
+              </div>
+              <div>
+                <label for="tinta-peso-total">Peso total (g)</label>
+                <input id="tinta-peso-total" type="number" min="0" step="0.1" placeholder="" />
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <div class="rendimento-line">Rendimento: <strong><span id="rendimento-valor">0.0</span> m²</strong></div>
+            <div class="modal-actions-buttons">
+              <button class="btn" id="btn-cancelar-tinta">Cancelar</button>
+              <button class="btn btn-primary" id="btn-salvar-tinta">Salvar tinta</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="etiqueta-wrap">
+          <div class="etiqueta-head">
+            <span>Pré-visualização da etiqueta</span>
+            
+          </div>
+
+          <div class="etiqueta print-target" id="etiqueta-preview">
+            <div class="etq-qr-panel">
+              <div class="qr-box"><img id="lbl-qr" alt="QR Code da etiqueta" /></div>
+            </div>
+
+            <div class="etq-right">
+              <div class="etq-field">
+                <div class="etq-label">Cód. do catálogo e cor</div>
+                <div class="etq-box"><div class="etq-value" id="lbl-codigo-cor">_____</div></div>
+              </div>
+
+              <div class="etq-row-3">
+                <div class="etq-field">
+                  <div class="etq-label">Quantidade</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-quantidade">___ ml</div></div>
+                </div>
+                <div class="etq-field">
+                  <div class="etq-label">Val.</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-validade">MM/AAAA</div></div>
+                </div>
+                <div class="etq-field">
+                  <div class="etq-label">OS.</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-os">_____</div></div>
+                </div>
+              </div>
+
+              <div class="etq-field etq-notes">
+                <div class="etq-label">Anotações</div>
+                <div class="etq-box"><div class="etq-value" id="lbl-anotacoes">________________________</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-actions">
+            <button class="btn" id="btn-imprimir-etiqueta">Imprimir etiqueta</button>
+            <button class="btn" id="btn-pdf-etiqueta">PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { protegerPagina } from './auth.js';
+    import { db } from './config.js';
+    import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const previewMode = new URLSearchParams(window.location.search).get('preview') === '1';
+    if (!previewMode) await protegerPagina({ paginaAtual: 'estpintura.html' });
+
+    const STORAGE_KEY = 'artesynal_pintura_v4';
+
+    const PARAMETROS_PINTURA = {
+      tara_por_lata_g: {
+        '900': 130,
+        '3600': 260,
+        '18000': 950
+      },
+      gramas_por_100ml: 108,
+      rendimento_m2_por_100ml: 1
+    };
+
+    async function garantirParametrosPinturaFirebase() {
+      const ref = doc(db, 'system_config', 'pintura_parametros');
+      await setDoc(ref, {
+        parametros: PARAMETROS_PINTURA,
+        updated_at: serverTimestamp()
+      }, { merge: true });
+    }
+    const estadoPadrao = { categorias: { tinta: { label: 'Tinta', slots: Array(8).fill(null) } }, categoriaAtual: 'tinta', tiposTinta: ['PU', 'Esmalte', 'Epóxi', 'Acrílica'] };
+
+    const categoriasEl = document.getElementById('categorias');
+    const slotsGridEl = document.getElementById('slots-grid');
+    const tituloCategoriaEl = document.getElementById('titulo-categoria');
+    const contadorSlotsEl = document.getElementById('contador-slots');
+    const modalBg = document.getElementById('modal-tinta-bg');
+
+    let estado = carregarEstado();
+    let slotAtual = null;
+    const DELETE_TIPO_VALUE = '__delete_tipo__';
+    let tipoSelecionadoAtual = '';
+
+    function carregarEstado() {
+      try {
+        const bruto = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!bruto?.categorias || typeof bruto.categorias !== 'object') return structuredClone(estadoPadrao);
+        if (!bruto.categorias.tinta) bruto.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
+        bruto.categoriaAtual = bruto.categoriaAtual && bruto.categorias[bruto.categoriaAtual] ? bruto.categoriaAtual : 'tinta';
+        for (const key of Object.keys(bruto.categorias)) if (!Array.isArray(bruto.categorias[key].slots)) bruto.categorias[key].slots = Array(4).fill(null);
+        if (!Array.isArray(bruto.tiposTinta) || bruto.tiposTinta.length === 0) bruto.tiposTinta = structuredClone(estadoPadrao.tiposTinta);
+        return bruto;
+      } catch { return structuredClone(estadoPadrao); }
+    }
+
+    function salvarEstado() { localStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }
+
+    function renderCategorias() {
+      const keys = Object.keys(estado.categorias);
+      categoriasEl.innerHTML = keys.map((key) => {
+        const c = estado.categorias[key];
+        return `<button class="categoria-btn ${key === estado.categoriaAtual ? 'active' : ''}" data-cat="${key}">${escapeHtml(c.label)}</button>`;
+      }).join('');
+
+      categoriasEl.querySelectorAll('.categoria-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          estado.categoriaAtual = btn.dataset.cat;
+          salvarEstado();
+          renderTiposSelect();
+          renderTudo();
+        });
+      });
+    }
+
+    function renderSlots() {
+      const categoria = estado.categorias[estado.categoriaAtual];
+      const slots = categoria.slots;
+      tituloCategoriaEl.textContent = `Categoria: ${categoria.label}`;
+      contadorSlotsEl.textContent = `${slots.filter(Boolean).length}/${slots.length} slots preenchidos`;
+
+      slotsGridEl.innerHTML = slots.map((item, idx) => {
+        if (!item) {
+          return `<article class="slot"><div class="slot-title">Slot ${idx + 1}</div><div class="slot-meta">Vazio</div><button class="btn btn-primary" data-action="add" data-slot="${idx}">+ Adicionar card</button></article>`;
+        }
+        return `
+          <article class="slot filled">
+            <div class="slot-title">${escapeHtml(item.codigo || '-')}</div>
+            <div class="slot-meta">Tipo: ${escapeHtml(item.tipo || '-')}</div>
+            <div class="slot-meta">OS.: ${escapeHtml(item.ordemServico || '_____')}</div>
+            <div class="slot-meta">Peso: ${escapeHtml(item.pesoLiquidoG || '0')} g</div>
+            <div class="slot-meta">Quantidade: ${escapeHtml(item.quantidadeMl || '0')} ml</div>
+            <div class="slot-meta">Validade: ${escapeHtml(item.validade || 'MM/AAAA')}</div>
+            <div class="slot-actions">
+              <button class="btn" data-action="label" data-slot="${idx}">Etiqueta</button>
+              <button class="btn" data-action="edit" data-slot="${idx}">Editar</button>
+              <button class="btn btn-danger" data-action="delete" data-slot="${idx}">Remover</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      slotsGridEl.querySelectorAll('button[data-action]').forEach((btn) => {
+        const idx = Number(btn.dataset.slot);
+        const action = btn.dataset.action;
+        btn.addEventListener('click', () => {
+          if (action === 'add') abrirModalTinta(idx);
+          if (action === 'edit' || action === 'label') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
+          if (action === 'delete') {
+            if (!confirm('Deseja remover este card de tinta?')) return;
+            estado.categorias[estado.categoriaAtual].slots[idx] = null;
+            salvarEstado();
+            renderSlots();
+          }
+        });
+      });
+    }
+
+
+    function renderTiposSelect(valorSelecionado = '') {
+      const select = document.getElementById('tinta-tipo');
+      if (!select) return;
+      const tipos = estado.tiposTinta || [];
+      const optionsNormais = tipos.map((tipo) => `<option value="${escapeHtml(tipo)}">${escapeHtml(tipo)}</option>`).join('');
+      const optionExcluir = '<option value="__delete_tipo__">⚠ EXCLUIR TINTA ⚠</option>';
+      select.innerHTML = `${optionsNormais}${optionExcluir}`;
+
+      if (valorSelecionado && tipos.includes(valorSelecionado)) {
+        select.value = valorSelecionado;
+      } else if (tipos.length > 0) {
+        select.value = tipos[0];
+      }
+
+      tipoSelecionadoAtual = select.value;
+    }
+
+    function renderTudo() { renderCategorias(); renderSlots(); }
+
+    function escapeHtml(valor) {
+      return String(valor ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function slugify(texto) {
+      return (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    }
+
+    function normalizarOS(v) { return (v || '').replace(/\D/g, '').slice(0, 5); }
+    function normalizarValidade(v) {
+      const d = (v || '').replace(/\D/g, '').slice(0, 6);
+      if (d.length <= 2) return d;
+      return `${d.slice(0, 2)}/${d.slice(2)}`;
+    }
+
+    const TARA_PADRAO = { ...PARAMETROS_PINTURA.tara_por_lata_g };
+
+    function obterLataSelecionada() {
+      return document.querySelector('input[name="tinta-lata"]:checked')?.value || '';
+    }
+
+    function calcularPesoEQuantidade() {
+      const lata = obterLataSelecionada();
+      const tara = TARA_PADRAO[lata] || 0;
+      const total = Number(document.getElementById('tinta-peso-total').value || 0);
+      const liquido = Math.max(total - tara, 0);
+      const quantidadeMl = Math.round((liquido * 100) / PARAMETROS_PINTURA.gramas_por_100ml);
+      const rendimentoM2 = (quantidadeMl / 100) * (PARAMETROS_PINTURA.rendimento_m2_por_100ml || 1);
+      return { tara, liquido, quantidadeMl, rendimentoM2 };
+    }
+
+    function qrPayload(dados) {
+      return JSON.stringify({
+        codigo: dados.codigo || '',
+        os: dados.ordemServico || '',
+        descricao: dados.descricao || '',
+        pesoLiquidoG: dados.pesoLiquidoG || '',
+        quantidadeMl: dados.quantidadeMl || '',
+        validade: dados.validade || ''
+      });
+    }
+
+    function qrUrl(payload) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=${encodeURIComponent(payload)}`;
+    }
+
+    function atualizarPreviewEtiqueta() {
+      const dados = {
+        codigo: document.getElementById('tinta-codigo').value.trim(),
+        ordemServico: normalizarOS(document.getElementById('tinta-os').value),
+        descricao: document.getElementById('tinta-descricao').value.trim(),
+        tipo: (document.getElementById('tinta-tipo').value === DELETE_TIPO_VALUE ? tipoSelecionadoAtual : document.getElementById('tinta-tipo').value),
+        lataTipo: obterLataSelecionada(),
+        pesoTotalG: document.getElementById('tinta-peso-total').value.trim(),
+        validade: normalizarValidade(document.getElementById('tinta-validade').value)
+      };
+
+      const calc = calcularPesoEQuantidade();
+      const codigo = dados.codigo || '_____';
+      const qtd = `${calc.quantidadeMl} ml`;
+      const validade = dados.validade || 'MM/AAAA';
+      const os = dados.ordemServico || '_____';
+      const anotacoes = (dados.descricao || '').trim();
+      document.getElementById('rendimento-valor').textContent = calc.rendimentoM2.toFixed(1);
+
+      document.getElementById('lbl-codigo-cor').textContent = codigo;
+      document.getElementById('lbl-os').textContent = os;
+      document.getElementById('lbl-quantidade').textContent = qtd;
+      document.getElementById('lbl-validade').textContent = validade;
+      document.getElementById('lbl-anotacoes').textContent = anotacoes || '________________________';
+      document.getElementById('lbl-qr').src = qrUrl(qrPayload({ ...dados, pesoLiquidoG: calc.liquido.toFixed(1), quantidadeMl: String(calc.quantidadeMl) }));
+    }
+
+    function abrirModalTinta(slot, dados = null) {
+      slotAtual = slot;
+      document.getElementById('tinta-codigo').value = dados?.codigo || '';
+      document.getElementById('tinta-os').value = dados?.ordemServico || '';
+      document.getElementById('tinta-validade').value = dados?.validade || '';
+      document.getElementById('tinta-descricao').value = dados?.descricao || '';
+      renderTiposSelect(dados?.tipo || '');
+      tipoSelecionadoAtual = document.getElementById('tinta-tipo').value;
+      document.getElementById('tinta-peso-total').value = dados?.pesoTotalG || '';
+      document.querySelectorAll('input[name="tinta-lata"]').forEach((el) => { el.checked = el.value === (dados?.lataTipo || ''); });
+      modalBg.style.display = 'flex';
+      calcularPesoEQuantidade();
+      atualizarPreviewEtiqueta();
+    }
+
+    function fecharModalTinta() {
+      slotAtual = null;
+      modalBg.style.display = 'none';
+    }
+
+    ['tinta-codigo', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-peso-total'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', (ev) => {
+        if (id === 'tinta-os') ev.target.value = normalizarOS(ev.target.value);
+        if (id === 'tinta-validade') ev.target.value = normalizarValidade(ev.target.value);
+        atualizarPreviewEtiqueta();
+      });
+    });
+
+    document.getElementById('tinta-tipo').addEventListener('change', (ev) => {
+      const valor = ev.target.value;
+
+      if (valor === DELETE_TIPO_VALUE) {
+        if (!tipoSelecionadoAtual || tipoSelecionadoAtual === DELETE_TIPO_VALUE) {
+          renderTiposSelect();
+          return;
+        }
+
+        if ((estado.tiposTinta || []).length <= 1) {
+          alert('É necessário manter ao menos um tipo de tinta.');
+          renderTiposSelect(tipoSelecionadoAtual);
+          return;
+        }
+
+        if (!confirm(`Excluir o tipo "${tipoSelecionadoAtual}"?`)) {
+          renderTiposSelect(tipoSelecionadoAtual);
+          return;
+        }
+
+        estado.tiposTinta = estado.tiposTinta.filter((t) => t !== tipoSelecionadoAtual);
+        salvarEstado();
+        renderTiposSelect();
+        atualizarPreviewEtiqueta();
+        return;
+      }
+
+      tipoSelecionadoAtual = valor;
+      atualizarPreviewEtiqueta();
+    });
+
+    document.querySelectorAll('input[name="tinta-lata"]').forEach((el) => {
+      el.addEventListener('change', atualizarPreviewEtiqueta);
+    });
+
+    document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
+
+    document.getElementById('btn-salvar-tinta').addEventListener('click', () => {
+      if (slotAtual === null) return;
+
+      const payload = {
+        codigo: document.getElementById('tinta-codigo').value.trim(),
+        ordemServico: normalizarOS(document.getElementById('tinta-os').value),
+        validade: normalizarValidade(document.getElementById('tinta-validade').value),
+        tipo: (document.getElementById('tinta-tipo').value === DELETE_TIPO_VALUE ? tipoSelecionadoAtual : document.getElementById('tinta-tipo').value),
+        descricao: document.getElementById('tinta-descricao').value.trim(),
+        lataTipo: obterLataSelecionada(),
+        pesoTotalG: document.getElementById('tinta-peso-total').value.trim()
+      };
+
+      const calc = calcularPesoEQuantidade();
+      payload.taraG = calc.tara.toFixed(1);
+      payload.pesoLiquidoG = calc.liquido.toFixed(1);
+      payload.quantidadeMl = String(calc.quantidadeMl);
+
+      if (!payload.codigo) return alert('Informe o código.');
+      if (!payload.lataTipo) return alert('Selecione o tipo de lata na Tara.');
+      if (payload.ordemServico.length !== 5) return alert('A OS. deve ter exatamente 5 dígitos.');
+      if (payload.validade && !/^\d{2}\/\d{4}$/.test(payload.validade)) return alert('A validade deve estar no formato MM/AAAA.');
+
+      estado.categorias[estado.categoriaAtual].slots[slotAtual] = payload;
+      salvarEstado();
+      renderSlots();
+      fecharModalTinta();
+    });
+
+    document.getElementById('btn-imprimir-etiqueta').addEventListener('click', () => window.print());
+    document.getElementById('btn-pdf-etiqueta').addEventListener('click', () => window.print());
+
+    document.getElementById('btn-adicionar-slot').addEventListener('click', () => {
+      estado.categorias[estado.categoriaAtual].slots.push(null);
+      salvarEstado();
+      renderSlots();
+    });
+
+    document.getElementById('btn-nova-categoria').addEventListener('click', () => {
+      const nome = prompt('Nome da nova categoria (ex.: Verniz, Primer, Tinta):');
+      if (!nome) return;
+      const id = slugify(nome);
+      if (!id) return alert('Nome inválido para categoria.');
+      if (estado.categorias[id]) return alert('Essa categoria já existe.');
+      estado.categorias[id] = { label: nome.trim(), slots: Array(6).fill(null) };
+      estado.categoriaAtual = id;
+      salvarEstado();
+      renderTiposSelect();
+      renderTudo();
+    });
+
+    if (!previewMode) {
+      garantirParametrosPinturaFirebase().catch((err) => console.warn('Não foi possível salvar parâmetros de pintura no Firebase.', err));
+    }
+
+    renderTiposSelect();
+    renderTudo();
+  </script>
+</body>
+</html>

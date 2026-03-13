@@ -24,7 +24,7 @@ export const PERFIS = {
   },
   instalacao: {
     label: "Instalação",
-    paginas: ["index.html", "estimpressao.html", "estserralheria.html"]
+    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html"]
   },
   administracao: {
     label: "Administração",
@@ -35,6 +35,7 @@ export const PERFIS = {
       "orcamentos.html",
       "estimpressao.html",
       "estserralheria.html",
+      "estpintura.html",
       "admin-acessos.html"
     ]
   }
@@ -47,6 +48,7 @@ export const MODULOS_MENU = [
   { pagina: "orcamentos.html", label: "Orçamentos" },
   { pagina: "estimpressao.html", label: "Impressão" },
   { pagina: "estserralheria.html", label: "Serralheria" },
+  { pagina: "estpintura.html", label: "Pintura" },
   { pagina: "admin-acessos.html", label: "Gerenciamento de Acessos" }
 ];
 
@@ -57,6 +59,7 @@ const VISIBILIDADE_PADRAO = {
     "orcamentos.html": true,
     "estimpressao.html": false,
     "estserralheria.html": false,
+    "estpintura.html": false,
     "admin-acessos.html": false
   },
   instalacao: {
@@ -65,6 +68,7 @@ const VISIBILIDADE_PADRAO = {
     "orcamentos.html": false,
     "estimpressao.html": true,
     "estserralheria.html": true,
+    "estpintura.html": true,
     "admin-acessos.html": false
   },
   administracao: {
@@ -73,6 +77,7 @@ const VISIBILIDADE_PADRAO = {
     "orcamentos.html": true,
     "estimpressao.html": true,
     "estserralheria.html": true,
+    "estpintura.html": true,
     "admin-acessos.html": true
   }
 };
