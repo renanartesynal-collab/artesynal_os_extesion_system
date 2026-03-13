@@ -477,6 +477,10 @@
             <h2 style="margin-top:0; color:var(--orange); border-bottom:1px solid #333; padding-bottom:10px;">Informações do Material</h2>
             
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
+            <div id="detalhes-registro-wrap" style="display:none; margin:8px 0 4px;">
+                <label class="label-standard" style="margin-bottom:6px;">Registro para editar/cortar</label>
+                <select id="detalhes-registro-select" onchange="selecionarRegistroDetalhes(this.value)"></select>
+            </div>
             <div id="detalhes-preview-wrapper"></div>
             <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #333;"></pre>
             <div style="display:flex; gap:8px; margin-top:10px;">
@@ -897,7 +901,7 @@
                 conteudo += `
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button class="btn-adj" style="flex:1; border:1px solid #444;" onclick="abrirModalCorte('${p.id}')">✂️ CORTAR</button>
-                        <button class="btn-adj" style="flex:1; background:#222; border:1px solid #444;" onclick="abrirModalDetalhes('${p.id}')">📋 INFO</button>
+                        <button class="btn-adj" style="flex:1; background:#222; border:1px solid #444;" onclick="abrirModalDetalhes('${p.groupKey}')">📋 INFO</button>
                     </div>
                 `;
 
@@ -1245,22 +1249,11 @@
 
             btn.disabled = true; btn.innerText = "SALVANDO...";
             try {
-                const itemExistente = produtos.find(p =>
-                    (p.setor === dados.setor) &&
-                    (normalizarCategoria(p.categoria || '') === normalizarCategoria(dados.categoria || '')) &&
-                    ((p.espessura || '') === (dados.espessura || '')) &&
-                    ((p.cor || '') === (dados.cor || '')) &&
-                    (Number(getDimensoesBase(p).w) === Number(dados.baseDimW)) &&
-                    (Number(getDimensoesBase(p).h) === Number(dados.baseDimH)) &&
-                    (identificarTipoMedida(p) === identificarTipoMedida(dados))
-                );
-
-                if (itemExistente) {
-                    await updateDoc(doc(db, "estoque", itemExistente.id), { qtd: increment(qtdAdicionar) });
-                } else {
-                    dados.qtd = qtdAdicionar;
-                    dados.registroSerial = await proximoRegistroSerralheria();
-                    await addDoc(collection(db, "estoque"), dados);
+                for (let i = 0; i < qtdAdicionar; i += 1) {
+                    const payload = { ...dados };
+                    payload.qtd = 1;
+                    payload.registroSerial = await proximoRegistroSerralheria();
+                    await addDoc(collection(db, "estoque"), payload);
                 }
                 window.fecharModal('modal-prod');
             } 
@@ -2155,29 +2148,72 @@ window.confirmarPosicionamentoSimulador = () => {
            DETALHES E INFORMAÇÕES
            ========================================================================== */
         let itemParaDetalhes = null;
-        window.abrirModalDetalhes = (id) => {
-            itemParaDetalhes = produtos.find(x => x.id === id);
-            const nome = `${itemParaDetalhes.categoria} ${itemParaDetalhes.espessura || ''}`;
+        let itensDetalhesGrupo = [];
+        let grupoDetalhesAtual = null;
+        function preencherModalDetalhes(item) {
+            if (!item) return;
+            itemParaDetalhes = item;
+            const nome = `${item.categoria} ${item.espessura || ''}`;
             document.getElementById('detalhes-nome').innerText = nome;
-
-            document.getElementById('detalhes-preview-wrapper').innerHTML = gerarPreviewCard(itemParaDetalhes);
+            document.getElementById('detalhes-preview-wrapper').innerHTML = gerarPreviewCard(item);
 
             let info = `📝 Cadastrado no setor: SERRALHERIA
 `;
-            const dimsDetalhe = getDimensoesBase(itemParaDetalhes);
-            info += `📊 Status: ${itemParaDetalhes.status}
+            const dimsDetalhe = getDimensoesBase(item);
+            info += `📊 Status: ${item.status}
 📐 Dimensões: ${dimsDetalhe.w} x ${dimsDetalhe.h} cm
 `;
-            info += `🔖 Registro: ${itemParaDetalhes.registroSerial || '---'}
+            info += `🔖 Registro: ${item.registroSerial || '---'}
 `;
-            if(itemParaDetalhes.cor) info += `🎨 Cor: ${itemParaDetalhes.cor}
+            if(item.cor) info += `🎨 Cor: ${item.cor}
 `;
-            if(itemParaDetalhes.acabamento) info += `✨ Acabamento: ${itemParaDetalhes.acabamento}
+            if(item.acabamento) info += `✨ Acabamento: ${item.acabamento}
 `;
 
             document.getElementById('detalhes-info').innerText = info;
-            document.getElementById('detalhes-os').value = formatarOsNumero(itemParaDetalhes.osNumero || '');
-            document.getElementById('detalhes-anotacoes').value = itemParaDetalhes.anotacoes || '';
+            document.getElementById('detalhes-os').value = formatarOsNumero(item.osNumero || '');
+            document.getElementById('detalhes-anotacoes').value = item.anotacoes || '';
+
+            const select = document.getElementById('detalhes-registro-select');
+            if (select) select.value = item.id;
+        }
+
+        window.selecionarRegistroDetalhes = (id) => {
+            const alvo = itensDetalhesGrupo.find((x) => x.id === id);
+            if (!alvo) return;
+            preencherModalDetalhes(alvo);
+        };
+
+        window.abrirModalDetalhes = (groupKeyOrId) => {
+            grupoDetalhesAtual = groupKeyOrId;
+            if (gruposVisiveis.has(groupKeyOrId)) {
+                const grupo = gruposVisiveis.get(groupKeyOrId);
+                itensDetalhesGrupo = (grupo.ids || [])
+                    .map((id) => produtos.find((x) => x.id === id))
+                    .filter(Boolean)
+                    .sort((a, b) => Number(a.registroSerial || 0) - Number(b.registroSerial || 0));
+            } else {
+                const item = produtos.find((x) => x.id === groupKeyOrId);
+                itensDetalhesGrupo = item ? [item] : [];
+            }
+
+            if (!itensDetalhesGrupo.length) return;
+
+            const wrap = document.getElementById('detalhes-registro-wrap');
+            const select = document.getElementById('detalhes-registro-select');
+            if (wrap && select) {
+                if (itensDetalhesGrupo.length > 1) {
+                    wrap.style.display = 'block';
+                    select.innerHTML = itensDetalhesGrupo
+                        .map((item) => `<option value="${item.id}">Registro ${item.registroSerial || '---'} · ${getDimensaoEtiqueta(item)}</option>`)
+                        .join('');
+                } else {
+                    wrap.style.display = 'none';
+                    select.innerHTML = '';
+                }
+            }
+
+            preencherModalDetalhes(itensDetalhesGrupo[0]);
             document.getElementById('modal-detalhes').style.display = 'flex';
         };
 
