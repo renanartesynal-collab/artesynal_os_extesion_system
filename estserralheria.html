@@ -35,8 +35,8 @@
         .btn-voltar-home:hover { background: #333; color: white; transform: translateY(-2px); border-color: #555; }
 
         /* Layout Kanban Geral */
-        #main-layout { padding: 20px; padding-top: 70px; display: block; }
-        .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+        #main-layout { padding: 16px 20px 20px; padding-top: 58px; display: block; }
+        .header-est { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #333; padding-bottom: 10px; }
         h1 { margin: 0; color: var(--orange); font-size: 24px; text-transform: uppercase; font-weight: 900; }
         
         .kanban-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
@@ -48,7 +48,7 @@
         .material-option:hover { border-color: var(--orange); transform: translateY(-2px); }
         .material-option-title { font-size: 18px; font-weight: 800; color: var(--orange); margin-bottom: 4px; }
         .material-option-sub { font-size: 12px; color: var(--text-gray); }
-        .btn-voltar-material { background: #1a1a1a; color: var(--text-gray); border: 1px solid #333; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+        .btn-voltar-material { background: #1a1a1a; color: var(--text-gray); border: 1px solid #333; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; margin-bottom: 0; }
         .btn-voltar-material:hover { color: var(--white); border-color: #555; }
         
         /* Cards Chapa */
@@ -73,6 +73,14 @@
         .btn-config-preview { background: #1e1e1e; color: var(--white); border: 1px solid #444; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .btn-baixa-selecao { background: linear-gradient(90deg,#ef4444,#dc2626); color:#fff; border:1px solid #b91c1c; border-radius:8px; padding:8px 12px; font-size:12px; font-weight:800; cursor:pointer; }
         .btn-baixa-selecao:disabled { opacity:.45; cursor:not-allowed; }
+        .stock-actions { display:flex; align-items:center; gap:10px; margin-left:auto; }
+        .btn-arquivo-morto { background: linear-gradient(90deg,#4b5563,#374151); color:#fff; border:1px solid #4b5563; border-radius:8px; padding:8px 12px; font-size:12px; font-weight:800; cursor:pointer; }
+        .btn-arquivo-morto:hover { border-color:#9ca3af; }
+        .arquivo-lista { display:flex; flex-direction:column; gap:8px; max-height:55vh; overflow:auto; margin-top:10px; }
+        .arquivo-item { background:#161616; border:1px solid #303030; border-radius:8px; padding:10px; display:flex; justify-content:space-between; gap:10px; align-items:center; }
+        .arquivo-item-titulo { font-size:13px; font-weight:800; color:#fff; }
+        .arquivo-item-sub { font-size:11px; color:var(--text-gray); margin-top:2px; }
+        .arquivo-vazio { color:var(--text-gray); text-align:center; padding:16px 10px; border:1px dashed #444; border-radius:8px; }
         .btn-config-preview:hover { border-color: var(--orange); }
         .config-panel { background: #131313; border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
         .config-row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
@@ -181,14 +189,17 @@
         </div>
 
         <div id="material-stock-view" style="display:none;">
-            <button class="btn-voltar-material" onclick="voltarSelecaoMaterial()">⬅ VOLTAR À SELEÇÃO DE MATERIAL</button>
             <div class="header-est">
                 <div><h1 id="stock-title">🛠️ Estoque</h1></div>
+                <button class="btn-voltar-material" onclick="voltarSelecaoMaterial()">⬅ VOLTAR À SELEÇÃO DE MATERIAL</button>
             </div>
             <div class="stock-tools">
                 <input class="stock-search" id="stock-search" type="text" placeholder="🔎 Pesquisar por cor ou espessura..." oninput="atualizarFiltroEstoque(this.value)">
-                <button class="btn-baixa-selecao" id="btn-baixa-selecionados" onclick="darBaixaSelecionados()" disabled>🗑️ BAIXA SELECIONADOS (0)</button>
-                <button class="btn-config-preview" onclick="toggleConfigCores()">🎨 CONFIGURAR CORES</button>
+                <div class="stock-actions">
+                    <button class="btn-baixa-selecao" id="btn-baixa-selecionados" onclick="darBaixaSelecionados()" disabled>🗑️ BAIXA SELECIONADOS (0)</button>
+                    <button class="btn-arquivo-morto" id="btn-arquivo-morto" onclick="abrirArquivoMorto()">🗃️ ARQUIVO MORTO</button>
+                    <button class="btn-config-preview" onclick="toggleConfigCores()">🎨 CONFIGURAR CORES</button>
+                </div>
             </div>
             <div id="config-cores-panel" class="config-panel" style="display:none;">
                 <div class="config-row">
@@ -529,6 +540,16 @@
     </div>
 
 
+    <div id="modal-arquivo-morto" class="modal-overlay">
+        <div class="modal-box" style="max-width: 760px;">
+            <button class="btn-voltar-top" onclick="fecharModal('modal-arquivo-morto')">Fechar</button>
+            <h2 style="margin-top:0; color:var(--orange); border-bottom:1px solid #333; padding-bottom:10px;">Arquivo Morto</h2>
+            <p style="color:var(--text-gray); font-size:13px;">Chapas excluídas da baixa ficam aqui e podem retornar ao estoque.</p>
+            <div id="arquivo-morto-lista" class="arquivo-lista"></div>
+        </div>
+    </div>
+
+
     <div id="modal-etiqueta" class="modal-overlay">
         <div class="modal-box" style="max-width: 980px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-etiqueta')">Fechar</button>
@@ -542,7 +563,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, doc, setDoc, updateDoc, query, where, onSnapshot, serverTimestamp, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo
@@ -559,6 +580,7 @@
         let termoBuscaEstoque = "";
         let selecaoCardsBaixa = new Set();
         let gruposVisiveis = new Map();
+        let itensArquivoMorto = [];
         let mapaCoresMateriais = {};
         const coresConfigRef = doc(db, "configuracoes", "serralheria_cores_preview");
         const itemHashFoco = window.location.hash ? window.location.hash.replace('#item-', '') : null;
@@ -837,12 +859,16 @@
                     let item = d.data(); item.id = d.id; produtos.push(item); 
                 });
                 
-                categoriasDinamicas = [...new Set(produtos.map(p => p.categoria).filter(Boolean))];
-                coresDinamicas = [...new Set(produtos.map(p => p.cor).filter(Boolean))];
-                
+                const ativos = produtos.filter((p) => !p.arquivado);
+                itensArquivoMorto = produtos.filter((p) => !!p.arquivado);
+
+                categoriasDinamicas = [...new Set(ativos.map(p => p.categoria).filter(Boolean))];
+                coresDinamicas = [...new Set(ativos.map(p => p.cor).filter(Boolean))];
+
                 renderizarSeletorMateriais();
                 carregarOpcoesConfigCores();
                 renderizarCards();
+                renderizarArquivoMorto();
 
                 if (itemHashFoco && !abriuInfoViaHash) {
                     const itemFoco = produtos.find((p) => p.id === itemHashFoco);
@@ -881,6 +907,7 @@
 
             const categoriaSelecionadaNorm = normalizarCategoria(materialSelecionado);
             const filtrados = produtos.filter((p) => {
+                if (p.arquivado) return false;
                 const catNorm = normalizarCategoria(p.categoria || '');
                 const passaMaterial = (categoriaSelecionadaNorm === 'OUTROS-SERR')
                     ? !CATS_SERR.map(normalizarCategoria).includes(catNorm)
@@ -968,12 +995,59 @@
                 (grupo.ids || [idGrupo]).forEach((docId) => idsRemover.push(docId));
             });
 
+            const usuario = obterNomeUsuarioLogado();
             for (const docId of idsRemover) {
-                await deleteDoc(doc(db, "estoque", docId));
+                await updateDoc(doc(db, "estoque", docId), {
+                    arquivado: true,
+                    arquivado_em: serverTimestamp(),
+                    arquivado_por: usuario
+                });
             }
 
             selecaoCardsBaixa.clear();
             atualizarBotaoBaixaSelecionados();
+        };
+
+        function renderizarArquivoMorto() {
+            const box = document.getElementById('arquivo-morto-lista');
+            if (!box) return;
+            if (!itensArquivoMorto.length) {
+                box.innerHTML = '<div class="arquivo-vazio">Nenhuma chapa no arquivo morto.</div>';
+                return;
+            }
+
+            const itensOrdenados = [...itensArquivoMorto].sort((a, b) => {
+                const ta = a?.arquivado_em?.seconds || 0;
+                const tb = b?.arquivado_em?.seconds || 0;
+                return tb - ta;
+            });
+
+            box.innerHTML = itensOrdenados.map((item) => {
+                const base = getDimensoesBase(item);
+                const sub = `${item.categoria || 'Sem categoria'} • ${item.espessura || '-'} • ${base.w}x${base.h} cm`;
+                return `<div class="arquivo-item">
+                    <div>
+                        <div class="arquivo-item-titulo">${item.cor || 'Sem cor'} ${item.acabamento || ''}</div>
+                        <div class="arquivo-item-sub">${sub}</div>
+                    </div>
+                    <button class="btn-adj" onclick="restaurarItemArquivo('${item.id}')" style="white-space:nowrap;">↩️ RETORNAR AO ESTOQUE</button>
+                </div>`;
+            }).join('');
+        }
+
+        window.abrirArquivoMorto = () => {
+            renderizarArquivoMorto();
+            document.getElementById('modal-arquivo-morto').style.display = 'flex';
+        };
+
+        window.restaurarItemArquivo = async (id) => {
+            const item = itensArquivoMorto.find((p) => p.id === id);
+            if (!item) return;
+            await updateDoc(doc(db, "estoque", id), {
+                arquivado: false,
+                restaurado_em: serverTimestamp(),
+                restaurado_por: obterNomeUsuarioLogado()
+            });
         };
 
         window.deletarItem = async (id) => {
@@ -984,7 +1058,11 @@
                 if (qtdAtual > 1) {
                     await updateDoc(doc(db, "estoque", id), { qtd: increment(-1) });
                 } else {
-                    await deleteDoc(doc(db, "estoque", id));
+                    await updateDoc(doc(db, "estoque", id), {
+                        arquivado: true,
+                        arquivado_em: serverTimestamp(),
+                        arquivado_por: obterNomeUsuarioLogado()
+                    });
                 }
             }
         };
