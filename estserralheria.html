@@ -55,8 +55,9 @@
         .card-prod { background: var(--card-bg); border-radius: 10px; padding: 12px; position: relative; border-left: 4px solid var(--orange); box-shadow: 0 4px 10px rgba(0,0,0,0.3); min-height: 285px; }
         .card-prod.card-focus { outline: 2px solid #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.25); }
         .card-prod.card-selected { outline: 2px solid #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,.22); }
-        .card-select-pill { position:absolute; top:10px; right:92px; background:#0f172a; border:1px solid #334155; color:#cbd5e1; border-radius:6px; font-size:10px; font-weight:800; padding:3px 7px; display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
-        .card-select-pill input { accent-color:#38bdf8; cursor:pointer; }
+        .card-select-dot { position:absolute; top:12px; right:12px; width:18px; height:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; }
+        .card-select-dot input { appearance:none; -webkit-appearance:none; width:16px; height:16px; border-radius:50%; border:1px solid #60a5fa; background:#93c5fd; box-shadow:0 0 0 2px rgba(147,197,253,.25); cursor:pointer; transition:all .18s ease; }
+        .card-select-dot input:checked { background:#22c55e; border-color:#16a34a; box-shadow:0 0 0 2px rgba(34,197,94,.25); }
         .btn-del-card { display:none; }
         .prod-cat { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 10px; color: #ccc; margin-bottom: 8px; display: inline-block; }
         .prod-name { font-size: 16px; font-weight: 800; color: white; margin-bottom: 4px; line-height: 1.1; }
@@ -886,7 +887,7 @@
                 const marcado = selecaoCardsBaixa.has(p.groupKey);
                 if (marcado) card.classList.add("card-selected");
                 let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--orange); color:black; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
-                let conteudo = temNotaBadge + `<label class="card-select-pill"><input type="checkbox" ${marcado ? "checked" : ""} onchange="toggleSelecaoCard('${p.groupKey}', this.checked)">Selecionar</label>`;
+                let conteudo = temNotaBadge + `<label class="card-select-dot" title="Selecionar card"><input type="checkbox" ${marcado ? "checked" : ""} onchange="toggleSelecaoCard('${p.groupKey}', this.checked)"></label>`;
                 conteudo += `<span class="prod-cat">${p.categoria}</span>`;
                 conteudo += `<div class="prod-name">${p.categoria} ${p.espessura || ''}</div>`;
                 const dimsCard = getDimensoesBase(p);
