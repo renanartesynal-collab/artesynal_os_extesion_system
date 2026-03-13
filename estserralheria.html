@@ -196,6 +196,7 @@
             <div class="stock-tools">
                 <input class="stock-search" id="stock-search" type="text" placeholder="🔎 Pesquisar por cor ou espessura..." oninput="atualizarFiltroEstoque(this.value)">
                 <div class="stock-actions">
+                    <button class="btn-adj" id="btn-unir-selecionados" onclick="unirSelecionados()" disabled style="margin-top:0; min-width:180px;">UNIR SELECIONADOS</button>
                     <button class="btn-baixa-selecao" id="btn-baixa-selecionados" onclick="darBaixaSelecionados()" disabled>🗑️ BAIXA SELECIONADOS (0)</button>
                     <button class="btn-arquivo-morto" id="btn-arquivo-morto" onclick="abrirArquivoMorto()">🗃️ ARQUIVO MORTO</button>
                     <button class="btn-config-preview" onclick="toggleConfigCores()">🎨 CONFIGURAR CORES</button>
@@ -520,7 +521,10 @@
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
             <div id="detalhes-registro-wrap" style="display:none; margin:8px 0 4px;">
                 <label class="label-standard" style="margin-bottom:6px;">Registro para editar/cortar</label>
-                <select id="detalhes-registro-select" onchange="selecionarRegistroDetalhes(this.value)"></select>
+                <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                    <button id="btn-separar-registro" class="btn-adj" onclick="separarRegistroDetalhes()" style="margin-top:0; min-width:130px;">SEPARAR</button>
+                </div>
+                <div id="detalhes-registro-lista" style="border:1px solid #3a3a3a; border-radius:6px; overflow:hidden;"></div>
             </div>
             <div id="detalhes-preview-wrapper"></div>
             <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #333;"></pre>
@@ -579,6 +583,8 @@
         let sequenciaLinhaCorte = 1;
         let termoBuscaEstoque = "";
         let selecaoCardsBaixa = new Set();
+        let unidadesSelecionadasDetalhes = new Set();
+        let unidadeAtivaDetalhes = null;
         let gruposVisiveis = new Map();
         let itensArquivoMorto = [];
         let mapaCoresMateriais = {};
@@ -599,6 +605,27 @@
             'galvanizada': { medidas: [{w: 120, h: 200}, {w: 120, h: 300}], espessuras: ['#28', '#26', '#24','#22','#20'] },
             'policarbonato': { medidas: [{w: 105, h: 600}, {w: 210, h: 600}], espessuras: ['4mm', '6mm', '10mm'] }
         };
+
+        const ALIAS_CATEGORIA_FABRICA = {
+            'acrilico': 'acrilico',
+            'acrilicos': 'acrilico',
+            'galvanizada': 'galvanizada',
+            'galvanizadas': 'galvanizada',
+            'galvanzada': 'galvanizada',
+            'galvanzadas': 'galvanizada',
+            'policarbonato': 'policarbonato',
+            'policarbonatos': 'policarbonato',
+            'pvc': 'pvc',
+            'ps': 'ps',
+            'mdf': 'mdf',
+            'acm': 'acm'
+        };
+
+        function getConfigFabricaCategoria(categoria = '') {
+            const categoriaNormalizada = normalizarCategoria(categoria).toLowerCase();
+            const chaveMapeada = ALIAS_CATEGORIA_FABRICA[categoriaNormalizada] || categoriaNormalizada;
+            return CONFIG_FABRICA[chaveMapeada] || null;
+        }
 
         // INICIALIZAÇÃO IMEDIATA
         document.addEventListener('DOMContentLoaded', () => {
@@ -812,16 +839,29 @@
 
         function identificarTipoMedida(peca) {
             if (peca.tipoMedida === 'corte' || peca.tipoMedida === 'fabrica') return peca.tipoMedida;
-            const catLower = (peca.categoria || '').toLowerCase();
+            const configCategoria = getConfigFabricaCategoria(peca.categoria || '');
             const base = getDimensoesBase(peca);
             const temRecorte = Array.isArray(peca.recortes) && peca.recortes.length > 0;
             if (temRecorte) return 'corte';
-            const medidasPadrao = CONFIG_FABRICA[catLower]?.medidas || [];
+            const medidasPadrao = configCategoria?.medidas || [];
             const isPadrao = medidasPadrao.some(m => Number(m.w) === Number(base.w) && Number(m.h) === Number(base.h));
             return isPadrao ? 'fabrica' : 'corte';
         }
 
         function montarChaveAgrupamento(peca) {
+            const base = getDimensoesBase(peca);
+            return [
+                normalizarCategoria(peca.categoria || ''),
+                (peca.espessura || '').toUpperCase(),
+                (peca.cor || '').toUpperCase(),
+                Number(base.w) || 0,
+                Number(base.h) || 0,
+                identificarTipoMedida(peca),
+                peca.separacaoLoteId || ''
+            ].join('|');
+        }
+
+        function montarChaveBaseUniao(peca) {
             const base = getDimensoesBase(peca);
             return [
                 normalizarCategoria(peca.categoria || ''),
@@ -966,21 +1006,68 @@
                 grid.appendChild(card);
             });
 
-            atualizarBotaoBaixaSelecionados();
+            atualizarAcoesSelecionados();
         }
 
-        function atualizarBotaoBaixaSelecionados() {
-            const btn = document.getElementById('btn-baixa-selecionados');
-            if (!btn) return;
+        function atualizarAcoesSelecionados() {
             const total = selecaoCardsBaixa.size;
-            btn.disabled = total === 0;
-            btn.innerText = `🗑️ BAIXA SELECIONADOS (${total})`;
+
+            const btnBaixa = document.getElementById('btn-baixa-selecionados');
+            if (btnBaixa) {
+                btnBaixa.disabled = total === 0;
+                btnBaixa.innerText = `🗑️ BAIXA SELECIONADOS (${total})`;
+            }
+
+            const btnUnir = document.getElementById('btn-unir-selecionados');
+            if (!btnUnir) return;
+            if (total < 2) {
+                btnUnir.disabled = true;
+                btnUnir.innerText = 'UNIR SELECIONADOS';
+                return;
+            }
+
+            const gruposSelecionados = [...selecaoCardsBaixa]
+                .map((idGrupo) => gruposVisiveis.get(idGrupo))
+                .filter(Boolean);
+
+            const chavesBase = new Set(gruposSelecionados.map((g) => montarChaveBaseUniao(g)));
+            const possuiSeparado = gruposSelecionados.some((g) => !!g.separacaoLoteId);
+            const podeUnir = chavesBase.size === 1 && possuiSeparado;
+
+            btnUnir.disabled = !podeUnir;
+            btnUnir.innerText = `UNIR SELECIONADOS${podeUnir ? ` (${total})` : ''}`;
         }
 
         window.toggleSelecaoCard = (id, checked) => {
             if (checked) selecaoCardsBaixa.add(id);
             else selecaoCardsBaixa.delete(id);
-            atualizarBotaoBaixaSelecionados();
+            atualizarAcoesSelecionados();
+        };
+
+        window.unirSelecionados = async () => {
+            const gruposSelecionados = [...selecaoCardsBaixa]
+                .map((idGrupo) => gruposVisiveis.get(idGrupo))
+                .filter(Boolean);
+            if (gruposSelecionados.length < 2) return;
+
+            const chavesBase = new Set(gruposSelecionados.map((g) => montarChaveBaseUniao(g)));
+            const possuiSeparado = gruposSelecionados.some((g) => !!g.separacaoLoteId);
+            if (chavesBase.size !== 1 || !possuiSeparado) {
+                return alert('Selecione cards separados com a mesma medida/cor para unir.');
+            }
+
+            const ids = [...new Set(gruposSelecionados.flatMap((g) => g.ids || []))];
+            if (!ids.length) return;
+
+            const ok = confirm(`Unir ${ids.length} registro(s) selecionado(s) em um único card agrupado?`);
+            if (!ok) return;
+
+            for (const id of ids) {
+                await updateDoc(doc(db, 'estoque', id), { separacaoLoteId: null });
+            }
+
+            selecaoCardsBaixa.clear();
+            atualizarAcoesSelecionados();
         };
 
         window.darBaixaSelecionados = async () => {
@@ -1005,7 +1092,7 @@
             }
 
             selecaoCardsBaixa.clear();
-            atualizarBotaoBaixaSelecionados();
+            atualizarAcoesSelecionados();
         };
 
         function renderizarArquivoMorto() {
@@ -1146,7 +1233,7 @@
 
         window.handleCategoryChange = () => {
     const cat = document.getElementById('prod-cat').value;
-    const catLower = cat.toLowerCase();
+    const configCategoria = getConfigFabricaCategoria(cat);
     const divDims = document.getElementById('div-dims');
     const espContainer = document.getElementById('esp-container'); 
     window.indiceMedidaPadrao = 0;
@@ -1154,8 +1241,8 @@
     let espessurasDisponiveis = [];
 
     // 1. Padrão de fábrica baseado no CONFIG_FABRICA
-    if (CONFIG_FABRICA[catLower]) {
-        espessurasDisponiveis = [...CONFIG_FABRICA[catLower].espessuras];
+    if (configCategoria) {
+        espessurasDisponiveis = [...configCategoria.espessuras];
         divDims.style.display = 'block';
         if (window.materialStatus === "Novo") window.aplicarMedidasAutomaticas();
     } else if (cat !== "") {
@@ -1183,6 +1270,12 @@
     optionsHTML += `<option value="MODO_EXCLUIR" class="texto-pisca" style="color: red; font-weight: bold;">⚠️ EXCLUIR ESPESSURA ⚠️ </option>`;
     
     select.innerHTML = optionsHTML;
+
+    const categoriaCanonica = ALIAS_CATEGORIA_FABRICA[normalizarCategoria(cat).toLowerCase()] || normalizarCategoria(cat).toLowerCase();
+    const possuiOpcaoAcmPadrao = Array.from(select.options).some((opt) => opt.value === '3mm');
+    if (window.materialStatus === "Novo" && categoriaCanonica === 'acm' && possuiOpcaoAcmPadrao) {
+        select.value = '3mm';
+    }
 
     select.addEventListener('change', function() {
         if (this.value === "MODO_EXCLUIR") {
@@ -1291,9 +1384,10 @@
 
         // VISUALIZADOR DE CORTES E DIMENSÕES
         window.aplicarMedidasAutomaticas = () => {
-            const cat = document.getElementById('prod-cat').value.toLowerCase();
-            if (CONFIG_FABRICA[cat]) {
-                const medida = CONFIG_FABRICA[cat].medidas[window.indiceMedidaPadrao];
+            const cat = document.getElementById('prod-cat').value;
+            const configCategoria = getConfigFabricaCategoria(cat);
+            if (configCategoria) {
+                const medida = configCategoria.medidas[window.indiceMedidaPadrao];
                 document.getElementById('prod-dim-w').value = medida.w;
                 document.getElementById('prod-dim-h').value = medida.h;
                 window.atualizarPlanoCorte();
@@ -1301,9 +1395,10 @@
         };
 
         window.alternarMedidaPadrao = () => {
-            const cat = document.getElementById('prod-cat').value.toLowerCase();
-            if (CONFIG_FABRICA[cat]) {
-                window.indiceMedidaPadrao = (window.indiceMedidaPadrao + 1) % CONFIG_FABRICA[cat].medidas.length;
+            const cat = document.getElementById('prod-cat').value;
+            const configCategoria = getConfigFabricaCategoria(cat);
+            if (configCategoria) {
+                window.indiceMedidaPadrao = (window.indiceMedidaPadrao + 1) % configCategoria.medidas.length;
                 window.aplicarMedidasAutomaticas();
             }
         };
@@ -2328,6 +2423,74 @@ window.confirmarPosicionamentoSimulador = () => {
         let itemParaDetalhes = null;
         let itensDetalhesGrupo = [];
         let grupoDetalhesAtual = null;
+
+        function atualizarVisibilidadeBotaoSeparar() {
+            const btnSeparar = document.getElementById('btn-separar-registro');
+            if (!btnSeparar) return;
+
+            const totalSelecionado = unidadesSelecionadasDetalhes.size;
+            const qtdAtual = Number(itemParaDetalhes?.qtd) || 0;
+            const podeSeparar = totalSelecionado > 0 || qtdAtual > 1;
+
+            btnSeparar.style.display = podeSeparar ? 'inline-flex' : 'none';
+            btnSeparar.disabled = !podeSeparar;
+            if (totalSelecionado > 0) {
+                btnSeparar.innerText = `SEPARAR (${String(totalSelecionado).padStart(2, '0')})`;
+            } else {
+                btnSeparar.innerText = qtdAtual > 1 ? `SEPARAR (${qtdAtual})` : 'SEPARAR';
+            }
+        }
+
+        function construirListaUnidadesDetalhes() {
+            const unidades = [];
+            let indiceGlobal = 1;
+            itensDetalhesGrupo.forEach((item) => {
+                const qtd = Math.max(1, Number(item.qtd) || 1);
+                for (let i = 1; i <= qtd; i += 1) {
+                    unidades.push({
+                        chave: `${item.id}::${i}`,
+                        itemId: item.id,
+                        indiceRegistro: i,
+                        indiceGlobal,
+                        item
+                    });
+                    indiceGlobal += 1;
+                }
+            });
+            return unidades;
+        }
+
+        function renderizarListaRegistrosDetalhes() {
+            const lista = document.getElementById('detalhes-registro-lista');
+            if (!lista) return;
+
+            const unidades = construirListaUnidadesDetalhes();
+            if (!unidades.length) {
+                lista.innerHTML = '';
+                atualizarVisibilidadeBotaoSeparar();
+                return;
+            }
+
+            lista.innerHTML = unidades.map((u) => {
+                const ativo = unidadeAtivaDetalhes === u.chave;
+                const marcado = unidadesSelecionadasDetalhes.has(u.chave);
+                const medida = getDimensaoEtiqueta(u.item);
+                const idx = String(u.indiceGlobal).padStart(2, '0');
+                const estiloLinha = ativo ? 'background:#1f5fbf;' : 'background:#101010;';
+                const estiloBotao = marcado ? 'background:#2563eb; color:#fff; border-color:#3b82f6;' : 'background:#1a1a1a; color:#d1d5db; border-color:#555;';
+                return `
+                    <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #2a2a2a; ${estiloLinha}">
+                        <button type="button" onclick="selecionarRegistroDetalhes('${u.chave}')" style="flex:1; text-align:left; background:transparent; color:#fff; border:none; padding:8px 10px; cursor:pointer; font-size:14px; line-height:1.2;">
+                            Registro ${u.item.registroSerial || '---'} · ${medida} (${idx})
+                        </button>
+                        <button type="button" onclick="toggleSelecaoUnidadeDetalhes('${u.chave}')" style="width:34px; height:30px; margin-right:8px; border-radius:6px; border:1px solid; cursor:pointer; font-size:15px; ${estiloBotao}">🔘</button>
+                    </div>
+                `;
+            }).join('');
+
+            atualizarVisibilidadeBotaoSeparar();
+        }
+
         function preencherModalDetalhes(item) {
             if (!item) return;
             itemParaDetalhes = item;
@@ -2339,6 +2502,7 @@ window.confirmarPosicionamentoSimulador = () => {
 `;
             const dimsDetalhe = getDimensoesBase(item);
             info += `📊 Status: ${item.status}
+📦 Unidades no registro: ${Number(item.qtd) || 1}
 📐 Dimensões: ${dimsDetalhe.w} x ${dimsDetalhe.h} cm
 `;
             info += `🔖 Registro: ${item.registroSerial || '---'}
@@ -2351,15 +2515,126 @@ window.confirmarPosicionamentoSimulador = () => {
             document.getElementById('detalhes-info').innerText = info;
             document.getElementById('detalhes-os').value = formatarOsNumero(item.osNumero || '');
             document.getElementById('detalhes-anotacoes').value = item.anotacoes || '';
-
-            const select = document.getElementById('detalhes-registro-select');
-            if (select) select.value = item.id;
+            atualizarVisibilidadeBotaoSeparar();
         }
 
-        window.selecionarRegistroDetalhes = (id) => {
+        window.selecionarRegistroDetalhes = (chaveUnidade) => {
+            unidadeAtivaDetalhes = chaveUnidade;
+            const [id] = String(chaveUnidade || '').split('::');
             const alvo = itensDetalhesGrupo.find((x) => x.id === id);
             if (!alvo) return;
             preencherModalDetalhes(alvo);
+            renderizarListaRegistrosDetalhes();
+        };
+
+        window.toggleSelecaoUnidadeDetalhes = (chaveUnidade) => {
+            if (unidadesSelecionadasDetalhes.has(chaveUnidade)) {
+                unidadesSelecionadasDetalhes.delete(chaveUnidade);
+            } else {
+                unidadesSelecionadasDetalhes.add(chaveUnidade);
+            }
+            renderizarListaRegistrosDetalhes();
+        };
+
+        window.separarRegistroDetalhes = async () => {
+            if (!itensDetalhesGrupo.length) return;
+
+            const chavesSelecionadas = [...unidadesSelecionadasDetalhes];
+            if (!chavesSelecionadas.length) {
+                return alert('Selecione uma ou mais unidades no botão 🔘 para separar.');
+            }
+
+            const confirmado = confirm(`Deseja separar ${chavesSelecionadas.length} unidade(s) selecionada(s)?`);
+            if (!confirmado) return;
+
+            const btnSeparar = document.getElementById('btn-separar-registro');
+            if (btnSeparar) {
+                btnSeparar.disabled = true;
+                btnSeparar.innerText = 'SEPARANDO...';
+            }
+
+            try {
+                const loteSeparacaoId = `SEP-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+                const qtdPorDoc = new Map();
+                chavesSelecionadas.forEach((ch) => {
+                    const [docId] = ch.split('::');
+                    qtdPorDoc.set(docId, (qtdPorDoc.get(docId) || 0) + 1);
+                });
+
+                const novosRegistros = [];
+                for (let i = 0; i < chavesSelecionadas.length; i += 1) {
+                    novosRegistros.push({
+                        ref: doc(collection(db, 'estoque')),
+                        registroSerial: await proximoRegistroSerralheria()
+                    });
+                }
+
+                await runTransaction(db, async (transaction) => {
+                    const refsPorDoc = new Map();
+                    const dadosPorDoc = new Map();
+
+                    // 1) Todas as leituras primeiro (exigência do Firestore)
+                    for (const [docId] of qtdPorDoc.entries()) {
+                        const ref = doc(db, 'estoque', docId);
+                        refsPorDoc.set(docId, ref);
+                        const snap = await transaction.get(ref);
+                        if (!snap.exists()) throw new Error('Registro não encontrado para separação.');
+                        dadosPorDoc.set(docId, snap.data() || {});
+                    }
+
+                    // 2) Validação e escrita somente após concluir todas as leituras
+                    for (const [docId, qtdSel] of qtdPorDoc.entries()) {
+                        const atual = dadosPorDoc.get(docId) || {};
+                        const qtdAtual = Number(atual.qtd) || 0;
+                        if (qtdAtual < qtdSel) {
+                            throw new Error(`O registro ${atual.registroSerial || docId} não possui unidades suficientes.`);
+                        }
+
+                        const restante = qtdAtual - qtdSel;
+                        const ref = refsPorDoc.get(docId);
+                        if (restante <= 0) transaction.delete(ref);
+                        else transaction.update(ref, { qtd: restante });
+                    }
+
+                    let indiceNovo = 0;
+                    for (const [docId, qtdSel] of qtdPorDoc.entries()) {
+                        const atual = dadosPorDoc.get(docId) || {};
+                        for (let i = 0; i < qtdSel; i += 1) {
+                            const novo = novosRegistros[indiceNovo++];
+                            const novaUnidade = {
+                                setor: atual.setor || window.setorAtual,
+                                categoria: atual.categoria || '',
+                                acabamento: atual.acabamento || '',
+                                espessura: atual.espessura || '',
+                                cor: atual.cor || '',
+                                dimW: atual.dimW,
+                                dimH: atual.dimH,
+                                baseDimW: atual.baseDimW || atual.dimW,
+                                baseDimH: atual.baseDimH || atual.dimH,
+                                status: atual.status || 'Novo',
+                                qtd: 1,
+                                recortes: Array.isArray(atual.recortes) ? [...atual.recortes] : [],
+                                tipoMedida: atual.tipoMedida || identificarTipoMedida(atual),
+                                nome: `${atual.categoria || ''} ${atual.espessura || ''}`.trim(),
+                                anotacoes: atual.anotacoes || '',
+                                osNumero: formatarOsNumero(atual.osNumero || ''),
+                                data_criacao: serverTimestamp(),
+                                registroSerial: novo.registroSerial,
+                                separacaoLoteId: loteSeparacaoId
+                            };
+                            transaction.set(novo.ref, novaUnidade);
+                        }
+                    }
+                });
+
+                unidadesSelecionadasDetalhes.clear();
+                setTimeout(() => abrirModalDetalhes(novosRegistros[0].ref.id), 150);
+            } catch (e) {
+                console.error(e);
+                alert(e?.message || 'Erro ao separar registros selecionados.');
+            } finally {
+                atualizarVisibilidadeBotaoSeparar();
+            }
         };
 
         window.abrirModalDetalhes = (groupKeyOrId) => {
@@ -2377,21 +2652,18 @@ window.confirmarPosicionamentoSimulador = () => {
 
             if (!itensDetalhesGrupo.length) return;
 
+            unidadesSelecionadasDetalhes = new Set();
+            unidadeAtivaDetalhes = `${itensDetalhesGrupo[0].id}::1`;
+
             const wrap = document.getElementById('detalhes-registro-wrap');
-            const select = document.getElementById('detalhes-registro-select');
-            if (wrap && select) {
-                if (itensDetalhesGrupo.length > 1) {
-                    wrap.style.display = 'block';
-                    select.innerHTML = itensDetalhesGrupo
-                        .map((item) => `<option value="${item.id}">Registro ${item.registroSerial || '---'} · ${getDimensaoEtiqueta(item)}</option>`)
-                        .join('');
-                } else {
-                    wrap.style.display = 'none';
-                    select.innerHTML = '';
-                }
+            if (wrap) {
+                const temMultiplosRegistros = itensDetalhesGrupo.length > 1;
+                const temRegistroComMultiplasUnidades = itensDetalhesGrupo.some((item) => (Number(item.qtd) || 0) > 1);
+                wrap.style.display = (temMultiplosRegistros || temRegistroComMultiplasUnidades) ? 'block' : 'none';
             }
 
             preencherModalDetalhes(itensDetalhesGrupo[0]);
+            renderizarListaRegistrosDetalhes();
             document.getElementById('modal-detalhes').style.display = 'flex';
         };
 
