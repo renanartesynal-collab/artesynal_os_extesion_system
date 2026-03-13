@@ -115,7 +115,7 @@
 
     .etq-right {
       display: grid;
-      grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto auto 1fr;
       gap: 3px;
       min-width: 0;
       min-height: 0;
@@ -126,9 +126,9 @@
       min-height: 0;
     }
 
-    .etq-row-2 {
+    .etq-row-3 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr .72fr;
       gap: 3px;
       min-width: 0;
       min-height: 0;
@@ -279,28 +279,21 @@
 
             <div class="etq-right">
               <div class="etq-field">
-                <div class="etq-label">Código do catálogo e cor</div>
+                <div class="etq-label">Cód.</div>
                 <div class="etq-box"><div class="etq-value" id="lbl-codigo-cor">_____</div></div>
               </div>
 
-              <div class="etq-row-2">
+              <div class="etq-row-3">
                 <div class="etq-field">
                   <div class="etq-label">Quantidade</div>
                   <div class="etq-box"><div class="etq-value" id="lbl-quantidade">___ ml</div></div>
                 </div>
                 <div class="etq-field">
-                  <div class="etq-label">Validade</div>
+                  <div class="etq-label">Val.</div>
                   <div class="etq-box"><div class="etq-value" id="lbl-validade">MM/AAAA</div></div>
                 </div>
-              </div>
-
-              <div class="etq-row-2">
                 <div class="etq-field">
-                  <div class="etq-label">Registro</div>
-                  <div class="etq-box"><div class="etq-value" id="lbl-registro">_____</div></div>
-                </div>
-                <div class="etq-field">
-                  <div class="etq-label">O.S.</div>
+                  <div class="etq-label">OS.</div>
                   <div class="etq-box"><div class="etq-value" id="lbl-os">_____</div></div>
                 </div>
               </div>
@@ -493,7 +486,6 @@
       const anotacoes = (dados.descricao || '').trim();
 
       document.getElementById('lbl-codigo-cor').textContent = codigo;
-      document.getElementById('lbl-registro').textContent = codigo;
       document.getElementById('lbl-os').textContent = os;
       document.getElementById('lbl-quantidade').textContent = qtd;
       document.getElementById('lbl-validade').textContent = validade;
