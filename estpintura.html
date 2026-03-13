@@ -56,12 +56,18 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .full { grid-column: 1 / -1; }
     label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-    input { width: 100%; border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 8px; font-family: inherit; font-size: 13px; }
+    input, select { width: 100%; border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 8px; font-family: inherit; font-size: 13px; }
     input.readonly { background: #0b1017; color: #95a4b8; }
     .os-input { max-width: 110px; text-align: center; letter-spacing: 1px; }
     .lata-select-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
     .lata-option { display:flex; align-items:center; gap:5px; font-size:12px; color:#dbe7f5; font-weight:600; }
     .lata-option input { width: 14px; height:14px; accent-color: #ed1c24; }
+    .tipo-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+    .tipo-head label { margin-bottom:0; }
+    .btn-add-tipo { width:24px; height:24px; padding:0; line-height:1; border-radius:50%; font-size:16px; }
+    .tipo-box { display:flex; flex-direction:column; gap:6px; }
+    @keyframes piscarAlerta { 0% { color: #ffffff; } 50% { color: #ff2d2d; } 100% { color: #ffffff; } }
+    .btn-excluir-tipo { border:1px solid #6e2326; background:#2f1013; color:#fff; font-size:12px; font-weight:800; padding:6px 8px; border-radius:8px; cursor:pointer; animation: piscarAlerta 0.8s infinite; }
 
     .calc-panel { margin-top: 8px; border: 1px dashed #3e5674; border-radius: 10px; padding: 10px; background: #111925; }
     .calc-title { font-size: 12px; color: #b7c5d8; margin-bottom: 8px; font-weight: 700; }
@@ -238,6 +244,16 @@
               <label for="tinta-validade">Validade (MM/AAAA)</label>
               <input id="tinta-validade" type="text" maxlength="7" placeholder="MM/AAAA" />
             </div>
+            <div>
+              <div class="tipo-head">
+                <label for="tinta-tipo">Tipo</label>
+                <button type="button" class="btn btn-add-tipo" id="btn-add-tipo" title="Adicionar tipo">+</button>
+              </div>
+              <div class="tipo-box" id="tipo-box">
+                <select id="tinta-tipo"></select>
+                <button type="button" id="btn-excluir-tipo" class="btn-excluir-tipo" style="display:none;">⚠ excluir tinta⚠</button>
+              </div>
+            </div>
 
             <div class="full">
               <label for="tinta-descricao">Anotação</label>
@@ -347,7 +363,7 @@
         updated_at: serverTimestamp()
       }, { merge: true });
     }
-    const estadoPadrao = { categorias: { tinta: { label: 'Tinta', slots: Array(8).fill(null) } }, categoriaAtual: 'tinta' };
+    const estadoPadrao = { categorias: { tinta: { label: 'Tinta', slots: Array(8).fill(null) } }, categoriaAtual: 'tinta', tiposTinta: ['PU', 'Esmalte', 'Epóxi', 'Acrílica'] };
 
     const categoriasEl = document.getElementById('categorias');
     const slotsGridEl = document.getElementById('slots-grid');
@@ -365,6 +381,7 @@
         if (!bruto.categorias.tinta) bruto.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
         bruto.categoriaAtual = bruto.categoriaAtual && bruto.categorias[bruto.categoriaAtual] ? bruto.categoriaAtual : 'tinta';
         for (const key of Object.keys(bruto.categorias)) if (!Array.isArray(bruto.categorias[key].slots)) bruto.categorias[key].slots = Array(4).fill(null);
+        if (!Array.isArray(bruto.tiposTinta) || bruto.tiposTinta.length === 0) bruto.tiposTinta = structuredClone(estadoPadrao.tiposTinta);
         return bruto;
       } catch { return structuredClone(estadoPadrao); }
     }
@@ -382,6 +399,7 @@
         btn.addEventListener('click', () => {
           estado.categoriaAtual = btn.dataset.cat;
           salvarEstado();
+          renderTiposSelect();
           renderTudo();
         });
       });
@@ -400,6 +418,7 @@
         return `
           <article class="slot filled">
             <div class="slot-title">${escapeHtml(item.codigo || '-')}</div>
+            <div class="slot-meta">Tipo: ${escapeHtml(item.tipo || '-')}</div>
             <div class="slot-meta">OS.: ${escapeHtml(item.ordemServico || '_____')}</div>
             <div class="slot-meta">Peso: ${escapeHtml(item.pesoLiquidoG || '0')} g</div>
             <div class="slot-meta">Quantidade: ${escapeHtml(item.quantidadeMl || '0')} ml</div>
@@ -427,6 +446,19 @@
           }
         });
       });
+    }
+
+
+    function renderTiposSelect(valorSelecionado = '') {
+      const select = document.getElementById('tinta-tipo');
+      if (!select) return;
+      const tipos = estado.tiposTinta || [];
+      select.innerHTML = tipos.map((tipo) => `<option value="${escapeHtml(tipo)}">${escapeHtml(tipo)}</option>`).join('');
+      if (valorSelecionado && tipos.includes(valorSelecionado)) {
+        select.value = valorSelecionado;
+      } else if (tipos.length > 0) {
+        select.value = tipos[0];
+      }
     }
 
     function renderTudo() { renderCategorias(); renderSlots(); }
@@ -482,6 +514,7 @@
         codigo: document.getElementById('tinta-codigo').value.trim(),
         ordemServico: normalizarOS(document.getElementById('tinta-os').value),
         descricao: document.getElementById('tinta-descricao').value.trim(),
+        tipo: document.getElementById('tinta-tipo').value,
         lataTipo: obterLataSelecionada(),
         pesoTotalG: document.getElementById('tinta-peso-total').value.trim(),
         validade: normalizarValidade(document.getElementById('tinta-validade').value)
@@ -509,6 +542,7 @@
       document.getElementById('tinta-os').value = dados?.ordemServico || '';
       document.getElementById('tinta-validade').value = dados?.validade || '';
       document.getElementById('tinta-descricao').value = dados?.descricao || '';
+      renderTiposSelect(dados?.tipo || '');
       document.getElementById('tinta-peso-total').value = dados?.pesoTotalG || '';
       document.querySelectorAll('input[name="tinta-lata"]').forEach((el) => { el.checked = el.value === (dados?.lataTipo || ''); });
       modalBg.style.display = 'flex';
@@ -521,7 +555,7 @@
       modalBg.style.display = 'none';
     }
 
-    ['tinta-codigo', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-peso-total'].forEach((id) => {
+    ['tinta-codigo', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-peso-total', 'tinta-tipo'].forEach((id) => {
       document.getElementById(id).addEventListener('input', (ev) => {
         if (id === 'tinta-os') ev.target.value = normalizarOS(ev.target.value);
         if (id === 'tinta-validade') ev.target.value = normalizarValidade(ev.target.value);
@@ -533,6 +567,41 @@
       el.addEventListener('change', atualizarPreviewEtiqueta);
     });
 
+
+    document.getElementById('tipo-box').addEventListener('click', () => {
+      document.getElementById('btn-excluir-tipo').style.display = 'inline-flex';
+    });
+
+    document.getElementById('btn-add-tipo').addEventListener('click', () => {
+      const nome = prompt('Digite o nome do novo tipo de tinta:');
+      if (!nome) return;
+      const tipo = nome.trim();
+      if (!tipo) return;
+      if (estado.tiposTinta.includes(tipo)) {
+        alert('Esse tipo já existe.');
+        return;
+      }
+      estado.tiposTinta.push(tipo);
+      salvarEstado();
+      renderTiposSelect(tipo);
+      atualizarPreviewEtiqueta();
+    });
+
+    document.getElementById('btn-excluir-tipo').addEventListener('click', () => {
+      const select = document.getElementById('tinta-tipo');
+      const tipo = select.value;
+      if (!tipo) return;
+      if ((estado.tiposTinta || []).length <= 1) {
+        alert('É necessário manter ao menos um tipo de tinta.');
+        return;
+      }
+      if (!confirm(`Excluir o tipo "${tipo}"?`)) return;
+      estado.tiposTinta = estado.tiposTinta.filter((t) => t !== tipo);
+      salvarEstado();
+      renderTiposSelect();
+      atualizarPreviewEtiqueta();
+    });
+
     document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
 
     document.getElementById('btn-salvar-tinta').addEventListener('click', () => {
@@ -542,6 +611,7 @@
         codigo: document.getElementById('tinta-codigo').value.trim(),
         ordemServico: normalizarOS(document.getElementById('tinta-os').value),
         validade: normalizarValidade(document.getElementById('tinta-validade').value),
+        tipo: document.getElementById('tinta-tipo').value,
         descricao: document.getElementById('tinta-descricao').value.trim(),
         lataTipo: obterLataSelecionada(),
         pesoTotalG: document.getElementById('tinta-peso-total').value.trim()
@@ -581,6 +651,7 @@
       estado.categorias[id] = { label: nome.trim(), slots: Array(6).fill(null) };
       estado.categoriaAtual = id;
       salvarEstado();
+      renderTiposSelect();
       renderTudo();
     });
 
@@ -588,6 +659,7 @@
       garantirParametrosPinturaFirebase().catch((err) => console.warn('Não foi possível salvar parâmetros de pintura no Firebase.', err));
     }
 
+    renderTiposSelect();
     renderTudo();
   </script>
 </body>
