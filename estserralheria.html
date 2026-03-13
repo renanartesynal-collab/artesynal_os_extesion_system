@@ -426,8 +426,8 @@
                         </div>
                         <span id="cota-top-previsao" style="position:absolute; top:-30px; left:50%; transform:translateX(-50%);"></span>
                         <span id="cota-bottom-previsao" style="position:absolute; bottom:-30px; left:50%; transform:translateX(-50%);"></span>
-                        <span id="cota-left-previsao" style="position:absolute; left:-58px; top:50%; transform:translateY(-50%) rotate(-90deg);"></span>
-                        <span id="cota-right-previsao" style="position:absolute; right:-58px; top:50%; transform:translateY(-50%) rotate(90deg);"></span>
+                        <span id="cota-left-previsao" style="position:absolute; left:-86px; top:50%; transform:translateY(-50%); white-space:nowrap;"></span>
+                        <span id="cota-right-previsao" style="position:absolute; right:-86px; top:50%; transform:translateY(-50%); white-space:nowrap;"></span>
                     </div>
                 </div>
             </div>
@@ -1907,12 +1907,65 @@ function tornarArrastavel(elemento) {
                 corte.style.top = `${(planoExistente.y / base.h) * 100}%`;
                 corte.style.width = `${(planoExistente.w / base.w) * 100}%`;
                 corte.style.height = `${(planoExistente.h / base.h) * 100}%`;
-                corte.style.display = 'flex';
-                corte.style.alignItems = 'center';
-                corte.style.justifyContent = 'center';
-                corte.style.fontWeight = '800';
+                corte.style.display = 'block';
                 corte.style.color = '#fff';
-                corte.innerText = `${planoExistente.w}cm X ${planoExistente.h}cm`;
+                corte.style.overflow = 'visible';
+
+                const legenda = document.createElement('div');
+                const menorLado = Math.min(planoExistente.w, planoExistente.h);
+                const fonte = menorLado < 70 ? 10 : 12;
+                legenda.style.position = 'absolute';
+                legenda.style.left = '6px';
+                legenda.style.top = '6px';
+                legenda.style.fontWeight = '800';
+                legenda.style.fontSize = `${fonte}px`;
+                legenda.style.lineHeight = '1.1';
+                legenda.style.textShadow = '0 1px 2px rgba(0,0,0,.55)';
+                legenda.innerText = `${planoExistente.w}cm X ${planoExistente.h}cm`;
+                corte.appendChild(legenda);
+
+                const cotaTopo = document.createElement('div');
+                cotaTopo.style.position = 'absolute';
+                cotaTopo.style.left = '6px';
+                cotaTopo.style.right = '6px';
+                cotaTopo.style.top = '-10px';
+                cotaTopo.style.borderTop = '2px solid #6366f1';
+                cotaTopo.innerHTML = '<span style="position:absolute;left:-1px;top:-6px;width:2px;height:12px;background:#6366f1"></span><span style="position:absolute;right:-1px;top:-6px;width:2px;height:12px;background:#6366f1"></span>';
+                corte.appendChild(cotaTopo);
+
+                const txtTopo = document.createElement('div');
+                txtTopo.style.position = 'absolute';
+                txtTopo.style.left = '50%';
+                txtTopo.style.top = '-26px';
+                txtTopo.style.transform = 'translateX(-50%)';
+                txtTopo.style.color = '#ef4444';
+                txtTopo.style.fontWeight = '800';
+                txtTopo.style.fontSize = '12px';
+                txtTopo.style.whiteSpace = 'nowrap';
+                txtTopo.innerText = `${planoExistente.w} cm`;
+                corte.appendChild(txtTopo);
+
+                const cotaEsq = document.createElement('div');
+                cotaEsq.style.position = 'absolute';
+                cotaEsq.style.left = '-10px';
+                cotaEsq.style.top = '6px';
+                cotaEsq.style.bottom = '6px';
+                cotaEsq.style.borderLeft = '2px solid #6366f1';
+                cotaEsq.innerHTML = '<span style="position:absolute;left:-6px;top:-1px;width:12px;height:2px;background:#6366f1"></span><span style="position:absolute;left:-6px;bottom:-1px;width:12px;height:2px;background:#6366f1"></span>';
+                corte.appendChild(cotaEsq);
+
+                const txtEsq = document.createElement('div');
+                txtEsq.style.position = 'absolute';
+                txtEsq.style.left = '-58px';
+                txtEsq.style.top = '50%';
+                txtEsq.style.transform = 'translateY(-50%)';
+                txtEsq.style.color = '#ef4444';
+                txtEsq.style.fontWeight = '800';
+                txtEsq.style.fontSize = '12px';
+                txtEsq.style.whiteSpace = 'nowrap';
+                txtEsq.innerText = `${planoExistente.h} cm`;
+                corte.appendChild(txtEsq);
+
                 area.appendChild(corte);
             }
         }
