@@ -65,6 +65,8 @@
 
     .calc-panel { margin-top: 8px; border: 1px dashed #3e5674; border-radius: 10px; padding: 10px; background: #111925; }
     .calc-title { font-size: 12px; color: #b7c5d8; margin-bottom: 8px; font-weight: 700; }
+    .rendimento-line { margin: 8px 4px 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: .3px; }
+    .rendimento-line small { font-size: 18px; font-weight: 700; }
 
     .etiqueta-wrap { background: #0f141c; border: 1px solid #32455e; border-radius: 10px; padding: 10px; }
     .etiqueta-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; color: var(--muted); }
@@ -260,6 +262,8 @@
             </div>
           </div>
 
+          <div class="rendimento-line">Rendimento <span id="rendimento-valor">0.0</span> <small>m²</small></div>
+
           <div class="modal-actions">
             <button class="btn" id="btn-cancelar-tinta">Cancelar</button>
             <button class="btn btn-primary" id="btn-salvar-tinta">Salvar tinta</button>
@@ -279,7 +283,7 @@
 
             <div class="etq-right">
               <div class="etq-field">
-                <div class="etq-label">Cód.</div>
+                <div class="etq-label">Cód. do catálogo e cor</div>
                 <div class="etq-box"><div class="etq-value" id="lbl-codigo-cor">_____</div></div>
               </div>
 
@@ -330,7 +334,8 @@
         '3600': 260,
         '18000': 950
       },
-      gramas_por_100ml: 108
+      gramas_por_100ml: 108,
+      rendimento_m2_por_100ml: 1
     };
 
     async function garantirParametrosPinturaFirebase() {
@@ -451,7 +456,8 @@
       const total = Number(document.getElementById('tinta-peso-total').value || 0);
       const liquido = Math.max(total - tara, 0);
       const quantidadeMl = Math.round((liquido * 100) / PARAMETROS_PINTURA.gramas_por_100ml);
-      return { tara, liquido, quantidadeMl };
+      const rendimentoM2 = (quantidadeMl / 100) * (PARAMETROS_PINTURA.rendimento_m2_por_100ml || 1);
+      return { tara, liquido, quantidadeMl, rendimentoM2 };
     }
 
     function qrPayload(dados) {
@@ -485,6 +491,7 @@
       const validade = dados.validade || 'MM/AAAA';
       const os = dados.ordemServico || '_____';
       const anotacoes = (dados.descricao || '').trim();
+      document.getElementById('rendimento-valor').textContent = calc.rendimentoM2.toFixed(1);
 
       document.getElementById('lbl-codigo-cor').textContent = codigo;
       document.getElementById('lbl-os').textContent = os;
