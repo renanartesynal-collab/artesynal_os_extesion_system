@@ -322,11 +322,30 @@
 
   <script type="module">
     import { protegerPagina } from './auth.js';
+    import { db } from './config.js';
+    import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     const previewMode = new URLSearchParams(window.location.search).get('preview') === '1';
     if (!previewMode) await protegerPagina({ paginaAtual: 'estpintura.html' });
 
     const STORAGE_KEY = 'artesynal_pintura_v4';
+
+    const PARAMETROS_PINTURA = {
+      tara_por_lata_g: {
+        '900': 130,
+        '3600': 260,
+        '18000': 950
+      },
+      gramas_por_100ml: 108
+    };
+
+    async function garantirParametrosPinturaFirebase() {
+      const ref = doc(db, 'system_config', 'pintura_parametros');
+      await setDoc(ref, {
+        parametros: PARAMETROS_PINTURA,
+        updated_at: serverTimestamp()
+      }, { merge: true });
+    }
     const estadoPadrao = { categorias: { tinta: { label: 'Tinta', slots: Array(8).fill(null) } }, categoriaAtual: 'tinta' };
 
     const categoriasEl = document.getElementById('categorias');
@@ -426,7 +445,7 @@
       return `${d.slice(0, 2)}/${d.slice(2)}`;
     }
 
-    const TARA_PADRAO = { '900': 90, '3600': 260, '18000': 950 };
+    const TARA_PADRAO = { ...PARAMETROS_PINTURA.tara_por_lata_g };
 
     function obterLataSelecionada() {
       return document.querySelector('input[name="tinta-lata"]:checked')?.value || '';
@@ -437,7 +456,8 @@
       const tara = TARA_PADRAO[lata] || 0;
       const total = Number(document.getElementById('tinta-peso-total').value || 0);
       const liquido = Math.max(total - tara, 0);
-      return { tara, liquido, quantidadeMl: Math.round(liquido) };
+      const quantidadeMl = Math.round((liquido * 100) / PARAMETROS_PINTURA.gramas_por_100ml);
+      return { tara, liquido, quantidadeMl };
     }
 
     function qrPayload(dados) {
@@ -470,11 +490,7 @@
       const qtd = `${calc.quantidadeMl} ml`;
       const validade = dados.validade || 'MM/AAAA';
       const os = dados.ordemServico || '_____';
-      const anotacoes = [
-        dados.descricao || '',
-        `Peso ${calc.liquido.toFixed(1)} g`,
-        `Qtd ${calc.quantidadeMl} ml`
-      ].filter(Boolean).join(' • ');
+      const anotacoes = (dados.descricao || '').trim();
 
       document.getElementById('lbl-codigo-cor').textContent = codigo;
       document.getElementById('lbl-registro').textContent = codigo;
@@ -564,6 +580,10 @@
       salvarEstado();
       renderTudo();
     });
+
+    if (!previewMode) {
+      garantirParametrosPinturaFirebase().catch((err) => console.warn('Não foi possível salvar parâmetros de pintura no Firebase.', err));
+    }
 
     renderTudo();
   </script>
