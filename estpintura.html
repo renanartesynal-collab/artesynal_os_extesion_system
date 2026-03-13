@@ -58,6 +58,7 @@
     label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
     input { width: 100%; border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 8px; font-family: inherit; font-size: 13px; }
     input.readonly { background: #0b1017; color: #95a4b8; }
+    .os-input { max-width: 110px; text-align: center; letter-spacing: 1px; }
 
     .calc-panel { margin-top: 8px; border: 1px dashed #3e5674; border-radius: 10px; padding: 10px; background: #111925; }
     .calc-title { font-size: 12px; color: #b7c5d8; margin-bottom: 8px; font-weight: 700; }
@@ -223,17 +224,12 @@
         <div>
           <div class="grid">
             <div>
-              <label for="tinta-codigo">Código</label>
-              <input id="tinta-codigo" type="text" placeholder="Código do produto/lote" />
+              <label for="tinta-codigo">Código do catálogo e cor</label>
+              <input id="tinta-codigo" type="text" placeholder="" />
             </div>
             <div>
-              <label for="tinta-cor">Cor</label>
-              <input id="tinta-cor" type="text" placeholder="Ex.: Azul Royal" />
-            </div>
-
-            <div>
-              <label for="tinta-os">OS. (5 dígitos)</label>
-              <input id="tinta-os" type="text" inputmode="numeric" maxlength="5" placeholder="00000" />
+              <label for="tinta-os">OS.</label>
+              <input id="tinta-os" class="os-input" type="text" inputmode="numeric" maxlength="5" placeholder="00000" />
             </div>
             <div>
               <label for="tinta-validade">Validade (MM/AAAA)</label>
@@ -241,7 +237,7 @@
             </div>
 
             <div class="full">
-              <label for="tinta-descricao">Descrição (1 linha)</label>
+              <label for="tinta-descricao">Anotação</label>
               <input id="tinta-descricao" type="text" maxlength="90" placeholder="Descrição livre" />
             </div>
           </div>
@@ -291,8 +287,8 @@
 
             <div class="etq-right">
               <div class="etq-box">
-                <div class="etq-label">Código / Cor</div>
-                <div class="etq-value" id="lbl-codigo-cor">_____ • _____</div>
+                <div class="etq-label">Código do catálogo e cor</div>
+                <div class="etq-value" id="lbl-codigo-cor">_____</div>
               </div>
 
               <div class="etq-row-2">
@@ -391,7 +387,7 @@
         }
         return `
           <article class="slot filled">
-            <div class="slot-title">${escapeHtml(item.codigo || '-')} • ${escapeHtml(item.cor || 'Sem cor')}</div>
+            <div class="slot-title">${escapeHtml(item.codigo || '-')}</div>
             <div class="slot-meta">OS.: ${escapeHtml(item.ordemServico || '_____')}</div>
             <div class="slot-meta">Peso: ${escapeHtml(item.pesoLiquidoG || '0')} g</div>
             <div class="slot-meta">Quantidade: ${escapeHtml(item.quantidadeMl || '0')} ml</div>
@@ -457,7 +453,6 @@
     function qrPayload(dados) {
       return JSON.stringify({
         codigo: dados.codigo || '',
-        cor: dados.cor || '',
         os: dados.ordemServico || '',
         descricao: dados.descricao || '',
         pesoLiquidoG: dados.pesoLiquidoG || '',
@@ -473,7 +468,6 @@
     function atualizarPreviewEtiqueta() {
       const dados = {
         codigo: document.getElementById('tinta-codigo').value.trim(),
-        cor: document.getElementById('tinta-cor').value.trim(),
         ordemServico: normalizarOS(document.getElementById('tinta-os').value),
         descricao: document.getElementById('tinta-descricao').value.trim(),
         pesoLiquidoG: document.getElementById('tinta-peso-liquido').value.trim(),
@@ -482,7 +476,6 @@
       };
 
       const codigo = dados.codigo || '_____';
-      const cor = dados.cor || '_____';
       const qtd = `${dados.quantidadeMl || '___'} ml`;
       const validade = dados.validade || 'MM/AAAA';
       const os = dados.ordemServico || '_____';
@@ -492,7 +485,7 @@
         dados.quantidadeMl ? `Qtd ${dados.quantidadeMl} ml` : ''
       ].filter(Boolean).join(' • ');
 
-      document.getElementById('lbl-codigo-cor').textContent = `${codigo} • ${cor}`;
+      document.getElementById('lbl-codigo-cor').textContent = codigo;
       document.getElementById('lbl-registro').textContent = codigo;
       document.getElementById('lbl-os').textContent = os;
       document.getElementById('lbl-quantidade').textContent = qtd;
@@ -504,7 +497,6 @@
     function abrirModalTinta(slot, dados = null) {
       slotAtual = slot;
       document.getElementById('tinta-codigo').value = dados?.codigo || '';
-      document.getElementById('tinta-cor').value = dados?.cor || '';
       document.getElementById('tinta-os').value = dados?.ordemServico || '';
       document.getElementById('tinta-validade').value = dados?.validade || '';
       document.getElementById('tinta-descricao').value = dados?.descricao || '';
@@ -524,7 +516,7 @@
       modalBg.style.display = 'none';
     }
 
-    ['tinta-codigo', 'tinta-cor', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-tara', 'tinta-peso-total', 'tinta-densidade'].forEach((id) => {
+    ['tinta-codigo', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-tara', 'tinta-peso-total', 'tinta-densidade'].forEach((id) => {
       document.getElementById(id).addEventListener('input', (ev) => {
         if (id === 'tinta-os') ev.target.value = normalizarOS(ev.target.value);
         if (id === 'tinta-validade') ev.target.value = normalizarValidade(ev.target.value);
@@ -545,7 +537,6 @@
 
       const payload = {
         codigo: document.getElementById('tinta-codigo').value.trim(),
-        cor: document.getElementById('tinta-cor').value.trim(),
         ordemServico: normalizarOS(document.getElementById('tinta-os').value),
         validade: normalizarValidade(document.getElementById('tinta-validade').value),
         descricao: document.getElementById('tinta-descricao').value.trim(),
@@ -557,7 +548,6 @@
       };
 
       if (!payload.codigo) return alert('Informe o código.');
-      if (!payload.cor) return alert('Informe a cor da tinta.');
       if (payload.ordemServico.length !== 5) return alert('A OS. deve ter exatamente 5 dígitos.');
       if (payload.validade && !/^\d{2}\/\d{4}$/.test(payload.validade)) return alert('A validade deve estar no formato MM/AAAA.');
 
