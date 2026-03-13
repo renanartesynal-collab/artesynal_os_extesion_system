@@ -2025,10 +2025,42 @@ function tornarArrastavel(elemento) {
                     const linhaDescarte = `${usuario} descartou 1 unidade ( ${textoMedida} ) ${data} ${hora}h`;
                     anotacoesComHistorico = anexarHistoricoAnotacoes(anotacoesComHistorico, linhaDescarte);
                 }
-                const corteLinear = linhas.length === 1 && linhas[0].qtd === 1 && recortesAtuais.length === 0 && (
-                    (Math.abs(linhas[0].h - base.h) < 0.01 && Math.abs(planos[0].y) < 0.01) ||
-                    (Math.abs(linhas[0].w - base.w) < 0.01 && Math.abs(planos[0].x) < 0.01)
-                );
+                const quaseIgual = (a, b, tol = 0.01) => Math.abs(Number(a) - Number(b)) <= tol;
+                const obterSobraLinear = () => {
+                    if (recortesAtuais.length > 0 || !planos.length) return null;
+
+                    const planosH = [...planos].sort((a, b) => a.x - b.x);
+                    const alinhadosHorizontal = planosH.every((p) => quaseIgual(p.h, base.h) && quaseIgual(p.y, 0));
+                    if (alinhadosHorizontal) {
+                        const semGap = planosH.every((p, idx) => idx === 0 || quaseIgual(planosH[idx - 1].x + planosH[idx - 1].w, p.x));
+                        const xInicio = planosH[0].x;
+                        const xFim = planosH[planosH.length - 1].x + planosH[planosH.length - 1].w;
+                        const tocaBorda = quaseIgual(xInicio, 0) || quaseIgual(xFim, base.w);
+                        const larguraRemovida = planosH.reduce((acc, p) => acc + p.w, 0);
+                        if (semGap && tocaBorda && quaseIgual(xFim - xInicio, larguraRemovida)) {
+                            const sobraW = Number((base.w - larguraRemovida).toFixed(2));
+                            if (sobraW > 0) return { w: sobraW, h: base.h };
+                        }
+                    }
+
+                    const planosV = [...planos].sort((a, b) => a.y - b.y);
+                    const alinhadosVertical = planosV.every((p) => quaseIgual(p.w, base.w) && quaseIgual(p.x, 0));
+                    if (alinhadosVertical) {
+                        const semGap = planosV.every((p, idx) => idx === 0 || quaseIgual(planosV[idx - 1].y + planosV[idx - 1].h, p.y));
+                        const yInicio = planosV[0].y;
+                        const yFim = planosV[planosV.length - 1].y + planosV[planosV.length - 1].h;
+                        const tocaBorda = quaseIgual(yInicio, 0) || quaseIgual(yFim, base.h);
+                        const alturaRemovida = planosV.reduce((acc, p) => acc + p.h, 0);
+                        if (semGap && tocaBorda && quaseIgual(yFim - yInicio, alturaRemovida)) {
+                            const sobraH = Number((base.h - alturaRemovida).toFixed(2));
+                            if (sobraH > 0) return { w: base.w, h: sobraH };
+                        }
+                    }
+
+                    return null;
+                };
+
+                const sobraLinear = obterSobraLinear();
 
                 const atualizacaoSobra = aplicarAjusteDescarteNoCorte
                     ? (() => {
@@ -2046,11 +2078,9 @@ function tornarArrastavel(elemento) {
                             anotacoes: anotacoesComHistorico
                         };
                     })()
-                    : corteLinear
+                    : sobraLinear
                     ? (() => {
-                        const sobraW = Math.abs(linhas[0].h - base.h) < 0.01 ? base.w - linhas[0].w : base.w;
-                        const sobraH = Math.abs(linhas[0].w - base.w) < 0.01 ? base.h - linhas[0].h : base.h;
-                        const sobraNormalizada = normalizarDimensoesChapa(sobraW, sobraH);
+                        const sobraNormalizada = normalizarDimensoesChapa(sobraLinear.w, sobraLinear.h);
                         return {
                             dimW: Number(sobraNormalizada.w.toFixed(2)),
                             dimH: Number(sobraNormalizada.h.toFixed(2)),
