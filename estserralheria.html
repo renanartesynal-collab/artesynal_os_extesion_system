@@ -1208,6 +1208,12 @@
     
     select.innerHTML = optionsHTML;
 
+    const categoriaCanonica = ALIAS_CATEGORIA_FABRICA[normalizarCategoria(cat).toLowerCase()] || normalizarCategoria(cat).toLowerCase();
+    const possuiOpcaoAcmPadrao = Array.from(select.options).some((opt) => opt.value === '3mm');
+    if (window.materialStatus === "Novo" && categoriaCanonica === 'acm' && possuiOpcaoAcmPadrao) {
+        select.value = '3mm';
+    }
+
     select.addEventListener('change', function() {
         if (this.value === "MODO_EXCLUIR") {
             const itemParaExcluir = prompt("Digite o valor EXATO da espessura que deseja remover:");
@@ -2402,11 +2408,7 @@ window.confirmarPosicionamentoSimulador = () => {
 
         window.separarRegistroDetalhes = async () => {
             if (!itemParaDetalhes?.id) return;
-            const qtdAtual = Number(itemParaDetalhes.qtd) || 0;
-            if (qtdAtual <= 1) {
-                alert('Este registro já possui apenas 1 unidade.');
-                return;
-            }
+
             const confirmado = confirm('Deseja separar 1 unidade desta chapa em um novo registro?');
             if (!confirmado) return;
 
@@ -2417,39 +2419,52 @@ window.confirmarPosicionamentoSimulador = () => {
             }
 
             try {
-                const novaUnidade = {
-                    setor: itemParaDetalhes.setor || window.setorAtual,
-                    categoria: itemParaDetalhes.categoria || '',
-                    acabamento: itemParaDetalhes.acabamento || '',
-                    espessura: itemParaDetalhes.espessura || '',
-                    cor: itemParaDetalhes.cor || '',
-                    dimW: itemParaDetalhes.dimW,
-                    dimH: itemParaDetalhes.dimH,
-                    baseDimW: itemParaDetalhes.baseDimW || itemParaDetalhes.dimW,
-                    baseDimH: itemParaDetalhes.baseDimH || itemParaDetalhes.dimH,
-                    status: itemParaDetalhes.status || 'Novo',
-                    qtd: 1,
-                    recortes: Array.isArray(itemParaDetalhes.recortes) ? [...itemParaDetalhes.recortes] : [],
-                    tipoMedida: itemParaDetalhes.tipoMedida || identificarTipoMedida(itemParaDetalhes),
-                    nome: `${itemParaDetalhes.categoria || ''} ${itemParaDetalhes.espessura || ''}`.trim(),
-                    anotacoes: itemParaDetalhes.anotacoes || '',
-                    osNumero: formatarOsNumero(itemParaDetalhes.osNumero || ''),
-                    data_criacao: serverTimestamp(),
-                    registroSerial: await proximoRegistroSerralheria()
-                };
+                const docAtualRef = doc(db, 'estoque', itemParaDetalhes.id);
+                const novoRegistroSerial = await proximoRegistroSerralheria();
+                const novoDocRef = doc(collection(db, 'estoque'));
 
-                await updateDoc(doc(db, 'estoque', itemParaDetalhes.id), {
-                    qtd: qtdAtual - 1
+                await runTransaction(db, async (transaction) => {
+                    const snapAtual = await transaction.get(docAtualRef);
+                    if (!snapAtual.exists()) {
+                        throw new Error('Registro original não encontrado para separação.');
+                    }
+
+                    const atual = snapAtual.data() || {};
+                    const qtdAtualizada = Number(atual.qtd) || 0;
+                    if (qtdAtualizada <= 1) {
+                        throw new Error('Este registro já possui apenas 1 unidade.');
+                    }
+
+                    transaction.update(docAtualRef, { qtd: qtdAtualizada - 1 });
+
+                    const novaUnidade = {
+                        setor: atual.setor || window.setorAtual,
+                        categoria: atual.categoria || '',
+                        acabamento: atual.acabamento || '',
+                        espessura: atual.espessura || '',
+                        cor: atual.cor || '',
+                        dimW: atual.dimW,
+                        dimH: atual.dimH,
+                        baseDimW: atual.baseDimW || atual.dimW,
+                        baseDimH: atual.baseDimH || atual.dimH,
+                        status: atual.status || 'Novo',
+                        qtd: 1,
+                        recortes: Array.isArray(atual.recortes) ? [...atual.recortes] : [],
+                        tipoMedida: atual.tipoMedida || identificarTipoMedida(atual),
+                        nome: `${atual.categoria || ''} ${atual.espessura || ''}`.trim(),
+                        anotacoes: atual.anotacoes || '',
+                        osNumero: formatarOsNumero(atual.osNumero || ''),
+                        data_criacao: serverTimestamp(),
+                        registroSerial: novoRegistroSerial
+                    };
+
+                    transaction.set(novoDocRef, novaUnidade);
                 });
-                const docNovo = await addDoc(collection(db, 'estoque'), novaUnidade);
 
-                const itemAtualizado = { ...itemParaDetalhes, qtd: qtdAtual - 1 };
-                itensDetalhesGrupo = itensDetalhesGrupo.map((item) => item.id === itemAtualizado.id ? itemAtualizado : item);
-                preencherModalDetalhes(itemAtualizado);
-                setTimeout(() => abrirModalDetalhes(docNovo.id), 80);
+                setTimeout(() => abrirModalDetalhes(novoDocRef.id), 120);
             } catch (e) {
                 console.error(e);
-                alert('Erro ao separar o registro.');
+                alert(e?.message || 'Erro ao separar o registro.');
             } finally {
                 atualizarVisibilidadeBotaoSeparar();
             }
