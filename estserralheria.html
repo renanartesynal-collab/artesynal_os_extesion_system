@@ -2570,23 +2570,30 @@ window.confirmarPosicionamentoSimulador = () => {
                 }
 
                 await runTransaction(db, async (transaction) => {
+                    const refsPorDoc = new Map();
                     const dadosPorDoc = new Map();
-                    for (const [docId, qtdSel] of qtdPorDoc.entries()) {
+
+                    // 1) Todas as leituras primeiro (exigência do Firestore)
+                    for (const [docId] of qtdPorDoc.entries()) {
                         const ref = doc(db, 'estoque', docId);
+                        refsPorDoc.set(docId, ref);
                         const snap = await transaction.get(ref);
                         if (!snap.exists()) throw new Error('Registro não encontrado para separação.');
+                        dadosPorDoc.set(docId, snap.data() || {});
+                    }
 
-                        const atual = snap.data() || {};
+                    // 2) Validação e escrita somente após concluir todas as leituras
+                    for (const [docId, qtdSel] of qtdPorDoc.entries()) {
+                        const atual = dadosPorDoc.get(docId) || {};
                         const qtdAtual = Number(atual.qtd) || 0;
                         if (qtdAtual < qtdSel) {
                             throw new Error(`O registro ${atual.registroSerial || docId} não possui unidades suficientes.`);
                         }
 
                         const restante = qtdAtual - qtdSel;
+                        const ref = refsPorDoc.get(docId);
                         if (restante <= 0) transaction.delete(ref);
                         else transaction.update(ref, { qtd: restante });
-
-                        dadosPorDoc.set(docId, atual);
                     }
 
                     let indiceNovo = 0;
