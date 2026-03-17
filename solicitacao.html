@@ -628,7 +628,7 @@
                     const novoDoc = await addDoc(collection(db, "orcamentos"), dados);
                     idEdicao = novoDoc.id;
                     alert("Salvo com sucesso!");
-                    window.location.href = `${ROTAS.detalhes_orcamento}?id=${idEdicao}&mode=view`;
+                    window.location.href = `${ROTAS.solicitacao}?id=${idEdicao}&mode=view`;
                 }
             } catch(e) { 
                 console.error(e); 
