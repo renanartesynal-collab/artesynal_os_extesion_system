@@ -102,18 +102,16 @@
         .etiqueta-toolbar { display: flex; justify-content: flex-end; margin: 10px 0 12px; }
         .btn-pdf-etiqueta { background: linear-gradient(90deg, #8e44ad, #b567d6); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 900; padding: 9px 12px; cursor: pointer; }
         .btn-pdf-etiqueta:hover { filter: brightness(1.08); }
-        .etiqueta-print-area { width: 600px; height: 300px; max-width: 100%; border-radius: 16px; border: 2px solid #111; background: linear-gradient(135deg, #f9fafb, #e5e7eb); padding: 10px; color: #101010; display: grid; grid-template-columns: 34% 66%; gap: 10px; overflow: hidden; }
+        .etiqueta-print-area { width: 4.8cm; height: 2.8cm; max-width: 100%; border-radius: 8px; border: none; background: #fff; padding: 0.08cm; color: #101010; display: grid; grid-template-columns: 1fr 1fr; gap: 0.08cm; overflow: hidden; box-sizing: border-box; }
         .etiqueta-print-area.pdf-render { max-width: none; }
-        .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 12px; padding: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .etiqueta-qr { border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 6px; width: 190px; height: 190px; box-sizing: border-box; overflow: hidden; }
+        .etiqueta-col-esq { background: #fff; border-radius: 6px; padding: 0.03cm; display: flex; align-items: center; justify-content: center; overflow: hidden; min-width: 0; min-height: 0; }
+        .etiqueta-qr { background: #fff; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; box-sizing: border-box; overflow: hidden; font-size: 11px; text-align: center; }
         .etiqueta-qr img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-        .etiqueta-col-dir { display: grid; grid-template-rows: auto auto 1fr; gap: 6px; min-height: 0; }
-        .etiqueta-bloco { background: #ffffffd9; border: 1px solid #d0d0d0; border-radius: 10px; padding: 5px 7px; min-height: 0; }
-        .etiqueta-label { font-size: 10px; font-weight: 900; letter-spacing: 0.35px; line-height: 1.1; }
-        .etiqueta-valor { font-size: 14px; font-weight: 800; margin-top: 1px; line-height: 1.1; word-break: break-word; }
-        .etiqueta-valor.sm { font-size: 12px; }
-        .etiqueta-par-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .etiqueta-subcampo { background: rgba(255,255,255,0.6); border: 1px solid #d7d7d7; border-radius: 8px; padding: 3px 5px; min-height: 0; }
+        .etiqueta-col-dir { display: flex; flex-direction: column; justify-content: center; gap: 0.12cm; min-height: 0; min-width: 0; padding: 0.02cm 0.06cm; }
+        .etiqueta-linha { min-height: 0; }
+        .etiqueta-label { font-size: 8px; font-weight: 900; letter-spacing: 0.15px; line-height: 1.05; text-transform: uppercase; }
+        .etiqueta-valor { font-size: 12px; font-weight: 800; margin-top: 0.01cm; line-height: 1.06; word-break: break-word; }
+        .etiqueta-valor-nome { font-size: 11px; font-weight: 900; line-height: 1.08; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -231,7 +229,7 @@
         <div class="modal-box" style="max-width: 680px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-etiqueta')">Fechar</button>
             <h2 style="margin-top:0; color:var(--purple)">Etiqueta da Mídia</h2>
-            <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiquetaImp()">📄 GERAR PDF (6x3 cm)</button></div>
+            <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiquetaImp()">📄 GERAR PDF (4,8x2,8 cm)</button></div>
             <div id="etiqueta-card-imp" class="etiqueta-print-area"></div>
         </div>
     </div>
@@ -249,6 +247,7 @@
         window.isNewCategory = false;
         let produtos = [];
         let categoriasDinamicas = [];
+        let hashAbertoId = null;
 
         // Constantes Impressão
         const CATS_IMP = ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Tinta', 'Outros'];
@@ -265,6 +264,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             ouvirEstoque();
             iniciarPainelTintas();
+            window.addEventListener('hashchange', () => {
+                hashAbertoId = null;
+                tentarAbrirInfoPorHash();
+            });
         });
 
         function ouvirEstoque() {
@@ -290,6 +293,7 @@
                 if(grid) {
                     const card = document.createElement('div');
                     card.className = `card-prod`;
+                    card.dataset.itemId = p.id;
                     let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--purple); color:white; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
                     let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
                     conteudo += `<span class="prod-cat">${p.categoria}</span>`;
@@ -307,6 +311,8 @@
                     grid.appendChild(card);
                 }
             });
+
+            tentarAbrirInfoPorHash();
         }
 
         window.deletarItem = async (id) => {
@@ -516,18 +522,33 @@
             return data.toLocaleDateString('pt-BR');
         }
 
+        function obterItemIdDoHash() {
+            if (!window.location.hash) return null;
+            return window.location.hash.replace('#item-', '').trim() || null;
+        }
+
+        function tentarAbrirInfoPorHash() {
+            const itemId = obterItemIdDoHash();
+            if (!itemId || hashAbertoId === itemId) return;
+            const item = produtos.find(p => p.id === itemId);
+            const card = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (!item || !card) return;
+            hashAbertoId = itemId;
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.abrirModalDetalhes(itemId);
+        }
+
         window.abrirModalEtiquetaImp = async (id) => {
             const item = produtos.find(p => p.id === id);
             if (!item) return;
 
             const dataRegistro = formatarDataFirestore(item.data_atualizacao || item.data_criacao);
-            const larguraMatch = (item.nome || '').match(/(\d+[\.,]?\d*)\s*m/i);
-            const largura = larguraMatch ? `${larguraMatch[1].replace(',', '.')}m` : `${item.qtd || '-'} ${item.unidade || ''}`.trim();
-            const payloadQr = `SETOR: Impressão\nITEM: ${item.nome || item.categoria}\nLARGURA: ${largura}\nDATA: ${dataRegistro}\nID: ${item.id}`;
+            const urlDestino = `${window.location.origin}${window.location.pathname}#item-${item.id}`;
+            const payloadQr = urlDestino;
 
             let qrSrc = '';
             try {
-                qrSrc = await QRCode.toDataURL(payloadQr, { margin: 1, width: 220 });
+                qrSrc = await QRCode.toDataURL(payloadQr, { margin: 0, width: 420 });
             } catch (e) {
                 console.error(e);
             }
@@ -537,19 +558,13 @@
                     <div class="etiqueta-qr">${qrSrc ? `<img src="${qrSrc}" alt="QR Code da mídia">` : 'QR indisponível'}</div>
                 </div>
                 <div class="etiqueta-col-dir">
-                    <div class="etiqueta-bloco">
-                        <div class="etiqueta-label">DESCRIÇÃO</div>
-                        <div class="etiqueta-valor sm">${item.nome || item.categoria || 'N/A'}</div>
+                    <div class="etiqueta-linha">
+                        <div class="etiqueta-label">Nome da mídia</div>
+                        <div class="etiqueta-valor-nome">${item.nome || item.categoria || 'N/A'}</div>
                     </div>
-                    <div class="etiqueta-bloco">
-                        <div class="etiqueta-par-linha">
-                            <div class="etiqueta-subcampo"><div class="etiqueta-label">LARGURA DE MÍDIA</div><div class="etiqueta-valor sm">${largura}</div></div>
-                            <div class="etiqueta-subcampo"><div class="etiqueta-label">DATA</div><div class="etiqueta-valor sm">${dataRegistro}</div></div>
-                        </div>
-                    </div>
-                    <div class="etiqueta-bloco">
-                        <div class="etiqueta-label">QR CODE</div>
-                        <div class="etiqueta-valor sm">${item.id}</div>
+                    <div class="etiqueta-linha">
+                        <div class="etiqueta-label">Data de cadastro</div>
+                        <div class="etiqueta-valor">${dataRegistro}</div>
                     </div>
                 </div>
             `;
@@ -563,8 +578,8 @@
 
             const clone = alvo.cloneNode(true);
             clone.classList.add('pdf-render');
-            clone.style.width = '600px';
-            clone.style.height = '300px';
+            clone.style.width = '4.8cm';
+            clone.style.height = '2.8cm';
             clone.style.position = 'fixed';
             clone.style.left = '-9999px';
             clone.style.top = '0';
@@ -574,10 +589,10 @@
                 const canvas = await html2canvas(clone, { backgroundColor: '#f3f4f6', scale: 3, useCORS: true, logging: false });
                 const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'landscape', unit: 'cm', format: [6, 3] });
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'cm', format: [4.8, 2.8] });
 
-                const pageW = 6;
-                const pageH = 3;
+                const pageW = 4.8;
+                const pageH = 2.8;
                 const imgRatio = canvas.width / canvas.height;
                 let drawW = pageW;
                 let drawH = drawW / imgRatio;
