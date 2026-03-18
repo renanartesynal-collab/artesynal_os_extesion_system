@@ -548,9 +548,14 @@
 
             let qrSrc = '';
             try {
-                qrSrc = await QRCode.toDataURL(payloadQr, { margin: 0, width: 420 });
+                if (window.QRCode?.toDataURL) {
+                    qrSrc = await window.QRCode.toDataURL(payloadQr, { margin: 0, width: 420 });
+                } else {
+                    qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(payloadQr)}`;
+                }
             } catch (e) {
                 console.error(e);
+                qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(payloadQr)}`;
             }
 
             document.getElementById('etiqueta-card-imp').innerHTML = `
