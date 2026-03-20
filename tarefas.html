@@ -58,6 +58,9 @@
 
     .side-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index:45; }
     .side-toggle button { border-radius: 10px 0 0 10px; border: 1px solid #444; border-right: none; background: #1c1c1c; color: #fff; padding: 12px 10px; cursor: pointer; }
+    .side-quick-close { position: fixed; top: 50%; right: 360px; transform: translateY(-50%); z-index:46; display:none; }
+    .side-quick-close button { border-radius: 10px 0 0 10px; border: 1px solid #444; border-right: none; background:#ef4444; color:#fff; padding: 12px 10px; cursor:pointer; font-weight:800; }
+    .sidebar.open + .side-quick-close { display:block; }
     .sidebar { position: fixed; top:0; right:-360px; width:360px; max-width:92vw; height:100vh; background:#111; border-left:1px solid #2c2c2c; padding:14px; transition:right .22s; z-index:44; display:flex; flex-direction:column; }
     .sidebar.open { right:0; }
     .sidebar h3 { margin:0; }
@@ -83,6 +86,7 @@
       <a class="btn" href="index.html">⬅ Voltar ao painel</a>
       <button class="btn" id="btn-notify">🔔 Ativar notificação</button>
       <button class="btn primary" id="btn-new">+ Nova tarefa</button>
+      <button class="btn" id="btn-delete-done">🗑 Excluir concluídas</button>
     </div>
   </div>
 
@@ -100,6 +104,7 @@
     </div>
     <div class="req-list" id="req-list"></div>
   </aside>
+  <div class="side-quick-close"><button id="btn-close-side-quick">✖</button></div>
 
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
@@ -129,6 +134,14 @@
           <input id="f-resumo" placeholder="Ex: Comprar mídia adesivo brilho" />
         </div>
       </div>
+      <div class="row">
+        <div class="field">
+          <label>Card do setor (opcional)</label>
+          <select id="f-card">
+            <option value="">Sem vínculo com card</option>
+          </select>
+        </div>
+      </div>
 
       <div id="opts" class="opt-panel"></div>
 
@@ -148,7 +161,7 @@
   <script type="module">
     import { db } from './config.js';
     import { protegerPagina } from './auth.js';
-    import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, serverTimestamp, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     const sessao = await protegerPagina({ paginaAtual: 'tarefas.html' });
     if (!sessao) throw new Error('Sessão inválida');
@@ -170,6 +183,7 @@
       setor: document.getElementById('f-setor'),
       tipo: document.getElementById('f-tipo'),
       user: document.getElementById('f-user'),
+      card: document.getElementById('f-card'),
       resumo: document.getElementById('f-resumo'),
       desc: document.getElementById('f-desc'),
       opts: document.getElementById('opts'),
@@ -179,6 +193,7 @@
     };
 
     let usuarios = [];
+    let cardsSetor = [];
     let pendingCount = 0;
 
     function labelSetor(setor) {
@@ -188,9 +203,42 @@
       return setor || 'Não informado';
     }
 
-    function preencherTipos() {
+    function montarLinkCard(setor, cardId) {
+      const mapa = {
+        impressao: 'estimpressao.html',
+        serralheria: 'estserralheria.html',
+        orcamento: 'orcamentos.html'
+      };
+      const page = mapa[setor];
+      if (!page || !cardId) return '';
+      const url = new URL(page, window.location.href);
+      url.searchParams.set('focusCard', cardId);
+      return url.toString();
+    }
+
+    function labelCardDoSetor(item = {}) {
+      if (item.setor === 'orcamento') {
+        const cliente = item.cliente || 'Sem cliente';
+        const num = item.numeroDisplay || item.id;
+        return `${num} • ${cliente}`;
+      }
+      return `${item.nome || item.categoria || 'Card'} (${item.id})`;
+    }
+
+    function preencherCardsSetorSelecionado(selecionado = '') {
+      const options = [`<option value="">Sem vínculo com card</option>`];
+      cardsSetor.forEach((c) => {
+        options.push(`<option value="${c.id}">${labelCardDoSetor(c)}</option>`);
+      });
+      refs.card.innerHTML = options.join('');
+      if (selecionado && cardsSetor.some((c) => c.id === selecionado)) refs.card.value = selecionado;
+    }
+
+    async function preencherTipos(cardId = '') {
       const tipos = MAPA_TIPOS[refs.setor.value] || [];
       refs.tipo.innerHTML = tipos.map((t) => `<option value="${t}">${t}</option>`).join('');
+      await carregarCardsSetor(refs.setor.value);
+      preencherCardsSetorSelecionado(cardId);
       renderOpcoes();
     }
 
@@ -252,13 +300,51 @@
       refs.user.innerHTML = usuarios.map((u) => `<option value="${u.email}">${u.nome} (${u.email})</option>`).join('');
     }
 
-    function abrirModal(pre = {}) {
+    async function carregarCardsSetor(setor) {
+      cardsSetor = [];
+      try {
+        if (setor === 'orcamento') {
+          const snap = await getDocs(query(collection(db, 'orcamentos'), orderBy('numero_solicitacao', 'desc')));
+          snap.forEach((d) => {
+            const it = d.data() || {};
+            if (it.arquivado) return;
+            const numero = String(it.numero_solicitacao || '').padStart(4, '0');
+            cardsSetor.push({
+              id: d.id,
+              setor,
+              cliente: it.cliente || '',
+              numeroDisplay: `${it.prefixo || 'OR'}-${numero}`
+            });
+          });
+          return;
+        }
+
+        if (setor === 'impressao' || setor === 'serralheria') {
+          const snap = await getDocs(query(collection(db, 'estoque'), where('setor', '==', setor)));
+          snap.forEach((d) => {
+            if (d.id === 'TINTAS_SISTEMA') return;
+            const it = d.data() || {};
+            cardsSetor.push({
+              id: d.id,
+              setor,
+              nome: it.nome || '',
+              categoria: it.categoria || ''
+            });
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao carregar cards do setor:', err);
+      }
+    }
+
+    async function abrirModal(pre = {}) {
       refs.setor.value = pre.setor || 'impressao';
-      preencherTipos();
+      await preencherTipos(pre.cardId || '');
       if (pre.tipo) refs.tipo.value = pre.tipo;
       refs.resumo.value = pre.resumo || '';
       refs.desc.value = pre.desc || '';
       if (pre.destinatarioEmail) refs.user.value = pre.destinatarioEmail.toLowerCase();
+      if (pre.cardId && refs.card.value !== pre.cardId) refs.card.value = '';
       renderOpcoes();
       refs.modal.style.display = 'flex';
     }
@@ -268,6 +354,7 @@
     async function salvarTarefa() {
       const toEmail = refs.user.value;
       const destino = usuarios.find((u) => u.email === toEmail);
+      const cardAlvo = cardsSetor.find((c) => c.id === refs.card.value);
       if (!destino) return alert('Selecione um usuário válido.');
       if (!refs.resumo.value.trim()) return alert('Preencha o resumo da tarefa.');
 
@@ -282,6 +369,12 @@
         destinatarioNome: destino.nome,
         solicitanteEmail: me.email,
         solicitanteNome: me.nome,
+        cardAlvo: cardAlvo ? {
+          id: cardAlvo.id,
+          setor: cardAlvo.setor,
+          label: labelCardDoSetor(cardAlvo),
+          link: montarLinkCard(cardAlvo.setor, cardAlvo.id)
+        } : null,
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
         concluida_em: null,
@@ -297,6 +390,16 @@
         concluida_por: me.email,
         updated_at: serverTimestamp()
       });
+    }
+
+    async function excluirConcluidas() {
+      const ok = confirm('Deseja excluir todas as tarefas concluídas deste painel?');
+      if (!ok) return;
+      const qDone = query(collection(db, 'tarefas'), where('destinatarioEmail', '==', me.email), where('status', '==', 'concluida'));
+      const snap = await getDocs(qDone);
+      if (snap.empty) return alert('Não há tarefas concluídas para excluir.');
+      await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, 'tarefas', d.id))));
+      alert(`${snap.size} tarefa(s) concluída(s) excluída(s).`);
     }
 
     function extrasToText(extras = {}) {
@@ -331,7 +434,9 @@
             </div>
             <div class="card-actions">
               ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
+              ${t.cardAlvo?.link ? `<a class="btn" href="${t.cardAlvo.link}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
             </div>
+            ${t.cardAlvo?.label ? `<div class="meta">Card vinculado: <b>${t.cardAlvo.label}</b></div>` : ''}
           </article>
         `;
       }).join('');
@@ -351,6 +456,7 @@
           <div><b>${t.resumo || t.tipo || 'Sem resumo'}</b></div>
           <div style="font-size:12px;color:#cbd5e1;">Para: ${t.destinatarioNome || t.destinatarioEmail}</div>
           <div class="st ${t.status === 'concluida' ? 'c' : 'p'}">${t.status === 'concluida' ? 'Concluída' : 'Pendente'}</div>
+          ${t.cardAlvo?.link ? `<a class="btn" style="margin-top:6px;display:inline-block;" href="${t.cardAlvo.link}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
         </div>
       `).join('');
     }
@@ -410,14 +516,18 @@
     }
 
     document.getElementById('btn-new').addEventListener('click', () => abrirModal());
+    document.getElementById('btn-delete-done').addEventListener('click', excluirConcluidas);
     document.getElementById('btn-cancel').addEventListener('click', fecharModal);
     document.getElementById('btn-save').addEventListener('click', salvarTarefa);
-    refs.setor.addEventListener('change', preencherTipos);
+    refs.setor.addEventListener('change', async () => preencherTipos());
     refs.tipo.addEventListener('change', renderOpcoes);
 
     const sidebar = document.getElementById('sidebar');
-    document.getElementById('btn-side').addEventListener('click', () => sidebar.classList.add('open'));
-    document.getElementById('btn-close-side').addEventListener('click', () => sidebar.classList.remove('open'));
+    const toggleSide = () => sidebar.classList.toggle('open');
+    const closeSide = () => sidebar.classList.remove('open');
+    document.getElementById('btn-side').addEventListener('click', toggleSide);
+    document.getElementById('btn-close-side').addEventListener('click', closeSide);
+    document.getElementById('btn-close-side-quick').addEventListener('click', closeSide);
 
     document.getElementById('btn-notify').addEventListener('click', async () => {
       if (!('Notification' in window)) return alert('Seu navegador não suporta notificações.');
@@ -426,13 +536,14 @@
     });
 
     await carregarUsuarios();
-    preencherTipos();
+    await preencherTipos();
     monitorar();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('action') === 'nova') {
-      abrirModal({
+      await abrirModal({
         setor: params.get('setor') || 'impressao',
+        cardId: params.get('cardId') || '',
         resumo: params.get('resumo') || '',
         desc: params.get('desc') || ''
       });
