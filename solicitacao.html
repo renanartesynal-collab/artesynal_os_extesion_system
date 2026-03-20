@@ -250,6 +250,15 @@
                         <button class="btn-v-action b-edit" onclick="window.abrirModalVisita()">✏️ EDITAR INFO VISITA</button>
                     </div>
                 </div>
+                <div style="margin-top:10px; border:1px solid #2f2f2f; border-radius:10px; background:#101010; padding:10px;">
+                    <button id="btn-open-task-panel" class="btn-v-action" style="background:#1f2937; border:1px solid #374151;">📌 Anexar tarefa</button>
+                    <div id="task-panel" style="display:none; margin-top:10px;">
+                        <input id="task-title" placeholder="Título da tarefa" style="margin-bottom:8px;">
+                        <textarea id="task-desc" placeholder="Descrição breve da tarefa" style="min-height:70px; margin-bottom:8px;"></textarea>
+                        <select id="task-user" style="margin-bottom:8px;"></select>
+                        <button id="btn-send-task" class="btn-save" style="margin-top:0; background:#16a34a;">Enviar tarefa</button>
+                    </div>
+                </div>
                 <div class="view-body">
                     <div class="view-servico-titulo" id="view-servico">Título</div>
                     <div class="view-cliente" id="view-cliente">Cliente</div>
@@ -339,7 +348,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDoc, doc, updateDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, getDoc, doc, updateDoc, query, where, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar-1').href = ROTAS.orcamentos;
         document.getElementById('link-voltar-2').href = ROTAS.orcamentos;
@@ -349,6 +358,12 @@
         let idEdicao = null;
         let modoAtual = 'edit';
         let idVisitaTecnicaGerada = null;
+        let usuariosTarefa = [];
+        const sessaoTarefa = JSON.parse(localStorage.getItem('artesynal_session') || 'null');
+        const userTaskMe = {
+            nome: sessaoTarefa?.nome || '',
+            email: (sessaoTarefa?.email || '').toLowerCase()
+        };
 
         // ==========================================
         // VARIÁVEIS DO CANVAS ROBUSTO
@@ -380,7 +395,68 @@
             canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDown(e); }, {passive: false});
             canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive: false});
             canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, {passive: false});
+            iniciarPainelTarefaCard();
         };
+
+        async function carregarUsuariosTarefa() {
+            const qUsuarios = query(collection(db, 'access_requests'), where('status', '==', 'approved'));
+            const snap = await getDocs(qUsuarios);
+            usuariosTarefa = [];
+            snap.forEach((d) => {
+                const it = d.data() || {};
+                if (it.blocked || !it.email) return;
+                usuariosTarefa.push({ email: String(it.email).toLowerCase(), nome: it.nome || it.email });
+            });
+            usuariosTarefa.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            document.getElementById('task-user').innerHTML = usuariosTarefa.map((u) => `<option value="${u.email}">${u.nome} (${u.email})</option>`).join('');
+        }
+
+        function iniciarPainelTarefaCard() {
+            const btn = document.getElementById('btn-open-task-panel');
+            const panel = document.getElementById('task-panel');
+            btn?.addEventListener('click', async () => {
+                if (!usuariosTarefa.length) await carregarUsuariosTarefa();
+                const tituloAtual = document.getElementById('view-servico')?.innerText || document.getElementById('in-servico')?.value || '';
+                document.getElementById('task-title').value = `Orçamento: ${tituloAtual}`.trim();
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            });
+            document.getElementById('btn-send-task')?.addEventListener('click', enviarTarefaDoCard);
+        }
+
+        async function enviarTarefaDoCard() {
+            if (!idEdicao) return alert('Salve o orçamento antes de anexar tarefas.');
+            const titulo = document.getElementById('task-title').value.trim();
+            const descricao = document.getElementById('task-desc').value.trim();
+            const email = document.getElementById('task-user').value;
+            const destino = usuariosTarefa.find((u) => u.email === email);
+            if (!titulo) return alert('Informe o título da tarefa.');
+            if (!destino) return alert('Selecione o usuário da tarefa.');
+
+            await addDoc(collection(db, 'tarefas'), {
+                setor: 'orcamento',
+                tipo: 'Card',
+                resumo: titulo,
+                descricao,
+                extras: {},
+                status: 'pendente',
+                destinatarioEmail: destino.email,
+                destinatarioNome: destino.nome,
+                solicitanteEmail: userTaskMe.email,
+                solicitanteNome: userTaskMe.nome,
+                cardAlvo: {
+                    id: idEdicao,
+                    setor: 'orcamento',
+                    label: document.getElementById('view-id')?.innerText || idEdicao,
+                    link: `${window.location.origin}/solicitacao.html?id=${idEdicao}&mode=view`
+                },
+                created_at: serverTimestamp(),
+                updated_at: serverTimestamp(),
+                concluida_em: null,
+                concluida_por: null
+            });
+            alert('Tarefa anexada com sucesso.');
+            document.getElementById('task-panel').style.display = 'none';
+        }
 
         window.alternarModo = (modo) => {
             modoAtual = modo;
