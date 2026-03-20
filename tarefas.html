@@ -85,7 +85,6 @@
     <div class="actions-top">
       <a class="btn" href="index.html">⬅ Voltar ao painel</a>
       <button class="btn" id="btn-notify">🔔 Ativar notificação</button>
-      <button class="btn primary" id="btn-new">+ Nova tarefa</button>
       <button class="btn" id="btn-delete-done">🗑 Excluir concluídas</button>
     </div>
   </div>
@@ -424,19 +423,12 @@
         return `
           <article class="task-card ${done ? 'done' : ''}">
             <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
-            <span class="tag">${t.tipo || 'Card'}</span>
             <div class="title">${t.resumo || 'Sem resumo'}</div>
             <div class="desc">${t.descricao || '-'}</div>
-            ${extrasToText(t.extras)}
-            <div class="meta">
-              Solicitado por: <b>${t.solicitanteNome || t.solicitanteEmail}</b><br>
-              Criado em: ${data}
-            </div>
             <div class="card-actions">
               ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
               ${t.cardAlvo?.link ? `<a class="btn" href="${t.cardAlvo.link}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
             </div>
-            ${t.cardAlvo?.label ? `<div class="meta">Card vinculado: <b>${t.cardAlvo.label}</b></div>` : ''}
           </article>
         `;
       }).join('');
@@ -515,7 +507,6 @@
       assinarSolicitadas(true);
     }
 
-    document.getElementById('btn-new').addEventListener('click', () => abrirModal());
     document.getElementById('btn-delete-done').addEventListener('click', excluirConcluidas);
     document.getElementById('btn-cancel').addEventListener('click', fecharModal);
     document.getElementById('btn-save').addEventListener('click', salvarTarefa);

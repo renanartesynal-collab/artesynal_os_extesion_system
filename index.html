@@ -32,10 +32,18 @@
             width: 100%;
             background: #231f20;
             padding: 20px;
-            text-align: center;
             border-bottom: 4px solid var(--yellow);
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             box-sizing: border-box;
+        }
+        .header-top { display:flex; align-items:center; justify-content:center; gap:16px; position: relative; }
+        .notify-btn {
+            position:absolute; right:20px; top:50%; transform:translateY(-50%);
+            border:1px solid #444; background:#111; color:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:800;
+        }
+        .notify-count {
+            position:absolute; top:-8px; right:-8px; min-width:20px; height:20px; border-radius:999px;
+            background:#ef4444; color:#fff; font-size:11px; display:none; align-items:center; justify-content:center; padding:0 6px;
         }
 
         h1 { margin: 0; font-weight: 900; letter-spacing: 1px; color: white; text-transform: uppercase; font-size: 24px; }
@@ -114,7 +122,13 @@
 <body>
 
     <header>
-        <h1>Painel Central</h1>
+        <div class="header-top">
+            <h1>Painel Central</h1>
+            <button id="btn-notify-tasks" class="notify-btn" title="Abrir tarefas">
+                🔔
+                <span id="notify-count" class="notify-count">0</span>
+            </button>
+        </div>
         <div class="subtitle">SISTEMA ARTESYNAL</div>
             <div id="user-bar" style="margin-top:10px;font-size:12px;color:#bdc3c7;"></div>
     </header>
@@ -169,15 +183,6 @@
             </div>
         </a>
 
-
-        <a href="tarefas.html" class="card mod-lista" data-pages="producao instalacao administracao">
-            <div class="icon-box">✅</div>
-            <div class="card-content">
-                <div class="card-title">Tarefas</div>
-                <div class="card-desc">Visualizar tarefas anexadas para você e solicitações realizadas.</div>
-            </div>
-        </a>
-
         <a href="admin-acessos.html" class="card mod-lista" data-pages="administracao" id="card-admin" style="display:none;">
             <div class="icon-box">🔐</div>
             <div class="card-content">
@@ -193,13 +198,16 @@
 
 
     <script type="module">
+        import { db } from './config.js';
         import { obterConfiguracaoCategorias, protegerPagina, logout } from './auth.js';
+        import { collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
         const sessao = await protegerPagina({ paginaAtual: 'index.html' });
         if (!sessao) throw new Error('Sem sessão');
 
         const perfil = sessao.acesso.categoria;
         const nome = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+        const meEmail = (sessao.user.email || sessao.acesso.email || '').toLowerCase();
 
         const categoriasConfig = await obterConfiguracaoCategorias();
 
@@ -214,6 +222,23 @@
         document.getElementById('logout-link').addEventListener('click', async (e) => {
             e.preventDefault();
             await logout();
+        });
+
+        const btnNotify = document.getElementById('btn-notify-tasks');
+        const countBadge = document.getElementById('notify-count');
+        btnNotify.addEventListener('click', () => {
+            window.location.href = 'tarefas.html';
+        });
+
+        const qTarefas = query(collection(db, 'tarefas'), where('destinatarioEmail', '==', meEmail), where('status', '==', 'pendente'));
+        onSnapshot(qTarefas, (snap) => {
+            const total = snap.size || 0;
+            if (total > 0) {
+                countBadge.style.display = 'flex';
+                countBadge.textContent = String(total);
+            } else {
+                countBadge.style.display = 'none';
+            }
         });
     </script>
 </body>

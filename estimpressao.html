@@ -214,6 +214,7 @@
         <div class="modal-box" style="max-width: 450px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-detalhes')">Fechar</button>
             <h2 style="margin-top:0; color:var(--purple); border-bottom:1px solid #333; padding-bottom:10px;">Informações do Material</h2>
+            <button class="btn-adj" id="btn-open-task-panel" style="margin-top:0; margin-bottom:10px; background:#1f2937; border:1px solid #374151;">📌 Anexar tarefa</button>
 
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
             <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #333;"></pre>
@@ -222,6 +223,14 @@
             <textarea id="detalhes-anotacoes" placeholder="O histórico de baixas e suas anotações aparecerão aqui..."></textarea>
 
             <button class="btn-salvar" id="btn-salvar-anotacoes" onclick="salvarAnotacoes()" style="margin-top:15px; background:#444; border: 1px solid #666;">💾 SALVAR ANOTAÇÕES</button>
+
+            <div id="task-panel" style="display:none; margin-top:12px; background:#111; border:1px solid #333; border-radius:8px; padding:10px;">
+                <div style="font-weight:800; margin-bottom:8px;">Nova tarefa para este card</div>
+                <input id="task-title" placeholder="Título da tarefa" style="margin-bottom:8px;">
+                <textarea id="task-desc" placeholder="Descrição breve da tarefa" style="min-height:70px; margin-bottom:8px;"></textarea>
+                <select id="task-user" style="margin-bottom:8px;"></select>
+                <button class="btn-salvar" id="btn-send-task" style="margin-top:0; background:#16a34a;">Enviar tarefa</button>
+            </div>
         </div>
     </div>
 
@@ -240,7 +249,8 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { protegerPagina } from "./auth.js";
+        import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'impressao'; // Fixo para este arquivo
@@ -248,6 +258,12 @@
         let produtos = [];
         let categoriasDinamicas = [];
         let hashAbertoId = null;
+        const sessaoTarefa = await protegerPagina({ paginaAtual: 'estimpressao.html' });
+        const userTaskMe = {
+            nome: sessaoTarefa?.user?.displayName || sessaoTarefa?.acesso?.nome || '',
+            email: (sessaoTarefa?.user?.email || '').toLowerCase()
+        };
+        let usuariosTarefa = [];
 
         // Constantes Impressão
         const CATS_IMP = ['Adesivo', 'Lona', 'Adesivo de Recorte', 'Tinta', 'Outros'];
@@ -264,11 +280,36 @@
         document.addEventListener('DOMContentLoaded', () => {
             ouvirEstoque();
             iniciarPainelTintas();
+            iniciarPainelTarefaCard();
             window.addEventListener('hashchange', () => {
                 hashAbertoId = null;
                 tentarAbrirInfoPorHash();
             });
         });
+
+        async function carregarUsuariosTarefa() {
+            const qUsuarios = query(collection(db, 'access_requests'), where('status', '==', 'approved'));
+            const snap = await getDocs(qUsuarios);
+            usuariosTarefa = [];
+            snap.forEach((d) => {
+                const it = d.data() || {};
+                if (it.blocked || !it.email) return;
+                usuariosTarefa.push({ email: String(it.email).toLowerCase(), nome: it.nome || it.email });
+            });
+            usuariosTarefa.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            document.getElementById('task-user').innerHTML = usuariosTarefa.map((u) => `<option value="${u.email}">${u.nome} (${u.email})</option>`).join('');
+        }
+
+        function iniciarPainelTarefaCard() {
+            const btn = document.getElementById('btn-open-task-panel');
+            const panel = document.getElementById('task-panel');
+            const send = document.getElementById('btn-send-task');
+            btn?.addEventListener('click', async () => {
+                if (!usuariosTarefa.length) await carregarUsuariosTarefa();
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            });
+            send?.addEventListener('click', enviarTarefaDoCard);
+        }
 
         function ouvirEstoque() {
             const q = query(collection(db, "estoque"), where("setor", "==", window.setorAtual));
@@ -445,8 +486,46 @@
             let info = `📝 Cadastrado no setor: IMPRESSÃO\n📦 Quantidade Atual: ${itemParaDetalhes.qtd} ${itemParaDetalhes.unidade}\n`;
             document.getElementById('detalhes-info').innerText = info;
             document.getElementById('detalhes-anotacoes').value = itemParaDetalhes.anotacoes || '';
+            document.getElementById('task-title').value = `Impressão: ${itemParaDetalhes.nome || itemParaDetalhes.categoria || 'Card'}`;
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-panel').style.display = 'none';
             document.getElementById('modal-detalhes').style.display = 'flex';
         };
+
+        async function enviarTarefaDoCard() {
+            if (!itemParaDetalhes) return;
+            const titulo = document.getElementById('task-title').value.trim();
+            const descricao = document.getElementById('task-desc').value.trim();
+            const email = document.getElementById('task-user').value;
+            const destino = usuariosTarefa.find((u) => u.email === email);
+            if (!titulo) return alert('Informe o título da tarefa.');
+            if (!destino) return alert('Selecione o usuário da tarefa.');
+
+            await addDoc(collection(db, 'tarefas'), {
+                setor: 'impressao',
+                tipo: 'Card',
+                resumo: titulo,
+                descricao,
+                extras: {},
+                status: 'pendente',
+                destinatarioEmail: destino.email,
+                destinatarioNome: destino.nome,
+                solicitanteEmail: userTaskMe.email,
+                solicitanteNome: userTaskMe.nome,
+                cardAlvo: {
+                    id: itemParaDetalhes.id,
+                    setor: 'impressao',
+                    label: `${itemParaDetalhes.nome || itemParaDetalhes.categoria || 'Card'} (${itemParaDetalhes.id})`,
+                    link: `${window.location.origin}${window.location.pathname}?focusCard=${itemParaDetalhes.id}`
+                },
+                created_at: serverTimestamp(),
+                updated_at: serverTimestamp(),
+                concluida_em: null,
+                concluida_por: null
+            });
+            alert('Tarefa anexada com sucesso.');
+            document.getElementById('task-panel').style.display = 'none';
+        }
 
         window.salvarAnotacoes = async () => {
             if (!itemParaDetalhes) return;
@@ -621,10 +700,6 @@
 
     </script>
 
-    <script type="module">
-        import { protegerPagina } from './auth.js';
-        await protegerPagina({ paginaAtual: 'estimpressao.html' });
-    </script>
     <script src="./task-shortcut.js"></script>
 </body>
 </html>

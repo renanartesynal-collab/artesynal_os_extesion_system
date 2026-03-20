@@ -517,6 +517,7 @@
         <div class="modal-box" style="max-width: 520px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-detalhes')">Fechar</button>
             <h2 style="margin-top:0; color:var(--orange); border-bottom:1px solid #333; padding-bottom:10px;">Informações do Material</h2>
+            <button class="btn-adj" id="btn-open-task-panel" style="margin-top:0; margin-bottom:10px; background:#1f2937; border:1px solid #374151;">📌 Anexar tarefa</button>
             
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
             <div id="detalhes-registro-wrap" style="display:none; margin:8px 0 4px;">
@@ -540,6 +541,13 @@
             <textarea id="detalhes-anotacoes" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Registre informações dessa chapa, como o número da O.S. que a consumiu..."></textarea>
 
             <button class="btn-salvar" id="btn-salvar-anotacoes" onclick="salvarAnotacoes()" style="margin-top:15px; background:#444; border: 1px solid #666;">💾 SALVAR ANOTAÇÕES</button>
+            <div id="task-panel" style="display:none; margin-top:12px; background:#111; border:1px solid #333; border-radius:8px; padding:10px;">
+                <div style="font-weight:800; margin-bottom:8px;">Nova tarefa para este card</div>
+                <input id="task-title" placeholder="Título da tarefa" style="margin-bottom:8px;">
+                <textarea id="task-desc" placeholder="Descrição breve da tarefa" style="min-height:70px; margin-bottom:8px;"></textarea>
+                <select id="task-user" style="margin-bottom:8px;"></select>
+                <button class="btn-salvar" id="btn-send-task" style="margin-top:0; background:#16a34a;">Enviar tarefa</button>
+            </div>
         </div>
     </div>
 
@@ -567,12 +575,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, doc, setDoc, updateDoc, query, where, onSnapshot, serverTimestamp, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { protegerPagina } from "./auth.js";
+        import { collection, addDoc, doc, setDoc, updateDoc, query, where, onSnapshot, serverTimestamp, runTransaction, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo
         window.materialStatus = "Novo";
         window.isNewCategory = false;
+        const sessaoTarefa = await protegerPagina({ paginaAtual: 'estserralheria.html' });
+        const userTaskMe = {
+            nome: sessaoTarefa?.user?.displayName || sessaoTarefa?.acesso?.nome || '',
+            email: (sessaoTarefa?.user?.email || '').toLowerCase()
+        };
+        let usuariosTarefa = [];
         window.indiceMedidaPadrao = 0;
         let produtos = [];
         let categoriasDinamicas = [];
@@ -641,7 +656,32 @@
             aplicarConfigCorPreviewUI();
             ouvirConfigCores();
             ouvirEstoque();
+            iniciarPainelTarefaCard();
         });
+
+        async function carregarUsuariosTarefa() {
+            const qUsuarios = query(collection(db, 'access_requests'), where('status', '==', 'approved'));
+            const snap = await getDocs(qUsuarios);
+            usuariosTarefa = [];
+            snap.forEach((d) => {
+                const it = d.data() || {};
+                if (it.blocked || !it.email) return;
+                usuariosTarefa.push({ email: String(it.email).toLowerCase(), nome: it.nome || it.email });
+            });
+            usuariosTarefa.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+            document.getElementById('task-user').innerHTML = usuariosTarefa.map((u) => `<option value="${u.email}">${u.nome} (${u.email})</option>`).join('');
+        }
+
+        function iniciarPainelTarefaCard() {
+            const btn = document.getElementById('btn-open-task-panel');
+            const panel = document.getElementById('task-panel');
+            const send = document.getElementById('btn-send-task');
+            btn?.addEventListener('click', async () => {
+                if (!usuariosTarefa.length) await carregarUsuariosTarefa();
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            });
+            send?.addEventListener('click', enviarTarefaDoCard);
+        }
 
         function normalizarCategoria(cat = '') {
             return cat.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -2664,8 +2704,46 @@ window.confirmarPosicionamentoSimulador = () => {
 
             preencherModalDetalhes(itensDetalhesGrupo[0]);
             renderizarListaRegistrosDetalhes();
+            document.getElementById('task-title').value = `Serralheria: ${itensDetalhesGrupo[0].categoria || 'Material'} ${itensDetalhesGrupo[0].espessura || ''}`.trim();
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-panel').style.display = 'none';
             document.getElementById('modal-detalhes').style.display = 'flex';
         };
+
+        async function enviarTarefaDoCard() {
+            if (!itemParaDetalhes) return;
+            const titulo = document.getElementById('task-title').value.trim();
+            const descricao = document.getElementById('task-desc').value.trim();
+            const email = document.getElementById('task-user').value;
+            const destino = usuariosTarefa.find((u) => u.email === email);
+            if (!titulo) return alert('Informe o título da tarefa.');
+            if (!destino) return alert('Selecione o usuário da tarefa.');
+
+            await addDoc(collection(db, 'tarefas'), {
+                setor: 'serralheria',
+                tipo: 'Card',
+                resumo: titulo,
+                descricao,
+                extras: {},
+                status: 'pendente',
+                destinatarioEmail: destino.email,
+                destinatarioNome: destino.nome,
+                solicitanteEmail: userTaskMe.email,
+                solicitanteNome: userTaskMe.nome,
+                cardAlvo: {
+                    id: itemParaDetalhes.id,
+                    setor: 'serralheria',
+                    label: `${itemParaDetalhes.categoria || 'Material'} (${itemParaDetalhes.id})`,
+                    link: `${window.location.origin}${window.location.pathname}?focusCard=${itemParaDetalhes.id}`
+                },
+                created_at: serverTimestamp(),
+                updated_at: serverTimestamp(),
+                concluida_em: null,
+                concluida_por: null
+            });
+            alert('Tarefa anexada com sucesso.');
+            document.getElementById('task-panel').style.display = 'none';
+        }
 
         window.abrirModalEtiqueta = () => {
             if (!itemParaDetalhes) return;
@@ -2786,10 +2864,6 @@ window.confirmarPosicionamentoSimulador = () => {
         };
     </script>
 
-    <script type="module">
-        import { protegerPagina } from './auth.js';
-        await protegerPagina({ paginaAtual: 'estserralheria.html' });
-    </script>
     <script src="./task-shortcut.js"></script>
 </body>
 </html>
