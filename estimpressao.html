@@ -515,7 +515,7 @@
                     id: itemParaDetalhes.id,
                     setor: 'impressao',
                     label: `${itemParaDetalhes.nome || itemParaDetalhes.categoria || 'Card'} (${itemParaDetalhes.id})`,
-                    link: `${window.location.origin}${window.location.pathname}?focusCard=${itemParaDetalhes.id}&openDetail=1`
+                    link: `${window.location.origin}${window.location.pathname}#item-${itemParaDetalhes.id}`
                 },
                 created_at: serverTimestamp(),
                 updated_at: serverTimestamp(),

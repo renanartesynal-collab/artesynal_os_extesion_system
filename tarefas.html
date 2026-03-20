@@ -216,8 +216,7 @@
         url.searchParams.set('mode', 'view');
         return url.toString();
       }
-      url.searchParams.set('focusCard', cardId);
-      url.searchParams.set('openDetail', '1');
+      url.hash = `item-${cardId}`;
       return url.toString();
     }
 
@@ -414,6 +413,12 @@
       alert(`${snap.size} tarefa(s) concluída(s) excluída(s).`);
     }
 
+    async function excluirTarefa(id) {
+      const ok = confirm('Deseja excluir esta tarefa?');
+      if (!ok) return;
+      await deleteDoc(doc(db, 'tarefas', id));
+    }
+
     function extrasToText(extras = {}) {
       const linhas = [];
       Object.entries(extras).forEach(([k, v]) => {
@@ -441,6 +446,7 @@
             <div class="card-actions">
               ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
               ${resolverLinkTarefa(t) ? `<a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
+              ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
             </div>
           </article>
         `;
@@ -448,6 +454,9 @@
 
       refs.taskList.querySelectorAll('[data-concluir]').forEach((btn) => {
         btn.addEventListener('click', () => concluirTarefa(btn.dataset.concluir));
+      });
+      refs.taskList.querySelectorAll('[data-del]').forEach((btn) => {
+        btn.addEventListener('click', () => excluirTarefa(btn.dataset.del));
       });
     }
 
@@ -462,8 +471,12 @@
           <div style="font-size:12px;color:#cbd5e1;">Para: ${t.destinatarioNome || t.destinatarioEmail}</div>
           <div class="st ${t.status === 'concluida' ? 'c' : 'p'}">${t.status === 'concluida' ? 'Concluída' : 'Pendente'}</div>
           ${resolverLinkTarefa(t) ? `<a class="btn" style="margin-top:6px;display:inline-block;" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
+          <button class="btn" style="margin-top:6px;" data-del-req="${t.id}">✖</button>
         </div>
       `).join('');
+      refs.reqList.querySelectorAll('[data-del-req]').forEach((btn) => {
+        btn.addEventListener('click', () => excluirTarefa(btn.dataset.delReq));
+      });
     }
 
     function ordenarPorDataDesc(lista = []) {
