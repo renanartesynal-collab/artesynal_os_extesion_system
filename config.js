@@ -26,5 +26,6 @@ export const ROTAS = {
     lista: "lista.html",
     estoque: "estserralheria.html",
     orcamentos: "orcamentos.html",
-    solicitacao: "solicitacao.html"
+    solicitacao: "solicitacao.html",
+    tarefas: "tarefas.html"
 };
