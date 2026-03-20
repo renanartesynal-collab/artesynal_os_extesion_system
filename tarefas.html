@@ -1,1 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Tarefas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --card: #161616;
+      --muted: #a3a3a3;
+      --line: #2b2b2b;
+      --accent: #ff6b00;
+      --ok: #22c55e;
+      --pending: #f59e0b;
+      --danger: #ef4444;
+      --blue: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg); color: #fff; }
+    .topbar { position: sticky; top: 0; z-index: 20; background: #111; border-bottom: 1px solid var(--line); padding: 14px 18px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .topbar h1 { margin: 0; font-size: 20px; }
+    .topbar small { color: var(--muted); }
+    .actions-top { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn { border: 1px solid #3a3a3a; background: #1d1d1d; color: #fff; padding: 9px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 12px; }
+    .btn:hover { filter: brightness(1.15); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); }
+    .btn.ok { background: var(--ok); border-color: var(--ok); color: #041007; }
 
+    .wrap { padding: 18px; max-width: 1280px; margin: 0 auto; }
+    .status { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+    .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; }
+    .task-card.done { border-left-color: var(--ok); opacity: .8; }
+    .tag { display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:#222; color:#ddd; margin-right:6px; }
+    .tag.imp { background:#291a3d; color:#ca8bff; }
+    .tag.serr { background:#362313; color:#ffb573; }
+    .tag.orc { background:#123040; color:#7dd3fc; }
+    .title { font-weight:800; margin:8px 0 6px; }
+    .desc { font-size:13px; color:#ddd; white-space: pre-wrap; }
+    .meta { margin-top:8px; font-size:11px; color:var(--muted); line-height:1.5; }
+    .card-actions { margin-top: 10px; display:flex; gap:8px; }
+
+    .empty { color:#777; border:1px dashed #444; border-radius:10px; padding:22px; text-align:center; }
+
+    .modal-bg { position: fixed; inset:0; background: rgba(0,0,0,.75); display:none; align-items:center; justify-content:center; z-index:40; }
+    .modal { background: #121212; border:1px solid #333; width:min(700px,94vw); max-height:90vh; overflow:auto; border-radius:12px; padding:16px; }
+    .modal h2 { margin:0 0 12px; }
+    .row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:10px; }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .field label { font-size:12px; color: var(--muted); font-weight: 700; }
+    input, select, textarea { background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:8px; padding:10px; font-family:inherit; }
+    textarea { min-height:95px; resize:vertical; }
+    .hint { font-size: 11px; color: #94a3b8; }
+    .opt-panel { border:1px solid #303030; border-radius:8px; padding:10px; margin-bottom:10px; background:#101010; }
+
+    .side-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index:45; }
+    .side-toggle button { border-radius: 10px 0 0 10px; border: 1px solid #444; border-right: none; background: #1c1c1c; color: #fff; padding: 12px 10px; cursor: pointer; }
+    .sidebar { position: fixed; top:0; right:-360px; width:360px; max-width:92vw; height:100vh; background:#111; border-left:1px solid #2c2c2c; padding:14px; transition:right .22s; z-index:44; display:flex; flex-direction:column; }
+    .sidebar.open { right:0; }
+    .sidebar h3 { margin:0; }
+    .req-list { margin-top:10px; display:flex; flex-direction:column; gap:8px; overflow:auto; }
+    .req-item { border:1px solid #333; border-radius:8px; padding:9px; }
+    .req-item .st { font-size:11px; font-weight:700; }
+    .st.p { color:var(--pending); }
+    .st.c { color:var(--ok); }
+
+    @media (max-width: 680px) {
+      .row { grid-template-columns:1fr; }
+      .topbar { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <h1>✅ Painel de Tarefas</h1>
+      <small id="who"></small>
+    </div>
+    <div class="actions-top">
+      <a class="btn" href="index.html">⬅ Voltar ao painel</a>
+      <button class="btn" id="btn-notify">🔔 Ativar notificação</button>
+      <button class="btn primary" id="btn-new">+ Nova tarefa</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="status" id="status-msg">Carregando tarefas...</div>
+    <h3 style="margin:10px 0 8px;">Minhas tarefas</h3>
+    <div id="task-list" class="grid"></div>
+  </div>
+
+  <div class="side-toggle"><button id="btn-side">📋 Minhas solicitações</button></div>
+  <aside class="sidebar" id="sidebar">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <h3>Solicitações que eu fiz</h3>
+      <button class="btn" id="btn-close-side">Fechar</button>
+    </div>
+    <div class="req-list" id="req-list"></div>
+  </aside>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal">
+      <h2>Anexar tarefa</h2>
+      <div class="row">
+        <div class="field">
+          <label>Setor</label>
+          <select id="f-setor">
+            <option value="impressao">Impressão</option>
+            <option value="serralheria">Serralheria</option>
+            <option value="orcamento">Orçamento</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tipo de card</label>
+          <select id="f-tipo"></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Anexar para usuário</label>
+          <select id="f-user"></select>
+        </div>
+        <div class="field">
+          <label>Título/Resumo</label>
+          <input id="f-resumo" placeholder="Ex: Comprar mídia adesivo brilho" />
+        </div>
+      </div>
+
+      <div id="opts" class="opt-panel"></div>
+
+      <div class="field">
+        <label>Descrição detalhada</label>
+        <textarea id="f-desc" placeholder="Descreva o que deve ser realizado no card..."></textarea>
+      </div>
+
+      <div class="hint" style="margin-top:8px;">As opções mudam automaticamente com base no setor/tipo de card.</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn" id="btn-cancel">Cancelar</button>
+        <button class="btn ok" id="btn-save">Salvar tarefa</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db } from './config.js';
+    import { protegerPagina } from './auth.js';
+    import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, serverTimestamp, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const sessao = await protegerPagina({ paginaAtual: 'tarefas.html' });
+    if (!sessao) throw new Error('Sessão inválida');
+
+    const me = {
+      nome: sessao.user.displayName || sessao.acesso.nome,
+      email: (sessao.user.email || '').toLowerCase()
+    };
+    document.getElementById('who').textContent = `Logado como ${me.nome} (${me.email})`;
+
+    const MAPA_TIPOS = {
+      impressao: ['Mídia', 'Insumo', 'Ajuste de Impressão'],
+      serralheria: ['Material', 'Corte', 'Montagem'],
+      orcamento: ['Orçamento', 'Contato', 'Aprovação']
+    };
+
+    const refs = {
+      modal: document.getElementById('modal-bg'),
+      setor: document.getElementById('f-setor'),
+      tipo: document.getElementById('f-tipo'),
+      user: document.getElementById('f-user'),
+      resumo: document.getElementById('f-resumo'),
+      desc: document.getElementById('f-desc'),
+      opts: document.getElementById('opts'),
+      taskList: document.getElementById('task-list'),
+      reqList: document.getElementById('req-list'),
+      status: document.getElementById('status-msg')
+    };
+
+    let usuarios = [];
+    let pendingCount = 0;
+
+    function labelSetor(setor) {
+      if (setor === 'impressao') return 'Impressão';
+      if (setor === 'serralheria') return 'Serralheria';
+      if (setor === 'orcamento') return 'Orçamento';
+      return setor || 'Não informado';
+    }
+
+    function preencherTipos() {
+      const tipos = MAPA_TIPOS[refs.setor.value] || [];
+      refs.tipo.innerHTML = tipos.map((t) => `<option value="${t}">${t}</option>`).join('');
+      renderOpcoes();
+    }
+
+    function renderOpcoes() {
+      const setor = refs.setor.value;
+      const tipo = refs.tipo.value;
+      const blocos = [];
+
+      if (setor === 'impressao') {
+        blocos.push(`<label><input type="checkbox" id="opt-comprar-midia"> Solicitar compra de mídia</label>`);
+        blocos.push(`<label><input type="checkbox" id="opt-urgente"> Urgente</label>`);
+      }
+      if (setor === 'serralheria') {
+        blocos.push(`<label><input type="checkbox" id="opt-corte"> Necessita corte</label>`);
+        blocos.push(`<input id="opt-medida" placeholder="Tamanho(s): ex 120x80 / 120x120" />`);
+        blocos.push(`<label><input type="radio" name="destino-corte" value="local" checked> Corte local</label>`);
+        blocos.push(`<label><input type="radio" name="destino-corte" value="externo"> Encaminhar para corte externo</label>`);
+        blocos.push(`<input id="opt-local-externo" placeholder="Local externo (se aplicável)" />`);
+      }
+      if (setor === 'orcamento') {
+        blocos.push(`<label><input type="checkbox" id="opt-cliente-contato"> Cliente precisa de contato</label>`);
+        blocos.push(`<label><input type="checkbox" id="opt-aprovacao"> Aguardando aprovação</label>`);
+      }
+
+      refs.opts.innerHTML = `<div style="font-size:12px;color:#a3a3a3;margin-bottom:8px;">Opções rápidas para: <b>${tipo || 'card'}</b></div>${blocos.join('<br>')}`;
+    }
+
+    function coletarExtras() {
+      const setor = refs.setor.value;
+      const extras = {};
+      if (setor === 'impressao') {
+        extras.comprarMidia = !!document.getElementById('opt-comprar-midia')?.checked;
+        extras.urgente = !!document.getElementById('opt-urgente')?.checked;
+      }
+      if (setor === 'serralheria') {
+        extras.precisaCorte = !!document.getElementById('opt-corte')?.checked;
+        extras.medidas = document.getElementById('opt-medida')?.value?.trim() || '';
+        extras.destinoCorte = document.querySelector('input[name="destino-corte"]:checked')?.value || 'local';
+        extras.localExterno = document.getElementById('opt-local-externo')?.value?.trim() || '';
+      }
+      if (setor === 'orcamento') {
+        extras.precisaContato = !!document.getElementById('opt-cliente-contato')?.checked;
+        extras.aguardandoAprovacao = !!document.getElementById('opt-aprovacao')?.checked;
+      }
+      return extras;
+    }
+
+    async function carregarUsuarios() {
+      const q = query(collection(db, 'access_requests'), where('status', '==', 'approved'));
+      const snap = await getDocs(q);
+      usuarios = [];
+      snap.forEach((d) => {
+        const item = d.data();
+        if (item?.blocked) return;
+        if (!item?.email) return;
+        usuarios.push({ nome: item.nome || item.email, email: item.email.toLowerCase() });
+      });
+      usuarios.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      refs.user.innerHTML = usuarios.map((u) => `<option value="${u.email}">${u.nome} (${u.email})</option>`).join('');
+    }
+
+    function abrirModal(pre = {}) {
+      refs.setor.value = pre.setor || 'impressao';
+      preencherTipos();
+      if (pre.tipo) refs.tipo.value = pre.tipo;
+      refs.resumo.value = pre.resumo || '';
+      refs.desc.value = pre.desc || '';
+      if (pre.destinatarioEmail) refs.user.value = pre.destinatarioEmail.toLowerCase();
+      renderOpcoes();
+      refs.modal.style.display = 'flex';
+    }
+
+    function fecharModal() { refs.modal.style.display = 'none'; }
+
+    async function salvarTarefa() {
+      const toEmail = refs.user.value;
+      const destino = usuarios.find((u) => u.email === toEmail);
+      if (!destino) return alert('Selecione um usuário válido.');
+      if (!refs.resumo.value.trim()) return alert('Preencha o resumo da tarefa.');
+
+      await addDoc(collection(db, 'tarefas'), {
+        setor: refs.setor.value,
+        tipo: refs.tipo.value,
+        resumo: refs.resumo.value.trim(),
+        descricao: refs.desc.value.trim(),
+        extras: coletarExtras(),
+        status: 'pendente',
+        destinatarioEmail: destino.email,
+        destinatarioNome: destino.nome,
+        solicitanteEmail: me.email,
+        solicitanteNome: me.nome,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+        concluida_em: null,
+        concluida_por: null
+      });
+      fecharModal();
+    }
+
+    async function concluirTarefa(id) {
+      await updateDoc(doc(db, 'tarefas', id), {
+        status: 'concluida',
+        concluida_em: serverTimestamp(),
+        concluida_por: me.email,
+        updated_at: serverTimestamp()
+      });
+    }
+
+    function extrasToText(extras = {}) {
+      const linhas = [];
+      Object.entries(extras).forEach(([k, v]) => {
+        if (v === '' || v === false || v == null) return;
+        linhas.push(`${k}: ${v}`);
+      });
+      return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
+    }
+
+    function renderTarefas(list) {
+      refs.status.textContent = `Você possui ${list.filter((t) => t.status === 'pendente').length} tarefa(s) pendente(s).`;
+      if (!list.length) {
+        refs.taskList.innerHTML = '<div class="empty">Nenhuma tarefa anexada para você.</div>';
+        return;
+      }
+      refs.taskList.innerHTML = list.map((t) => {
+        const done = t.status === 'concluida';
+        const data = t.created_at?.toDate?.() ? t.created_at.toDate().toLocaleString('pt-BR') : 'agora';
+        const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
+        return `
+          <article class="task-card ${done ? 'done' : ''}">
+            <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
+            <span class="tag">${t.tipo || 'Card'}</span>
+            <div class="title">${t.resumo || 'Sem resumo'}</div>
+            <div class="desc">${t.descricao || '-'}</div>
+            ${extrasToText(t.extras)}
+            <div class="meta">
+              Solicitado por: <b>${t.solicitanteNome || t.solicitanteEmail}</b><br>
+              Criado em: ${data}
+            </div>
+            <div class="card-actions">
+              ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      refs.taskList.querySelectorAll('[data-concluir]').forEach((btn) => {
+        btn.addEventListener('click', () => concluirTarefa(btn.dataset.concluir));
+      });
+    }
+
+    function renderSolicitacoes(list) {
+      if (!list.length) {
+        refs.reqList.innerHTML = '<div class="empty">Você ainda não solicitou tarefas.</div>';
+        return;
+      }
+      refs.reqList.innerHTML = list.map((t) => `
+        <div class="req-item">
+          <div><b>${t.resumo || t.tipo || 'Sem resumo'}</b></div>
+          <div style="font-size:12px;color:#cbd5e1;">Para: ${t.destinatarioNome || t.destinatarioEmail}</div>
+          <div class="st ${t.status === 'concluida' ? 'c' : 'p'}">${t.status === 'concluida' ? 'Concluída' : 'Pendente'}</div>
+        </div>
+      `).join('');
+    }
+
+    function monitorar() {
+      const qMinhas = query(collection(db, 'tarefas'), where('destinatarioEmail', '==', me.email), orderBy('created_at', 'desc'));
+      onSnapshot(qMinhas, (snap) => {
+        const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const novoPend = lista.filter((t) => t.status === 'pendente').length;
+        if (pendingCount && novoPend > pendingCount && Notification.permission === 'granted') {
+          new Notification('Nova tarefa recebida', { body: `Você recebeu ${novoPend - pendingCount} nova(s) tarefa(s).` });
+        }
+        pendingCount = novoPend;
+        renderTarefas(lista);
+      });
+
+      const qFeitas = query(collection(db, 'tarefas'), where('solicitanteEmail', '==', me.email), orderBy('created_at', 'desc'));
+      onSnapshot(qFeitas, (snap) => {
+        const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderSolicitacoes(lista);
+      });
+    }
+
+    document.getElementById('btn-new').addEventListener('click', () => abrirModal());
+    document.getElementById('btn-cancel').addEventListener('click', fecharModal);
+    document.getElementById('btn-save').addEventListener('click', salvarTarefa);
+    refs.setor.addEventListener('change', preencherTipos);
+    refs.tipo.addEventListener('change', renderOpcoes);
+
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('btn-side').addEventListener('click', () => sidebar.classList.add('open'));
+    document.getElementById('btn-close-side').addEventListener('click', () => sidebar.classList.remove('open'));
+
+    document.getElementById('btn-notify').addEventListener('click', async () => {
+      if (!('Notification' in window)) return alert('Seu navegador não suporta notificações.');
+      const p = await Notification.requestPermission();
+      alert(p === 'granted' ? 'Notificações ativadas.' : 'Notificações não permitidas.');
+    });
+
+    await carregarUsuarios();
+    preencherTipos();
+    monitorar();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'nova') {
+      abrirModal({
+        setor: params.get('setor') || 'impressao',
+        resumo: params.get('resumo') || '',
+        desc: params.get('desc') || ''
+      });
+    }
+  </script>
+</body>
+</html>

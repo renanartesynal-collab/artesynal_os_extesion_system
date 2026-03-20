@@ -20,11 +20,11 @@ const ADMIN_PADRAO = {
 export const PERFIS = {
   producao: {
     label: "Produção",
-    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html"]
+    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "tarefas.html"]
   },
   instalacao: {
     label: "Instalação",
-    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html"]
+    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "tarefas.html"]
   },
   administracao: {
     label: "Administração",
@@ -36,7 +36,8 @@ export const PERFIS = {
       "estimpressao.html",
       "estserralheria.html",
       "estpintura.html",
-      "admin-acessos.html"
+      "admin-acessos.html",
+      "tarefas.html"
     ]
   }
 };
@@ -49,7 +50,8 @@ export const MODULOS_MENU = [
   { pagina: "estimpressao.html", label: "Impressão" },
   { pagina: "estserralheria.html", label: "Serralheria" },
   { pagina: "estpintura.html", label: "Pintura" },
-  { pagina: "admin-acessos.html", label: "Gerenciamento de Acessos" }
+  { pagina: "admin-acessos.html", label: "Gerenciamento de Acessos" },
+  { pagina: "tarefas.html", label: "Tarefas" }
 ];
 
 const VISIBILIDADE_PADRAO = {
@@ -60,7 +62,8 @@ const VISIBILIDADE_PADRAO = {
     "estimpressao.html": false,
     "estserralheria.html": false,
     "estpintura.html": false,
-    "admin-acessos.html": false
+    "admin-acessos.html": false,
+    "tarefas.html": true
   },
   instalacao: {
     "os.html": false,
@@ -69,7 +72,8 @@ const VISIBILIDADE_PADRAO = {
     "estimpressao.html": true,
     "estserralheria.html": true,
     "estpintura.html": true,
-    "admin-acessos.html": false
+    "admin-acessos.html": false,
+    "tarefas.html": true
   },
   administracao: {
     "os.html": true,
@@ -78,7 +82,8 @@ const VISIBILIDADE_PADRAO = {
     "estimpressao.html": true,
     "estserralheria.html": true,
     "estpintura.html": true,
-    "admin-acessos.html": true
+    "admin-acessos.html": true,
+    "tarefas.html": true
   }
 };
 
