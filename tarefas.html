@@ -355,23 +355,58 @@
       `).join('');
     }
 
-    function monitorar() {
-      const qMinhas = query(collection(db, 'tarefas'), where('destinatarioEmail', '==', me.email), orderBy('created_at', 'desc'));
-      onSnapshot(qMinhas, (snap) => {
-        const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        const novoPend = lista.filter((t) => t.status === 'pendente').length;
-        if (pendingCount && novoPend > pendingCount && Notification.permission === 'granted') {
-          new Notification('Nova tarefa recebida', { body: `Você recebeu ${novoPend - pendingCount} nova(s) tarefa(s).` });
-        }
-        pendingCount = novoPend;
-        renderTarefas(lista);
+    function ordenarPorDataDesc(lista = []) {
+      return [...lista].sort((a, b) => {
+        const aMs = a?.created_at?.toMillis?.() || 0;
+        const bMs = b?.created_at?.toMillis?.() || 0;
+        return bMs - aMs;
       });
+    }
 
-      const qFeitas = query(collection(db, 'tarefas'), where('solicitanteEmail', '==', me.email), orderBy('created_at', 'desc'));
-      onSnapshot(qFeitas, (snap) => {
-        const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        renderSolicitacoes(lista);
-      });
+    function monitorar() {
+      const colTarefas = collection(db, 'tarefas');
+
+      const assinarMinhas = (usarOrderBy = true) => {
+        const qMinhas = usarOrderBy
+          ? query(colTarefas, where('destinatarioEmail', '==', me.email), orderBy('created_at', 'desc'))
+          : query(colTarefas, where('destinatarioEmail', '==', me.email));
+
+        onSnapshot(qMinhas, (snap) => {
+          const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const ordenada = usarOrderBy ? lista : ordenarPorDataDesc(lista);
+          const novoPend = ordenada.filter((t) => t.status === 'pendente').length;
+          if (pendingCount && novoPend > pendingCount && Notification.permission === 'granted') {
+            new Notification('Nova tarefa recebida', { body: `Você recebeu ${novoPend - pendingCount} nova(s) tarefa(s).` });
+          }
+          pendingCount = novoPend;
+          renderTarefas(ordenada);
+        }, (err) => {
+          console.error('Erro ao monitorar tarefas recebidas:', err);
+          if (usarOrderBy) {
+            assinarMinhas(false);
+            return;
+          }
+          refs.status.textContent = 'Não foi possível carregar suas tarefas.';
+        });
+      };
+
+      const assinarSolicitadas = (usarOrderBy = true) => {
+        const qFeitas = usarOrderBy
+          ? query(colTarefas, where('solicitanteEmail', '==', me.email), orderBy('created_at', 'desc'))
+          : query(colTarefas, where('solicitanteEmail', '==', me.email));
+
+        onSnapshot(qFeitas, (snap) => {
+          const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          const ordenada = usarOrderBy ? lista : ordenarPorDataDesc(lista);
+          renderSolicitacoes(ordenada);
+        }, (err) => {
+          console.error('Erro ao monitorar tarefas solicitadas:', err);
+          if (usarOrderBy) assinarSolicitadas(false);
+        });
+      };
+
+      assinarMinhas(true);
+      assinarSolicitadas(true);
     }
 
     document.getElementById('btn-new').addEventListener('click', () => abrirModal());
