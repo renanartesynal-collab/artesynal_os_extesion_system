@@ -99,9 +99,11 @@
 
         .btn-etiqueta { background: #4a2f5f; }
         .btn-etiqueta:hover { background: #6d3b92; }
-        .etiqueta-toolbar { display: flex; justify-content: flex-end; margin: 10px 0 12px; }
+        .etiqueta-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin: 10px 0 12px; }
         .btn-pdf-etiqueta { background: linear-gradient(90deg, #8e44ad, #b567d6); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 900; padding: 9px 12px; cursor: pointer; }
         .btn-pdf-etiqueta:hover { filter: brightness(1.08); }
+        .btn-img-etiqueta { background: linear-gradient(90deg, #2563eb, #4f8df7); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 900; padding: 9px 12px; cursor: pointer; }
+        .btn-img-etiqueta:hover { filter: brightness(1.08); }
         .etiqueta-print-area { width: 4.8cm; height: 2.8cm; max-width: 100%; border-radius: 8px; border: none; background: #fff; padding: 0.08cm; color: #101010; display: grid; grid-template-columns: 1fr 1fr; gap: 0.08cm; overflow: hidden; box-sizing: border-box; }
         .etiqueta-print-area.pdf-render { max-width: none; }
         .etiqueta-col-esq { background: #fff; border-radius: 6px; padding: 0.03cm; display: flex; align-items: center; justify-content: center; overflow: hidden; min-width: 0; min-height: 0; }
@@ -238,7 +240,7 @@
         <div class="modal-box" style="max-width: 680px;">
             <button class="btn-voltar-top" onclick="fecharModal('modal-etiqueta')">Fechar</button>
             <h2 style="margin-top:0; color:var(--purple)">Etiqueta da Mídia</h2>
-            <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiquetaImp()">📄 GERAR PDF (4,8x2,8 cm)</button></div>
+            <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiquetaImp()">📄 GERAR PDF (4,8x2,8 cm)</button><button class="btn-img-etiqueta" onclick="gerarImagemEtiquetaImp()">🖼️ GERAR IMAGEM</button></div>
             <div id="etiqueta-card-imp" class="etiqueta-print-area"></div>
         </div>
     </div>
@@ -692,6 +694,34 @@
             } catch (e) {
                 console.error(e);
                 alert('Erro ao gerar PDF.');
+            } finally {
+                clone.remove();
+            }
+        };
+
+        window.gerarImagemEtiquetaImp = async () => {
+            const alvo = document.getElementById('etiqueta-card-imp');
+            if (!alvo || !alvo.innerHTML.trim()) return alert('Abra uma etiqueta antes de gerar a imagem.');
+            if (!window.html2canvas) return alert('Biblioteca de imagem não carregada.');
+
+            const clone = alvo.cloneNode(true);
+            clone.classList.add('pdf-render');
+            clone.style.width = '4.8cm';
+            clone.style.height = '2.8cm';
+            clone.style.position = 'fixed';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            document.body.appendChild(clone);
+
+            try {
+                const canvas = await html2canvas(clone, { backgroundColor: '#f3f4f6', scale: 3, useCORS: true, logging: false });
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `etiqueta-impressao-${Date.now()}.png`;
+                link.click();
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar imagem.');
             } finally {
                 clone.remove();
             }
