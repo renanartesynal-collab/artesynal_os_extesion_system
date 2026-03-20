@@ -447,7 +447,7 @@
                     id: idEdicao,
                     setor: 'orcamento',
                     label: document.getElementById('view-id')?.innerText || idEdicao,
-                    link: `${window.location.origin}/orcamentos.html?focusCard=${idEdicao}`
+                    link: `${window.location.origin}/solicitacao.html?id=${idEdicao}&mode=view`
                 },
                 created_at: serverTimestamp(),
                 updated_at: serverTimestamp(),

@@ -206,13 +206,26 @@
       const mapa = {
         impressao: 'estimpressao.html',
         serralheria: 'estserralheria.html',
-        orcamento: 'orcamentos.html'
+        orcamento: 'solicitacao.html'
       };
       const page = mapa[setor];
       if (!page || !cardId) return '';
       const url = new URL(page, window.location.href);
+      if (setor === 'orcamento') {
+        url.searchParams.set('id', cardId);
+        url.searchParams.set('mode', 'view');
+        return url.toString();
+      }
       url.searchParams.set('focusCard', cardId);
+      url.searchParams.set('openDetail', '1');
       return url.toString();
+    }
+
+    function resolverLinkTarefa(tarefa = {}) {
+      if (tarefa?.cardAlvo?.setor && tarefa?.cardAlvo?.id) {
+        return montarLinkCard(tarefa.cardAlvo.setor, tarefa.cardAlvo.id);
+      }
+      return tarefa?.cardAlvo?.link || '';
     }
 
     function labelCardDoSetor(item = {}) {
@@ -427,7 +440,7 @@
             <div class="desc">${t.descricao || '-'}</div>
             <div class="card-actions">
               ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
-              ${t.cardAlvo?.link ? `<a class="btn" href="${t.cardAlvo.link}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
+              ${resolverLinkTarefa(t) ? `<a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
             </div>
           </article>
         `;
@@ -448,7 +461,7 @@
           <div><b>${t.resumo || t.tipo || 'Sem resumo'}</b></div>
           <div style="font-size:12px;color:#cbd5e1;">Para: ${t.destinatarioNome || t.destinatarioEmail}</div>
           <div class="st ${t.status === 'concluida' ? 'c' : 'p'}">${t.status === 'concluida' ? 'Concluída' : 'Pendente'}</div>
-          ${t.cardAlvo?.link ? `<a class="btn" style="margin-top:6px;display:inline-block;" href="${t.cardAlvo.link}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
+          ${resolverLinkTarefa(t) ? `<a class="btn" style="margin-top:6px;display:inline-block;" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
         </div>
       `).join('');
     }

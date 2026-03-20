@@ -11,6 +11,7 @@
   const abrirCardPorLink = () => {
     const params = new URLSearchParams(window.location.search);
     const target = (params.get('focusCard') || '').trim();
+    const openDetail = params.get('openDetail') === '1';
     if (!target) return;
 
     const byId = document.getElementById(`card-${target}`);
@@ -27,6 +28,16 @@
       card.style.outline = prevOutline;
       card.style.boxShadow = prevShadow;
     }, 3500);
+
+    if (openDetail && typeof window.abrirModalDetalhes === 'function') {
+      setTimeout(() => {
+        try {
+          window.abrirModalDetalhes(target);
+        } catch (e) {
+          console.warn('Não foi possível abrir detalhes do card automaticamente:', e);
+        }
+      }, 350);
+    }
   };
 
   abrirCardPorLink();
