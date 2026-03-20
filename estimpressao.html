@@ -249,7 +249,6 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { protegerPagina } from "./auth.js";
         import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
@@ -258,10 +257,10 @@
         let produtos = [];
         let categoriasDinamicas = [];
         let hashAbertoId = null;
-        const sessaoTarefa = await protegerPagina({ paginaAtual: 'estimpressao.html' });
+        const sessaoLocal = JSON.parse(localStorage.getItem('artesynal_session') || 'null');
         const userTaskMe = {
-            nome: sessaoTarefa?.user?.displayName || sessaoTarefa?.acesso?.nome || '',
-            email: (sessaoTarefa?.user?.email || '').toLowerCase()
+            nome: sessaoLocal?.nome || '',
+            email: (sessaoLocal?.email || '').toLowerCase()
         };
         let usuariosTarefa = [];
 
@@ -700,6 +699,10 @@
 
     </script>
 
+    <script type="module">
+        import { protegerPagina } from './auth.js';
+        await protegerPagina({ paginaAtual: 'estimpressao.html' });
+    </script>
     <script src="./task-shortcut.js"></script>
 </body>
 </html>

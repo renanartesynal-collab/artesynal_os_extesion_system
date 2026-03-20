@@ -348,7 +348,6 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { protegerPagina } from "./auth.js";
         import { collection, addDoc, getDoc, doc, updateDoc, query, where, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar-1').href = ROTAS.orcamentos;
@@ -360,10 +359,10 @@
         let modoAtual = 'edit';
         let idVisitaTecnicaGerada = null;
         let usuariosTarefa = [];
-        const sessaoTarefa = await protegerPagina({ paginaAtual: 'orcamentos.html' });
+        const sessaoTarefa = JSON.parse(localStorage.getItem('artesynal_session') || 'null');
         const userTaskMe = {
-            nome: sessaoTarefa?.user?.displayName || sessaoTarefa?.acesso?.nome || '',
-            email: (sessaoTarefa?.user?.email || '').toLowerCase()
+            nome: sessaoTarefa?.nome || '',
+            email: (sessaoTarefa?.email || '').toLowerCase()
         };
 
         // ==========================================

@@ -575,17 +575,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { protegerPagina } from "./auth.js";
         import { collection, addDoc, doc, setDoc, updateDoc, query, where, onSnapshot, serverTimestamp, runTransaction, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Variáveis de Estado
         window.setorAtual = 'serralheria'; // Fixo para este arquivo
         window.materialStatus = "Novo";
         window.isNewCategory = false;
-        const sessaoTarefa = await protegerPagina({ paginaAtual: 'estserralheria.html' });
+        const sessaoLocal = JSON.parse(localStorage.getItem('artesynal_session') || 'null');
         const userTaskMe = {
-            nome: sessaoTarefa?.user?.displayName || sessaoTarefa?.acesso?.nome || '',
-            email: (sessaoTarefa?.user?.email || '').toLowerCase()
+            nome: sessaoLocal?.nome || '',
+            email: (sessaoLocal?.email || '').toLowerCase()
         };
         let usuariosTarefa = [];
         window.indiceMedidaPadrao = 0;
@@ -2864,6 +2863,10 @@ window.confirmarPosicionamentoSimulador = () => {
         };
     </script>
 
+    <script type="module">
+        import { protegerPagina } from './auth.js';
+        await protegerPagina({ paginaAtual: 'estserralheria.html' });
+    </script>
     <script src="./task-shortcut.js"></script>
 </body>
 </html>
