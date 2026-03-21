@@ -317,7 +317,7 @@
 
   <script type="module">
     import { db } from './config.js';
-    import { protegerPagina } from './auth.js';
+    import { PERFIS, obterConfiguracaoCategorias, protegerPagina } from './auth.js';
     import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, serverTimestamp, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     async function carregarModuloCardsTarefas() {
@@ -345,6 +345,8 @@
       nome: sessao.user.displayName || sessao.acesso.nome,
       email: (sessao.user.email || '').toLowerCase()
     };
+    const perfilAtual = sessao.acesso?.categoria || '';
+    const categoriasConfig = await obterConfiguracaoCategorias();
     document.getElementById('who').textContent = `Logado como ${me.nome} (${me.email})`;
 
     const MAPA_TIPOS = {
@@ -504,6 +506,28 @@
         return montarLinkCard(tarefa.cardAlvo.setor, tarefa.cardAlvo.id);
       }
       return tarefa?.cardAlvo?.link || '';
+    }
+
+    function paginaDoMenuPorSetor(setor = '') {
+      if (setor === 'impressao') return 'estimpressao.html';
+      if (setor === 'serralheria') return 'estserralheria.html';
+      if (setor === 'orcamento') return 'orcamentos.html';
+      return '';
+    }
+
+    function usuarioTemAcessoAoSetorDaTarefa(tarefa = {}) {
+      const paginaMenu = paginaDoMenuPorSetor(tarefa?.cardAlvo?.setor || tarefa?.setor || '');
+      if (!paginaMenu) return false;
+      const regraConfigurada = categoriasConfig?.[perfilAtual]?.[paginaMenu];
+      if (typeof regraConfigurada === 'boolean') return regraConfigurada;
+      return (PERFIS?.[perfilAtual]?.paginas || []).includes(paginaMenu);
+    }
+
+    function abrirCardDestinoDaTarefa(tarefa = {}) {
+      const link = resolverLinkTarefa(tarefa);
+      if (!link || !usuarioTemAcessoAoSetorDaTarefa(tarefa)) return false;
+      window.location.href = link;
+      return true;
     }
 
     function labelCardDoSetor(item = {}) {
@@ -970,6 +994,7 @@
         listaId: getTaskListId(tarefa),
         extras: tarefa.extras || {}
       }),
+      onOpenTask: abrirCardDestinoDaTarefa,
       onToggleIndicator: alternarSinalizacaoTarefa,
       onConcluirTask: concluirTarefa,
       onDeleteTask: excluirTarefa

@@ -13,6 +13,7 @@
       resolverLinkTarefa,
       getTaskById,
       onEditTask,
+      onOpenTask,
       onToggleIndicator,
       onConcluirTask,
       onDeleteTask
@@ -150,6 +151,7 @@
             bloquearEvento(event);
             const tarefa = getTaskById(btn.dataset.editTask);
             if (!tarefa) return;
+            if (typeof onOpenTask === 'function' && onOpenTask(tarefa) === true) return;
             onEditTask(tarefa);
           });
         });
