@@ -38,7 +38,11 @@
     .list-column { background: linear-gradient(180deg, #161616, #111111); border:1px solid #2d2d2d; border-radius:14px; width:320px; min-width:320px; max-width:320px; padding:12px; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
     .list-column.following { border-color:#60a5fa; box-shadow: 0 0 0 1px rgba(96,165,250,.35), 0 10px 24px rgba(0,0,0,.28); }
     .list-column.archived { opacity:.55; }
+    .list-column.dragging { opacity:.45; }
+    .list-column.drop-target { outline:2px dashed #60a5fa; outline-offset:3px; }
     .list-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .list-column[data-draggable-list="true"] .list-header { cursor:grab; user-select:none; }
+    .list-column[data-draggable-list="true"] .list-header:active { cursor:grabbing; }
     .list-title { font-weight:800; font-size:16px; line-height:1.15; }
     .list-sub { color:var(--muted); font-size:11px; margin-top:4px; }
     .list-menu-btn { width:34px; height:34px; border-radius:10px; border:1px solid #3b3b3b; background:#1d1d1d; color:#fff; cursor:pointer; font-weight:900; }
@@ -340,6 +344,7 @@
     let listasPainel = [];
     let tarefasRecebidas = [];
     let listaModalAtual = null;
+    let listaArrastandoId = '';
 
     const LISTA_PADRAO_ID = 'entrada-padrao';
     const LISTA_PADRAO = {
@@ -624,6 +629,72 @@
       await Promise.all(reordenadas.map((item, index) => atualizarListaPainel(item.id, { ordem: index + 1 })));
     }
 
+    async function reordenarListasPorIds(ids = []) {
+      const reordenadas = ids
+        .map((id) => listasPainel.find((item) => item.id === id))
+        .filter(Boolean);
+      if (!reordenadas.length) return;
+      await Promise.all(reordenadas.map((item, index) => atualizarListaPainel(item.id, { ordem: index + 1 })));
+    }
+
+    function inicializarArrastarListas() {
+      const colunas = refs.taskList.querySelectorAll('.list-column[data-draggable-list="true"]');
+      colunas.forEach((coluna) => {
+        coluna.draggable = true;
+
+        coluna.addEventListener('dragstart', (event) => {
+          const iniciouNoCabecalho = !!event.target.closest('[data-list-drag-handle="true"]');
+          if (!iniciouNoCabecalho || event.target.closest('.list-menu-btn')) {
+            event.preventDefault();
+            return;
+          }
+          listaArrastandoId = coluna.dataset.lista || '';
+          coluna.classList.add('dragging');
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', listaArrastandoId);
+        });
+
+        coluna.addEventListener('dragover', (event) => {
+          if (!listaArrastandoId) return;
+          if (coluna.dataset.lista === listaArrastandoId) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+          coluna.classList.add('drop-target');
+        });
+
+        coluna.addEventListener('dragleave', () => {
+          coluna.classList.remove('drop-target');
+        });
+
+        coluna.addEventListener('drop', async (event) => {
+          event.preventDefault();
+          coluna.classList.remove('drop-target');
+          const origemId = listaArrastandoId;
+          const destinoId = coluna.dataset.lista || '';
+          if (!origemId || !destinoId || origemId === destinoId) return;
+
+          const ordemAtual = obterListasAtivas()
+            .filter((item) => item.id !== LISTA_PADRAO_ID)
+            .map((item) => item.id);
+          const origemIndex = ordemAtual.indexOf(origemId);
+          const destinoIndex = ordemAtual.indexOf(destinoId);
+          if (origemIndex < 0 || destinoIndex < 0) return;
+
+          const novaOrdem = [...ordemAtual];
+          const [removida] = novaOrdem.splice(origemIndex, 1);
+          novaOrdem.splice(destinoIndex, 0, removida);
+          await reordenarListasPorIds(novaOrdem);
+        });
+
+        coluna.addEventListener('dragend', () => {
+          listaArrastandoId = '';
+          refs.taskList.querySelectorAll('.list-column').forEach((item) => {
+            item.classList.remove('dragging', 'drop-target');
+          });
+        });
+      });
+    }
+
     async function moverCartoesDaLista(lista) {
       if (!lista) return;
       const opcoes = obterListasAtivas().filter((item) => item.id !== lista.id);
@@ -859,8 +930,8 @@
         ...listas.map((lista) => {
           const tarefasDaLista = ordenarTarefasDaLista(lista, visiveis.filter((tarefa) => getTaskListId(tarefa) === lista.id));
           return `
-            <section class="list-column ${lista.seguindo ? 'following' : ''}" data-lista="${lista.id}">
-              <div class="list-header">
+            <section class="list-column ${lista.seguindo ? 'following' : ''}" data-lista="${lista.id}" data-draggable-list="${lista.id !== LISTA_PADRAO_ID ? 'true' : 'false'}">
+              <div class="list-header" data-list-drag-handle="${lista.id !== LISTA_PADRAO_ID ? 'true' : 'false'}">
                 <div>
                   <div class="list-title">${escapeHtml(lista.nome)}</div>
                   <div class="list-sub">${tarefasDaLista.length} cartão(ões) ${lista.seguindo ? '• seguindo' : ''}</div>
@@ -890,6 +961,7 @@
         btn.addEventListener('click', () => abrirModal({ listaId: btn.dataset.addCardList }));
       });
       document.getElementById('btn-add-list-inline')?.addEventListener('click', criarLista);
+      inicializarArrastarListas();
     }
 
     function renderSolicitacoes(list) {
