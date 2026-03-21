@@ -226,6 +226,7 @@
       <div class="section-title">Ações rápidas</div>
       <div class="action-list">
         <button class="action-item" id="act-add-card"><span>Adicionar cartão<small>Abre o formulário já apontando para esta lista.</small></span><span>➕</span></button>
+        <button class="action-item" id="act-rename-list"><span>Renomear lista<small>Permite editar o nome desta lista.</small></span><span>🖊</span></button>
         <button class="action-item" id="act-copy-list"><span>Copiar lista<small>Cria uma nova lista com o mesmo nome e automações.</small></span><span>📄</span></button>
         <button class="action-item" id="act-move-list"><span>Mover lista<small>Reposiciona a coluna no painel.</small></span><span>↔</span></button>
         <button class="action-item" id="act-move-cards"><span>Mover todos os cartões nesta lista<small>Envia todos os cartões para outra lista.</small></span><span>📦</span></button>
@@ -361,18 +362,10 @@
     let listaModalAtual = null;
     let tarefaArrastandoId = '';
     let tarefaEmEdicaoId = null;
+    let criandoListaInicial = false;
 
     const CICLO_SINALIZACAO = ['', 'green', 'yellow', 'red'];
-
-    const LISTA_PADRAO_ID = 'entrada-padrao';
-    const LISTA_PADRAO = {
-      id: LISTA_PADRAO_ID,
-      nome: 'Entrada',
-      ordem: 0,
-      seguindo: false,
-      arquivada: false,
-      automacoes: {}
-    };
+    const NOME_LISTA_INICIAL = 'Minha lista';
 
     function labelSetor(setor) {
       if (setor === 'impressao') return 'Impressão';
@@ -398,7 +391,7 @@
     }
 
     function normalizarListasPainel(listas = []) {
-      return [LISTA_PADRAO, ...listas]
+      return [...listas]
         .filter((lista, index, arr) => arr.findIndex((item) => item.id === lista.id) === index)
         .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
     }
@@ -408,17 +401,23 @@
     }
 
     function obterListaPorId(listaId = '') {
-      return normalizarListasPainel(listasPainel).find((lista) => lista.id === listaId) || LISTA_PADRAO;
+      return normalizarListasPainel(listasPainel).find((lista) => lista.id === listaId) || obterListasAtivas()[0] || null;
     }
 
     function preencherSelectListas(valor = '') {
       const listas = obterListasAtivas();
+      if (!listas.length) {
+        refs.lista.innerHTML = '<option value="">Crie uma lista primeiro</option>';
+        refs.autoRuleTarget.innerHTML = '<option value="">Selecione</option>';
+        refs.lista.value = '';
+        return;
+      }
       const options = listas.map((lista) => `<option value="${lista.id}">${escapeHtml(lista.nome)}</option>`);
       refs.lista.innerHTML = options.join('');
       refs.autoRuleTarget.innerHTML = [`<option value="">Selecione</option>`, ...listas.filter((lista) => lista.id !== (listaModalAtual?.id || '')).map((lista) => `<option value="${lista.id}">${escapeHtml(lista.nome)}</option>`)].join('');
 
       if (valor && listas.some((lista) => lista.id === valor)) refs.lista.value = valor;
-      else refs.lista.value = listas[0]?.id || LISTA_PADRAO_ID;
+      else refs.lista.value = listas[0]?.id || '';
     }
 
     function gerarSlugLista(nome = '') {
@@ -433,10 +432,11 @@
     }
 
     function getTaskListId(tarefa = {}) {
+      const primeiraLista = obterListasAtivas()[0];
       const listaId = String(tarefa.listaId || '').trim();
-      if (!listaId) return LISTA_PADRAO_ID;
+      if (!listaId) return primeiraLista?.id || '';
       const listaExiste = normalizarListasPainel(listasPainel).some((lista) => lista.id === listaId && !lista.arquivada);
-      return listaExiste ? listaId : LISTA_PADRAO_ID;
+      return listaExiste ? listaId : (primeiraLista?.id || '');
     }
 
     function getSortModeForList(lista = {}) {
@@ -510,8 +510,9 @@
       refs.listModalSub.innerHTML = `${escapeHtml(listaModalAtual.nome)} ${automacoesAtivas.length ? `• <span class="pill">${escapeHtml(automacoesAtivas.join(' • '))}</span>` : ''}`;
     }
 
-    function preencherAutomacoesListaModal(lista = LISTA_PADRAO) {
-      const automacoes = lista.automacoes || {};
+    function preencherAutomacoesListaModal(lista = null) {
+      const listaAtual = lista || obterListasAtivas()[0] || {};
+      const automacoes = listaAtual.automacoes || {};
       refs.autoOnAdd.value = automacoes.aoAdicionar || '';
       refs.autoDailySort.value = automacoes.diaria || '';
       refs.autoWeeklySort.value = automacoes.semanal || '';
@@ -641,6 +642,26 @@
       });
     }
 
+    async function garantirListaInicial() {
+      if (criandoListaInicial || obterListasAtivas().length) return;
+      criandoListaInicial = true;
+      try {
+        await addDoc(collection(db, 'painel_tarefas_listas'), {
+          ownerEmail: me.email,
+          nome: NOME_LISTA_INICIAL,
+          slug: gerarSlugLista(NOME_LISTA_INICIAL),
+          ordem: 0,
+          seguindo: false,
+          arquivada: false,
+          automacoes: {},
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp()
+        });
+      } finally {
+        criandoListaInicial = false;
+      }
+    }
+
     async function atualizarListaPainel(listaId, payload = {}) {
       if (!listaId) return;
       await updateDoc(doc(db, 'painel_tarefas_listas', listaId), {
@@ -667,9 +688,16 @@
       });
     }
 
+    async function renomearLista(lista) {
+      if (!lista) return;
+      const nome = prompt('Novo nome da lista:', lista.nome || '');
+      if (!nome || !nome.trim()) return;
+      await atualizarListaPainel(lista.id, { nome: nome.trim() });
+    }
+
     async function moverLista(lista) {
       if (!lista) return;
-      const listasAtivas = obterListasAtivas().filter((item) => item.id !== LISTA_PADRAO_ID);
+      const listasAtivas = obterListasAtivas();
       const atual = listasAtivas.findIndex((item) => item.id === lista.id);
       if (atual < 0) return;
       const destinoTexto = prompt(`Mover "${lista.nome}" para qual posição? (1 até ${listasAtivas.length})`, String(atual + 1));
@@ -725,11 +753,16 @@
 
     async function arquivarLista(lista) {
       if (!lista) return;
-      const ok = confirm(`Arquivar a lista "${lista.nome}"? Os cartões voltarão para a Entrada.`);
+      const listaDestino = obterListasAtivas().find((item) => item.id !== lista.id);
+      if (!listaDestino) {
+        alert('Crie outra lista antes de arquivar esta.');
+        return;
+      }
+      const ok = confirm(`Arquivar a lista "${lista.nome}"? Os cartões irão para "${listaDestino.nome}".`);
       if (!ok) return;
       const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
       await Promise.all([
-        ...tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: LISTA_PADRAO_ID, updated_at: serverTimestamp() })),
+        ...tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: listaDestino.id, updated_at: serverTimestamp() })),
         atualizarListaPainel(lista.id, { arquivada: true })
       ]);
       fecharModalLista();
@@ -737,10 +770,15 @@
 
     async function arquivarCartoesDaLista(lista) {
       if (!lista) return;
-      const ok = confirm(`Mover todos os cartões da lista "${lista.nome}" para a Entrada?`);
+      const listaDestino = obterListasAtivas().find((item) => item.id !== lista.id);
+      if (!listaDestino) {
+        alert('Crie outra lista antes de mover os cartões.');
+        return;
+      }
+      const ok = confirm(`Mover todos os cartões da lista "${lista.nome}" para "${listaDestino.nome}"?`);
       if (!ok) return;
       const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
-      await Promise.all(tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: LISTA_PADRAO_ID, updated_at: serverTimestamp() })));
+      await Promise.all(tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: listaDestino.id, updated_at: serverTimestamp() })));
       fecharModalLista();
     }
 
@@ -799,6 +837,7 @@
       tarefaEmEdicaoId = pre.id || null;
       refs.modalTitle.textContent = tarefaEmEdicaoId ? 'Editar tarefa' : 'Anexar tarefa';
       refs.saveTask.textContent = tarefaEmEdicaoId ? 'Salvar alterações' : 'Salvar tarefa';
+      if (!obterListasAtivas().length) await garantirListaInicial();
       refs.setor.value = pre.setor || 'impressao';
       await preencherTipos(pre.cardId || '');
       if (pre.tipo) refs.tipo.value = pre.tipo;
@@ -826,6 +865,7 @@
       const tarefaAtual = tarefaEmEdicaoId ? tarefasRecebidas.find((item) => item.id === tarefaEmEdicaoId) : null;
       if (!destino) return alert('Selecione um usuário válido.');
       if (!refs.resumo.value.trim()) return alert('Preencha o resumo da tarefa.');
+      if (!refs.lista.value) return alert('Crie pelo menos uma lista antes de salvar a tarefa.');
 
       const payload = {
         setor: refs.setor.value,
@@ -833,7 +873,7 @@
         resumo: refs.resumo.value.trim(),
         descricao: refs.desc.value.trim(),
         extras: coletarExtras(),
-        listaId: refs.lista.value || LISTA_PADRAO_ID,
+        listaId: refs.lista.value,
         status: tarefaAtual?.status || 'pendente',
         destinatarioEmail: destino.email,
         destinatarioNome: destino.nome,
@@ -863,7 +903,7 @@
 
     async function concluirTarefa(id) {
       const tarefa = tarefasRecebidas.find((item) => item.id === id);
-      const lista = tarefa ? obterListaPorId(getTaskListId(tarefa)) : LISTA_PADRAO;
+      const lista = tarefa ? obterListaPorId(getTaskListId(tarefa)) : null;
       const regra = lista?.automacoes?.regra || {};
       const payload = {
         status: 'concluida',
@@ -896,9 +936,9 @@
     }
 
     async function moverTarefaParaLista(tarefaId, listaDestinoId) {
-      const destinoId = String(listaDestinoId || '').trim() || LISTA_PADRAO_ID;
+      const destinoId = String(listaDestinoId || '').trim() || obterListasAtivas()[0]?.id || '';
       const tarefa = tarefasRecebidas.find((item) => item.id === tarefaId);
-      if (!tarefa) return;
+      if (!tarefa || !destinoId) return;
       const origemId = getTaskListId(tarefa);
       if (origemId === destinoId) return;
       await updateDoc(doc(db, 'tarefas', tarefaId), {
@@ -960,11 +1000,11 @@
     function renderTarefas(list) {
       const visiveis = list.filter((tarefa) => tarefa.status !== 'arquivada');
       refs.status.textContent = `Você possui ${visiveis.filter((t) => t.status === 'pendente').length} tarefa(s) pendente(s).`;
-      if (!visiveis.length) {
-        refs.taskList.innerHTML = '<div class="empty">Nenhuma tarefa anexada para você.</div>';
+      const listas = obterListasAtivas();
+      if (!listas.length) {
+        refs.taskList.innerHTML = '<div class="empty">Nenhuma lista disponível. Use “Adicionar lista” para começar.</div>';
         return;
       }
-      const listas = obterListasAtivas();
       refs.taskList.innerHTML = [
         ...listas.map((lista) => {
           const tarefasDaLista = ordenarTarefasDaLista(lista, visiveis.filter((tarefa) => getTaskListId(tarefa) === lista.id));
@@ -975,7 +1015,7 @@
                   <div class="list-title">${escapeHtml(lista.nome)}</div>
                   <div class="list-sub">${tarefasDaLista.length} cartão(ões) ${lista.seguindo ? '• seguindo' : ''}</div>
                 </div>
-                ${lista.id === LISTA_PADRAO_ID ? '' : `<button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>`}
+                <button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>
               </div>
               <div class="list-body" data-list-dropzone="${lista.id}">
                 ${tarefasDaLista.length ? tarefasDaLista.map(renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
@@ -1071,7 +1111,7 @@
           event.preventDefault();
           zone.classList.remove('drop-target');
           const tarefaId = event.dataTransfer?.getData('text/plain') || tarefaArrastandoId;
-          const listaDestinoId = zone.dataset.listDropzone || LISTA_PADRAO_ID;
+          const listaDestinoId = zone.dataset.listDropzone || obterListasAtivas()[0]?.id || '';
           if (!tarefaId) return;
           try {
             await moverTarefaParaLista(tarefaId, listaDestinoId);
@@ -1118,6 +1158,9 @@
       onSnapshot(qListas, (snap) => {
         listasPainel = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+        if (!listasPainel.length) {
+          garantirListaInicial();
+        }
         preencherSelectListas();
         if (listaModalAtual) {
           listaModalAtual = listasPainel.find((item) => item.id === listaModalAtual.id) || null;
@@ -1182,10 +1225,11 @@
     refs.tipo.addEventListener('change', renderOpcoes);
     document.getElementById('btn-close-list-modal').addEventListener('click', fecharModalLista);
     document.getElementById('act-add-card').addEventListener('click', () => {
-      const listaId = listaModalAtual?.id || LISTA_PADRAO_ID;
+      const listaId = listaModalAtual?.id || obterListasAtivas()[0]?.id || '';
       fecharModalLista();
       abrirModal({ listaId });
     });
+    document.getElementById('act-rename-list').addEventListener('click', () => renomearLista(listaModalAtual));
     document.getElementById('act-copy-list').addEventListener('click', () => copiarLista(listaModalAtual));
     document.getElementById('act-move-list').addEventListener('click', () => moverLista(listaModalAtual));
     document.getElementById('act-move-cards').addEventListener('click', () => moverCartoesDaLista(listaModalAtual));
