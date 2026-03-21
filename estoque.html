@@ -45,7 +45,7 @@
     .modal { width: min(980px, 100%); background: #151d28; border: 1px solid var(--line); border-radius: 12px; padding: 14px; position: relative; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .full { grid-column: 1 / -1; }
-    .triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .triple { display: grid; grid-template-columns: repeat(3, minmax(90px, 165px)); gap: 10px; }
     .double { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .label-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
     .plus-btn { width: 28px; height: 28px; padding: 0; font-size: 18px; line-height: 1; }
@@ -138,7 +138,6 @@
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
       <h2 style="margin:0 0 10px;">Item de estoque</h2>
-      <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria" style="position:absolute;right:14px;top:14px;">+</button>
       <div class="modal-layout">
         <div>
           <div class="grid">
@@ -147,7 +146,10 @@
               <input id="item-nome" type="text" maxlength="90" />
             </div>
             <div>
-              <label class="muted" for="item-categoria">Categoria</label>
+              <div class="label-row">
+                <label class="muted" for="item-categoria">Categoria</label>
+                <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria">+</button>
+              </div>
               <select id="item-categoria"></select>
             </div>
 
@@ -179,7 +181,6 @@
             </div>
 
             <div class="full">
-              <label class="muted" for="item-detalhes">Detalhes</label>
               <textarea id="item-detalhes" placeholder="Descrição do item."></textarea>
             </div>
 
@@ -267,6 +268,13 @@
     const STORAGE_KEY = 'artesynal_estoque_v2';
     const DEFAULT_CATEGORIES = ['Ferragens', 'Tintas', 'Parafusos'];
     const DELETE_CAT_VALUE = '__delete__';
+    const UNIDADES_BASE = ['Unidade', 'Pacote', 'Caixa', 'Litro'];
+    const UNIDADES_PLURAL = {
+      Unidade: 'Unidades',
+      Pacote: 'Pacotes',
+      Caixa: 'Caixas',
+      Litro: 'Litros'
+    };
 
     const refs = {
       tbody: document.getElementById('tbody-itens'),
@@ -409,6 +417,19 @@
       refs.movTipo.classList.toggle('mov-saida', refs.movTipo.value === 'saida');
     }
 
+    function atualizarOpcoesUnidadePlural() {
+      const qtd = Number(document.getElementById('item-qtd').value || 0);
+      const select = document.getElementById('qtd-unidade');
+      const atual = select.value;
+      const plural = qtd > 1;
+      const opcoes = UNIDADES_BASE.map((u) => {
+        const label = plural ? (UNIDADES_PLURAL[u] || u) : u;
+        return `<option value="${u}">${label}</option>`;
+      }).join('');
+      select.innerHTML = opcoes;
+      if (UNIDADES_BASE.includes(atual)) select.value = atual;
+    }
+
     function limparCampos() {
       document.getElementById('item-nome').value = '';
       renderCategorias();
@@ -419,6 +440,7 @@
       document.getElementById('item-qtd').value = '0';
       document.getElementById('item-minimo').value = '0';
       document.getElementById('item-detalhes').value = '';
+      atualizarOpcoesUnidadePlural();
       refs.movTipo.value = 'entrada';
       setMovStyle();
       document.getElementById('mov-qtd').value = '0';
@@ -474,6 +496,8 @@
         document.getElementById('tam-espessura').value = item.tamanho?.espessura || '';
         document.getElementById('qtd-unidade').value = item.unidade || 'Unidade';
         document.getElementById('item-qtd').value = String(Number(item.quantidade || 0));
+        atualizarOpcoesUnidadePlural();
+        document.getElementById('qtd-unidade').value = item.unidade || 'Unidade';
         document.getElementById('item-minimo').value = String(Number(item.minimo || 0));
         document.getElementById('item-detalhes').value = item.detalhes || '';
         refs.movTipo.value = 'entrada';
@@ -752,8 +776,10 @@
     });
 
     refs.movTipo.addEventListener('change', () => { setMovStyle(); atualizarPreview(); });
+    document.getElementById('item-qtd').addEventListener('input', () => { atualizarOpcoesUnidadePlural(); atualizarPreview(); });
+    document.getElementById('item-qtd').addEventListener('change', () => { atualizarOpcoesUnidadePlural(); atualizarPreview(); });
 
-    ['item-nome', 'tam-largura', 'tam-altura', 'tam-espessura', 'qtd-unidade', 'item-qtd', 'item-minimo', 'item-detalhes', 'mov-qtd', 'mov-responsavel', 'mov-obs'].forEach((id) => {
+    ['item-nome', 'tam-largura', 'tam-altura', 'tam-espessura', 'qtd-unidade', 'item-minimo', 'item-detalhes', 'mov-qtd', 'mov-responsavel', 'mov-obs'].forEach((id) => {
       document.getElementById(id).addEventListener('input', atualizarPreview);
       document.getElementById(id).addEventListener('change', atualizarPreview);
     });
@@ -777,6 +803,7 @@
 
     refs.modalBg.addEventListener('click', (ev) => { if (ev.target === refs.modalBg) fecharModal(); });
     refs.arquivoBg.addEventListener('click', (ev) => { if (ev.target === refs.arquivoBg) refs.arquivoBg.style.display = 'none'; });
+    atualizarOpcoesUnidadePlural();
   </script>
 </body>
 </html>
