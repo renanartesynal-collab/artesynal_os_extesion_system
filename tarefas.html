@@ -52,6 +52,21 @@
     .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; cursor: grab; transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease; }
     .task-card.done { border-left-color: var(--ok); opacity: .8; }
     .task-card.dragging { opacity:.45; transform: rotate(1deg) scale(.98); box-shadow:0 14px 30px rgba(0,0,0,.35); cursor:grabbing; }
+    .task-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .task-card-title-wrap { display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
+    .task-card-tools { display:flex; align-items:center; gap:8px; opacity:0; pointer-events:none; transition:opacity .16s ease; }
+    .task-card:hover .task-card-tools,
+    .task-card:focus-within .task-card-tools { opacity:1; pointer-events:auto; }
+    .task-card-indicator,
+    .task-card-edit { width:28px; height:28px; border-radius:8px; border:1px solid #4a4a4a; background:#202020; color:#f5f5f5; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex:none; }
+    .task-card-indicator { border-radius:999px; font-size:0; position:relative; }
+    .task-card-indicator::after { content:''; width:12px; height:12px; border-radius:999px; background:#6b7280; box-shadow:0 0 0 1px rgba(255,255,255,.12) inset; }
+    .task-card-indicator.is-green::after { background:#22c55e; }
+    .task-card-indicator.is-yellow::after { background:#eab308; }
+    .task-card-indicator.is-red::after { background:#ef4444; }
+    .task-card-edit { font-size:14px; }
+    .task-card-indicator:hover,
+    .task-card-edit:hover { filter:brightness(1.15); }
     .tag { display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:#222; color:#ddd; margin-right:6px; }
     .tag.imp { background:#291a3d; color:#ca8bff; }
     .tag.serr { background:#362313; color:#ffb573; }
@@ -144,7 +159,7 @@
 
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
-      <h2>Anexar tarefa</h2>
+      <h2 id="task-modal-title">Anexar tarefa</h2>
       <div class="row">
         <div class="field">
           <label>Setor</label>
@@ -316,6 +331,7 @@
     const refs = {
       modal: document.getElementById('modal-bg'),
       listModal: document.getElementById('modal-list-bg'),
+      modalTitle: document.getElementById('task-modal-title'),
       setor: document.getElementById('f-setor'),
       tipo: document.getElementById('f-tipo'),
       user: document.getElementById('f-user'),
@@ -324,6 +340,7 @@
       resumo: document.getElementById('f-resumo'),
       desc: document.getElementById('f-desc'),
       opts: document.getElementById('opts'),
+      saveTask: document.getElementById('btn-save'),
       taskList: document.getElementById('task-list'),
       reqList: document.getElementById('req-list'),
       status: document.getElementById('status-msg'),
@@ -343,6 +360,9 @@
     let tarefasRecebidas = [];
     let listaModalAtual = null;
     let tarefaArrastandoId = '';
+    let tarefaEmEdicaoId = null;
+
+    const CICLO_SINALIZACAO = ['', 'green', 'yellow', 'red'];
 
     const LISTA_PADRAO_ID = 'entrada-padrao';
     const LISTA_PADRAO = {
@@ -359,6 +379,13 @@
       if (setor === 'serralheria') return 'Serralheria';
       if (setor === 'orcamento') return 'Orçamento';
       return setor || 'Não informado';
+    }
+
+    function classNameSinalizacao(status = '') {
+      if (status === 'green') return 'is-green';
+      if (status === 'yellow') return 'is-yellow';
+      if (status === 'red') return 'is-red';
+      return '';
     }
 
     function escapeHtml(value = '') {
@@ -524,6 +551,33 @@
       await carregarCardsSetor(refs.setor.value);
       preencherCardsSetorSelecionado(cardId);
       renderOpcoes();
+    }
+
+    function preencherExtrasFormulario(extras = {}) {
+      const setor = refs.setor.value;
+      if (setor === 'impressao') {
+        const comprarMidia = document.getElementById('opt-comprar-midia');
+        const urgente = document.getElementById('opt-urgente');
+        if (comprarMidia) comprarMidia.checked = !!extras.comprarMidia;
+        if (urgente) urgente.checked = !!extras.urgente;
+      }
+      if (setor === 'serralheria') {
+        const precisaCorte = document.getElementById('opt-corte');
+        const medida = document.getElementById('opt-medida');
+        const localExterno = document.getElementById('opt-local-externo');
+        const destino = extras.destinoCorte === 'externo' ? 'externo' : 'local';
+        if (precisaCorte) precisaCorte.checked = !!extras.precisaCorte;
+        if (medida) medida.value = extras.medidas || '';
+        if (localExterno) localExterno.value = extras.localExterno || '';
+        const radio = document.querySelector(`input[name="destino-corte"][value="${destino}"]`);
+        if (radio) radio.checked = true;
+      }
+      if (setor === 'orcamento') {
+        const precisaContato = document.getElementById('opt-cliente-contato');
+        const aguardandoAprovacao = document.getElementById('opt-aprovacao');
+        if (precisaContato) precisaContato.checked = !!extras.precisaContato;
+        if (aguardandoAprovacao) aguardandoAprovacao.checked = !!extras.aguardandoAprovacao;
+      }
     }
 
     function renderOpcoes() {
@@ -742,6 +796,9 @@
     }
 
     async function abrirModal(pre = {}) {
+      tarefaEmEdicaoId = pre.id || null;
+      refs.modalTitle.textContent = tarefaEmEdicaoId ? 'Editar tarefa' : 'Anexar tarefa';
+      refs.saveTask.textContent = tarefaEmEdicaoId ? 'Salvar alterações' : 'Salvar tarefa';
       refs.setor.value = pre.setor || 'impressao';
       await preencherTipos(pre.cardId || '');
       if (pre.tipo) refs.tipo.value = pre.tipo;
@@ -751,41 +808,56 @@
       if (pre.cardId && refs.card.value !== pre.cardId) refs.card.value = '';
       preencherSelectListas(pre.listaId || '');
       renderOpcoes();
+      preencherExtrasFormulario(pre.extras || {});
       refs.modal.style.display = 'flex';
     }
 
-    function fecharModal() { refs.modal.style.display = 'none'; }
+    function fecharModal() {
+      refs.modal.style.display = 'none';
+      tarefaEmEdicaoId = null;
+      refs.modalTitle.textContent = 'Anexar tarefa';
+      refs.saveTask.textContent = 'Salvar tarefa';
+    }
 
     async function salvarTarefa() {
       const toEmail = refs.user.value;
       const destino = usuarios.find((u) => u.email === toEmail);
       const cardAlvo = cardsSetor.find((c) => c.id === refs.card.value);
+      const tarefaAtual = tarefaEmEdicaoId ? tarefasRecebidas.find((item) => item.id === tarefaEmEdicaoId) : null;
       if (!destino) return alert('Selecione um usuário válido.');
       if (!refs.resumo.value.trim()) return alert('Preencha o resumo da tarefa.');
 
-      await addDoc(collection(db, 'tarefas'), {
+      const payload = {
         setor: refs.setor.value,
         tipo: refs.tipo.value,
         resumo: refs.resumo.value.trim(),
         descricao: refs.desc.value.trim(),
         extras: coletarExtras(),
         listaId: refs.lista.value || LISTA_PADRAO_ID,
-        status: 'pendente',
+        status: tarefaAtual?.status || 'pendente',
         destinatarioEmail: destino.email,
         destinatarioNome: destino.nome,
-        solicitanteEmail: me.email,
-        solicitanteNome: me.nome,
+        solicitanteEmail: tarefaAtual?.solicitanteEmail || me.email,
+        solicitanteNome: tarefaAtual?.solicitanteNome || me.nome,
         cardAlvo: cardAlvo ? {
           id: cardAlvo.id,
           setor: cardAlvo.setor,
           label: labelCardDoSetor(cardAlvo),
           link: montarLinkCard(cardAlvo.setor, cardAlvo.id)
         } : null,
-        created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
-        concluida_em: null,
-        concluida_por: null
-      });
+      };
+
+      if (tarefaEmEdicaoId) {
+        await updateDoc(doc(db, 'tarefas', tarefaEmEdicaoId), payload);
+      } else {
+        await addDoc(collection(db, 'tarefas'), {
+          ...payload,
+          created_at: serverTimestamp(),
+          concluida_em: null,
+          concluida_por: null
+        });
+      }
       fecharModal();
     }
 
@@ -835,6 +907,18 @@
       });
     }
 
+    async function alternarSinalizacaoTarefa(tarefaId) {
+      const tarefa = tarefasRecebidas.find((item) => item.id === tarefaId);
+      if (!tarefa) return;
+      const atual = String(tarefa.sinalizacao || '');
+      const indiceAtual = Math.max(CICLO_SINALIZACAO.indexOf(atual), 0);
+      const proximo = CICLO_SINALIZACAO[(indiceAtual + 1) % CICLO_SINALIZACAO.length];
+      await updateDoc(doc(db, 'tarefas', tarefaId), {
+        sinalizacao: proximo,
+        updated_at: serverTimestamp()
+      });
+    }
+
     function extrasToText(extras = {}) {
       const linhas = [];
       Object.entries(extras).forEach(([k, v]) => {
@@ -847,10 +931,21 @@
     function renderCardTarefa(t = {}) {
       const done = t.status === 'concluida';
       const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
+      const sinalizacaoClass = classNameSinalizacao(t.sinalizacao);
       return `
         <article class="task-card ${done ? 'done' : ''}" draggable="true" data-task-id="${t.id}">
-          <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
-          <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
+          <div class="task-card-header">
+            <div class="task-card-title-wrap">
+              <button class="task-card-indicator ${sinalizacaoClass}" type="button" draggable="false" data-toggle-indicator="${t.id}" aria-label="Alternar sinalização do cartão"></button>
+              <div style="min-width:0;">
+                <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
+                <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
+              </div>
+            </div>
+            <div class="task-card-tools">
+              <button class="task-card-edit" type="button" draggable="false" data-edit-task="${t.id}" aria-label="Editar tarefa">🖊</button>
+            </div>
+          </div>
           <div class="desc">${escapeHtml(t.descricao || '-')}</div>
           ${extrasToText(t.extras)}
           <div class="card-actions">
@@ -904,8 +999,51 @@
       refs.taskList.querySelectorAll('[data-add-card-list]').forEach((btn) => {
         btn.addEventListener('click', () => abrirModal({ listaId: btn.dataset.addCardList }));
       });
+      refs.taskList.querySelectorAll('[data-edit-task]').forEach((btn) => {
+        const bloquearEvento = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        };
+        btn.addEventListener('mousedown', bloquearEvento);
+        btn.addEventListener('click', (event) => {
+          bloquearEvento(event);
+          const tarefa = tarefasRecebidas.find((item) => item.id === btn.dataset.editTask);
+          if (!tarefa) return;
+          abrirModal({
+            id: tarefa.id,
+            setor: tarefa.setor,
+            tipo: tarefa.tipo,
+            destinatarioEmail: tarefa.destinatarioEmail,
+            resumo: tarefa.resumo,
+            desc: tarefa.descricao,
+            cardId: tarefa?.cardAlvo?.id || '',
+            listaId: getTaskListId(tarefa),
+            extras: tarefa.extras || {}
+          });
+        });
+      });
+      refs.taskList.querySelectorAll('[data-toggle-indicator]').forEach((btn) => {
+        const bloquearEvento = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        };
+        btn.addEventListener('mousedown', bloquearEvento);
+        btn.addEventListener('click', async (event) => {
+          bloquearEvento(event);
+          try {
+            await alternarSinalizacaoTarefa(btn.dataset.toggleIndicator);
+          } catch (err) {
+            console.error('Erro ao alternar sinalização da tarefa:', err);
+            alert('Não foi possível atualizar a sinalização deste cartão.');
+          }
+        });
+      });
       refs.taskList.querySelectorAll('[data-task-id]').forEach((card) => {
         card.addEventListener('dragstart', (event) => {
+          if (event.target?.closest?.('[data-edit-task], [data-toggle-indicator]')) {
+            event.preventDefault();
+            return;
+          }
           tarefaArrastandoId = card.dataset.taskId || '';
           card.classList.add('dragging');
           if (event.dataTransfer) {
