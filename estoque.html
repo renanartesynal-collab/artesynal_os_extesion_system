@@ -322,7 +322,7 @@
 
     function qrTargetUrl(item) {
       const base = `${window.location.origin}${window.location.pathname}`;
-      return `${base}?item=${encodeURIComponent(item.id || 'novo')}`;
+      return `${base}#item-${encodeURIComponent(item.id || 'novo')}`;
     }
 
     function gerarIdItem() {
@@ -390,7 +390,12 @@
 
     function abrirItemPorParametroUrl() {
       if (abriuPorParametro) return;
-      const itemId = new URLSearchParams(window.location.search).get('item');
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get('item');
+      const hash = String(window.location.hash || '');
+      const fromHashPadrao = hash.startsWith('#item-') ? decodeURIComponent(hash.slice(6)) : '';
+      const fromHashAlternativo = hash.startsWith('#item=') ? decodeURIComponent(hash.slice(6)) : '';
+      const itemId = fromQuery || fromHashPadrao || fromHashAlternativo;
       if (!itemId) return;
       const existe = estado.itens.some((it) => it.id === itemId);
       if (!existe) return;
