@@ -43,13 +43,30 @@
     .list-sub { color:var(--muted); font-size:11px; margin-top:4px; }
     .list-menu-btn { width:34px; height:34px; border-radius:10px; border:1px solid #3b3b3b; background:#1d1d1d; color:#fff; cursor:pointer; font-weight:900; }
     .list-body { display:flex; flex-direction:column; gap:10px; min-height:90px; }
+    .list-body.drop-target { border:1px dashed rgba(56,189,248,.55); border-radius:12px; background:rgba(56,189,248,.08); padding:8px; }
     .list-add-card { width:100%; margin-top:10px; background:#1f2937; border-color:#374151; }
     .add-list-card { width:280px; min-width:280px; border-radius:14px; border:1px dashed rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; min-height:64px; padding:0; overflow:hidden; }
     .add-list-card button { width:100%; min-height:64px; border:none; background:transparent; color:#fff; text-align:left; padding:18px 16px; font-size:14px; font-weight:800; cursor:pointer; }
     .list-empty { color:#757575; border:1px dashed #353535; border-radius:10px; padding:16px 12px; text-align:center; font-size:12px; }
 
-    .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; }
+    .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; cursor: grab; transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease; }
     .task-card.done { border-left-color: var(--ok); opacity: .8; }
+    .task-card.dragging { opacity:.45; transform: rotate(1deg) scale(.98); box-shadow:0 14px 30px rgba(0,0,0,.35); cursor:grabbing; }
+    .task-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .task-card-title-wrap { display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
+    .task-card-tools { display:flex; align-items:center; gap:8px; opacity:0; pointer-events:none; transition:opacity .16s ease; }
+    .task-card:hover .task-card-tools,
+    .task-card:focus-within .task-card-tools { opacity:1; pointer-events:auto; }
+    .task-card-indicator,
+    .task-card-edit { width:28px; height:28px; border-radius:8px; border:1px solid #4a4a4a; background:#202020; color:#f5f5f5; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex:none; }
+    .task-card-indicator { border-radius:999px; font-size:0; position:relative; }
+    .task-card-indicator::after { content:''; width:12px; height:12px; border-radius:999px; background:#6b7280; box-shadow:0 0 0 1px rgba(255,255,255,.12) inset; }
+    .task-card-indicator.is-green::after { background:#22c55e; }
+    .task-card-indicator.is-yellow::after { background:#eab308; }
+    .task-card-indicator.is-red::after { background:#ef4444; }
+    .task-card-edit { font-size:14px; }
+    .task-card-indicator:hover,
+    .task-card-edit:hover { filter:brightness(1.15); }
     .tag { display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:#222; color:#ddd; margin-right:6px; }
     .tag.imp { background:#291a3d; color:#ca8bff; }
     .tag.serr { background:#362313; color:#ffb573; }
@@ -65,6 +82,8 @@
     .modal { background: #121212; border:1px solid #333; width:min(700px,94vw); max-height:90vh; overflow:auto; border-radius:12px; padding:16px; }
     .modal h2 { margin:0 0 12px; }
     .modal.list-actions-modal { width:min(520px,94vw); }
+    .list-modal-title-btn { appearance:none; border:none; background:transparent; color:#fff; padding:0; margin:0; font:inherit; font-size:28px; font-weight:900; line-height:1.1; text-align:left; cursor:pointer; }
+    .list-modal-title-btn:hover { color:#facc15; }
     .row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:10px; }
     .field { display:flex; flex-direction:column; gap:6px; }
     .field label { font-size:12px; color: var(--muted); font-weight: 700; }
@@ -142,7 +161,7 @@
 
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
-      <h2>Anexar tarefa</h2>
+      <h2 id="task-modal-title">Anexar tarefa</h2>
       <div class="row">
         <div class="field">
           <label>Setor</label>
@@ -200,7 +219,7 @@
     <div class="modal list-actions-modal">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <div>
-          <h2 style="margin-bottom:4px;">Ações da Lista</h2>
+          <button class="list-modal-title-btn" id="list-modal-title" type="button" ></button>
           <div id="list-modal-sub" style="color:#a3a3a3;font-size:12px;"></div>
         </div>
         <button class="btn" id="btn-close-list-modal">Fechar</button>
@@ -209,6 +228,7 @@
       <div class="section-title">Ações rápidas</div>
       <div class="action-list">
         <button class="action-item" id="act-add-card"><span>Adicionar cartão<small>Abre o formulário já apontando para esta lista.</small></span><span>➕</span></button>
+        <button class="action-item" id="act-rename-list"><span>Renomear lista<small>Permite editar o nome desta lista.</small></span><span>🖊</span></button>
         <button class="action-item" id="act-copy-list"><span>Copiar lista<small>Cria uma nova lista com o mesmo nome e automações.</small></span><span>📄</span></button>
         <button class="action-item" id="act-move-list"><span>Mover lista<small>Reposiciona a coluna no painel.</small></span><span>↔</span></button>
         <button class="action-item" id="act-move-cards"><span>Mover todos os cartões nesta lista<small>Envia todos os cartões para outra lista.</small></span><span>📦</span></button>
@@ -296,6 +316,24 @@
     import { protegerPagina } from './auth.js';
     import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, serverTimestamp, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
+    async function carregarModuloCardsTarefas() {
+      const response = await fetch('./cards_tarefas.html', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Não foi possível carregar cards_tarefas.html');
+      const html = await response.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+      const moduleCode = parsed.querySelector('script[type="module"]')?.textContent?.trim();
+      if (!moduleCode) throw new Error('cards_tarefas.html não possui módulo de cards.');
+
+      const blobUrl = URL.createObjectURL(new Blob([moduleCode], { type: 'text/javascript' }));
+      try {
+        return await import(blobUrl);
+      } finally {
+        URL.revokeObjectURL(blobUrl);
+      }
+    }
+
+    const { createCardsTarefasModule } = await carregarModuloCardsTarefas();
+
     const sessao = await protegerPagina({ paginaAtual: 'tarefas.html' });
     if (!sessao) throw new Error('Sessão inválida');
 
@@ -314,6 +352,7 @@
     const refs = {
       modal: document.getElementById('modal-bg'),
       listModal: document.getElementById('modal-list-bg'),
+      modalTitle: document.getElementById('task-modal-title'),
       setor: document.getElementById('f-setor'),
       tipo: document.getElementById('f-tipo'),
       user: document.getElementById('f-user'),
@@ -322,9 +361,11 @@
       resumo: document.getElementById('f-resumo'),
       desc: document.getElementById('f-desc'),
       opts: document.getElementById('opts'),
+      saveTask: document.getElementById('btn-save'),
       taskList: document.getElementById('task-list'),
       reqList: document.getElementById('req-list'),
       status: document.getElementById('status-msg'),
+      listModalTitle: document.getElementById('list-modal-title'),
       listModalSub: document.getElementById('list-modal-sub'),
       autoOnAdd: document.getElementById('auto-on-add'),
       autoDailySort: document.getElementById('auto-daily-sort'),
@@ -340,16 +381,12 @@
     let listasPainel = [];
     let tarefasRecebidas = [];
     let listaModalAtual = null;
+    let tarefaArrastandoId = '';
+    let tarefaEmEdicaoId = null;
+    let criandoListaInicial = false;
 
-    const LISTA_PADRAO_ID = 'entrada-padrao';
-    const LISTA_PADRAO = {
-      id: LISTA_PADRAO_ID,
-      nome: 'Entrada',
-      ordem: 0,
-      seguindo: false,
-      arquivada: false,
-      automacoes: {}
-    };
+    const CICLO_SINALIZACAO = ['', 'green', 'yellow', 'red'];
+    const NOME_LISTA_INICIAL = 'Minha lista';
 
     function labelSetor(setor) {
       if (setor === 'impressao') return 'Impressão';
@@ -368,7 +405,7 @@
     }
 
     function normalizarListasPainel(listas = []) {
-      return [LISTA_PADRAO, ...listas]
+      return [...listas]
         .filter((lista, index, arr) => arr.findIndex((item) => item.id === lista.id) === index)
         .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
     }
@@ -378,17 +415,23 @@
     }
 
     function obterListaPorId(listaId = '') {
-      return normalizarListasPainel(listasPainel).find((lista) => lista.id === listaId) || LISTA_PADRAO;
+      return normalizarListasPainel(listasPainel).find((lista) => lista.id === listaId) || obterListasAtivas()[0] || null;
     }
 
     function preencherSelectListas(valor = '') {
       const listas = obterListasAtivas();
+      if (!listas.length) {
+        refs.lista.innerHTML = '<option value="">Crie uma lista primeiro</option>';
+        refs.autoRuleTarget.innerHTML = '<option value="">Selecione</option>';
+        refs.lista.value = '';
+        return;
+      }
       const options = listas.map((lista) => `<option value="${lista.id}">${escapeHtml(lista.nome)}</option>`);
       refs.lista.innerHTML = options.join('');
       refs.autoRuleTarget.innerHTML = [`<option value="">Selecione</option>`, ...listas.filter((lista) => lista.id !== (listaModalAtual?.id || '')).map((lista) => `<option value="${lista.id}">${escapeHtml(lista.nome)}</option>`)].join('');
 
       if (valor && listas.some((lista) => lista.id === valor)) refs.lista.value = valor;
-      else refs.lista.value = listas[0]?.id || LISTA_PADRAO_ID;
+      else refs.lista.value = listas[0]?.id || '';
     }
 
     function gerarSlugLista(nome = '') {
@@ -403,10 +446,11 @@
     }
 
     function getTaskListId(tarefa = {}) {
+      const primeiraLista = obterListasAtivas()[0];
       const listaId = String(tarefa.listaId || '').trim();
-      if (!listaId) return LISTA_PADRAO_ID;
+      if (!listaId) return primeiraLista?.id || '';
       const listaExiste = normalizarListasPainel(listasPainel).some((lista) => lista.id === listaId && !lista.arquivada);
-      return listaExiste ? listaId : LISTA_PADRAO_ID;
+      return listaExiste ? listaId : (primeiraLista?.id || '');
     }
 
     function getSortModeForList(lista = {}) {
@@ -469,19 +513,22 @@
     function atualizarSubtituloListaModal() {
       if (!refs.listModalSub) return;
       if (!listaModalAtual) {
+        if (refs.listModalTitle) refs.listModalTitle.textContent = '';
         refs.listModalSub.textContent = '';
         return;
       }
+      if (refs.listModalTitle) refs.listModalTitle.textContent = listaModalAtual.nome;
       const automacoesAtivas = [];
       if (listaModalAtual.seguindo) automacoesAtivas.push('seguindo');
       if (listaModalAtual?.automacoes?.aoAdicionar) automacoesAtivas.push('auto ao adicionar');
       if (listaModalAtual?.automacoes?.diaria) automacoesAtivas.push('ordem diária');
       if (listaModalAtual?.automacoes?.semanal) automacoesAtivas.push('ordem semanal');
-      refs.listModalSub.innerHTML = `${escapeHtml(listaModalAtual.nome)} ${automacoesAtivas.length ? `• <span class="pill">${escapeHtml(automacoesAtivas.join(' • '))}</span>` : ''}`;
+      refs.listModalSub.innerHTML = automacoesAtivas.length ? `<span class="pill">${escapeHtml(automacoesAtivas.join(' • '))}</span>` : '';
     }
 
-    function preencherAutomacoesListaModal(lista = LISTA_PADRAO) {
-      const automacoes = lista.automacoes || {};
+    function preencherAutomacoesListaModal(lista = null) {
+      const listaAtual = lista || obterListasAtivas()[0] || {};
+      const automacoes = listaAtual.automacoes || {};
       refs.autoOnAdd.value = automacoes.aoAdicionar || '';
       refs.autoDailySort.value = automacoes.diaria || '';
       refs.autoWeeklySort.value = automacoes.semanal || '';
@@ -547,26 +594,6 @@
       refs.opts.innerHTML = `<div style="font-size:12px;color:#a3a3a3;margin-bottom:8px;">Opções rápidas para: <b>${tipo || 'card'}</b></div>${blocos.join('<br>')}`;
     }
 
-    function coletarExtras() {
-      const setor = refs.setor.value;
-      const extras = {};
-      if (setor === 'impressao') {
-        extras.comprarMidia = !!document.getElementById('opt-comprar-midia')?.checked;
-        extras.urgente = !!document.getElementById('opt-urgente')?.checked;
-      }
-      if (setor === 'serralheria') {
-        extras.precisaCorte = !!document.getElementById('opt-corte')?.checked;
-        extras.medidas = document.getElementById('opt-medida')?.value?.trim() || '';
-        extras.destinoCorte = document.querySelector('input[name="destino-corte"]:checked')?.value || 'local';
-        extras.localExterno = document.getElementById('opt-local-externo')?.value?.trim() || '';
-      }
-      if (setor === 'orcamento') {
-        extras.precisaContato = !!document.getElementById('opt-cliente-contato')?.checked;
-        extras.aguardandoAprovacao = !!document.getElementById('opt-aprovacao')?.checked;
-      }
-      return extras;
-    }
-
     async function criarLista() {
       const nome = prompt('Nome da nova lista:');
       if (!nome || !nome.trim()) return;
@@ -582,6 +609,26 @@
         created_at: serverTimestamp(),
         updated_at: serverTimestamp()
       });
+    }
+
+    async function garantirListaInicial() {
+      if (criandoListaInicial || obterListasAtivas().length) return;
+      criandoListaInicial = true;
+      try {
+        await addDoc(collection(db, 'painel_tarefas_listas'), {
+          ownerEmail: me.email,
+          nome: NOME_LISTA_INICIAL,
+          slug: gerarSlugLista(NOME_LISTA_INICIAL),
+          ordem: 0,
+          seguindo: false,
+          arquivada: false,
+          automacoes: {},
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp()
+        });
+      } finally {
+        criandoListaInicial = false;
+      }
     }
 
     async function atualizarListaPainel(listaId, payload = {}) {
@@ -610,9 +657,16 @@
       });
     }
 
+    async function renomearLista(lista) {
+      if (!lista) return;
+      const nome = prompt('Novo nome da lista:', lista.nome || '');
+      if (!nome || !nome.trim()) return;
+      await atualizarListaPainel(lista.id, { nome: nome.trim() });
+    }
+
     async function moverLista(lista) {
       if (!lista) return;
-      const listasAtivas = obterListasAtivas().filter((item) => item.id !== LISTA_PADRAO_ID);
+      const listasAtivas = obterListasAtivas();
       const atual = listasAtivas.findIndex((item) => item.id === lista.id);
       if (atual < 0) return;
       const destinoTexto = prompt(`Mover "${lista.nome}" para qual posição? (1 até ${listasAtivas.length})`, String(atual + 1));
@@ -668,11 +722,16 @@
 
     async function arquivarLista(lista) {
       if (!lista) return;
-      const ok = confirm(`Arquivar a lista "${lista.nome}"? Os cartões voltarão para a Entrada.`);
+      const listaDestino = obterListasAtivas().find((item) => item.id !== lista.id);
+      if (!listaDestino) {
+        alert('Crie outra lista antes de arquivar esta.');
+        return;
+      }
+      const ok = confirm(`Arquivar a lista "${lista.nome}"? Os cartões irão para "${listaDestino.nome}".`);
       if (!ok) return;
       const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
       await Promise.all([
-        ...tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: LISTA_PADRAO_ID, updated_at: serverTimestamp() })),
+        ...tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: listaDestino.id, updated_at: serverTimestamp() })),
         atualizarListaPainel(lista.id, { arquivada: true })
       ]);
       fecharModalLista();
@@ -680,10 +739,15 @@
 
     async function arquivarCartoesDaLista(lista) {
       if (!lista) return;
-      const ok = confirm(`Mover todos os cartões da lista "${lista.nome}" para a Entrada?`);
+      const listaDestino = obterListasAtivas().find((item) => item.id !== lista.id);
+      if (!listaDestino) {
+        alert('Crie outra lista antes de mover os cartões.');
+        return;
+      }
+      const ok = confirm(`Mover todos os cartões da lista "${lista.nome}" para "${listaDestino.nome}"?`);
       if (!ok) return;
       const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
-      await Promise.all(tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: LISTA_PADRAO_ID, updated_at: serverTimestamp() })));
+      await Promise.all(tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: listaDestino.id, updated_at: serverTimestamp() })));
       fecharModalLista();
     }
 
@@ -739,6 +803,10 @@
     }
 
     async function abrirModal(pre = {}) {
+      tarefaEmEdicaoId = pre.id || null;
+      refs.modalTitle.textContent = tarefaEmEdicaoId ? 'Editar tarefa' : 'Anexar tarefa';
+      refs.saveTask.textContent = tarefaEmEdicaoId ? 'Salvar alterações' : 'Salvar tarefa';
+      if (!obterListasAtivas().length) await garantirListaInicial();
       refs.setor.value = pre.setor || 'impressao';
       await preencherTipos(pre.cardId || '');
       if (pre.tipo) refs.tipo.value = pre.tipo;
@@ -748,47 +816,63 @@
       if (pre.cardId && refs.card.value !== pre.cardId) refs.card.value = '';
       preencherSelectListas(pre.listaId || '');
       renderOpcoes();
+      cardsTarefas.preencherExtrasFormulario(pre.extras || {});
       refs.modal.style.display = 'flex';
     }
 
-    function fecharModal() { refs.modal.style.display = 'none'; }
+    function fecharModal() {
+      refs.modal.style.display = 'none';
+      tarefaEmEdicaoId = null;
+      refs.modalTitle.textContent = 'Anexar tarefa';
+      refs.saveTask.textContent = 'Salvar tarefa';
+    }
 
     async function salvarTarefa() {
       const toEmail = refs.user.value;
       const destino = usuarios.find((u) => u.email === toEmail);
       const cardAlvo = cardsSetor.find((c) => c.id === refs.card.value);
+      const tarefaAtual = tarefaEmEdicaoId ? tarefasRecebidas.find((item) => item.id === tarefaEmEdicaoId) : null;
       if (!destino) return alert('Selecione um usuário válido.');
       if (!refs.resumo.value.trim()) return alert('Preencha o resumo da tarefa.');
+      if (!refs.lista.value) return alert('Crie pelo menos uma lista antes de salvar a tarefa.');
 
-      await addDoc(collection(db, 'tarefas'), {
+      const payload = {
         setor: refs.setor.value,
         tipo: refs.tipo.value,
         resumo: refs.resumo.value.trim(),
         descricao: refs.desc.value.trim(),
-        extras: coletarExtras(),
-        listaId: refs.lista.value || LISTA_PADRAO_ID,
-        status: 'pendente',
+        extras: cardsTarefas.coletarExtras(),
+        listaId: refs.lista.value,
+        status: tarefaAtual?.status || 'pendente',
         destinatarioEmail: destino.email,
         destinatarioNome: destino.nome,
-        solicitanteEmail: me.email,
-        solicitanteNome: me.nome,
+        solicitanteEmail: tarefaAtual?.solicitanteEmail || me.email,
+        solicitanteNome: tarefaAtual?.solicitanteNome || me.nome,
         cardAlvo: cardAlvo ? {
           id: cardAlvo.id,
           setor: cardAlvo.setor,
           label: labelCardDoSetor(cardAlvo),
           link: montarLinkCard(cardAlvo.setor, cardAlvo.id)
         } : null,
-        created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
-        concluida_em: null,
-        concluida_por: null
-      });
+      };
+
+      if (tarefaEmEdicaoId) {
+        await updateDoc(doc(db, 'tarefas', tarefaEmEdicaoId), payload);
+      } else {
+        await addDoc(collection(db, 'tarefas'), {
+          ...payload,
+          created_at: serverTimestamp(),
+          concluida_em: null,
+          concluida_por: null
+        });
+      }
       fecharModal();
     }
 
     async function concluirTarefa(id) {
       const tarefa = tarefasRecebidas.find((item) => item.id === id);
-      const lista = tarefa ? obterListaPorId(getTaskListId(tarefa)) : LISTA_PADRAO;
+      const lista = tarefa ? obterListaPorId(getTaskListId(tarefa)) : null;
       const regra = lista?.automacoes?.regra || {};
       const payload = {
         status: 'concluida',
@@ -820,41 +904,60 @@
       await deleteDoc(doc(db, 'tarefas', id));
     }
 
-    function extrasToText(extras = {}) {
-      const linhas = [];
-      Object.entries(extras).forEach(([k, v]) => {
-        if (v === '' || v === false || v == null) return;
-        linhas.push(`${escapeHtml(k)}: ${escapeHtml(v)}`);
+    async function moverTarefaParaLista(tarefaId, listaDestinoId) {
+      const destinoId = String(listaDestinoId || '').trim() || obterListasAtivas()[0]?.id || '';
+      const tarefa = tarefasRecebidas.find((item) => item.id === tarefaId);
+      if (!tarefa || !destinoId) return;
+      const origemId = getTaskListId(tarefa);
+      if (origemId === destinoId) return;
+      await updateDoc(doc(db, 'tarefas', tarefaId), {
+        listaId: destinoId,
+        updated_at: serverTimestamp()
       });
-      return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
     }
 
-    function renderCardTarefa(t = {}) {
-      const done = t.status === 'concluida';
-      const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
-      return `
-        <article class="task-card ${done ? 'done' : ''}">
-          <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
-          <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
-          <div class="desc">${escapeHtml(t.descricao || '-')}</div>
-          ${extrasToText(t.extras)}
-          <div class="card-actions">
-            ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
-            ${resolverLinkTarefa(t) ? `<a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
-            ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
-          </div>
-        </article>
-      `;
+    async function alternarSinalizacaoTarefa(tarefaId) {
+      const tarefa = tarefasRecebidas.find((item) => item.id === tarefaId);
+      if (!tarefa) return;
+      const atual = String(tarefa.sinalizacao || '');
+      const indiceAtual = Math.max(CICLO_SINALIZACAO.indexOf(atual), 0);
+      const proximo = CICLO_SINALIZACAO[(indiceAtual + 1) % CICLO_SINALIZACAO.length];
+      await updateDoc(doc(db, 'tarefas', tarefaId), {
+        sinalizacao: proximo,
+        updated_at: serverTimestamp()
+      });
     }
+
+    const cardsTarefas = createCardsTarefasModule({
+      refs,
+      escapeHtml,
+      labelSetor,
+      resolverLinkTarefa,
+      getTaskById: (taskId) => tarefasRecebidas.find((item) => item.id === taskId) || null,
+      onEditTask: (tarefa) => abrirModal({
+        id: tarefa.id,
+        setor: tarefa.setor,
+        tipo: tarefa.tipo,
+        destinatarioEmail: tarefa.destinatarioEmail,
+        resumo: tarefa.resumo,
+        desc: tarefa.descricao,
+        cardId: tarefa?.cardAlvo?.id || '',
+        listaId: getTaskListId(tarefa),
+        extras: tarefa.extras || {}
+      }),
+      onToggleIndicator: alternarSinalizacaoTarefa,
+      onConcluirTask: concluirTarefa,
+      onDeleteTask: excluirTarefa
+    });
 
     function renderTarefas(list) {
       const visiveis = list.filter((tarefa) => tarefa.status !== 'arquivada');
       refs.status.textContent = `Você possui ${visiveis.filter((t) => t.status === 'pendente').length} tarefa(s) pendente(s).`;
-      if (!visiveis.length) {
-        refs.taskList.innerHTML = '<div class="empty">Nenhuma tarefa anexada para você.</div>';
+      const listas = obterListasAtivas();
+      if (!listas.length) {
+        refs.taskList.innerHTML = '<div class="empty">Nenhuma lista disponível. Use “Adicionar lista” para começar.</div>';
         return;
       }
-      const listas = obterListasAtivas();
       refs.taskList.innerHTML = [
         ...listas.map((lista) => {
           const tarefasDaLista = ordenarTarefasDaLista(lista, visiveis.filter((tarefa) => getTaskListId(tarefa) === lista.id));
@@ -865,10 +968,10 @@
                   <div class="list-title">${escapeHtml(lista.nome)}</div>
                   <div class="list-sub">${tarefasDaLista.length} cartão(ões) ${lista.seguindo ? '• seguindo' : ''}</div>
                 </div>
-                ${lista.id === LISTA_PADRAO_ID ? '' : `<button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>`}
+                <button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>
               </div>
-              <div class="list-body">
-                ${tarefasDaLista.length ? tarefasDaLista.map(renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
+              <div class="list-body" data-list-dropzone="${lista.id}">
+                ${tarefasDaLista.length ? tarefasDaLista.map(cardsTarefas.renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
               </div>
               <button class="btn list-add-card" data-add-card-list="${lista.id}">➕ Adicionar cartão</button>
             </section>
@@ -877,17 +980,55 @@
         `<div class="add-list-card"><button id="btn-add-list-inline">＋ Adicionar outra lista</button></div>`
       ].join('');
 
-      refs.taskList.querySelectorAll('[data-concluir]').forEach((btn) => {
-        btn.addEventListener('click', () => concluirTarefa(btn.dataset.concluir));
-      });
-      refs.taskList.querySelectorAll('[data-del]').forEach((btn) => {
-        btn.addEventListener('click', () => excluirTarefa(btn.dataset.del));
-      });
       refs.taskList.querySelectorAll('[data-list-actions]').forEach((btn) => {
         btn.addEventListener('click', () => abrirModalLista(btn.dataset.listActions));
       });
       refs.taskList.querySelectorAll('[data-add-card-list]').forEach((btn) => {
         btn.addEventListener('click', () => abrirModal({ listaId: btn.dataset.addCardList }));
+      });
+      cardsTarefas.bindCardInteractions(refs.taskList);
+      refs.taskList.querySelectorAll('[data-task-id]').forEach((card) => {
+        card.addEventListener('dragstart', (event) => {
+          if (event.target?.closest?.('[data-edit-task], [data-toggle-indicator]')) {
+            event.preventDefault();
+            return;
+          }
+          tarefaArrastandoId = card.dataset.taskId || '';
+          card.classList.add('dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', tarefaArrastandoId);
+          }
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          tarefaArrastandoId = '';
+          refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((zone) => zone.classList.remove('drop-target'));
+        });
+      });
+      refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((zone) => {
+        zone.addEventListener('dragover', (event) => {
+          if (!tarefaArrastandoId) return;
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+          zone.classList.add('drop-target');
+        });
+        zone.addEventListener('dragleave', (event) => {
+          if (!zone.contains(event.relatedTarget)) zone.classList.remove('drop-target');
+        });
+        zone.addEventListener('drop', async (event) => {
+          event.preventDefault();
+          zone.classList.remove('drop-target');
+          const tarefaId = event.dataTransfer?.getData('text/plain') || tarefaArrastandoId;
+          const listaDestinoId = zone.dataset.listDropzone || obterListasAtivas()[0]?.id || '';
+          if (!tarefaId) return;
+          try {
+            await moverTarefaParaLista(tarefaId, listaDestinoId);
+          } catch (err) {
+            console.error('Erro ao mover tarefa entre listas:', err);
+            alert('Não foi possível mover o cartão para esta lista.');
+          }
+        });
       });
       document.getElementById('btn-add-list-inline')?.addEventListener('click', criarLista);
     }
@@ -926,6 +1067,9 @@
       onSnapshot(qListas, (snap) => {
         listasPainel = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+        if (!listasPainel.length) {
+          garantirListaInicial();
+        }
         preencherSelectListas();
         if (listaModalAtual) {
           listaModalAtual = listasPainel.find((item) => item.id === listaModalAtual.id) || null;
@@ -989,11 +1133,13 @@
     refs.setor.addEventListener('change', async () => preencherTipos());
     refs.tipo.addEventListener('change', renderOpcoes);
     document.getElementById('btn-close-list-modal').addEventListener('click', fecharModalLista);
+    document.getElementById('list-modal-title').addEventListener('click', () => renomearLista(listaModalAtual));
     document.getElementById('act-add-card').addEventListener('click', () => {
-      const listaId = listaModalAtual?.id || LISTA_PADRAO_ID;
+      const listaId = listaModalAtual?.id || obterListasAtivas()[0]?.id || '';
       fecharModalLista();
       abrirModal({ listaId });
     });
+    document.getElementById('act-rename-list').addEventListener('click', () => renomearLista(listaModalAtual));
     document.getElementById('act-copy-list').addEventListener('click', () => copiarLista(listaModalAtual));
     document.getElementById('act-move-list').addEventListener('click', () => moverLista(listaModalAtual));
     document.getElementById('act-move-cards').addEventListener('click', () => moverCartoesDaLista(listaModalAtual));
