@@ -16,7 +16,7 @@
       onOpenTask,
       onToggleIndicator,
       onConcluirTask,
-      onDeleteTask
+      onResetTask
     }) {
       function classNameSinalizacao(status = '') {
         if (status === 'green') return 'is-green';
@@ -120,13 +120,13 @@
             <div class="desc">${escapeHtml(t.descricao || '-')}</div>
             ${extrasToText(t.extras)}
             <div class="card-actions">
-              ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
+              <button class="btn ok" data-concluir="${t.id}">${done ? '✅' : 'Concluída'}</button>
               ${resolverLinkTarefa(t) ? `
                 <a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">
                   📍 Ir ao card
                 </a>
               ` : ''}
-              ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
+              ${done ? `<button class="btn" data-reset-task="${t.id}">✖</button>` : ''}
             </div>
           </article>
         `;
@@ -137,8 +137,8 @@
           btn.addEventListener('click', () => onConcluirTask(btn.dataset.concluir));
         });
 
-        root.querySelectorAll('[data-del]').forEach((btn) => {
-          btn.addEventListener('click', () => onDeleteTask(btn.dataset.del));
+        root.querySelectorAll('[data-reset-task]').forEach((btn) => {
+          btn.addEventListener('click', () => onResetTask(btn.dataset.resetTask));
         });
 
         root.querySelectorAll('[data-edit-task]').forEach((btn) => {

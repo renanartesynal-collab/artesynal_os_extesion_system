@@ -921,6 +921,7 @@
 
     async function concluirTarefa(id) {
       const tarefa = tarefasRecebidas.find((item) => item.id === id);
+      if (!tarefa || tarefa.status === 'concluida') return;
       const lista = tarefa ? obterListaPorId(getTaskListId(tarefa)) : null;
       const regra = lista?.automacoes?.regra || {};
       const payload = {
@@ -945,6 +946,15 @@
       if (snap.empty) return alert('Não há tarefas concluídas para excluir.');
       await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, 'tarefas', d.id))));
       alert(`${snap.size} tarefa(s) concluída(s) excluída(s).`);
+    }
+
+    async function reabrirTarefa(id) {
+      await updateDoc(doc(db, 'tarefas', id), {
+        status: 'pendente',
+        concluida_em: null,
+        concluida_por: null,
+        updated_at: serverTimestamp()
+      });
     }
 
     async function excluirTarefa(id) {
@@ -997,7 +1007,7 @@
       onOpenTask: abrirCardDestinoDaTarefa,
       onToggleIndicator: alternarSinalizacaoTarefa,
       onConcluirTask: concluirTarefa,
-      onDeleteTask: excluirTarefa
+      onResetTask: reabrirTarefa
     });
 
     function renderTarefas(list) {
