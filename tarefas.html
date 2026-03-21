@@ -131,6 +131,7 @@
     <div class="actions-top">
       <a class="btn" href="index.html">⬅ Voltar ao painel</a>
       <button class="btn" id="btn-notify">🔔 Ativar notificação</button>
+      <button class="btn" id="btn-compras" style="display:none;">Compras 🛒</button>
       <button class="btn" id="btn-delete-done">🗑 Excluir concluídas</button>
     </div>
   </div>
@@ -387,6 +388,26 @@
 
     const CICLO_SINALIZACAO = ['', 'green', 'yellow', 'red'];
     const NOME_LISTA_INICIAL = 'Minha lista';
+
+
+    async function atualizarBotaoCompras() {
+      const btnCompras = document.getElementById('btn-compras');
+      if (!btnCompras) return;
+
+      const qCompras = query(
+        collection(db, 'tarefas'),
+        where('destinatarioEmail', '==', me.email),
+        where('status', '==', 'pendente'),
+        where('origem', '==', 'estoque')
+      );
+      const snapCompras = await getDocs(qCompras);
+      if (snapCompras.size > 0) {
+        btnCompras.style.display = 'inline-flex';
+        btnCompras.textContent = `Compras 🛒 (${snapCompras.size})`;
+      } else {
+        btnCompras.style.display = 'none';
+      }
+    }
 
     function labelSetor(setor) {
       if (setor === 'impressao') return 'Impressão';
@@ -1095,6 +1116,7 @@
             new Notification('Nova tarefa recebida', { body: `Você recebeu ${novoPend - pendingCount} nova(s) tarefa(s).` });
           }
           pendingCount = novoPend;
+          atualizarBotaoCompras().catch(() => {});
           renderTarefas(ordenada);
         }, (err) => {
           console.error('Erro ao monitorar tarefas recebidas:', err);
@@ -1128,6 +1150,8 @@
     document.getElementById('btn-delete-done').addEventListener('click', excluirConcluidas);
     document.getElementById('btn-cancel').addEventListener('click', fecharModal);
     document.getElementById('btn-save').addEventListener('click', salvarTarefa);
+    await atualizarBotaoCompras();
+
     document.getElementById('btn-new-task').addEventListener('click', () => abrirModal());
     document.getElementById('btn-add-list').addEventListener('click', criarLista);
     refs.setor.addEventListener('change', async () => preencherTipos());
@@ -1154,6 +1178,10 @@
     document.getElementById('btn-side').addEventListener('click', toggleSide);
     document.getElementById('btn-close-side').addEventListener('click', closeSide);
     document.getElementById('btn-close-side-quick').addEventListener('click', closeSide);
+
+    document.getElementById('btn-compras').addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     document.getElementById('btn-notify').addEventListener('click', async () => {
       if (!('Notification' in window)) return alert('Seu navegador não suporta notificações.');

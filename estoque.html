@@ -8,7 +8,6 @@
     :root {
       --bg: #0f1115;
       --panel: #1f2937;
-      --panel-soft: #243447;
       --line: #3a4a60;
       --text: #fff;
       --muted: #cbd5e1;
@@ -18,34 +17,80 @@
       --blue: #00aeef;
     }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:'Montserrat', Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .page { max-width: 1220px; margin: 0 auto; padding: 22px 14px 40px; }
+    body { margin: 0; font-family: 'Montserrat', Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 1240px; margin: 0 auto; padding: 22px 14px 40px; }
     .back { color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 13px; }
-    .header { margin-top:12px; background: linear-gradient(180deg, #1c2633, #131b26); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 18px; }
+    .header { margin-top: 12px; background: linear-gradient(180deg, #1c2633, #131b26); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 18px; }
     h1 { margin: 0; text-transform: uppercase; }
     .subtitle { margin-top: 6px; color: var(--muted); font-size: 13px; }
-    .toolbar { margin-top: 14px; display: grid; grid-template-columns: 1.1fr repeat(4, minmax(120px, 1fr)); gap: 10px; }
-    input, button, select { border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 10px; font-family: inherit; font-size: 13px; }
+
+    .toolbar { margin-top: 14px; display: grid; grid-template-columns: 1.2fr repeat(5, minmax(110px, 1fr)); gap: 10px; }
+    input, button, select, textarea { border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 10px; font-family: inherit; font-size: 13px; }
+    textarea { min-height: 80px; resize: vertical; }
     button { cursor: pointer; font-weight: 700; }
     .btn-primary { background: var(--accent); border-color: #24d19d; }
     .btn-danger { background: #2b1516; border-color: #4f1d1f; color: #ffd1d3; }
     .btn-blue { background: #122838; border-color: #1f4d6f; color: #bde8ff; }
+
     .panel { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
     .muted { color: var(--muted); font-size: 12px; }
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
     th, td { border-bottom: 1px solid #334155; padding: 10px; text-align: left; vertical-align: top; }
     th { font-size: 12px; color: #bcd0e7; text-transform: uppercase; letter-spacing: 0.4px; }
     .actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .tag { display:inline-flex; padding: 2px 7px; border-radius: 999px; background: #17212f; border: 1px solid #334155; font-size: 11px; }
+
     .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 50; padding: 14px; }
-    .modal { width:min(720px,100%); background:#151d28; border:1px solid var(--line); border-radius:12px; padding:14px; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .modal { width: min(980px, 100%); background: #151d28; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .full { grid-column: 1 / -1; }
-    .qr-preview { margin-top:12px; display:grid; grid-template-columns: 140px 1fr; gap:12px; align-items:center; background:#0f141c; border:1px dashed #42566f; border-radius:10px; padding:10px; }
-    .qr-preview img { width:120px; height:120px; background:#fff; border-radius:8px; padding:4px; }
-    .modal-actions { display:flex; justify-content:space-between; margin-top:12px; }
-    @media (max-width: 940px) { .toolbar { grid-template-columns: 1fr 1fr; } .grid { grid-template-columns:1fr; } .qr-preview { grid-template-columns:1fr; } }
+    .triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .double { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .plus-btn { width: 28px; height: 28px; padding: 0; font-size: 18px; line-height: 1; }
+    .blinking { animation: blinkWarn .9s infinite; }
+    @keyframes blinkWarn { 0%, 100% { color: #fff; } 50% { color: #ef4444; } }
+
+    .mov-entrada { background: #123c2c !important; border-color: #166534 !important; }
+    .mov-saida { background: #3d1a1a !important; border-color: #7f1d1d !important; }
+
+    .modal-layout { display: grid; grid-template-columns: 1.25fr .95fr; gap: 12px; }
+    .qr-preview { margin-top: 6px; display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: center; background: #0f141c; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; }
+    .qr-preview img { width: 120px; height: 120px; background: #fff; border-radius: 8px; padding: 4px; }
+    .label-box { margin-top: 8px; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; background: #0f141c; }
+    .etiqueta {
+      width: 44mm;
+      height: 24mm;
+      background: #fff;
+      color: #111;
+      border: 1px solid #111;
+      border-radius: 4px;
+      padding: 1mm;
+      display: grid;
+      grid-template-columns: 22mm 1fr;
+      gap: 1mm;
+      align-items: center;
+    }
+    .etiqueta .qr { width: 22mm; height: 22mm; border: 1px solid #111; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .etiqueta .qr img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+    .etq-text { font-size: 8px; line-height: 1.2; font-weight: 700; }
+
+    .modal-actions { display: flex; justify-content: space-between; margin-top: 12px; }
+
+    .archive-item { border: 1px solid #334155; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      .print-label, .print-label * { visibility: visible !important; }
+      .print-label { position: absolute; left: 0; top: 0; margin: 0; }
+    }
+
+    @media (max-width: 940px) {
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .grid, .triple, .double, .modal-layout { grid-template-columns: 1fr; }
+      .qr-preview { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -54,19 +99,20 @@
 
     <section class="header">
       <h1>📦 Estoque</h1>
-      <div class="subtitle">Cadastre itens, registre entrada/saída com responsável e gere QR Code por item.</div>
+      <div class="subtitle">Cadastre itens, controle entrada/saída, etiquetas em QR e alerta mínimo para compras.</div>
     </section>
 
     <section class="toolbar">
-      <input id="filtro" type="text" placeholder="Buscar por nome, código ou categoria" />
+      <input id="filtro" type="text" placeholder="Buscar por nome/categoria/detalhes" />
       <button id="btn-filtrar" class="btn-blue">Filtrar</button>
       <button id="btn-limpar" class="btn-blue">Limpar</button>
       <button id="btn-novo" class="btn-primary">+ Novo item</button>
+      <button id="btn-arquivo" class="btn-blue">Arquivo</button>
       <button id="btn-exportar" class="btn-blue">Exportar JSON</button>
     </section>
 
     <section class="panel">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
         <strong>Itens em estoque</strong>
         <span id="contador" class="muted">0 itens</span>
       </div>
@@ -74,11 +120,12 @@
         <table>
           <thead>
             <tr>
-              <th>Item</th>
-              <th>Categoria</th>
+              <th>Nome / Categoria</th>
+              <th>Tamanho</th>
               <th>Quantidade</th>
+              <th>Mínimo</th>
               <th>Última movimentação</th>
-              <th>QR</th>
+              <th>QR / Etiqueta</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -90,54 +137,107 @@
 
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
-      <h3 style="margin-top:0">Item de estoque</h3>
-      <div class="grid">
+      <h2 style="margin:0 0 10px;">Item de estoque</h2>
+      <div class="modal-layout">
         <div>
-          <label for="item-nome" class="muted">Nome *</label>
-          <input id="item-nome" type="text" maxlength="80" />
-        </div>
-        <div>
-          <label for="item-codigo" class="muted">Código *</label>
-          <input id="item-codigo" type="text" maxlength="50" />
-        </div>
-        <div>
-          <label for="item-categoria" class="muted">Categoria</label>
-          <input id="item-categoria" type="text" maxlength="60" placeholder="Ex.: Ferragens" />
-        </div>
-        <div>
-          <label for="item-qtd" class="muted">Quantidade atual *</label>
-          <input id="item-qtd" type="number" min="0" step="1" />
+          <div class="grid">
+            <div>
+              <label class="muted" for="item-nome">Nome</label>
+              <input id="item-nome" type="text" maxlength="90" />
+            </div>
+            <div>
+              <label class="muted" for="item-codigo">Código interno</label>
+              <input id="item-codigo" type="text" maxlength="50" placeholder="Opcional" />
+            </div>
+
+            <div>
+              <div class="label-row">
+                <label class="muted" for="item-categoria">Categoria</label>
+                <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria">+</button>
+              </div>
+              <select id="item-categoria"></select>
+            </div>
+
+            <div>
+              <label class="muted">Tamanho</label>
+              <div class="triple">
+                <input id="tam-largura" placeholder="Largura" />
+                <input id="tam-altura" placeholder="Altura" />
+                <input id="tam-espessura" placeholder="Espessura" />
+              </div>
+            </div>
+
+            <div>
+              <label class="muted">Quant.</label>
+              <div class="double">
+                <select id="qtd-unidade">
+                  <option value="Unidade">Unidade</option>
+                  <option value="Pacote">Pacote</option>
+                  <option value="Caixa">Caixa</option>
+                  <option value="Litro">Litro</option>
+                </select>
+                <input id="item-qtd" type="number" min="0" step="1" placeholder="Quantidade" />
+              </div>
+            </div>
+
+            <div>
+              <label class="muted" for="item-minimo">Quantidade mínima</label>
+              <input id="item-minimo" type="number" min="0" step="1" placeholder="Ex.: 10" />
+            </div>
+
+            <div class="full">
+              <label class="muted" for="item-detalhes">Detalhes</label>
+              <textarea id="item-detalhes" placeholder="Descrição do item."></textarea>
+            </div>
+
+            <div class="full" style="border-top:1px solid #334155;padding-top:10px;">
+              <strong style="font-size:13px;">Movimentação</strong>
+            </div>
+
+            <div>
+              <label class="muted" for="mov-tipo">Tipo de movimentação</label>
+              <select id="mov-tipo" class="mov-entrada">
+                <option value="entrada">Entrada</option>
+                <option value="saida">Saída</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted" for="mov-qtd">Quantidade da movimentação</label>
+              <input id="mov-qtd" type="number" min="0" step="1" placeholder="Ex.: 5" />
+            </div>
+
+            <div>
+              <label class="muted" for="mov-responsavel">Responsável</label>
+              <select id="mov-responsavel"></select>
+            </div>
+            <div>
+              <label class="muted" for="mov-obs">Observação</label>
+              <input id="mov-obs" type="text" maxlength="120" placeholder="Detalhes opcionais" />
+            </div>
+          </div>
         </div>
 
-        <div class="full" style="border-top:1px solid #334155;padding-top:10px;margin-top:4px;">
-          <strong style="font-size:13px;">Movimentação e etiqueta</strong>
-        </div>
+        <div>
+          <div class="qr-preview">
+            <img id="qr-img" alt="QR do item" />
+            <div>
+              <div><strong id="qr-title">Novo item</strong></div>
+              <div class="muted" id="qr-desc">QR para rastrear item e última movimentação.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+                <button id="btn-gerar-etiqueta" class="btn-primary" type="button">Gerar Etiqueta</button>
+                <select id="etiqueta-formato" style="max-width:120px;">
+                  <option value="pdf">PDF</option>
+                  <option value="jpg">JPG</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-        <div>
-          <label for="mov-tipo" class="muted">Tipo de movimentação</label>
-          <select id="mov-tipo">
-            <option value="entrada">Entrada</option>
-            <option value="saida">Saída</option>
-          </select>
-        </div>
-        <div>
-          <label for="mov-usuario" class="muted">Responsável da movimentação</label>
-          <input id="mov-usuario" type="text" maxlength="80" placeholder="Quem adicionou/retirou" />
-        </div>
-        <div class="full">
-          <label for="mov-obs" class="muted">Observação</label>
-          <input id="mov-obs" type="text" maxlength="120" placeholder="Detalhes opcionais" />
-        </div>
-      </div>
-
-      <div class="qr-preview">
-        <img id="qr-img" alt="QR do item" />
-        <div>
-          <div><strong id="qr-title">Novo item</strong></div>
-          <div class="muted" id="qr-desc">O QR é gerado com dados do item para consulta rápida.</div>
-          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-            <button id="btn-imprimir" class="btn-blue" type="button">Imprimir etiqueta</button>
-            <a id="btn-download-qr" class="btn-blue" download="qr-item.png" style="text-decoration:none;display:inline-flex;align-items:center;">Baixar QR</a>
+          <div class="label-box">
+            <div class="etiqueta print-label" id="etiqueta-preview">
+              <div class="qr"><img id="etq-qr" alt="QR etiqueta" /></div>
+              <div class="etq-text" id="etq-info">100 Unidades</div>
+            </div>
           </div>
         </div>
       </div>
@@ -152,28 +252,59 @@
     </div>
   </div>
 
+  <div class="modal-bg" id="arquivo-bg">
+    <div class="modal" style="width:min(760px,100%);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <h3 style="margin:0;">Arquivo de baixas</h3>
+        <button class="btn-blue" id="btn-fechar-arquivo" type="button">Fechar</button>
+      </div>
+      <div class="muted" style="margin:6px 0 10px;">Restaure ações de saída feitas por engano.</div>
+      <div id="arquivo-lista"></div>
+    </div>
+  </div>
+
   <script type="module">
-    import { protegerPagina } from './auth.js';
+    import { db } from './config.js';
+    import { protegerPagina, obterConfiguracaoCategorias } from './auth.js';
+    import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     const sessao = await protegerPagina({ paginaAtual: 'estoque.html' });
     if (!sessao) throw new Error('Sem sessão');
 
-    const STORAGE_KEY = 'artesynal_estoque_v1';
+    const STORAGE_KEY = 'artesynal_estoque_v2';
+    const DEFAULT_CATEGORIES = ['Ferragens', 'Tintas', 'Parafusos'];
+    const DELETE_CAT_VALUE = '__delete__';
 
-    const tbody = document.getElementById('tbody-itens');
-    const contador = document.getElementById('contador');
-    const filtroInput = document.getElementById('filtro');
-    const modalBg = document.getElementById('modal-bg');
+    const refs = {
+      tbody: document.getElementById('tbody-itens'),
+      contador: document.getElementById('contador'),
+      filtro: document.getElementById('filtro'),
+      modalBg: document.getElementById('modal-bg'),
+      arquivoBg: document.getElementById('arquivo-bg'),
+      arquivoLista: document.getElementById('arquivo-lista'),
+      categoriaSelect: document.getElementById('item-categoria'),
+      movTipo: document.getElementById('mov-tipo'),
+      movResponsavel: document.getElementById('mov-responsavel')
+    };
 
-    let estado = carregarEstado();
+    const estado = carregarEstado();
     let itemAtualId = null;
+    let categoriaAntesDelete = '';
+
+    await carregarResponsaveis();
+    renderCategorias();
+    renderTabela();
 
     function carregarEstado() {
       try {
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        return Array.isArray(data) ? data : [];
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!data || typeof data !== 'object') return { categorias: [...DEFAULT_CATEGORIES], itens: [], arquivo: [] };
+        if (!Array.isArray(data.categorias) || !data.categorias.length) data.categorias = [...DEFAULT_CATEGORIES];
+        if (!Array.isArray(data.itens)) data.itens = [];
+        if (!Array.isArray(data.arquivo)) data.arquivo = [];
+        return data;
       } catch {
-        return [];
+        return { categorias: [...DEFAULT_CATEGORIES], itens: [], arquivo: [] };
       }
     }
 
@@ -181,28 +312,28 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
     }
 
-    function escapeHtml(valor) {
-      return String(valor ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    function escapeHtml(v = '') {
+      return String(v)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
     }
 
     function qrPayload(item) {
       return JSON.stringify({
         id: item.id,
         nome: item.nome,
-        codigo: item.codigo,
         categoria: item.categoria,
+        unidade: item.unidade,
         quantidade: item.quantidade,
         ultimaMovimentacao: item.historico?.[0] || null
       });
     }
 
-    function qrUrl(payload) {
-      return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=1&data=${encodeURIComponent(payload)}`;
+    function qrUrl(item) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=1&data=${encodeURIComponent(qrPayload(item))}`;
     }
 
     function formatarData(iso) {
@@ -211,42 +342,47 @@
       return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     }
 
+    function renderCategorias(selected = '') {
+      const opts = estado.categorias.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      refs.categoriaSelect.innerHTML = `${opts}<option value="${DELETE_CAT_VALUE}">⚠Excluir Categoria⚠</option>`;
+      refs.categoriaSelect.value = selected && estado.categorias.includes(selected) ? selected : (estado.categorias[0] || DELETE_CAT_VALUE);
+      categoriaAntesDelete = refs.categoriaSelect.value;
+      refs.categoriaSelect.classList.toggle('blinking', refs.categoriaSelect.value === DELETE_CAT_VALUE);
+    }
+
+    function montarLinha(item) {
+      const mov = item.historico?.[0];
+      const movTxt = mov ? `${mov.tipo === 'entrada' ? 'Entrada' : 'Saída'} (${mov.quantidade}) por ${mov.responsavel || '-'} em ${formatarData(mov.data)}` : 'Sem movimentação';
+      const sizeTxt = `${item.tamanho?.largura || '-'} x ${item.tamanho?.altura || '-'} x ${item.tamanho?.espessura || '-'}`;
+      const emMinimo = Number(item.quantidade || 0) <= Number(item.minimo || 0);
+      return `
+        <tr>
+          <td><strong>${escapeHtml(item.nome)}</strong><br><span class="muted">${escapeHtml(item.categoria || '-')}</span></td>
+          <td>${escapeHtml(sizeTxt)}</td>
+          <td><span class="tag">${Number(item.quantidade || 0)} ${escapeHtml(item.unidade || '')}</span></td>
+          <td>${Number(item.minimo || 0)} ${emMinimo ? '<span class="tag" style="border-color:#ef4444;color:#fecaca;">Abaixo</span>' : ''}</td>
+          <td>${escapeHtml(movTxt)}</td>
+          <td><a href="${qrUrl(item)}" target="_blank" rel="noopener">Abrir QR</a></td>
+          <td>
+            <div class="actions">
+              <button class="btn-blue" data-action="edit" data-id="${item.id}" type="button">Editar</button>
+              <button class="btn-danger" data-action="del" data-id="${item.id}" type="button">Excluir</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
     function renderTabela() {
-      const termo = filtroInput.value.trim().toLowerCase();
-      const itens = estado.filter((item) => {
+      const termo = refs.filtro.value.trim().toLowerCase();
+      const itens = estado.itens.filter((it) => {
         if (!termo) return true;
-        return [item.nome, item.codigo, item.categoria].some((v) => String(v || '').toLowerCase().includes(termo));
+        return [it.nome, it.categoria, it.detalhes].some((v) => String(v || '').toLowerCase().includes(termo));
       });
+      refs.contador.textContent = `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}`;
+      refs.tbody.innerHTML = itens.length ? itens.map(montarLinha).join('') : '<tr><td colspan="7" class="muted">Nenhum item encontrado.</td></tr>';
 
-      contador.textContent = `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}`;
-
-      if (!itens.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="muted">Nenhum item encontrado.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = itens.map((item) => {
-        const mov = item.historico?.[0];
-        const movTxt = mov ? `${mov.tipo === 'entrada' ? 'Entrada' : 'Saída'} por ${mov.usuario || 'não informado'} em ${formatarData(mov.data)}` : 'Sem movimentação';
-        const qr = qrUrl(qrPayload(item));
-        return `
-          <tr>
-            <td><strong>${escapeHtml(item.nome)}</strong><br><span class="muted">${escapeHtml(item.codigo)}</span></td>
-            <td>${escapeHtml(item.categoria || '-')}</td>
-            <td><span class="tag">${Number(item.quantidade || 0)}</span></td>
-            <td>${escapeHtml(movTxt)}</td>
-            <td><a href="${qr}" target="_blank" rel="noopener">Abrir QR</a></td>
-            <td>
-              <div class="actions">
-                <button type="button" class="btn-blue" data-action="edit" data-id="${item.id}">Editar</button>
-                <button type="button" class="btn-danger" data-action="del" data-id="${item.id}">Excluir</button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      tbody.querySelectorAll('button[data-action]').forEach((btn) => {
+      refs.tbody.querySelectorAll('button[data-action]').forEach((btn) => {
         btn.addEventListener('click', () => {
           const id = btn.dataset.id;
           if (btn.dataset.action === 'edit') abrirModal(id);
@@ -255,92 +391,173 @@
       });
     }
 
+    async function carregarResponsaveis() {
+      const conf = await obterConfiguracaoCategorias();
+      const q = query(collection(db, 'access_requests'), where('status', '==', 'approved'));
+      const snap = await getDocs(q);
+      const list = [];
+      snap.forEach((docSnap) => {
+        const d = docSnap.data() || {};
+        if (d.blocked) return;
+        const cat = d.categoria || '';
+        const podeEstoque = conf?.[cat]?.['estoque.html'] === true;
+        if (!podeEstoque) return;
+        list.push({ nome: d.nome || d.email, email: (d.email || '').toLowerCase() });
+      });
+      list.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      refs.movResponsavel.innerHTML = list.map((u) => `<option value="${escapeHtml(u.nome)}">${escapeHtml(u.nome)}</option>`).join('');
+      const meuNome = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+      const encontrou = list.find((u) => u.nome === meuNome);
+      if (encontrou) refs.movResponsavel.value = encontrou.nome;
+    }
+
+    function setMovStyle() {
+      refs.movTipo.classList.toggle('mov-entrada', refs.movTipo.value === 'entrada');
+      refs.movTipo.classList.toggle('mov-saida', refs.movTipo.value === 'saida');
+    }
+
     function limparCampos() {
       document.getElementById('item-nome').value = '';
       document.getElementById('item-codigo').value = '';
-      document.getElementById('item-categoria').value = '';
+      renderCategorias();
+      document.getElementById('tam-largura').value = '';
+      document.getElementById('tam-altura').value = '';
+      document.getElementById('tam-espessura').value = '';
+      document.getElementById('qtd-unidade').value = 'Unidade';
       document.getElementById('item-qtd').value = '0';
-      document.getElementById('mov-tipo').value = 'entrada';
-      document.getElementById('mov-usuario').value = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+      document.getElementById('item-minimo').value = '0';
+      document.getElementById('item-detalhes').value = '';
+      refs.movTipo.value = 'entrada';
+      setMovStyle();
+      document.getElementById('mov-qtd').value = '0';
       document.getElementById('mov-obs').value = '';
+      atualizarPreview();
     }
 
-    function atualizarQrModal() {
-      const rascunho = {
+    function itemDraft() {
+      return {
         id: itemAtualId || 'novo',
         nome: document.getElementById('item-nome').value.trim() || 'Sem nome',
         codigo: document.getElementById('item-codigo').value.trim() || 'SEM-COD',
-        categoria: document.getElementById('item-categoria').value.trim() || '',
+        categoria: refs.categoriaSelect.value === DELETE_CAT_VALUE ? (categoriaAntesDelete || '') : refs.categoriaSelect.value,
+        tamanho: {
+          largura: document.getElementById('tam-largura').value.trim(),
+          altura: document.getElementById('tam-altura').value.trim(),
+          espessura: document.getElementById('tam-espessura').value.trim()
+        },
+        unidade: document.getElementById('qtd-unidade').value,
         quantidade: Number(document.getElementById('item-qtd').value || 0),
+        minimo: Number(document.getElementById('item-minimo').value || 0),
+        detalhes: document.getElementById('item-detalhes').value.trim(),
         historico: [{
-          tipo: document.getElementById('mov-tipo').value,
-          usuario: document.getElementById('mov-usuario').value.trim(),
+          tipo: refs.movTipo.value,
+          quantidade: Number(document.getElementById('mov-qtd').value || 0),
+          responsavel: refs.movResponsavel.value,
           obs: document.getElementById('mov-obs').value.trim(),
           data: new Date().toISOString()
         }]
       };
-      const url = qrUrl(qrPayload(rascunho));
-      document.getElementById('qr-img').src = url;
-      document.getElementById('btn-download-qr').href = url;
-      document.getElementById('qr-title').textContent = `${rascunho.nome} (${rascunho.codigo})`;
+    }
+
+    function atualizarPreview() {
+      const it = itemDraft();
+      const qr = qrUrl(it);
+      document.getElementById('qr-img').src = qr;
+      document.getElementById('etq-qr').src = qr;
+      document.getElementById('qr-title').textContent = `${it.nome} (${it.codigo})`;
+      document.getElementById('etq-info').textContent = `${Number(it.quantidade || 0)} ${it.unidade}`;
     }
 
     function abrirModal(id = null) {
       itemAtualId = id;
       document.getElementById('btn-excluir').style.display = id ? 'inline-flex' : 'none';
-
       if (!id) {
         limparCampos();
       } else {
-        const item = estado.find((it) => it.id === id);
+        const item = estado.itens.find((i) => i.id === id);
         if (!item) return;
         document.getElementById('item-nome').value = item.nome || '';
         document.getElementById('item-codigo').value = item.codigo || '';
-        document.getElementById('item-categoria').value = item.categoria || '';
+        renderCategorias(item.categoria || '');
+        document.getElementById('tam-largura').value = item.tamanho?.largura || '';
+        document.getElementById('tam-altura').value = item.tamanho?.altura || '';
+        document.getElementById('tam-espessura').value = item.tamanho?.espessura || '';
+        document.getElementById('qtd-unidade').value = item.unidade || 'Unidade';
         document.getElementById('item-qtd').value = String(Number(item.quantidade || 0));
-        document.getElementById('mov-tipo').value = 'entrada';
-        document.getElementById('mov-usuario').value = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+        document.getElementById('item-minimo').value = String(Number(item.minimo || 0));
+        document.getElementById('item-detalhes').value = item.detalhes || '';
+        refs.movTipo.value = 'entrada';
+        setMovStyle();
+        document.getElementById('mov-qtd').value = '0';
         document.getElementById('mov-obs').value = '';
       }
-
-      atualizarQrModal();
-      modalBg.style.display = 'flex';
+      refs.modalBg.style.display = 'flex';
+      atualizarPreview();
     }
 
     function fecharModal() {
-      modalBg.style.display = 'none';
+      refs.modalBg.style.display = 'none';
       itemAtualId = null;
     }
 
     function excluirItem(id) {
-      const item = estado.find((it) => it.id === id);
+      const item = estado.itens.find((it) => it.id === id);
       if (!item) return;
       if (!confirm(`Excluir o item "${item.nome}"?`)) return;
-      estado = estado.filter((it) => it.id !== id);
+      estado.itens = estado.itens.filter((it) => it.id !== id);
       salvarEstado();
       renderTabela();
       if (itemAtualId === id) fecharModal();
     }
 
-    function salvarItem() {
+    async function criarNotificacaoCompras(item) {
+      const warteEmail = 'wartesynal@gmail.com';
+      const q = query(
+        collection(db, 'tarefas'),
+        where('destinatarioEmail', '==', warteEmail),
+        where('status', '==', 'pendente'),
+        where('origem', '==', 'estoque'),
+        where('itemId', '==', item.id)
+      );
+      const jaExiste = await getDocs(q);
+      if (!jaExiste.empty) return;
+
+      await addDoc(collection(db, 'tarefas'), {
+        setor: 'orcamento',
+        tipo: 'Compras',
+        resumo: `Reposição de estoque: ${item.nome}`,
+        descricao: `Item ${item.nome} atingiu o mínimo (${item.quantidade} ${item.unidade}).\nCategoria: ${item.categoria || '-'}\nCódigo: ${item.codigo || '-'}\nMínimo: ${item.minimo}`,
+        status: 'pendente',
+        destinatarioEmail: warteEmail,
+        destinatarioNome: 'warte',
+        solicitanteEmail: (sessao.user.email || '').toLowerCase(),
+        solicitanteNome: sessao.user.displayName || sessao.acesso.nome || 'Sistema',
+        origem: 'estoque',
+        itemId: item.id,
+        listaId: '',
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+    }
+
+    async function salvarItem() {
       const nome = document.getElementById('item-nome').value.trim();
       const codigo = document.getElementById('item-codigo').value.trim();
-      const categoria = document.getElementById('item-categoria').value.trim();
-      const quantidade = Number(document.getElementById('item-qtd').value || 0);
-      const tipo = document.getElementById('mov-tipo').value;
-      const usuario = document.getElementById('mov-usuario').value.trim();
+      const categoria = refs.categoriaSelect.value === DELETE_CAT_VALUE ? categoriaAntesDelete : refs.categoriaSelect.value;
+      const unidade = document.getElementById('qtd-unidade').value;
+      const minimo = Number(document.getElementById('item-minimo').value || 0);
+      const detalhes = document.getElementById('item-detalhes').value.trim();
+      const tipoMov = refs.movTipo.value;
+      const qtdMov = Number(document.getElementById('mov-qtd').value || 0);
+      const responsavel = refs.movResponsavel.value;
       const obs = document.getElementById('mov-obs').value.trim();
+      const qtdInformada = Number(document.getElementById('item-qtd').value || 0);
 
       if (!nome) return alert('Informe o nome do item.');
-      if (!codigo) return alert('Informe o código do item.');
-      if (!Number.isFinite(quantidade) || quantidade < 0) return alert('Quantidade inválida.');
+      if (!categoria) return alert('Selecione uma categoria.');
+      if (!Number.isFinite(minimo) || minimo < 0) return alert('Quantidade mínima inválida.');
 
-      const mov = {
-        tipo,
-        usuario,
-        obs,
-        data: new Date().toISOString()
-      };
+      const mov = { tipo: tipoMov, quantidade: qtdMov, responsavel, obs, data: new Date().toISOString() };
 
       if (!itemAtualId) {
         const novo = {
@@ -348,24 +565,70 @@
           nome,
           codigo,
           categoria,
-          quantidade,
+          tamanho: {
+            largura: document.getElementById('tam-largura').value.trim(),
+            altura: document.getElementById('tam-altura').value.trim(),
+            espessura: document.getElementById('tam-espessura').value.trim()
+          },
+          unidade,
+          quantidade: Math.max(0, Number.isFinite(qtdInformada) ? qtdInformada : 0),
+          minimo,
+          detalhes,
           historico: [mov],
           criadoEm: new Date().toISOString()
         };
-        estado.unshift(novo);
+        estado.itens.unshift(novo);
+        if (novo.quantidade <= novo.minimo) await criarNotificacaoCompras(novo);
       } else {
-        estado = estado.map((it) => {
+        estado.itens = estado.itens.map((it) => {
           if (it.id !== itemAtualId) return it;
+          let novaQtd = Number(it.quantidade || 0);
+
+          if (qtdMov > 0) {
+            if (tipoMov === 'entrada') {
+              novaQtd += qtdMov;
+            } else {
+              if (qtdMov > novaQtd) {
+                throw new Error('A baixa é maior que a quantidade atual.');
+              }
+              const anterior = novaQtd;
+              novaQtd -= qtdMov;
+              estado.arquivo.unshift({
+                id: `arq_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                itemId: it.id,
+                itemNome: it.nome,
+                qtdMov,
+                unidade: it.unidade || unidade,
+                qtdAntes: anterior,
+                qtdDepois: novaQtd,
+                responsavel,
+                data: new Date().toISOString()
+              });
+              estado.arquivo = estado.arquivo.slice(0, 80);
+            }
+          }
+
           return {
             ...it,
             nome,
             codigo,
             categoria,
-            quantidade,
+            tamanho: {
+              largura: document.getElementById('tam-largura').value.trim(),
+              altura: document.getElementById('tam-altura').value.trim(),
+              espessura: document.getElementById('tam-espessura').value.trim()
+            },
+            unidade,
+            quantidade: novaQtd,
+            minimo,
+            detalhes,
             historico: [mov, ...(it.historico || [])].slice(0, 30),
             atualizadoEm: new Date().toISOString()
           };
         });
+
+        const itemSalvo = estado.itens.find((i) => i.id === itemAtualId);
+        if (itemSalvo && itemSalvo.quantidade <= itemSalvo.minimo) await criarNotificacaoCompras(itemSalvo);
       }
 
       salvarEstado();
@@ -373,9 +636,83 @@
       fecharModal();
     }
 
+    function renderArquivo() {
+      refs.arquivoLista.innerHTML = estado.arquivo.length ? estado.arquivo.map((r) => `
+        <div class="archive-item">
+          <div><strong>${escapeHtml(r.itemNome)}</strong> - baixa de ${r.qtdMov} ${escapeHtml(r.unidade || '')}</div>
+          <div class="muted">Antes: ${r.qtdAntes} | Depois: ${r.qtdDepois} | ${formatarData(r.data)} | ${escapeHtml(r.responsavel || '-')}</div>
+          <button class="btn-blue" data-restore="${r.id}" type="button" style="margin-top:6px;">Restaurar ação</button>
+        </div>
+      `).join('') : '<div class="muted">Nenhum registro no arquivo.</div>';
+
+      refs.arquivoLista.querySelectorAll('button[data-restore]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const reg = estado.arquivo.find((a) => a.id === btn.dataset.restore);
+          if (!reg) return;
+          const item = estado.itens.find((it) => it.id === reg.itemId);
+          if (!item) return alert('Item não encontrado para restauração.');
+          item.quantidade = Number(reg.qtdAntes || item.quantidade || 0);
+          item.historico = [{
+            tipo: 'entrada',
+            quantidade: reg.qtdMov,
+            responsavel: sessao.user.displayName || sessao.acesso.nome || 'Sistema',
+            obs: 'Restauração via arquivo',
+            data: new Date().toISOString()
+          }, ...(item.historico || [])].slice(0, 30);
+          estado.arquivo = estado.arquivo.filter((a) => a.id !== reg.id);
+          salvarEstado();
+          renderTabela();
+          renderArquivo();
+        });
+      });
+    }
+
+    async function gerarEtiqueta() {
+      atualizarPreview();
+      const formato = document.getElementById('etiqueta-formato').value;
+      if (formato === 'pdf') {
+        window.print();
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 440;
+      canvas.height = 240;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#111';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+      const qrImage = new Image();
+      qrImage.crossOrigin = 'anonymous';
+      qrImage.src = document.getElementById('etq-qr').src;
+      await new Promise((resolve, reject) => {
+        qrImage.onload = resolve;
+        qrImage.onerror = reject;
+      });
+
+      ctx.drawImage(qrImage, 10, 10, 220, 220);
+      ctx.fillStyle = '#111';
+      ctx.font = '700 28px Arial';
+      ctx.fillText(document.getElementById('item-nome').value.trim() || 'Item', 245, 80, 185);
+      ctx.font = '700 30px Arial';
+      ctx.fillText(document.getElementById('etq-info').textContent, 245, 130, 185);
+
+      const url = canvas.toDataURL('image/jpeg', 0.95);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `etiqueta-${(document.getElementById('item-nome').value || 'item').replace(/\s+/g, '-').toLowerCase()}.jpg`;
+      a.click();
+    }
+
     document.getElementById('btn-filtrar').addEventListener('click', renderTabela);
-    document.getElementById('btn-limpar').addEventListener('click', () => { filtroInput.value = ''; renderTabela(); });
+    document.getElementById('btn-limpar').addEventListener('click', () => { refs.filtro.value = ''; renderTabela(); });
     document.getElementById('btn-novo').addEventListener('click', () => abrirModal());
+    document.getElementById('btn-arquivo').addEventListener('click', () => { refs.arquivoBg.style.display = 'flex'; renderArquivo(); });
+    document.getElementById('btn-fechar-arquivo').addEventListener('click', () => { refs.arquivoBg.style.display = 'none'; });
+
     document.getElementById('btn-exportar').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -386,18 +723,73 @@
       URL.revokeObjectURL(url);
     });
 
-    ['item-nome', 'item-codigo', 'item-categoria', 'item-qtd', 'mov-tipo', 'mov-usuario', 'mov-obs'].forEach((id) => {
-      document.getElementById(id).addEventListener('input', atualizarQrModal);
-      document.getElementById(id).addEventListener('change', atualizarQrModal);
+    document.getElementById('btn-add-categoria').addEventListener('click', () => {
+      const nome = prompt('Digite o nome da nova categoria:');
+      if (!nome) return;
+      const cat = nome.trim();
+      if (!cat) return;
+      if (estado.categorias.includes(cat)) return alert('Categoria já existe.');
+      estado.categorias.push(cat);
+      salvarEstado();
+      renderCategorias(cat);
+      atualizarPreview();
+    });
+
+    refs.categoriaSelect.addEventListener('change', () => {
+      refs.categoriaSelect.classList.toggle('blinking', refs.categoriaSelect.value === DELETE_CAT_VALUE);
+      if (refs.categoriaSelect.value !== DELETE_CAT_VALUE) {
+        categoriaAntesDelete = refs.categoriaSelect.value;
+        atualizarPreview();
+        return;
+      }
+
+      if (!categoriaAntesDelete) {
+        renderCategorias();
+        return;
+      }
+
+      if (!confirm(`Excluir categoria "${categoriaAntesDelete}"?`)) {
+        renderCategorias(categoriaAntesDelete);
+        return;
+      }
+
+      estado.categorias = estado.categorias.filter((c) => c !== categoriaAntesDelete);
+      estado.itens.forEach((item) => {
+        if (item.categoria === categoriaAntesDelete) item.categoria = '';
+      });
+      if (!estado.categorias.length) estado.categorias.push('Categoria geral');
+      salvarEstado();
+      renderCategorias(estado.categorias[0]);
+      renderTabela();
+      atualizarPreview();
+    });
+
+    refs.movTipo.addEventListener('change', () => { setMovStyle(); atualizarPreview(); });
+
+    ['item-nome', 'item-codigo', 'tam-largura', 'tam-altura', 'tam-espessura', 'qtd-unidade', 'item-qtd', 'item-minimo', 'item-detalhes', 'mov-qtd', 'mov-responsavel', 'mov-obs'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', atualizarPreview);
+      document.getElementById(id).addEventListener('change', atualizarPreview);
     });
 
     document.getElementById('btn-cancelar').addEventListener('click', fecharModal);
-    document.getElementById('btn-salvar').addEventListener('click', salvarItem);
+    document.getElementById('btn-salvar').addEventListener('click', async () => {
+      try {
+        await salvarItem();
+      } catch (err) {
+        alert(err?.message || 'Não foi possível salvar o item.');
+      }
+    });
     document.getElementById('btn-excluir').addEventListener('click', () => { if (itemAtualId) excluirItem(itemAtualId); });
-    document.getElementById('btn-imprimir').addEventListener('click', () => window.print());
-    modalBg.addEventListener('click', (ev) => { if (ev.target === modalBg) fecharModal(); });
+    document.getElementById('btn-gerar-etiqueta').addEventListener('click', async () => {
+      try {
+        await gerarEtiqueta();
+      } catch {
+        alert('Não foi possível gerar a etiqueta JPG. Tente PDF.');
+      }
+    });
 
-    renderTabela();
+    refs.modalBg.addEventListener('click', (ev) => { if (ev.target === refs.modalBg) fecharModal(); });
+    refs.arquivoBg.addEventListener('click', (ev) => { if (ev.target === refs.arquivoBg) refs.arquivoBg.style.display = 'none'; });
   </script>
 </body>
 </html>
