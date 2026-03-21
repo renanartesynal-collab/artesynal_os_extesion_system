@@ -55,8 +55,15 @@
     .mov-entrada { background: #123c2c !important; border-color: #166534 !important; }
     .mov-saida { background: #3d1a1a !important; border-color: #7f1d1d !important; }
 
-    .modal-layout { display: grid; grid-template-columns: 1.25fr .95fr; gap: 12px; }
-    .qr-preview { margin-top: 6px; display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: center; background: #0f141c; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; }
+    .modal-layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .linha-top { display:grid; grid-template-columns: 1fr 1fr 44px; gap: 12px; align-items:end; }
+    .linha-medidas { display:grid; grid-template-columns: 1.25fr 1fr 180px; gap: 12px; align-items:end; }
+    .linha-detalhes { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items:start; }
+    .mov-title { border-top:1px solid #334155; padding-top:10px; font-size:13px; font-weight:800; }
+    .mov-grid { display:grid; grid-template-columns: 170px 110px 1fr auto; gap: 12px; align-items:end; }
+    .mov-grid .acoes { display:flex; gap:8px; justify-content:flex-end; }
+    .qr-panel { background: #0f141c; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; }
+    .qr-preview { margin-top: 0; display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: center; }
     .qr-preview img { width: 120px; height: 120px; background: #fff; border-radius: 8px; padding: 4px; }
     .label-box { margin-top: 8px; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; background: #0f141c; }
     .etiqueta {
@@ -76,7 +83,7 @@
     .etiqueta .qr img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
     .etq-text { font-size: 8px; line-height: 1.2; font-weight: 700; }
 
-    .modal-actions { display: flex; justify-content: space-between; margin-top: 12px; }
+    .modal-actions { display: none; }
 
     .archive-item { border: 1px solid #334155; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
 
@@ -88,8 +95,9 @@
 
     @media (max-width: 940px) {
       .toolbar { grid-template-columns: 1fr 1fr; }
-      .grid, .triple, .double, .modal-layout { grid-template-columns: 1fr; }
+      .grid, .triple, .double, .modal-layout, .linha-top, .linha-medidas, .linha-detalhes, .mov-grid { grid-template-columns: 1fr; }
       .qr-preview { grid-template-columns: 1fr; }
+      .mov-grid .acoes { justify-content:flex-start; }
     }
   </style>
 </head>
@@ -139,110 +147,91 @@
     <div class="modal">
       <h2 style="margin:0 0 10px;">Item de estoque</h2>
       <div class="modal-layout">
-        <div>
-          <div class="grid">
-            <div>
-              <label class="muted" for="item-nome">Item</label>
-              <input id="item-nome" type="text" maxlength="90" />
+        <div class="linha-top">
+          <div>
+            <label class="muted" for="item-nome">Item</label>
+            <input id="item-nome" type="text" maxlength="90" />
+          </div>
+          <div>
+            <label class="muted" for="item-categoria">Categoria</label>
+            <select id="item-categoria"></select>
+          </div>
+          <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria">+</button>
+        </div>
+
+        <div class="linha-medidas">
+          <div>
+            <label class="muted">Tamanho</label>
+            <div class="triple">
+              <input id="tam-largura" placeholder="Largura" />
+              <input id="tam-altura" placeholder="Altura" />
+              <input id="tam-espessura" placeholder="Espessura" />
             </div>
-            <div>
-              <div class="label-row">
-                <label class="muted" for="item-categoria">Categoria</label>
-                <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria">+</button>
+          </div>
+          <div>
+            <label class="muted">Quant.</label>
+            <div class="double">
+              <select id="qtd-unidade">
+                <option value="Unidade">Unidade</option>
+                <option value="Pacote">Pacote</option>
+                <option value="Caixa">Caixa</option>
+                <option value="Litro">Litro</option>
+              </select>
+              <input id="item-qtd" type="number" min="0" step="1" placeholder="Quantidade" />
+            </div>
+          </div>
+          <div>
+            <label class="muted" for="item-minimo">Estoque Min.</label>
+            <input id="item-minimo" type="number" min="0" step="1" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="linha-detalhes">
+          <textarea id="item-detalhes" placeholder="Descrição do item."></textarea>
+          <div class="qr-panel">
+            <div class="qr-preview">
+              <img id="qr-img" alt="QR do item" />
+              <div>
+                <div><strong id="qr-title">Novo item</strong></div>
+                <div class="muted" id="qr-desc">QR para rastrear item e última movimentação.</div>
               </div>
-              <select id="item-categoria"></select>
             </div>
-
-            <div>
-              <label class="muted">Tamanho</label>
-              <div class="triple">
-                <input id="tam-largura" placeholder="Largura" />
-                <input id="tam-altura" placeholder="Altura" />
-                <input id="tam-espessura" placeholder="Espessura" />
-              </div>
-            </div>
-
-            <div>
-              <label class="muted">Quant.</label>
-              <div class="double">
-                <select id="qtd-unidade">
-                  <option value="Unidade">Unidade</option>
-                  <option value="Pacote">Pacote</option>
-                  <option value="Caixa">Caixa</option>
-                  <option value="Litro">Litro</option>
-                </select>
-                <input id="item-qtd" type="number" min="0" step="1" placeholder="Quantidade" />
-              </div>
-            </div>
-
-            <div>
-              <label class="muted" for="item-minimo">Quantidade mínima</label>
-              <input id="item-minimo" type="number" min="0" step="1" placeholder="Ex.: 10" />
-            </div>
-
-            <div class="full">
-              <textarea id="item-detalhes" placeholder="Descrição do item."></textarea>
-            </div>
-
-            <div class="full" style="border-top:1px solid #334155;padding-top:10px;">
-              <strong style="font-size:13px;">Movimentação</strong>
-            </div>
-
-            <div>
-              <label class="muted" for="mov-tipo">Tipo de movimentação</label>
-              <select id="mov-tipo" class="mov-entrada">
-                <option value="entrada">Entrada</option>
-                <option value="saida">Saída</option>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button id="btn-gerar-etiqueta" class="btn-primary" type="button">Gerar Etiqueta</button>
+              <select id="etiqueta-formato" style="max-width:120px;">
+                <option value="pdf">PDF</option>
+                <option value="jpg">JPG</option>
               </select>
             </div>
-            <div>
-              <label class="muted" for="mov-qtd">Quantidade da movimentação</label>
-              <input id="mov-qtd" type="number" min="0" step="1" placeholder="Ex.: 5" />
-            </div>
-
-            <div>
-              <label class="muted" for="mov-responsavel">Responsável</label>
-              <select id="mov-responsavel"></select>
-            </div>
-            <div>
-              <label class="muted" for="mov-obs">Observação</label>
-              <input id="mov-obs" type="text" maxlength="120" placeholder="Detalhes opcionais" />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div class="qr-preview">
-            <img id="qr-img" alt="QR do item" />
-            <div>
-              <div><strong id="qr-title">Novo item</strong></div>
-              <div class="muted" id="qr-desc">QR para rastrear item e última movimentação.</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button id="btn-gerar-etiqueta" class="btn-primary" type="button">Gerar Etiqueta</button>
-                <select id="etiqueta-formato" style="max-width:120px;">
-                  <option value="pdf">PDF</option>
-                  <option value="jpg">JPG</option>
-                </select>
+            <div class="label-box" style="margin-top:8px;">
+              <div class="etiqueta print-label" id="etiqueta-preview">
+                <div class="qr"><img id="etq-qr" alt="QR etiqueta" /></div>
+                <div class="etq-text" id="etq-info">100 Unidades</div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="label-box">
-            <div class="etiqueta print-label" id="etiqueta-preview">
-              <div class="qr"><img id="etq-qr" alt="QR etiqueta" /></div>
-              <div class="etq-text" id="etq-info">100 Unidades</div>
-            </div>
+        <div class="mov-title">Movimentação</div>
+        <div class="mov-grid">
+          <select id="mov-tipo" class="mov-entrada">
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+          <div>
+            <label class="muted" for="mov-qtd">Quant.</label>
+            <input id="mov-qtd" type="number" min="0" step="1" placeholder="0" />
+          </div>
+          <input id="mov-obs" type="text" maxlength="120" placeholder="Detalhes opcionais" />
+          <div class="acoes">
+            <button id="btn-cancelar" type="button">Cancelar</button>
+            <button id="btn-salvar" class="btn-primary" type="button">Salvar</button>
           </div>
         </div>
+        <select id="mov-responsavel" style="display:none;"></select>
       </div>
 
-      <div class="modal-actions">
-        <button id="btn-excluir" class="btn-danger" type="button" style="display:none;">Excluir item</button>
-        <div style="display:flex;gap:8px;">
-          <button id="btn-cancelar" type="button">Cancelar</button>
-          <button id="btn-salvar" class="btn-primary" type="button">Salvar</button>
-        </div>
-      </div>
+      <button id="btn-excluir" class="btn-danger" type="button" style="display:none;margin-top:10px;">Excluir item</button>
     </div>
   </div>
 
