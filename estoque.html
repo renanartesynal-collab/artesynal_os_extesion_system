@@ -58,17 +58,17 @@
     .modal-layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .linha-top { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items:end; }
     .linha-medidas { display:grid; grid-template-columns: 1.25fr 1fr 180px; gap: 12px; align-items:end; }
-    .linha-detalhes { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items:start; }
+    .linha-detalhes { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items:stretch; }
     .mov-title { border-top:1px solid #334155; padding-top:10px; font-size:13px; font-weight:800; }
     .mov-grid { display:grid; grid-template-columns: 170px 150px minmax(280px, 1fr) auto; gap: 10px; align-items:end; }
     .mov-grid .acoes { display:flex; gap:8px; justify-content:flex-end; }
     .mov-grid input,
     .mov-grid select { height: 40px; }
     #mov-qtd { width: 100%; }
-    .qr-panel { background: #0f141c; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; }
+    .qr-panel { background: #0f141c; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; height: 240px; display:flex; flex-direction:column; justify-content:space-between; }
     .qr-preview { margin-top: 0; display: grid; grid-template-columns: 132px 1fr; gap: 10px; align-items: center; }
     .qr-preview img { width: 120px; height: 120px; background: #fff; border-radius: 8px; padding: 4px; }
-    #item-detalhes { min-height: 240px; }
+    #item-detalhes { min-height: 240px; height: 240px; }
     .label-box { margin-top: 8px; border: 1px dashed #42566f; border-radius: 10px; padding: 10px; background: #0f141c; }
     .etiqueta {
       width: 44mm;
@@ -153,7 +153,6 @@
       <div class="modal-layout">
         <div class="linha-top">
           <div>
-            <label class="muted" for="item-nome">Item</label>
             <input id="item-nome" type="text" maxlength="90" />
           </div>
           <div>
@@ -287,10 +286,12 @@
     const estado = carregarEstado();
     let itemAtualId = null;
     let categoriaAntesDelete = '';
+    let abriuPorParametro = false;
 
     await carregarResponsaveis();
     renderCategorias();
     renderTabela();
+    abrirItemPorParametroUrl();
 
     function carregarEstado() {
       try {
@@ -318,19 +319,13 @@
         .replaceAll("'", '&#39;');
     }
 
-    function qrPayload(item) {
-      return JSON.stringify({
-        id: item.id,
-        nome: item.nome,
-        categoria: item.categoria,
-        unidade: item.unidade,
-        quantidade: item.quantidade,
-        ultimaMovimentacao: item.historico?.[0] || null
-      });
+    function qrTargetUrl(item) {
+      const base = `${window.location.origin}${window.location.pathname}`;
+      return `${base}?item=${encodeURIComponent(item.id || 'novo')}`;
     }
 
     function qrUrl(item) {
-      return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=1&data=${encodeURIComponent(qrPayload(item))}`;
+      return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=1&data=${encodeURIComponent(qrTargetUrl(item))}`;
     }
 
     function formatarData(iso) {
@@ -359,7 +354,7 @@
           <td><span class="tag">${Number(item.quantidade || 0)} ${escapeHtml(item.unidade || '')}</span></td>
           <td>${Number(item.minimo || 0)} ${emMinimo ? '<span class="tag" style="border-color:#ef4444;color:#fecaca;">Abaixo</span>' : ''}</td>
           <td>${escapeHtml(movTxt)}</td>
-          <td><a href="${qrUrl(item)}" target="_blank" rel="noopener">Abrir QR</a></td>
+          <td><a href="${qrTargetUrl(item)}" target="_blank" rel="noopener">Abrir card</a></td>
           <td>
             <div class="actions">
               <button class="btn-blue" data-action="edit" data-id="${item.id}" type="button">Editar</button>
@@ -386,6 +381,16 @@
           if (btn.dataset.action === 'del') excluirItem(id);
         });
       });
+    }
+
+    function abrirItemPorParametroUrl() {
+      if (abriuPorParametro) return;
+      const itemId = new URLSearchParams(window.location.search).get('item');
+      if (!itemId) return;
+      const existe = estado.itens.some((it) => it.id === itemId);
+      if (!existe) return;
+      abriuPorParametro = true;
+      abrirModal(itemId);
     }
 
     async function carregarResponsaveis() {
