@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Cards de Tarefas</title>
+  <title>Editar tarefas</title>
 </head>
 <body>
   <script type="module">
@@ -78,6 +78,12 @@
           linhas.push(`${escapeHtml(k)}: ${escapeHtml(v)}`);
         });
         return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
+      }
+
+      function getTaskModalLabels(isEditing = false) {
+        return isEditing
+          ? { title: 'Editar tarefa', saveLabel: 'Salvar alterações' }
+          : { title: 'Anexar tarefa', saveLabel: 'Salvar tarefa' };
       }
 
       function renderCardTarefa(t = {}) {
@@ -169,6 +175,7 @@
       return {
         preencherExtrasFormulario,
         coletarExtras,
+        getTaskModalLabels,
         renderCardTarefa,
         bindCardInteractions
       };

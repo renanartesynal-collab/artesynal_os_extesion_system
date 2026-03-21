@@ -804,8 +804,9 @@
 
     async function abrirModal(pre = {}) {
       tarefaEmEdicaoId = pre.id || null;
-      refs.modalTitle.textContent = tarefaEmEdicaoId ? 'Editar tarefa' : 'Anexar tarefa';
-      refs.saveTask.textContent = tarefaEmEdicaoId ? 'Salvar alterações' : 'Salvar tarefa';
+      const modalLabels = cardsTarefas.getTaskModalLabels(!!tarefaEmEdicaoId);
+      refs.modalTitle.textContent = modalLabels.title;
+      refs.saveTask.textContent = modalLabels.saveLabel;
       if (!obterListasAtivas().length) await garantirListaInicial();
       refs.setor.value = pre.setor || 'impressao';
       await preencherTipos(pre.cardId || '');
@@ -823,8 +824,9 @@
     function fecharModal() {
       refs.modal.style.display = 'none';
       tarefaEmEdicaoId = null;
-      refs.modalTitle.textContent = 'Anexar tarefa';
-      refs.saveTask.textContent = 'Salvar tarefa';
+      const modalLabels = cardsTarefas.getTaskModalLabels(false);
+      refs.modalTitle.textContent = modalLabels.title;
+      refs.saveTask.textContent = modalLabels.saveLabel;
     }
 
     async function salvarTarefa() {
