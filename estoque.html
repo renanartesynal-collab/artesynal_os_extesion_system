@@ -285,6 +285,7 @@
 
     const estado = carregarEstado();
     let itemAtualId = null;
+    let itemRascunhoId = '';
     let categoriaAntesDelete = '';
     let abriuPorParametro = false;
 
@@ -322,6 +323,10 @@
     function qrTargetUrl(item) {
       const base = `${window.location.origin}${window.location.pathname}`;
       return `${base}?item=${encodeURIComponent(item.id || 'novo')}`;
+    }
+
+    function gerarIdItem() {
+      return `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     }
 
     function qrUrl(item) {
@@ -432,6 +437,7 @@
     }
 
     function limparCampos() {
+      itemRascunhoId = gerarIdItem();
       document.getElementById('item-nome').value = '';
       renderCategorias();
       document.getElementById('tam-largura').value = '';
@@ -451,7 +457,7 @@
 
     function itemDraft() {
       return {
-        id: itemAtualId || 'novo',
+        id: itemAtualId || itemRascunhoId || 'novo',
         nome: document.getElementById('item-nome').value.trim() || 'Sem nome',
         categoria: refs.categoriaSelect.value === DELETE_CAT_VALUE ? (categoriaAntesDelete || '') : refs.categoriaSelect.value,
         tamanho: {
@@ -575,7 +581,7 @@
 
       if (!itemAtualId) {
         const novo = {
-          id: `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          id: itemRascunhoId || gerarIdItem(),
           nome,
           categoria,
           tamanho: {
@@ -591,6 +597,7 @@
           criadoEm: new Date().toISOString()
         };
         estado.itens.unshift(novo);
+        itemRascunhoId = '';
         if (novo.quantidade <= novo.minimo) await criarNotificacaoCompras(novo);
       } else {
         estado.itens = estado.itens.map((it) => {
