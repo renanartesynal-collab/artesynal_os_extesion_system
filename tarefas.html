@@ -82,6 +82,9 @@
     .modal { background: #121212; border:1px solid #333; width:min(700px,94vw); max-height:90vh; overflow:auto; border-radius:12px; padding:16px; }
     .modal h2 { margin:0 0 12px; }
     .modal.list-actions-modal { width:min(520px,94vw); }
+    .list-modal-title-btn { appearance:none; border:none; background:transparent; color:#fff; padding:0; margin:0; font:inherit; font-size:28px; font-weight:900; line-height:1.1; text-align:left; cursor:pointer; }
+    .list-modal-title-btn:hover { color:#facc15; }
+    .list-modal-title-btn small { display:block; font-size:12px; font-weight:700; color:#94a3b8; margin-top:6px; }
     .row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:10px; }
     .field { display:flex; flex-direction:column; gap:6px; }
     .field label { font-size:12px; color: var(--muted); font-weight: 700; }
@@ -217,7 +220,7 @@
     <div class="modal list-actions-modal">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <div>
-          <h2 style="margin-bottom:4px;">Ações da Lista</h2>
+          <button class="list-modal-title-btn" id="list-modal-title" type="button" title="Clique para editar o nome da lista"></button>
           <div id="list-modal-sub" style="color:#a3a3a3;font-size:12px;"></div>
         </div>
         <button class="btn" id="btn-close-list-modal">Fechar</button>
@@ -363,6 +366,7 @@
       taskList: document.getElementById('task-list'),
       reqList: document.getElementById('req-list'),
       status: document.getElementById('status-msg'),
+      listModalTitle: document.getElementById('list-modal-title'),
       listModalSub: document.getElementById('list-modal-sub'),
       autoOnAdd: document.getElementById('auto-on-add'),
       autoDailySort: document.getElementById('auto-daily-sort'),
@@ -510,15 +514,17 @@
     function atualizarSubtituloListaModal() {
       if (!refs.listModalSub) return;
       if (!listaModalAtual) {
+        if (refs.listModalTitle) refs.listModalTitle.textContent = '';
         refs.listModalSub.textContent = '';
         return;
       }
+      if (refs.listModalTitle) refs.listModalTitle.innerHTML = `${escapeHtml(listaModalAtual.nome)}<small>clique para editar</small>`;
       const automacoesAtivas = [];
       if (listaModalAtual.seguindo) automacoesAtivas.push('seguindo');
       if (listaModalAtual?.automacoes?.aoAdicionar) automacoesAtivas.push('auto ao adicionar');
       if (listaModalAtual?.automacoes?.diaria) automacoesAtivas.push('ordem diária');
       if (listaModalAtual?.automacoes?.semanal) automacoesAtivas.push('ordem semanal');
-      refs.listModalSub.innerHTML = `${escapeHtml(listaModalAtual.nome)} ${automacoesAtivas.length ? `• <span class="pill">${escapeHtml(automacoesAtivas.join(' • '))}</span>` : ''}`;
+      refs.listModalSub.innerHTML = automacoesAtivas.length ? `<span class="pill">${escapeHtml(automacoesAtivas.join(' • '))}</span>` : '';
     }
 
     function preencherAutomacoesListaModal(lista = null) {
@@ -1128,6 +1134,7 @@
     refs.setor.addEventListener('change', async () => preencherTipos());
     refs.tipo.addEventListener('change', renderOpcoes);
     document.getElementById('btn-close-list-modal').addEventListener('click', fecharModalLista);
+    document.getElementById('list-modal-title').addEventListener('click', () => renomearLista(listaModalAtual));
     document.getElementById('act-add-card').addEventListener('click', () => {
       const listaId = listaModalAtual?.id || obterListasAtivas()[0]?.id || '';
       fecharModalLista();
