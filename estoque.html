@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estoque - Artesynal</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1f2937;
+      --panel-soft: #243447;
+      --line: #3a4a60;
+      --text: #fff;
+      --muted: #cbd5e1;
+      --yellow: #f1c40f;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --blue: #00aeef;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'Montserrat', Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 1220px; margin: 0 auto; padding: 22px 14px 40px; }
+    .back { color: var(--yellow); text-decoration: none; font-weight: 700; font-size: 13px; }
+    .header { margin-top:12px; background: linear-gradient(180deg, #1c2633, #131b26); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 18px; }
+    h1 { margin: 0; text-transform: uppercase; }
+    .subtitle { margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .toolbar { margin-top: 14px; display: grid; grid-template-columns: 1.1fr repeat(4, minmax(120px, 1fr)); gap: 10px; }
+    input, button, select { border-radius: 8px; border: 1px solid #3d4f67; background: #0f141c; color: #fff; padding: 10px; font-family: inherit; font-size: 13px; }
+    button { cursor: pointer; font-weight: 700; }
+    .btn-primary { background: var(--accent); border-color: #24d19d; }
+    .btn-danger { background: #2b1516; border-color: #4f1d1f; color: #ffd1d3; }
+    .btn-blue { background: #122838; border-color: #1f4d6f; color: #bde8ff; }
+    .panel { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th, td { border-bottom: 1px solid #334155; padding: 10px; text-align: left; vertical-align: top; }
+    th { font-size: 12px; color: #bcd0e7; text-transform: uppercase; letter-spacing: 0.4px; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { display:inline-flex; padding: 2px 7px; border-radius: 999px; background: #17212f; border: 1px solid #334155; font-size: 11px; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 50; padding: 14px; }
+    .modal { width:min(720px,100%); background:#151d28; border:1px solid var(--line); border-radius:12px; padding:14px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .full { grid-column: 1 / -1; }
+    .qr-preview { margin-top:12px; display:grid; grid-template-columns: 140px 1fr; gap:12px; align-items:center; background:#0f141c; border:1px dashed #42566f; border-radius:10px; padding:10px; }
+    .qr-preview img { width:120px; height:120px; background:#fff; border-radius:8px; padding:4px; }
+    .modal-actions { display:flex; justify-content:space-between; margin-top:12px; }
+    @media (max-width: 940px) { .toolbar { grid-template-columns: 1fr 1fr; } .grid { grid-template-columns:1fr; } .qr-preview { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">⬅ Voltar ao painel</a>
+
+    <section class="header">
+      <h1>📦 Estoque</h1>
+      <div class="subtitle">Cadastre itens, registre entrada/saída com responsável e gere QR Code por item.</div>
+    </section>
+
+    <section class="toolbar">
+      <input id="filtro" type="text" placeholder="Buscar por nome, código ou categoria" />
+      <button id="btn-filtrar" class="btn-blue">Filtrar</button>
+      <button id="btn-limpar" class="btn-blue">Limpar</button>
+      <button id="btn-novo" class="btn-primary">+ Novo item</button>
+      <button id="btn-exportar" class="btn-blue">Exportar JSON</button>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+        <strong>Itens em estoque</strong>
+        <span id="contador" class="muted">0 itens</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Categoria</th>
+              <th>Quantidade</th>
+              <th>Última movimentação</th>
+              <th>QR</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-itens"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal">
+      <h3 style="margin-top:0">Item de estoque</h3>
+      <div class="grid">
+        <div>
+          <label for="item-nome" class="muted">Nome *</label>
+          <input id="item-nome" type="text" maxlength="80" />
+        </div>
+        <div>
+          <label for="item-codigo" class="muted">Código *</label>
+          <input id="item-codigo" type="text" maxlength="50" />
+        </div>
+        <div>
+          <label for="item-categoria" class="muted">Categoria</label>
+          <input id="item-categoria" type="text" maxlength="60" placeholder="Ex.: Ferragens" />
+        </div>
+        <div>
+          <label for="item-qtd" class="muted">Quantidade atual *</label>
+          <input id="item-qtd" type="number" min="0" step="1" />
+        </div>
+
+        <div class="full" style="border-top:1px solid #334155;padding-top:10px;margin-top:4px;">
+          <strong style="font-size:13px;">Movimentação e etiqueta</strong>
+        </div>
+
+        <div>
+          <label for="mov-tipo" class="muted">Tipo de movimentação</label>
+          <select id="mov-tipo">
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+        </div>
+        <div>
+          <label for="mov-usuario" class="muted">Responsável da movimentação</label>
+          <input id="mov-usuario" type="text" maxlength="80" placeholder="Quem adicionou/retirou" />
+        </div>
+        <div class="full">
+          <label for="mov-obs" class="muted">Observação</label>
+          <input id="mov-obs" type="text" maxlength="120" placeholder="Detalhes opcionais" />
+        </div>
+      </div>
+
+      <div class="qr-preview">
+        <img id="qr-img" alt="QR do item" />
+        <div>
+          <div><strong id="qr-title">Novo item</strong></div>
+          <div class="muted" id="qr-desc">O QR é gerado com dados do item para consulta rápida.</div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="btn-imprimir" class="btn-blue" type="button">Imprimir etiqueta</button>
+            <a id="btn-download-qr" class="btn-blue" download="qr-item.png" style="text-decoration:none;display:inline-flex;align-items:center;">Baixar QR</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-excluir" class="btn-danger" type="button" style="display:none;">Excluir item</button>
+        <div style="display:flex;gap:8px;">
+          <button id="btn-cancelar" type="button">Cancelar</button>
+          <button id="btn-salvar" class="btn-primary" type="button">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { protegerPagina } from './auth.js';
+
+    const sessao = await protegerPagina({ paginaAtual: 'estoque.html' });
+    if (!sessao) throw new Error('Sem sessão');
+
+    const STORAGE_KEY = 'artesynal_estoque_v1';
+
+    const tbody = document.getElementById('tbody-itens');
+    const contador = document.getElementById('contador');
+    const filtroInput = document.getElementById('filtro');
+    const modalBg = document.getElementById('modal-bg');
+
+    let estado = carregarEstado();
+    let itemAtualId = null;
+
+    function carregarEstado() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function salvarEstado() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    }
+
+    function escapeHtml(valor) {
+      return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function qrPayload(item) {
+      return JSON.stringify({
+        id: item.id,
+        nome: item.nome,
+        codigo: item.codigo,
+        categoria: item.categoria,
+        quantidade: item.quantidade,
+        ultimaMovimentacao: item.historico?.[0] || null
+      });
+    }
+
+    function qrUrl(payload) {
+      return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=1&data=${encodeURIComponent(payload)}`;
+    }
+
+    function formatarData(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    function renderTabela() {
+      const termo = filtroInput.value.trim().toLowerCase();
+      const itens = estado.filter((item) => {
+        if (!termo) return true;
+        return [item.nome, item.codigo, item.categoria].some((v) => String(v || '').toLowerCase().includes(termo));
+      });
+
+      contador.textContent = `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}`;
+
+      if (!itens.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="muted">Nenhum item encontrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = itens.map((item) => {
+        const mov = item.historico?.[0];
+        const movTxt = mov ? `${mov.tipo === 'entrada' ? 'Entrada' : 'Saída'} por ${mov.usuario || 'não informado'} em ${formatarData(mov.data)}` : 'Sem movimentação';
+        const qr = qrUrl(qrPayload(item));
+        return `
+          <tr>
+            <td><strong>${escapeHtml(item.nome)}</strong><br><span class="muted">${escapeHtml(item.codigo)}</span></td>
+            <td>${escapeHtml(item.categoria || '-')}</td>
+            <td><span class="tag">${Number(item.quantidade || 0)}</span></td>
+            <td>${escapeHtml(movTxt)}</td>
+            <td><a href="${qr}" target="_blank" rel="noopener">Abrir QR</a></td>
+            <td>
+              <div class="actions">
+                <button type="button" class="btn-blue" data-action="edit" data-id="${item.id}">Editar</button>
+                <button type="button" class="btn-danger" data-action="del" data-id="${item.id}">Excluir</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('button[data-action]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          if (btn.dataset.action === 'edit') abrirModal(id);
+          if (btn.dataset.action === 'del') excluirItem(id);
+        });
+      });
+    }
+
+    function limparCampos() {
+      document.getElementById('item-nome').value = '';
+      document.getElementById('item-codigo').value = '';
+      document.getElementById('item-categoria').value = '';
+      document.getElementById('item-qtd').value = '0';
+      document.getElementById('mov-tipo').value = 'entrada';
+      document.getElementById('mov-usuario').value = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+      document.getElementById('mov-obs').value = '';
+    }
+
+    function atualizarQrModal() {
+      const rascunho = {
+        id: itemAtualId || 'novo',
+        nome: document.getElementById('item-nome').value.trim() || 'Sem nome',
+        codigo: document.getElementById('item-codigo').value.trim() || 'SEM-COD',
+        categoria: document.getElementById('item-categoria').value.trim() || '',
+        quantidade: Number(document.getElementById('item-qtd').value || 0),
+        historico: [{
+          tipo: document.getElementById('mov-tipo').value,
+          usuario: document.getElementById('mov-usuario').value.trim(),
+          obs: document.getElementById('mov-obs').value.trim(),
+          data: new Date().toISOString()
+        }]
+      };
+      const url = qrUrl(qrPayload(rascunho));
+      document.getElementById('qr-img').src = url;
+      document.getElementById('btn-download-qr').href = url;
+      document.getElementById('qr-title').textContent = `${rascunho.nome} (${rascunho.codigo})`;
+    }
+
+    function abrirModal(id = null) {
+      itemAtualId = id;
+      document.getElementById('btn-excluir').style.display = id ? 'inline-flex' : 'none';
+
+      if (!id) {
+        limparCampos();
+      } else {
+        const item = estado.find((it) => it.id === id);
+        if (!item) return;
+        document.getElementById('item-nome').value = item.nome || '';
+        document.getElementById('item-codigo').value = item.codigo || '';
+        document.getElementById('item-categoria').value = item.categoria || '';
+        document.getElementById('item-qtd').value = String(Number(item.quantidade || 0));
+        document.getElementById('mov-tipo').value = 'entrada';
+        document.getElementById('mov-usuario').value = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+        document.getElementById('mov-obs').value = '';
+      }
+
+      atualizarQrModal();
+      modalBg.style.display = 'flex';
+    }
+
+    function fecharModal() {
+      modalBg.style.display = 'none';
+      itemAtualId = null;
+    }
+
+    function excluirItem(id) {
+      const item = estado.find((it) => it.id === id);
+      if (!item) return;
+      if (!confirm(`Excluir o item "${item.nome}"?`)) return;
+      estado = estado.filter((it) => it.id !== id);
+      salvarEstado();
+      renderTabela();
+      if (itemAtualId === id) fecharModal();
+    }
+
+    function salvarItem() {
+      const nome = document.getElementById('item-nome').value.trim();
+      const codigo = document.getElementById('item-codigo').value.trim();
+      const categoria = document.getElementById('item-categoria').value.trim();
+      const quantidade = Number(document.getElementById('item-qtd').value || 0);
+      const tipo = document.getElementById('mov-tipo').value;
+      const usuario = document.getElementById('mov-usuario').value.trim();
+      const obs = document.getElementById('mov-obs').value.trim();
+
+      if (!nome) return alert('Informe o nome do item.');
+      if (!codigo) return alert('Informe o código do item.');
+      if (!Number.isFinite(quantidade) || quantidade < 0) return alert('Quantidade inválida.');
+
+      const mov = {
+        tipo,
+        usuario,
+        obs,
+        data: new Date().toISOString()
+      };
+
+      if (!itemAtualId) {
+        const novo = {
+          id: `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          nome,
+          codigo,
+          categoria,
+          quantidade,
+          historico: [mov],
+          criadoEm: new Date().toISOString()
+        };
+        estado.unshift(novo);
+      } else {
+        estado = estado.map((it) => {
+          if (it.id !== itemAtualId) return it;
+          return {
+            ...it,
+            nome,
+            codigo,
+            categoria,
+            quantidade,
+            historico: [mov, ...(it.historico || [])].slice(0, 30),
+            atualizadoEm: new Date().toISOString()
+          };
+        });
+      }
+
+      salvarEstado();
+      renderTabela();
+      fecharModal();
+    }
+
+    document.getElementById('btn-filtrar').addEventListener('click', renderTabela);
+    document.getElementById('btn-limpar').addEventListener('click', () => { filtroInput.value = ''; renderTabela(); });
+    document.getElementById('btn-novo').addEventListener('click', () => abrirModal());
+    document.getElementById('btn-exportar').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(estado, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `estoque-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    ['item-nome', 'item-codigo', 'item-categoria', 'item-qtd', 'mov-tipo', 'mov-usuario', 'mov-obs'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', atualizarQrModal);
+      document.getElementById(id).addEventListener('change', atualizarQrModal);
+    });
+
+    document.getElementById('btn-cancelar').addEventListener('click', fecharModal);
+    document.getElementById('btn-salvar').addEventListener('click', salvarItem);
+    document.getElementById('btn-excluir').addEventListener('click', () => { if (itemAtualId) excluirItem(itemAtualId); });
+    document.getElementById('btn-imprimir').addEventListener('click', () => window.print());
+    modalBg.addEventListener('click', (ev) => { if (ev.target === modalBg) fecharModal(); });
+
+    renderTabela();
+  </script>
+</body>
+</html>
