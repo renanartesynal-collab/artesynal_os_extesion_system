@@ -43,13 +43,15 @@
     .list-sub { color:var(--muted); font-size:11px; margin-top:4px; }
     .list-menu-btn { width:34px; height:34px; border-radius:10px; border:1px solid #3b3b3b; background:#1d1d1d; color:#fff; cursor:pointer; font-weight:900; }
     .list-body { display:flex; flex-direction:column; gap:10px; min-height:90px; }
+    .list-body.drop-target { border:1px dashed rgba(56,189,248,.55); border-radius:12px; background:rgba(56,189,248,.08); padding:8px; }
     .list-add-card { width:100%; margin-top:10px; background:#1f2937; border-color:#374151; }
     .add-list-card { width:280px; min-width:280px; border-radius:14px; border:1px dashed rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; min-height:64px; padding:0; overflow:hidden; }
     .add-list-card button { width:100%; min-height:64px; border:none; background:transparent; color:#fff; text-align:left; padding:18px 16px; font-size:14px; font-weight:800; cursor:pointer; }
     .list-empty { color:#757575; border:1px dashed #353535; border-radius:10px; padding:16px 12px; text-align:center; font-size:12px; }
 
-    .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; }
+    .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; cursor: grab; transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease; }
     .task-card.done { border-left-color: var(--ok); opacity: .8; }
+    .task-card.dragging { opacity:.45; transform: rotate(1deg) scale(.98); box-shadow:0 14px 30px rgba(0,0,0,.35); cursor:grabbing; }
     .tag { display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background:#222; color:#ddd; margin-right:6px; }
     .tag.imp { background:#291a3d; color:#ca8bff; }
     .tag.serr { background:#362313; color:#ffb573; }
@@ -340,6 +342,7 @@
     let listasPainel = [];
     let tarefasRecebidas = [];
     let listaModalAtual = null;
+    let tarefaArrastandoId = '';
 
     const LISTA_PADRAO_ID = 'entrada-padrao';
     const LISTA_PADRAO = {
@@ -820,6 +823,18 @@
       await deleteDoc(doc(db, 'tarefas', id));
     }
 
+    async function moverTarefaParaLista(tarefaId, listaDestinoId) {
+      const destinoId = String(listaDestinoId || '').trim() || LISTA_PADRAO_ID;
+      const tarefa = tarefasRecebidas.find((item) => item.id === tarefaId);
+      if (!tarefa) return;
+      const origemId = getTaskListId(tarefa);
+      if (origemId === destinoId) return;
+      await updateDoc(doc(db, 'tarefas', tarefaId), {
+        listaId: destinoId,
+        updated_at: serverTimestamp()
+      });
+    }
+
     function extrasToText(extras = {}) {
       const linhas = [];
       Object.entries(extras).forEach(([k, v]) => {
@@ -833,7 +848,7 @@
       const done = t.status === 'concluida';
       const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
       return `
-        <article class="task-card ${done ? 'done' : ''}">
+        <article class="task-card ${done ? 'done' : ''}" draggable="true" data-task-id="${t.id}">
           <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
           <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
           <div class="desc">${escapeHtml(t.descricao || '-')}</div>
@@ -867,7 +882,7 @@
                 </div>
                 ${lista.id === LISTA_PADRAO_ID ? '' : `<button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>`}
               </div>
-              <div class="list-body">
+              <div class="list-body" data-list-dropzone="${lista.id}">
                 ${tarefasDaLista.length ? tarefasDaLista.map(renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
               </div>
               <button class="btn list-add-card" data-add-card-list="${lista.id}">➕ Adicionar cartão</button>
@@ -888,6 +903,45 @@
       });
       refs.taskList.querySelectorAll('[data-add-card-list]').forEach((btn) => {
         btn.addEventListener('click', () => abrirModal({ listaId: btn.dataset.addCardList }));
+      });
+      refs.taskList.querySelectorAll('[data-task-id]').forEach((card) => {
+        card.addEventListener('dragstart', (event) => {
+          tarefaArrastandoId = card.dataset.taskId || '';
+          card.classList.add('dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', tarefaArrastandoId);
+          }
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          tarefaArrastandoId = '';
+          refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((zone) => zone.classList.remove('drop-target'));
+        });
+      });
+      refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((zone) => {
+        zone.addEventListener('dragover', (event) => {
+          if (!tarefaArrastandoId) return;
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+          zone.classList.add('drop-target');
+        });
+        zone.addEventListener('dragleave', (event) => {
+          if (!zone.contains(event.relatedTarget)) zone.classList.remove('drop-target');
+        });
+        zone.addEventListener('drop', async (event) => {
+          event.preventDefault();
+          zone.classList.remove('drop-target');
+          const tarefaId = event.dataTransfer?.getData('text/plain') || tarefaArrastandoId;
+          const listaDestinoId = zone.dataset.listDropzone || LISTA_PADRAO_ID;
+          if (!tarefaId) return;
+          try {
+            await moverTarefaParaLista(tarefaId, listaDestinoId);
+          } catch (err) {
+            console.error('Erro ao mover tarefa entre listas:', err);
+            alert('Não foi possível mover o cartão para esta lista.');
+          }
+        });
       });
       document.getElementById('btn-add-list-inline')?.addEventListener('click', criarLista);
     }
