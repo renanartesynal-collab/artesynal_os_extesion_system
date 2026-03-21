@@ -42,7 +42,7 @@
     .tag { display:inline-flex; padding: 2px 7px; border-radius: 999px; background: #17212f; border: 1px solid #334155; font-size: 11px; }
 
     .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 50; padding: 14px; }
-    .modal { width: min(980px, 100%); background: #151d28; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .modal { width: min(980px, 100%); background: #151d28; border: 1px solid var(--line); border-radius: 12px; padding: 14px; position: relative; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .full { grid-column: 1 / -1; }
     .triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -138,23 +138,16 @@
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
       <h2 style="margin:0 0 10px;">Item de estoque</h2>
+      <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria" style="position:absolute;right:14px;top:14px;">+</button>
       <div class="modal-layout">
         <div>
           <div class="grid">
             <div>
-              <label class="muted" for="item-nome">Nome</label>
+              <label class="muted" for="item-nome">Item</label>
               <input id="item-nome" type="text" maxlength="90" />
             </div>
             <div>
-              <label class="muted" for="item-codigo">Código interno</label>
-              <input id="item-codigo" type="text" maxlength="50" placeholder="Opcional" />
-            </div>
-
-            <div>
-              <div class="label-row">
-                <label class="muted" for="item-categoria">Categoria</label>
-                <button type="button" class="btn-blue plus-btn" id="btn-add-categoria" title="Adicionar categoria">+</button>
-              </div>
+              <label class="muted" for="item-categoria">Categoria</label>
               <select id="item-categoria"></select>
             </div>
 
@@ -418,7 +411,6 @@
 
     function limparCampos() {
       document.getElementById('item-nome').value = '';
-      document.getElementById('item-codigo').value = '';
       renderCategorias();
       document.getElementById('tam-largura').value = '';
       document.getElementById('tam-altura').value = '';
@@ -438,7 +430,6 @@
       return {
         id: itemAtualId || 'novo',
         nome: document.getElementById('item-nome').value.trim() || 'Sem nome',
-        codigo: document.getElementById('item-codigo').value.trim() || 'SEM-COD',
         categoria: refs.categoriaSelect.value === DELETE_CAT_VALUE ? (categoriaAntesDelete || '') : refs.categoriaSelect.value,
         tamanho: {
           largura: document.getElementById('tam-largura').value.trim(),
@@ -464,7 +455,7 @@
       const qr = qrUrl(it);
       document.getElementById('qr-img').src = qr;
       document.getElementById('etq-qr').src = qr;
-      document.getElementById('qr-title').textContent = `${it.nome} (${it.codigo})`;
+      document.getElementById('qr-title').textContent = `${it.nome}`;
       document.getElementById('etq-info').textContent = `${Number(it.quantidade || 0)} ${it.unidade}`;
     }
 
@@ -477,7 +468,6 @@
         const item = estado.itens.find((i) => i.id === id);
         if (!item) return;
         document.getElementById('item-nome').value = item.nome || '';
-        document.getElementById('item-codigo').value = item.codigo || '';
         renderCategorias(item.categoria || '');
         document.getElementById('tam-largura').value = item.tamanho?.largura || '';
         document.getElementById('tam-altura').value = item.tamanho?.altura || '';
@@ -526,7 +516,7 @@
         setor: 'orcamento',
         tipo: 'Compras',
         resumo: `Reposição de estoque: ${item.nome}`,
-        descricao: `Item ${item.nome} atingiu o mínimo (${item.quantidade} ${item.unidade}).\nCategoria: ${item.categoria || '-'}\nCódigo: ${item.codigo || '-'}\nMínimo: ${item.minimo}`,
+        descricao: `Item ${item.nome} atingiu o mínimo (${item.quantidade} ${item.unidade}).\nCategoria: ${item.categoria || '-'}\nMínimo: ${item.minimo}`,
         status: 'pendente',
         destinatarioEmail: warteEmail,
         destinatarioNome: 'warte',
@@ -542,7 +532,6 @@
 
     async function salvarItem() {
       const nome = document.getElementById('item-nome').value.trim();
-      const codigo = document.getElementById('item-codigo').value.trim();
       const categoria = refs.categoriaSelect.value === DELETE_CAT_VALUE ? categoriaAntesDelete : refs.categoriaSelect.value;
       const unidade = document.getElementById('qtd-unidade').value;
       const minimo = Number(document.getElementById('item-minimo').value || 0);
@@ -563,7 +552,6 @@
         const novo = {
           id: `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
           nome,
-          codigo,
           categoria,
           tamanho: {
             largura: document.getElementById('tam-largura').value.trim(),
@@ -611,7 +599,6 @@
           return {
             ...it,
             nome,
-            codigo,
             categoria,
             tamanho: {
               largura: document.getElementById('tam-largura').value.trim(),
@@ -766,7 +753,7 @@
 
     refs.movTipo.addEventListener('change', () => { setMovStyle(); atualizarPreview(); });
 
-    ['item-nome', 'item-codigo', 'tam-largura', 'tam-altura', 'tam-espessura', 'qtd-unidade', 'item-qtd', 'item-minimo', 'item-detalhes', 'mov-qtd', 'mov-responsavel', 'mov-obs'].forEach((id) => {
+    ['item-nome', 'tam-largura', 'tam-altura', 'tam-espessura', 'qtd-unidade', 'item-qtd', 'item-minimo', 'item-detalhes', 'mov-qtd', 'mov-responsavel', 'mov-obs'].forEach((id) => {
       document.getElementById(id).addEventListener('input', atualizarPreview);
       document.getElementById(id).addEventListener('change', atualizarPreview);
     });
