@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cards de Tarefas</title>
+</head>
+<body>
+  <script type="module">
+    export function createCardsTarefasModule({
+      refs,
+      escapeHtml,
+      labelSetor,
+      resolverLinkTarefa,
+      getTaskById,
+      onEditTask,
+      onToggleIndicator,
+      onConcluirTask,
+      onDeleteTask
+    }) {
+      function classNameSinalizacao(status = '') {
+        if (status === 'green') return 'is-green';
+        if (status === 'yellow') return 'is-yellow';
+        if (status === 'red') return 'is-red';
+        return '';
+      }
+
+      function preencherExtrasFormulario(extras = {}) {
+        const setor = refs.setor.value;
+        if (setor === 'impressao') {
+          const comprarMidia = document.getElementById('opt-comprar-midia');
+          const urgente = document.getElementById('opt-urgente');
+          if (comprarMidia) comprarMidia.checked = !!extras.comprarMidia;
+          if (urgente) urgente.checked = !!extras.urgente;
+        }
+        if (setor === 'serralheria') {
+          const precisaCorte = document.getElementById('opt-corte');
+          const medida = document.getElementById('opt-medida');
+          const localExterno = document.getElementById('opt-local-externo');
+          const destino = extras.destinoCorte === 'externo' ? 'externo' : 'local';
+          if (precisaCorte) precisaCorte.checked = !!extras.precisaCorte;
+          if (medida) medida.value = extras.medidas || '';
+          if (localExterno) localExterno.value = extras.localExterno || '';
+          const radio = document.querySelector(`input[name="destino-corte"][value="${destino}"]`);
+          if (radio) radio.checked = true;
+        }
+        if (setor === 'orcamento') {
+          const precisaContato = document.getElementById('opt-cliente-contato');
+          const aguardandoAprovacao = document.getElementById('opt-aprovacao');
+          if (precisaContato) precisaContato.checked = !!extras.precisaContato;
+          if (aguardandoAprovacao) aguardandoAprovacao.checked = !!extras.aguardandoAprovacao;
+        }
+      }
+
+      function coletarExtras() {
+        const setor = refs.setor.value;
+        const extras = {};
+        if (setor === 'impressao') {
+          extras.comprarMidia = !!document.getElementById('opt-comprar-midia')?.checked;
+          extras.urgente = !!document.getElementById('opt-urgente')?.checked;
+        }
+        if (setor === 'serralheria') {
+          extras.precisaCorte = !!document.getElementById('opt-corte')?.checked;
+          extras.medidas = document.getElementById('opt-medida')?.value?.trim() || '';
+          extras.destinoCorte = document.querySelector('input[name="destino-corte"]:checked')?.value || 'local';
+          extras.localExterno = document.getElementById('opt-local-externo')?.value?.trim() || '';
+        }
+        if (setor === 'orcamento') {
+          extras.precisaContato = !!document.getElementById('opt-cliente-contato')?.checked;
+          extras.aguardandoAprovacao = !!document.getElementById('opt-aprovacao')?.checked;
+        }
+        return extras;
+      }
+
+      function extrasToText(extras = {}) {
+        const linhas = [];
+        Object.entries(extras).forEach(([k, v]) => {
+          if (v === '' || v === false || v == null) return;
+          linhas.push(`${escapeHtml(k)}: ${escapeHtml(v)}`);
+        });
+        return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
+      }
+
+      function renderCardTarefa(t = {}) {
+        const done = t.status === 'concluida';
+        const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
+        const sinalizacaoClass = classNameSinalizacao(t.sinalizacao);
+        return `
+          <article class="task-card ${done ? 'done' : ''}" draggable="true" data-task-id="${t.id}">
+            <div class="task-card-header">
+              <div class="task-card-title-wrap">
+                <button
+                  class="task-card-indicator ${sinalizacaoClass}"
+                  type="button"
+                  draggable="false"
+                  data-toggle-indicator="${t.id}"
+                  aria-label="Alternar sinalização do cartão"
+                ></button>
+                <div style="min-width:0;">
+                  <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
+                  <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
+                </div>
+              </div>
+              <div class="task-card-tools">
+                <button
+                  class="task-card-edit"
+                  type="button"
+                  draggable="false"
+                  data-edit-task="${t.id}"
+                  aria-label="Editar tarefa"
+                >🖊</button>
+              </div>
+            </div>
+            <div class="desc">${escapeHtml(t.descricao || '-')}</div>
+            ${extrasToText(t.extras)}
+            <div class="card-actions">
+              ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
+              ${resolverLinkTarefa(t) ? `
+                <a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">
+                  📍 Ir ao card
+                </a>
+              ` : ''}
+              ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
+            </div>
+          </article>
+        `;
+      }
+
+      function bindCardInteractions(root) {
+        root.querySelectorAll('[data-concluir]').forEach((btn) => {
+          btn.addEventListener('click', () => onConcluirTask(btn.dataset.concluir));
+        });
+
+        root.querySelectorAll('[data-del]').forEach((btn) => {
+          btn.addEventListener('click', () => onDeleteTask(btn.dataset.del));
+        });
+
+        root.querySelectorAll('[data-edit-task]').forEach((btn) => {
+          const bloquearEvento = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          };
+          btn.addEventListener('mousedown', bloquearEvento);
+          btn.addEventListener('click', (event) => {
+            bloquearEvento(event);
+            const tarefa = getTaskById(btn.dataset.editTask);
+            if (!tarefa) return;
+            onEditTask(tarefa);
+          });
+        });
+
+        root.querySelectorAll('[data-toggle-indicator]').forEach((btn) => {
+          const bloquearEvento = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          };
+          btn.addEventListener('mousedown', bloquearEvento);
+          btn.addEventListener('click', async (event) => {
+            bloquearEvento(event);
+            try {
+              await onToggleIndicator(btn.dataset.toggleIndicator);
+            } catch (err) {
+              console.error('Erro ao alternar sinalização da tarefa:', err);
+              alert('Não foi possível atualizar a sinalização deste cartão.');
+            }
+          });
+        });
+      }
+
+      return {
+        preencherExtrasFormulario,
+        coletarExtras,
+        renderCardTarefa,
+        bindCardInteractions
+      };
+    }
+  </script>
+</body>
+</html>

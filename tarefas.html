@@ -314,6 +314,24 @@
     import { protegerPagina } from './auth.js';
     import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, serverTimestamp, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
+    async function carregarModuloCardsTarefas() {
+      const response = await fetch('./cards_tarefas.html', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Não foi possível carregar cards_tarefas.html');
+      const html = await response.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+      const moduleCode = parsed.querySelector('script[type="module"]')?.textContent?.trim();
+      if (!moduleCode) throw new Error('cards_tarefas.html não possui módulo de cards.');
+
+      const blobUrl = URL.createObjectURL(new Blob([moduleCode], { type: 'text/javascript' }));
+      try {
+        return await import(blobUrl);
+      } finally {
+        URL.revokeObjectURL(blobUrl);
+      }
+    }
+
+    const { createCardsTarefasModule } = await carregarModuloCardsTarefas();
+
     const sessao = await protegerPagina({ paginaAtual: 'tarefas.html' });
     if (!sessao) throw new Error('Sessão inválida');
 
@@ -372,13 +390,6 @@
       if (setor === 'serralheria') return 'Serralheria';
       if (setor === 'orcamento') return 'Orçamento';
       return setor || 'Não informado';
-    }
-
-    function classNameSinalizacao(status = '') {
-      if (status === 'green') return 'is-green';
-      if (status === 'yellow') return 'is-yellow';
-      if (status === 'red') return 'is-red';
-      return '';
     }
 
     function escapeHtml(value = '') {
@@ -554,33 +565,6 @@
       renderOpcoes();
     }
 
-    function preencherExtrasFormulario(extras = {}) {
-      const setor = refs.setor.value;
-      if (setor === 'impressao') {
-        const comprarMidia = document.getElementById('opt-comprar-midia');
-        const urgente = document.getElementById('opt-urgente');
-        if (comprarMidia) comprarMidia.checked = !!extras.comprarMidia;
-        if (urgente) urgente.checked = !!extras.urgente;
-      }
-      if (setor === 'serralheria') {
-        const precisaCorte = document.getElementById('opt-corte');
-        const medida = document.getElementById('opt-medida');
-        const localExterno = document.getElementById('opt-local-externo');
-        const destino = extras.destinoCorte === 'externo' ? 'externo' : 'local';
-        if (precisaCorte) precisaCorte.checked = !!extras.precisaCorte;
-        if (medida) medida.value = extras.medidas || '';
-        if (localExterno) localExterno.value = extras.localExterno || '';
-        const radio = document.querySelector(`input[name="destino-corte"][value="${destino}"]`);
-        if (radio) radio.checked = true;
-      }
-      if (setor === 'orcamento') {
-        const precisaContato = document.getElementById('opt-cliente-contato');
-        const aguardandoAprovacao = document.getElementById('opt-aprovacao');
-        if (precisaContato) precisaContato.checked = !!extras.precisaContato;
-        if (aguardandoAprovacao) aguardandoAprovacao.checked = !!extras.aguardandoAprovacao;
-      }
-    }
-
     function renderOpcoes() {
       const setor = refs.setor.value;
       const tipo = refs.tipo.value;
@@ -603,26 +587,6 @@
       }
 
       refs.opts.innerHTML = `<div style="font-size:12px;color:#a3a3a3;margin-bottom:8px;">Opções rápidas para: <b>${tipo || 'card'}</b></div>${blocos.join('<br>')}`;
-    }
-
-    function coletarExtras() {
-      const setor = refs.setor.value;
-      const extras = {};
-      if (setor === 'impressao') {
-        extras.comprarMidia = !!document.getElementById('opt-comprar-midia')?.checked;
-        extras.urgente = !!document.getElementById('opt-urgente')?.checked;
-      }
-      if (setor === 'serralheria') {
-        extras.precisaCorte = !!document.getElementById('opt-corte')?.checked;
-        extras.medidas = document.getElementById('opt-medida')?.value?.trim() || '';
-        extras.destinoCorte = document.querySelector('input[name="destino-corte"]:checked')?.value || 'local';
-        extras.localExterno = document.getElementById('opt-local-externo')?.value?.trim() || '';
-      }
-      if (setor === 'orcamento') {
-        extras.precisaContato = !!document.getElementById('opt-cliente-contato')?.checked;
-        extras.aguardandoAprovacao = !!document.getElementById('opt-aprovacao')?.checked;
-      }
-      return extras;
     }
 
     async function criarLista() {
@@ -847,7 +811,7 @@
       if (pre.cardId && refs.card.value !== pre.cardId) refs.card.value = '';
       preencherSelectListas(pre.listaId || '');
       renderOpcoes();
-      preencherExtrasFormulario(pre.extras || {});
+      cardsTarefas.preencherExtrasFormulario(pre.extras || {});
       refs.modal.style.display = 'flex';
     }
 
@@ -872,7 +836,7 @@
         tipo: refs.tipo.value,
         resumo: refs.resumo.value.trim(),
         descricao: refs.desc.value.trim(),
-        extras: coletarExtras(),
+        extras: cardsTarefas.coletarExtras(),
         listaId: refs.lista.value,
         status: tarefaAtual?.status || 'pendente',
         destinatarioEmail: destino.email,
@@ -959,59 +923,27 @@
       });
     }
 
-    function extrasToText(extras = {}) {
-      const linhas = [];
-      Object.entries(extras).forEach(([k, v]) => {
-        if (v === '' || v === false || v == null) return;
-        linhas.push(`${escapeHtml(k)}: ${escapeHtml(v)}`);
-      });
-      return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
-    }
-
-    function renderCardTarefa(t = {}) {
-      const done = t.status === 'concluida';
-      const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
-      const sinalizacaoClass = classNameSinalizacao(t.sinalizacao);
-      return `
-        <article class="task-card ${done ? 'done' : ''}" draggable="true" data-task-id="${t.id}">
-          <div class="task-card-header">
-            <div class="task-card-title-wrap">
-              <button
-                class="task-card-indicator ${sinalizacaoClass}"
-                type="button"
-                draggable="false"
-                data-toggle-indicator="${t.id}"
-                aria-label="Alternar sinalização do cartão"
-              ></button>
-              <div style="min-width:0;">
-                <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
-                <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
-              </div>
-            </div>
-            <div class="task-card-tools">
-              <button
-                class="task-card-edit"
-                type="button"
-                draggable="false"
-                data-edit-task="${t.id}"
-                aria-label="Editar tarefa"
-              >🖊</button>
-            </div>
-          </div>
-          <div class="desc">${escapeHtml(t.descricao || '-')}</div>
-          ${extrasToText(t.extras)}
-          <div class="card-actions">
-            ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
-            ${resolverLinkTarefa(t) ? `
-              <a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">
-                📍 Ir ao card
-              </a>
-            ` : ''}
-            ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
-          </div>
-        </article>
-      `;
-    }
+    const cardsTarefas = createCardsTarefasModule({
+      refs,
+      escapeHtml,
+      labelSetor,
+      resolverLinkTarefa,
+      getTaskById: (taskId) => tarefasRecebidas.find((item) => item.id === taskId) || null,
+      onEditTask: (tarefa) => abrirModal({
+        id: tarefa.id,
+        setor: tarefa.setor,
+        tipo: tarefa.tipo,
+        destinatarioEmail: tarefa.destinatarioEmail,
+        resumo: tarefa.resumo,
+        desc: tarefa.descricao,
+        cardId: tarefa?.cardAlvo?.id || '',
+        listaId: getTaskListId(tarefa),
+        extras: tarefa.extras || {}
+      }),
+      onToggleIndicator: alternarSinalizacaoTarefa,
+      onConcluirTask: concluirTarefa,
+      onDeleteTask: excluirTarefa
+    });
 
     function renderTarefas(list) {
       const visiveis = list.filter((tarefa) => tarefa.status !== 'arquivada');
@@ -1034,7 +966,7 @@
                 <button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>
               </div>
               <div class="list-body" data-list-dropzone="${lista.id}">
-                ${tarefasDaLista.length ? tarefasDaLista.map(renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
+                ${tarefasDaLista.length ? tarefasDaLista.map(cardsTarefas.renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
               </div>
               <button class="btn list-add-card" data-add-card-list="${lista.id}">➕ Adicionar cartão</button>
             </section>
@@ -1043,57 +975,13 @@
         `<div class="add-list-card"><button id="btn-add-list-inline">＋ Adicionar outra lista</button></div>`
       ].join('');
 
-      refs.taskList.querySelectorAll('[data-concluir]').forEach((btn) => {
-        btn.addEventListener('click', () => concluirTarefa(btn.dataset.concluir));
-      });
-      refs.taskList.querySelectorAll('[data-del]').forEach((btn) => {
-        btn.addEventListener('click', () => excluirTarefa(btn.dataset.del));
-      });
       refs.taskList.querySelectorAll('[data-list-actions]').forEach((btn) => {
         btn.addEventListener('click', () => abrirModalLista(btn.dataset.listActions));
       });
       refs.taskList.querySelectorAll('[data-add-card-list]').forEach((btn) => {
         btn.addEventListener('click', () => abrirModal({ listaId: btn.dataset.addCardList }));
       });
-      refs.taskList.querySelectorAll('[data-edit-task]').forEach((btn) => {
-        const bloquearEvento = (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        };
-        btn.addEventListener('mousedown', bloquearEvento);
-        btn.addEventListener('click', (event) => {
-          bloquearEvento(event);
-          const tarefa = tarefasRecebidas.find((item) => item.id === btn.dataset.editTask);
-          if (!tarefa) return;
-          abrirModal({
-            id: tarefa.id,
-            setor: tarefa.setor,
-            tipo: tarefa.tipo,
-            destinatarioEmail: tarefa.destinatarioEmail,
-            resumo: tarefa.resumo,
-            desc: tarefa.descricao,
-            cardId: tarefa?.cardAlvo?.id || '',
-            listaId: getTaskListId(tarefa),
-            extras: tarefa.extras || {}
-          });
-        });
-      });
-      refs.taskList.querySelectorAll('[data-toggle-indicator]').forEach((btn) => {
-        const bloquearEvento = (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        };
-        btn.addEventListener('mousedown', bloquearEvento);
-        btn.addEventListener('click', async (event) => {
-          bloquearEvento(event);
-          try {
-            await alternarSinalizacaoTarefa(btn.dataset.toggleIndicator);
-          } catch (err) {
-            console.error('Erro ao alternar sinalização da tarefa:', err);
-            alert('Não foi possível atualizar a sinalização deste cartão.');
-          }
-        });
-      });
+      cardsTarefas.bindCardInteractions(refs.taskList);
       refs.taskList.querySelectorAll('[data-task-id]').forEach((card) => {
         card.addEventListener('dragstart', (event) => {
           if (event.target?.closest?.('[data-edit-task], [data-toggle-indicator]')) {
