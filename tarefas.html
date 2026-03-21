@@ -35,10 +35,14 @@
     .board-tools { display:flex; gap:8px; flex-wrap:wrap; }
     .board-scroll { overflow-x:auto; padding-bottom:10px; }
     .board { display:flex; gap:14px; align-items:flex-start; min-height:220px; }
-    .list-column { background: linear-gradient(180deg, #161616, #111111); border:1px solid #2d2d2d; border-radius:14px; width:320px; min-width:320px; max-width:320px; padding:12px; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
+    .list-column { background: linear-gradient(180deg, #161616, #111111); border:1px solid #2d2d2d; border-radius:14px; width:320px; min-width:320px; max-width:320px; padding:12px; box-shadow: 0 10px 24px rgba(0,0,0,.28); transition: transform .16s ease, opacity .16s ease, border-color .16s ease, box-shadow .16s ease; }
     .list-column.following { border-color:#60a5fa; box-shadow: 0 0 0 1px rgba(96,165,250,.35), 0 10px 24px rgba(0,0,0,.28); }
     .list-column.archived { opacity:.55; }
+    .list-column.list-dragging { opacity:.55; transform: scale(.98); }
+    .list-column.list-drop-target { border-color:#facc15; box-shadow: 0 0 0 1px rgba(250,204,21,.35), 0 10px 24px rgba(0,0,0,.28); }
     .list-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .list-drag-handle { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex:1; min-width:0; cursor:grab; user-select:none; }
+    .list-drag-handle:active { cursor:grabbing; }
     .list-title { font-weight:800; font-size:16px; line-height:1.15; }
     .list-sub { color:var(--muted); font-size:11px; margin-top:4px; }
     .list-menu-btn { width:34px; height:34px; border-radius:10px; border:1px solid #3b3b3b; background:#1d1d1d; color:#fff; cursor:pointer; font-weight:900; }
@@ -382,6 +386,7 @@
     let tarefasRecebidas = [];
     let listaModalAtual = null;
     let tarefaArrastandoId = '';
+    let listaArrastandoId = '';
     let tarefaEmEdicaoId = null;
     let criandoListaInicial = false;
 
@@ -664,6 +669,10 @@
       await atualizarListaPainel(lista.id, { nome: nome.trim() });
     }
 
+    async function persistirOrdemListas(listas = []) {
+      await Promise.all(listas.map((item, index) => atualizarListaPainel(item.id, { ordem: index })));
+    }
+
     async function moverLista(lista) {
       if (!lista) return;
       const listasAtivas = obterListasAtivas();
@@ -675,7 +684,21 @@
       const reordenadas = [...listasAtivas];
       const [removida] = reordenadas.splice(atual, 1);
       reordenadas.splice(destino, 0, removida);
-      await Promise.all(reordenadas.map((item, index) => atualizarListaPainel(item.id, { ordem: index + 1 })));
+      await persistirOrdemListas(reordenadas);
+    }
+
+    async function moverListaPorArraste(listaOrigemId, listaDestinoId) {
+      const origemId = String(listaOrigemId || '').trim();
+      const destinoId = String(listaDestinoId || '').trim();
+      if (!origemId || !destinoId || origemId === destinoId) return;
+      const listasAtivas = obterListasAtivas();
+      const origemIndex = listasAtivas.findIndex((item) => item.id === origemId);
+      const destinoIndex = listasAtivas.findIndex((item) => item.id === destinoId);
+      if (origemIndex < 0 || destinoIndex < 0) return;
+      const reordenadas = [...listasAtivas];
+      const [movida] = reordenadas.splice(origemIndex, 1);
+      reordenadas.splice(destinoIndex, 0, movida);
+      await persistirOrdemListas(reordenadas);
     }
 
     async function moverCartoesDaLista(lista) {
@@ -966,11 +989,13 @@
           return `
             <section class="list-column ${lista.seguindo ? 'following' : ''}" data-lista="${lista.id}">
               <div class="list-header">
-                <div>
-                  <div class="list-title">${escapeHtml(lista.nome)}</div>
-                  <div class="list-sub">${tarefasDaLista.length} cartão(ões) ${lista.seguindo ? '• seguindo' : ''}</div>
+                <div class="list-drag-handle" data-list-drag-handle="${lista.id}" draggable="true" title="Arraste para mover a lista">
+                  <div>
+                    <div class="list-title">${escapeHtml(lista.nome)}</div>
+                    <div class="list-sub">${tarefasDaLista.length} cartão(ões) ${lista.seguindo ? '• seguindo' : ''}</div>
+                  </div>
                 </div>
-                <button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>
+                <button class="list-menu-btn" data-list-actions="${lista.id}" draggable="false">⋯</button>
               </div>
               <div class="list-body" data-list-dropzone="${lista.id}">
                 ${tarefasDaLista.length ? tarefasDaLista.map(cardsTarefas.renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
@@ -1010,7 +1035,7 @@
       });
       refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((zone) => {
         zone.addEventListener('dragover', (event) => {
-          if (!tarefaArrastandoId) return;
+          if (!tarefaArrastandoId || listaArrastandoId) return;
           event.preventDefault();
           if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
           zone.classList.add('drop-target');
@@ -1021,6 +1046,7 @@
         zone.addEventListener('drop', async (event) => {
           event.preventDefault();
           zone.classList.remove('drop-target');
+          if (listaArrastandoId) return;
           const tarefaId = event.dataTransfer?.getData('text/plain') || tarefaArrastandoId;
           const listaDestinoId = zone.dataset.listDropzone || obterListasAtivas()[0]?.id || '';
           if (!tarefaId) return;
@@ -1029,6 +1055,51 @@
           } catch (err) {
             console.error('Erro ao mover tarefa entre listas:', err);
             alert('Não foi possível mover o cartão para esta lista.');
+          }
+        });
+      });
+      refs.taskList.querySelectorAll('[data-list-drag-handle]').forEach((handle) => {
+        const listaId = handle.dataset.listDragHandle || '';
+        const coluna = handle.closest('[data-lista]');
+        handle.addEventListener('dragstart', (event) => {
+          if (!listaId || !coluna) {
+            event.preventDefault();
+            return;
+          }
+          listaArrastandoId = listaId;
+          coluna.classList.add('list-dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', listaId);
+          }
+        });
+        handle.addEventListener('dragend', () => {
+          listaArrastandoId = '';
+          coluna?.classList.remove('list-dragging');
+          refs.taskList.querySelectorAll('[data-lista]').forEach((item) => item.classList.remove('list-drop-target'));
+        });
+      });
+      refs.taskList.querySelectorAll('[data-lista]').forEach((coluna) => {
+        coluna.addEventListener('dragover', (event) => {
+          if (!listaArrastandoId) return;
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+          if (coluna.dataset.lista !== listaArrastandoId) coluna.classList.add('list-drop-target');
+        });
+        coluna.addEventListener('dragleave', (event) => {
+          if (!coluna.contains(event.relatedTarget)) coluna.classList.remove('list-drop-target');
+        });
+        coluna.addEventListener('drop', async (event) => {
+          if (!listaArrastandoId) return;
+          event.preventDefault();
+          const listaDestinoId = coluna.dataset.lista || '';
+          coluna.classList.remove('list-drop-target');
+          if (!listaDestinoId || listaDestinoId === listaArrastandoId) return;
+          try {
+            await moverListaPorArraste(listaArrastandoId, listaDestinoId);
+          } catch (err) {
+            console.error('Erro ao reordenar listas:', err);
+            alert('Não foi possível mover esta lista.');
           }
         });
       });
