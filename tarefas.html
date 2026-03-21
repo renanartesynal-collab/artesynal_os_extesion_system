@@ -976,21 +976,37 @@
         <article class="task-card ${done ? 'done' : ''}" draggable="true" data-task-id="${t.id}">
           <div class="task-card-header">
             <div class="task-card-title-wrap">
-              <button class="task-card-indicator ${sinalizacaoClass}" type="button" draggable="false" data-toggle-indicator="${t.id}" aria-label="Alternar sinalização do cartão"></button>
+              <button
+                class="task-card-indicator ${sinalizacaoClass}"
+                type="button"
+                draggable="false"
+                data-toggle-indicator="${t.id}"
+                aria-label="Alternar sinalização do cartão"
+              ></button>
               <div style="min-width:0;">
                 <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
                 <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
               </div>
             </div>
             <div class="task-card-tools">
-              <button class="task-card-edit" type="button" draggable="false" data-edit-task="${t.id}" aria-label="Editar tarefa">🖊</button>
+              <button
+                class="task-card-edit"
+                type="button"
+                draggable="false"
+                data-edit-task="${t.id}"
+                aria-label="Editar tarefa"
+              >🖊</button>
             </div>
           </div>
           <div class="desc">${escapeHtml(t.descricao || '-')}</div>
           ${extrasToText(t.extras)}
           <div class="card-actions">
             ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
-            ${resolverLinkTarefa(t) ? `<a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
+            ${resolverLinkTarefa(t) ? `
+              <a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">
+                📍 Ir ao card
+              </a>
+            ` : ''}
             ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
           </div>
         </article>
