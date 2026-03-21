@@ -84,7 +84,6 @@
     .modal.list-actions-modal { width:min(520px,94vw); }
     .list-modal-title-btn { appearance:none; border:none; background:transparent; color:#fff; padding:0; margin:0; font:inherit; font-size:28px; font-weight:900; line-height:1.1; text-align:left; cursor:pointer; }
     .list-modal-title-btn:hover { color:#facc15; }
-    .list-modal-title-btn small { display:block; font-size:12px; font-weight:700; color:#94a3b8; margin-top:6px; }
     .row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:10px; }
     .field { display:flex; flex-direction:column; gap:6px; }
     .field label { font-size:12px; color: var(--muted); font-weight: 700; }
@@ -518,7 +517,7 @@
         refs.listModalSub.textContent = '';
         return;
       }
-      if (refs.listModalTitle) refs.listModalTitle.innerHTML = `${escapeHtml(listaModalAtual.nome)}<small>clique para editar</small>`;
+      if (refs.listModalTitle) refs.listModalTitle.textContent = listaModalAtual.nome;
       const automacoesAtivas = [];
       if (listaModalAtual.seguindo) automacoesAtivas.push('seguindo');
       if (listaModalAtual?.automacoes?.aoAdicionar) automacoesAtivas.push('auto ao adicionar');
