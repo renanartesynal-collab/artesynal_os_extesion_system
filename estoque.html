@@ -255,7 +255,7 @@
   <script type="module">
     import { db } from './config.js';
     import { protegerPagina, obterConfiguracaoCategorias } from './auth.js';
-    import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { collection, query, where, getDocs, addDoc, serverTimestamp, setDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     const sessao = await protegerPagina({ paginaAtual: 'estoque.html' });
     if (!sessao) throw new Error('Sem sessão');
@@ -283,7 +283,7 @@
       movResponsavel: document.getElementById('mov-responsavel')
     };
 
-    const estado = carregarEstado();
+    const estado = await carregarEstado();
     let itemAtualId = null;
     let itemRascunhoId = '';
     let categoriaAntesDelete = '';
@@ -294,21 +294,44 @@
     renderTabela();
     abrirItemPorParametroUrl();
 
-    function carregarEstado() {
+    async function carregarEstado() {
+      let base = { categorias: [...DEFAULT_CATEGORIES], itens: [], arquivo: [] };
       try {
         const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-        if (!data || typeof data !== 'object') return { categorias: [...DEFAULT_CATEGORIES], itens: [], arquivo: [] };
-        if (!Array.isArray(data.categorias) || !data.categorias.length) data.categorias = [...DEFAULT_CATEGORIES];
-        if (!Array.isArray(data.itens)) data.itens = [];
-        if (!Array.isArray(data.arquivo)) data.arquivo = [];
-        return data;
+        if (data && typeof data === 'object') {
+          base = {
+            categorias: Array.isArray(data.categorias) && data.categorias.length ? data.categorias : [...DEFAULT_CATEGORIES],
+            itens: Array.isArray(data.itens) ? data.itens : [],
+            arquivo: Array.isArray(data.arquivo) ? data.arquivo : []
+          };
+        }
+      } catch {}
+
+      try {
+        const snap = await getDocs(collection(db, 'estoque_app'));
+        if (snap.empty) return base;
+        const itensFirebase = [];
+        snap.forEach((docSnap) => {
+          const item = docSnap.data() || {};
+          itensFirebase.push({
+            ...item,
+            id: docSnap.id,
+            historico: Array.isArray(item.historico) ? item.historico : []
+          });
+        });
+        const categorias = Array.from(new Set([...DEFAULT_CATEGORIES, ...itensFirebase.map((it) => String(it.categoria || '').trim()).filter(Boolean)]));
+        return { categorias, itens: itensFirebase, arquivo: base.arquivo };
       } catch {
-        return { categorias: [...DEFAULT_CATEGORIES], itens: [], arquivo: [] };
+        return base;
       }
     }
 
     function salvarEstado() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    }
+
+    async function salvarItemFirebase(item) {
+      await setDoc(doc(db, 'estoque_app', item.id), { ...item });
     }
 
     function escapeHtml(v = '') {
@@ -534,6 +557,7 @@
       salvarEstado();
       renderTabela();
       if (itemAtualId === id) fecharModal();
+      deleteDoc(doc(db, 'estoque_app', id)).catch(() => {});
     }
 
     async function criarNotificacaoCompras(item) {
@@ -603,6 +627,7 @@
         };
         estado.itens.unshift(novo);
         itemRascunhoId = '';
+        await salvarItemFirebase(novo);
         if (novo.quantidade <= novo.minimo) await criarNotificacaoCompras(novo);
       } else {
         estado.itens = estado.itens.map((it) => {
@@ -652,6 +677,7 @@
         });
 
         const itemSalvo = estado.itens.find((i) => i.id === itemAtualId);
+        if (itemSalvo) await salvarItemFirebase(itemSalvo);
         if (itemSalvo && itemSalvo.quantidade <= itemSalvo.minimo) await criarNotificacaoCompras(itemSalvo);
       }
 
