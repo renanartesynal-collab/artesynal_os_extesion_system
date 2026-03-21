@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Cards de Tarefas</title>
+  <title>Editar tarefas</title>
 </head>
 <body>
   <script type="module">
@@ -13,9 +13,10 @@
       resolverLinkTarefa,
       getTaskById,
       onEditTask,
+      onOpenTask,
       onToggleIndicator,
       onConcluirTask,
-      onDeleteTask
+      onResetTask
     }) {
       function classNameSinalizacao(status = '') {
         if (status === 'green') return 'is-green';
@@ -80,6 +81,12 @@
         return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
       }
 
+      function getTaskModalLabels(isEditing = false) {
+        return isEditing
+          ? { title: 'Editar tarefa', saveLabel: 'Salvar alterações' }
+          : { title: 'Anexar tarefa', saveLabel: 'Salvar tarefa' };
+      }
+
       function renderCardTarefa(t = {}) {
         const done = t.status === 'concluida';
         const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
@@ -113,13 +120,13 @@
             <div class="desc">${escapeHtml(t.descricao || '-')}</div>
             ${extrasToText(t.extras)}
             <div class="card-actions">
-              ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
+              <button class="btn ok" data-concluir="${t.id}">${done ? '✅' : 'Concluída'}</button>
               ${resolverLinkTarefa(t) ? `
                 <a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">
                   📍 Ir ao card
                 </a>
               ` : ''}
-              ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
+              ${done ? `<button class="btn" data-reset-task="${t.id}">✖</button>` : ''}
             </div>
           </article>
         `;
@@ -130,8 +137,8 @@
           btn.addEventListener('click', () => onConcluirTask(btn.dataset.concluir));
         });
 
-        root.querySelectorAll('[data-del]').forEach((btn) => {
-          btn.addEventListener('click', () => onDeleteTask(btn.dataset.del));
+        root.querySelectorAll('[data-reset-task]').forEach((btn) => {
+          btn.addEventListener('click', () => onResetTask(btn.dataset.resetTask));
         });
 
         root.querySelectorAll('[data-edit-task]').forEach((btn) => {
@@ -144,6 +151,7 @@
             bloquearEvento(event);
             const tarefa = getTaskById(btn.dataset.editTask);
             if (!tarefa) return;
+            if (typeof onOpenTask === 'function' && onOpenTask(tarefa) === true) return;
             onEditTask(tarefa);
           });
         });
@@ -169,6 +177,7 @@
       return {
         preencherExtrasFormulario,
         coletarExtras,
+        getTaskModalLabels,
         renderCardTarefa,
         bindCardInteractions
       };
