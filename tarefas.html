@@ -28,9 +28,25 @@
     .btn.primary { background: var(--accent); border-color: var(--accent); }
     .btn.ok { background: var(--ok); border-color: var(--ok); color: #041007; }
 
-    .wrap { padding: 18px; max-width: 1280px; margin: 0 auto; }
+    .wrap { padding: 18px; max-width: 1400px; margin: 0 auto; }
     .status { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
     .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .board-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    .board-tools { display:flex; gap:8px; flex-wrap:wrap; }
+    .board-scroll { overflow-x:auto; padding-bottom:10px; }
+    .board { display:flex; gap:14px; align-items:flex-start; min-height:220px; }
+    .list-column { background: linear-gradient(180deg, #161616, #111111); border:1px solid #2d2d2d; border-radius:14px; width:320px; min-width:320px; max-width:320px; padding:12px; box-shadow: 0 10px 24px rgba(0,0,0,.28); }
+    .list-column.following { border-color:#60a5fa; box-shadow: 0 0 0 1px rgba(96,165,250,.35), 0 10px 24px rgba(0,0,0,.28); }
+    .list-column.archived { opacity:.55; }
+    .list-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .list-title { font-weight:800; font-size:16px; line-height:1.15; }
+    .list-sub { color:var(--muted); font-size:11px; margin-top:4px; }
+    .list-menu-btn { width:34px; height:34px; border-radius:10px; border:1px solid #3b3b3b; background:#1d1d1d; color:#fff; cursor:pointer; font-weight:900; }
+    .list-body { display:flex; flex-direction:column; gap:10px; min-height:90px; }
+    .list-add-card { width:100%; margin-top:10px; background:#1f2937; border-color:#374151; }
+    .add-list-card { width:280px; min-width:280px; border-radius:14px; border:1px dashed rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; min-height:64px; padding:0; overflow:hidden; }
+    .add-list-card button { width:100%; min-height:64px; border:none; background:transparent; color:#fff; text-align:left; padding:18px 16px; font-size:14px; font-weight:800; cursor:pointer; }
+    .list-empty { color:#757575; border:1px dashed #353535; border-radius:10px; padding:16px 12px; text-align:center; font-size:12px; }
 
     .task-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--pending); border-radius: 10px; padding: 12px; }
     .task-card.done { border-left-color: var(--ok); opacity: .8; }
@@ -48,6 +64,7 @@
     .modal-bg { position: fixed; inset:0; background: rgba(0,0,0,.75); display:none; align-items:center; justify-content:center; z-index:40; }
     .modal { background: #121212; border:1px solid #333; width:min(700px,94vw); max-height:90vh; overflow:auto; border-radius:12px; padding:16px; }
     .modal h2 { margin:0 0 12px; }
+    .modal.list-actions-modal { width:min(520px,94vw); }
     .row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:10px; }
     .field { display:flex; flex-direction:column; gap:6px; }
     .field label { font-size:12px; color: var(--muted); font-weight: 700; }
@@ -55,6 +72,15 @@
     textarea { min-height:95px; resize:vertical; }
     .hint { font-size: 11px; color: #94a3b8; }
     .opt-panel { border:1px solid #303030; border-radius:8px; padding:10px; margin-bottom:10px; background:#101010; }
+    .section-title { font-size:12px; font-weight:800; color:#a3a3a3; letter-spacing:.03em; text-transform:uppercase; margin:16px 0 10px; }
+    .action-list { display:flex; flex-direction:column; gap:8px; }
+    .action-item { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; background:#1a1a1a; border:1px solid #333; border-radius:10px; padding:10px 12px; color:#fff; text-align:left; font-weight:700; cursor:pointer; }
+    .action-item:hover { border-color:#555; }
+    .action-item small { display:block; color:#a3a3a3; font-weight:600; margin-top:2px; }
+    .automation-grid { display:grid; gap:10px; }
+    .rule-box { background:#111; border:1px solid #2f2f2f; border-radius:10px; padding:10px; }
+    .rule-row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+    .pill { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:800; background:#1f2937; color:#bfdbfe; border-radius:999px; padding:4px 8px; }
 
     .side-toggle { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index:45; }
     .side-toggle button { border-radius: 10px 0 0 10px; border: 1px solid #444; border-right: none; background: #1c1c1c; color: #fff; padding: 12px 10px; cursor: pointer; }
@@ -72,6 +98,7 @@
 
     @media (max-width: 680px) {
       .row { grid-template-columns:1fr; }
+      .rule-row { grid-template-columns:1fr; }
       .topbar { flex-direction:column; align-items:flex-start; }
     }
   </style>
@@ -91,8 +118,16 @@
 
   <div class="wrap">
     <div class="status" id="status-msg">Carregando tarefas...</div>
-    <h3 style="margin:10px 0 8px;">Minhas tarefas</h3>
-    <div id="task-list" class="grid"></div>
+    <div class="board-toolbar">
+      <h3 style="margin:10px 0 8px;">Minhas tarefas</h3>
+      <div class="board-tools">
+        <button class="btn" id="btn-new-task">➕ Nova tarefa</button>
+        <button class="btn" id="btn-add-list">➕ Adicionar lista</button>
+      </div>
+    </div>
+    <div class="board-scroll">
+      <div id="task-list" class="board"></div>
+    </div>
   </div>
 
   <div class="side-toggle"><button id="btn-side">📋 Minhas solicitações</button></div>
@@ -140,6 +175,10 @@
             <option value="">Sem vínculo com card</option>
           </select>
         </div>
+        <div class="field">
+          <label>Lista de destino</label>
+          <select id="f-lista"></select>
+        </div>
       </div>
 
       <div id="opts" class="opt-panel"></div>
@@ -153,6 +192,101 @@
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
         <button class="btn" id="btn-cancel">Cancelar</button>
         <button class="btn ok" id="btn-save">Salvar tarefa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modal-list-bg">
+    <div class="modal list-actions-modal">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div>
+          <h2 style="margin-bottom:4px;">Ações da Lista</h2>
+          <div id="list-modal-sub" style="color:#a3a3a3;font-size:12px;"></div>
+        </div>
+        <button class="btn" id="btn-close-list-modal">Fechar</button>
+      </div>
+
+      <div class="section-title">Ações rápidas</div>
+      <div class="action-list">
+        <button class="action-item" id="act-add-card"><span>Adicionar cartão<small>Abre o formulário já apontando para esta lista.</small></span><span>➕</span></button>
+        <button class="action-item" id="act-copy-list"><span>Copiar lista<small>Cria uma nova lista com o mesmo nome e automações.</small></span><span>📄</span></button>
+        <button class="action-item" id="act-move-list"><span>Mover lista<small>Reposiciona a coluna no painel.</small></span><span>↔</span></button>
+        <button class="action-item" id="act-move-cards"><span>Mover todos os cartões nesta lista<small>Envia todos os cartões para outra lista.</small></span><span>📦</span></button>
+        <button class="action-item" id="act-follow-list"><span>Seguir<small>Destaca a lista como favorita neste painel.</small></span><span>⭐</span></button>
+      </div>
+
+      <div class="section-title">Automação</div>
+      <div class="automation-grid">
+        <div class="rule-box">
+          <div class="field">
+            <label>Quando um cartão for adicionado à lista...</label>
+            <select id="auto-on-add">
+              <option value="">Não fazer nada</option>
+              <option value="recentes">Colocar os mais recentes primeiro</option>
+              <option value="antigos">Colocar os mais antigos primeiro</option>
+              <option value="titulo">Ordenar por título (A-Z)</option>
+              <option value="setor">Agrupar por setor</option>
+            </select>
+          </div>
+        </div>
+        <div class="rule-box">
+          <div class="field">
+            <label>Todo dia, ordenar a lista por...</label>
+            <select id="auto-daily-sort">
+              <option value="">Desativado</option>
+              <option value="recentes">Mais recentes</option>
+              <option value="antigos">Mais antigos</option>
+              <option value="titulo">Título (A-Z)</option>
+              <option value="setor">Setor</option>
+            </select>
+          </div>
+        </div>
+        <div class="rule-box">
+          <div class="field">
+            <label>Toda segunda-feira, ordenar a lista por...</label>
+            <select id="auto-weekly-sort">
+              <option value="">Desativado</option>
+              <option value="recentes">Mais recentes</option>
+              <option value="antigos">Mais antigos</option>
+              <option value="titulo">Título (A-Z)</option>
+              <option value="setor">Setor</option>
+            </select>
+          </div>
+        </div>
+        <div class="rule-box">
+          <div style="font-weight:800;margin-bottom:8px;">Criar uma regra</div>
+          <div class="rule-row">
+            <div class="field">
+              <label>Gatilho</label>
+              <select id="auto-rule-trigger">
+                <option value="">Sem regra</option>
+                <option value="ao_concluir">Ao concluir um cartão</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ação</label>
+              <select id="auto-rule-action">
+                <option value="">Nenhuma ação</option>
+                <option value="mover_lista">Mover para outra lista</option>
+                <option value="manter">Apenas manter concluído</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label>Lista de destino da regra</label>
+            <select id="auto-rule-target"></select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+        <button class="btn" id="btn-save-list-automation">Salvar automações</button>
+      </div>
+
+      <div class="section-title">Arquivamento</div>
+      <div class="action-list">
+        <button class="action-item" id="act-archive-list"><span>Arquivar esta lista<small>Esconde a lista do painel e move os cartões para a entrada.</small></span><span>🗃️</span></button>
+        <button class="action-item" id="act-archive-cards"><span>Arquivar todos os cartões nesta lista<small>Move todos os cartões desta lista para a entrada.</small></span><span>📥</span></button>
       </div>
     </div>
   </div>
@@ -179,27 +313,123 @@
 
     const refs = {
       modal: document.getElementById('modal-bg'),
+      listModal: document.getElementById('modal-list-bg'),
       setor: document.getElementById('f-setor'),
       tipo: document.getElementById('f-tipo'),
       user: document.getElementById('f-user'),
       card: document.getElementById('f-card'),
+      lista: document.getElementById('f-lista'),
       resumo: document.getElementById('f-resumo'),
       desc: document.getElementById('f-desc'),
       opts: document.getElementById('opts'),
       taskList: document.getElementById('task-list'),
       reqList: document.getElementById('req-list'),
-      status: document.getElementById('status-msg')
+      status: document.getElementById('status-msg'),
+      listModalSub: document.getElementById('list-modal-sub'),
+      autoOnAdd: document.getElementById('auto-on-add'),
+      autoDailySort: document.getElementById('auto-daily-sort'),
+      autoWeeklySort: document.getElementById('auto-weekly-sort'),
+      autoRuleTrigger: document.getElementById('auto-rule-trigger'),
+      autoRuleAction: document.getElementById('auto-rule-action'),
+      autoRuleTarget: document.getElementById('auto-rule-target')
     };
 
     let usuarios = [];
     let cardsSetor = [];
     let pendingCount = 0;
+    let listasPainel = [];
+    let tarefasRecebidas = [];
+    let listaModalAtual = null;
+
+    const LISTA_PADRAO_ID = 'entrada-padrao';
+    const LISTA_PADRAO = {
+      id: LISTA_PADRAO_ID,
+      nome: 'Entrada',
+      ordem: 0,
+      seguindo: false,
+      arquivada: false,
+      automacoes: {}
+    };
 
     function labelSetor(setor) {
       if (setor === 'impressao') return 'Impressão';
       if (setor === 'serralheria') return 'Serralheria';
       if (setor === 'orcamento') return 'Orçamento';
       return setor || 'Não informado';
+    }
+
+    function escapeHtml(value = '') {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function normalizarListasPainel(listas = []) {
+      return [LISTA_PADRAO, ...listas]
+        .filter((lista, index, arr) => arr.findIndex((item) => item.id === lista.id) === index)
+        .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+    }
+
+    function obterListasAtivas() {
+      return normalizarListasPainel(listasPainel).filter((lista) => !lista.arquivada);
+    }
+
+    function obterListaPorId(listaId = '') {
+      return normalizarListasPainel(listasPainel).find((lista) => lista.id === listaId) || LISTA_PADRAO;
+    }
+
+    function preencherSelectListas(valor = '') {
+      const listas = obterListasAtivas();
+      const options = listas.map((lista) => `<option value="${lista.id}">${escapeHtml(lista.nome)}</option>`);
+      refs.lista.innerHTML = options.join('');
+      refs.autoRuleTarget.innerHTML = [`<option value="">Selecione</option>`, ...listas.filter((lista) => lista.id !== (listaModalAtual?.id || '')).map((lista) => `<option value="${lista.id}">${escapeHtml(lista.nome)}</option>`)].join('');
+
+      if (valor && listas.some((lista) => lista.id === valor)) refs.lista.value = valor;
+      else refs.lista.value = listas[0]?.id || LISTA_PADRAO_ID;
+    }
+
+    function gerarSlugLista(nome = '') {
+      const base = String(nome || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 36) || 'lista';
+      return `${base}-${Date.now().toString(36)}`;
+    }
+
+    function getTaskListId(tarefa = {}) {
+      const listaId = String(tarefa.listaId || '').trim();
+      if (!listaId) return LISTA_PADRAO_ID;
+      const listaExiste = normalizarListasPainel(listasPainel).some((lista) => lista.id === listaId && !lista.arquivada);
+      return listaExiste ? listaId : LISTA_PADRAO_ID;
+    }
+
+    function getSortModeForList(lista = {}) {
+      const automacoes = lista.automacoes || {};
+      const hoje = new Date();
+      if (automacoes.semanal && hoje.getDay() === 1) return automacoes.semanal;
+      if (automacoes.diaria) return automacoes.diaria;
+      return automacoes.aoAdicionar || '';
+    }
+
+    function ordenarTarefasDaLista(lista = {}, tarefas = []) {
+      const modo = getSortModeForList(lista);
+      const ordenada = [...tarefas];
+      if (modo === 'titulo') {
+        ordenada.sort((a, b) => String(a.resumo || '').localeCompare(String(b.resumo || ''), 'pt-BR'));
+      } else if (modo === 'setor') {
+        ordenada.sort((a, b) => labelSetor(a.setor).localeCompare(labelSetor(b.setor), 'pt-BR'));
+      } else if (modo === 'antigos') {
+        ordenada.sort((a, b) => (a?.created_at?.toMillis?.() || 0) - (b?.created_at?.toMillis?.() || 0));
+      } else {
+        ordenada.sort((a, b) => (b?.created_at?.toMillis?.() || 0) - (a?.created_at?.toMillis?.() || 0));
+      }
+      return ordenada;
     }
 
     function montarLinkCard(setor, cardId) {
@@ -234,6 +464,46 @@
         return `${num} • ${cliente}`;
       }
       return `${item.nome || item.categoria || 'Card'} (${item.id})`;
+    }
+
+    function atualizarSubtituloListaModal() {
+      if (!refs.listModalSub) return;
+      if (!listaModalAtual) {
+        refs.listModalSub.textContent = '';
+        return;
+      }
+      const automacoesAtivas = [];
+      if (listaModalAtual.seguindo) automacoesAtivas.push('seguindo');
+      if (listaModalAtual?.automacoes?.aoAdicionar) automacoesAtivas.push('auto ao adicionar');
+      if (listaModalAtual?.automacoes?.diaria) automacoesAtivas.push('ordem diária');
+      if (listaModalAtual?.automacoes?.semanal) automacoesAtivas.push('ordem semanal');
+      refs.listModalSub.innerHTML = `${escapeHtml(listaModalAtual.nome)} ${automacoesAtivas.length ? `• <span class="pill">${escapeHtml(automacoesAtivas.join(' • '))}</span>` : ''}`;
+    }
+
+    function preencherAutomacoesListaModal(lista = LISTA_PADRAO) {
+      const automacoes = lista.automacoes || {};
+      refs.autoOnAdd.value = automacoes.aoAdicionar || '';
+      refs.autoDailySort.value = automacoes.diaria || '';
+      refs.autoWeeklySort.value = automacoes.semanal || '';
+      refs.autoRuleTrigger.value = automacoes.regra?.gatilho || '';
+      refs.autoRuleAction.value = automacoes.regra?.acao || '';
+      preencherSelectListas();
+      refs.autoRuleTarget.value = automacoes.regra?.listaDestinoId || '';
+      atualizarSubtituloListaModal();
+    }
+
+    function abrirModalLista(listaId) {
+      const lista = listasPainel.find((item) => item.id === listaId);
+      if (!lista) return alert('Lista não encontrada.');
+      listaModalAtual = lista;
+      preencherAutomacoesListaModal(lista);
+      refs.listModal.style.display = 'flex';
+    }
+
+    function fecharModalLista() {
+      refs.listModal.style.display = 'none';
+      listaModalAtual = null;
+      atualizarSubtituloListaModal();
     }
 
     function preencherCardsSetorSelecionado(selecionado = '') {
@@ -297,6 +567,126 @@
       return extras;
     }
 
+    async function criarLista() {
+      const nome = prompt('Nome da nova lista:');
+      if (!nome || !nome.trim()) return;
+      const listasAtivas = obterListasAtivas();
+      await addDoc(collection(db, 'painel_tarefas_listas'), {
+        ownerEmail: me.email,
+        nome: nome.trim(),
+        slug: gerarSlugLista(nome),
+        ordem: listasAtivas.length,
+        seguindo: false,
+        arquivada: false,
+        automacoes: {},
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+    }
+
+    async function atualizarListaPainel(listaId, payload = {}) {
+      if (!listaId) return;
+      await updateDoc(doc(db, 'painel_tarefas_listas', listaId), {
+        ...payload,
+        updated_at: serverTimestamp()
+      });
+    }
+
+    async function copiarLista(lista) {
+      if (!lista) return;
+      const nome = prompt('Nome da cópia da lista:', `${lista.nome} (cópia)`);
+      if (!nome || !nome.trim()) return;
+      const listasAtivas = obterListasAtivas();
+      await addDoc(collection(db, 'painel_tarefas_listas'), {
+        ownerEmail: me.email,
+        nome: nome.trim(),
+        slug: gerarSlugLista(nome),
+        ordem: listasAtivas.length,
+        seguindo: false,
+        arquivada: false,
+        automacoes: { ...(lista.automacoes || {}) },
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+    }
+
+    async function moverLista(lista) {
+      if (!lista) return;
+      const listasAtivas = obterListasAtivas().filter((item) => item.id !== LISTA_PADRAO_ID);
+      const atual = listasAtivas.findIndex((item) => item.id === lista.id);
+      if (atual < 0) return;
+      const destinoTexto = prompt(`Mover "${lista.nome}" para qual posição? (1 até ${listasAtivas.length})`, String(atual + 1));
+      if (!destinoTexto) return;
+      const destino = Math.min(Math.max(Number(destinoTexto) || 1, 1), listasAtivas.length) - 1;
+      const reordenadas = [...listasAtivas];
+      const [removida] = reordenadas.splice(atual, 1);
+      reordenadas.splice(destino, 0, removida);
+      await Promise.all(reordenadas.map((item, index) => atualizarListaPainel(item.id, { ordem: index + 1 })));
+    }
+
+    async function moverCartoesDaLista(lista) {
+      if (!lista) return;
+      const opcoes = obterListasAtivas().filter((item) => item.id !== lista.id);
+      if (!opcoes.length) {
+        alert('Crie outra lista antes de mover os cartões.');
+        return;
+      }
+      const texto = opcoes.map((item, index) => `${index + 1}. ${item.nome}`).join('\n');
+      const resposta = prompt(`Mover todos os cartões de "${lista.nome}" para qual lista?\n${texto}`, '1');
+      if (!resposta) return;
+      const alvo = opcoes[(Number(resposta) || 1) - 1];
+      if (!alvo) return alert('Lista de destino inválida.');
+      const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
+      await Promise.all(tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: alvo.id, updated_at: serverTimestamp() })));
+    }
+
+    async function alternarSeguirLista(lista) {
+      if (!lista) return;
+      await atualizarListaPainel(lista.id, { seguindo: !lista.seguindo });
+    }
+
+    async function salvarAutomacoesLista() {
+      if (!listaModalAtual) return;
+      const regra = {
+        gatilho: refs.autoRuleTrigger.value || '',
+        acao: refs.autoRuleAction.value || '',
+        listaDestinoId: refs.autoRuleTarget.value || ''
+      };
+      if (regra.acao === 'mover_lista' && !regra.listaDestinoId) {
+        return alert('Selecione a lista de destino da regra.');
+      }
+      await atualizarListaPainel(listaModalAtual.id, {
+        automacoes: {
+          aoAdicionar: refs.autoOnAdd.value || '',
+          diaria: refs.autoDailySort.value || '',
+          semanal: refs.autoWeeklySort.value || '',
+          regra
+        }
+      });
+      fecharModalLista();
+    }
+
+    async function arquivarLista(lista) {
+      if (!lista) return;
+      const ok = confirm(`Arquivar a lista "${lista.nome}"? Os cartões voltarão para a Entrada.`);
+      if (!ok) return;
+      const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
+      await Promise.all([
+        ...tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: LISTA_PADRAO_ID, updated_at: serverTimestamp() })),
+        atualizarListaPainel(lista.id, { arquivada: true })
+      ]);
+      fecharModalLista();
+    }
+
+    async function arquivarCartoesDaLista(lista) {
+      if (!lista) return;
+      const ok = confirm(`Mover todos os cartões da lista "${lista.nome}" para a Entrada?`);
+      if (!ok) return;
+      const tarefasDaLista = tarefasRecebidas.filter((tarefa) => getTaskListId(tarefa) === lista.id);
+      await Promise.all(tarefasDaLista.map((tarefa) => updateDoc(doc(db, 'tarefas', tarefa.id), { listaId: LISTA_PADRAO_ID, updated_at: serverTimestamp() })));
+      fecharModalLista();
+    }
+
     async function carregarUsuarios() {
       const q = query(collection(db, 'access_requests'), where('status', '==', 'approved'));
       const snap = await getDocs(q);
@@ -356,6 +746,7 @@
       refs.desc.value = pre.desc || '';
       if (pre.destinatarioEmail) refs.user.value = pre.destinatarioEmail.toLowerCase();
       if (pre.cardId && refs.card.value !== pre.cardId) refs.card.value = '';
+      preencherSelectListas(pre.listaId || '');
       renderOpcoes();
       refs.modal.style.display = 'flex';
     }
@@ -375,6 +766,7 @@
         resumo: refs.resumo.value.trim(),
         descricao: refs.desc.value.trim(),
         extras: coletarExtras(),
+        listaId: refs.lista.value || LISTA_PADRAO_ID,
         status: 'pendente',
         destinatarioEmail: destino.email,
         destinatarioNome: destino.nome,
@@ -395,11 +787,20 @@
     }
 
     async function concluirTarefa(id) {
-      await updateDoc(doc(db, 'tarefas', id), {
+      const tarefa = tarefasRecebidas.find((item) => item.id === id);
+      const lista = tarefa ? obterListaPorId(getTaskListId(tarefa)) : LISTA_PADRAO;
+      const regra = lista?.automacoes?.regra || {};
+      const payload = {
         status: 'concluida',
         concluida_em: serverTimestamp(),
         concluida_por: me.email,
         updated_at: serverTimestamp()
+      };
+      if (regra.gatilho === 'ao_concluir' && regra.acao === 'mover_lista' && regra.listaDestinoId) {
+        payload.listaId = regra.listaDestinoId;
+      }
+      await updateDoc(doc(db, 'tarefas', id), {
+        ...payload
       });
     }
 
@@ -423,34 +824,58 @@
       const linhas = [];
       Object.entries(extras).forEach(([k, v]) => {
         if (v === '' || v === false || v == null) return;
-        linhas.push(`${k}: ${v}`);
+        linhas.push(`${escapeHtml(k)}: ${escapeHtml(v)}`);
       });
       return linhas.length ? `<div class="meta"><b>Opções:</b> ${linhas.join(' • ')}</div>` : '';
     }
 
+    function renderCardTarefa(t = {}) {
+      const done = t.status === 'concluida';
+      const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
+      return `
+        <article class="task-card ${done ? 'done' : ''}">
+          <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
+          <div class="title">${escapeHtml(t.resumo || 'Sem resumo')}</div>
+          <div class="desc">${escapeHtml(t.descricao || '-')}</div>
+          ${extrasToText(t.extras)}
+          <div class="card-actions">
+            ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
+            ${resolverLinkTarefa(t) ? `<a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
+            ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
+          </div>
+        </article>
+      `;
+    }
+
     function renderTarefas(list) {
-      refs.status.textContent = `Você possui ${list.filter((t) => t.status === 'pendente').length} tarefa(s) pendente(s).`;
-      if (!list.length) {
+      const visiveis = list.filter((tarefa) => tarefa.status !== 'arquivada');
+      refs.status.textContent = `Você possui ${visiveis.filter((t) => t.status === 'pendente').length} tarefa(s) pendente(s).`;
+      if (!visiveis.length) {
         refs.taskList.innerHTML = '<div class="empty">Nenhuma tarefa anexada para você.</div>';
         return;
       }
-      refs.taskList.innerHTML = list.map((t) => {
-        const done = t.status === 'concluida';
-        const data = t.created_at?.toDate?.() ? t.created_at.toDate().toLocaleString('pt-BR') : 'agora';
-        const setorClass = t.setor === 'impressao' ? 'imp' : t.setor === 'serralheria' ? 'serr' : 'orc';
-        return `
-          <article class="task-card ${done ? 'done' : ''}">
-            <span class="tag ${setorClass}">${labelSetor(t.setor)}</span>
-            <div class="title">${t.resumo || 'Sem resumo'}</div>
-            <div class="desc">${t.descricao || '-'}</div>
-            <div class="card-actions">
-              ${done ? '<span class="tag" style="background:#123b1f;color:#86efac;">Concluída</span>' : `<button class="btn ok" data-concluir="${t.id}">Marcar como concluída</button>`}
-              ${resolverLinkTarefa(t) ? `<a class="btn" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
-              ${done ? `<button class="btn" data-del="${t.id}">✖</button>` : ''}
-            </div>
-          </article>
-        `;
-      }).join('');
+      const listas = obterListasAtivas();
+      refs.taskList.innerHTML = [
+        ...listas.map((lista) => {
+          const tarefasDaLista = ordenarTarefasDaLista(lista, visiveis.filter((tarefa) => getTaskListId(tarefa) === lista.id));
+          return `
+            <section class="list-column ${lista.seguindo ? 'following' : ''}" data-lista="${lista.id}">
+              <div class="list-header">
+                <div>
+                  <div class="list-title">${escapeHtml(lista.nome)}</div>
+                  <div class="list-sub">${tarefasDaLista.length} cartão(ões) ${lista.seguindo ? '• seguindo' : ''}</div>
+                </div>
+                ${lista.id === LISTA_PADRAO_ID ? '' : `<button class="list-menu-btn" data-list-actions="${lista.id}">⋯</button>`}
+              </div>
+              <div class="list-body">
+                ${tarefasDaLista.length ? tarefasDaLista.map(renderCardTarefa).join('') : '<div class="list-empty">Nenhum cartão nesta lista.</div>'}
+              </div>
+              <button class="btn list-add-card" data-add-card-list="${lista.id}">➕ Adicionar cartão</button>
+            </section>
+          `;
+        }),
+        `<div class="add-list-card"><button id="btn-add-list-inline">＋ Adicionar outra lista</button></div>`
+      ].join('');
 
       refs.taskList.querySelectorAll('[data-concluir]').forEach((btn) => {
         btn.addEventListener('click', () => concluirTarefa(btn.dataset.concluir));
@@ -458,6 +883,13 @@
       refs.taskList.querySelectorAll('[data-del]').forEach((btn) => {
         btn.addEventListener('click', () => excluirTarefa(btn.dataset.del));
       });
+      refs.taskList.querySelectorAll('[data-list-actions]').forEach((btn) => {
+        btn.addEventListener('click', () => abrirModalLista(btn.dataset.listActions));
+      });
+      refs.taskList.querySelectorAll('[data-add-card-list]').forEach((btn) => {
+        btn.addEventListener('click', () => abrirModal({ listaId: btn.dataset.addCardList }));
+      });
+      document.getElementById('btn-add-list-inline')?.addEventListener('click', criarLista);
     }
 
     function renderSolicitacoes(list) {
@@ -467,8 +899,8 @@
       }
       refs.reqList.innerHTML = list.map((t) => `
         <div class="req-item">
-          <div><b>${t.resumo || t.tipo || 'Sem resumo'}</b></div>
-          <div style="font-size:12px;color:#cbd5e1;">Para: ${t.destinatarioNome || t.destinatarioEmail}</div>
+          <div><b>${escapeHtml(t.resumo || t.tipo || 'Sem resumo')}</b></div>
+          <div style="font-size:12px;color:#cbd5e1;">Para: ${escapeHtml(t.destinatarioNome || t.destinatarioEmail || '-')}</div>
           <div class="st ${t.status === 'concluida' ? 'c' : 'p'}">${t.status === 'concluida' ? 'Concluída' : 'Pendente'}</div>
           ${resolverLinkTarefa(t) ? `<a class="btn" style="margin-top:6px;display:inline-block;" href="${resolverLinkTarefa(t)}" target="_blank" rel="noopener">📍 Ir ao card</a>` : ''}
           <button class="btn" style="margin-top:6px;" data-del-req="${t.id}">✖</button>
@@ -489,6 +921,21 @@
 
     function monitorar() {
       const colTarefas = collection(db, 'tarefas');
+      const qListas = query(collection(db, 'painel_tarefas_listas'), where('ownerEmail', '==', me.email));
+
+      onSnapshot(qListas, (snap) => {
+        listasPainel = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+        preencherSelectListas();
+        if (listaModalAtual) {
+          listaModalAtual = listasPainel.find((item) => item.id === listaModalAtual.id) || null;
+          if (listaModalAtual) preencherAutomacoesListaModal(listaModalAtual);
+          else fecharModalLista();
+        }
+        renderTarefas(tarefasRecebidas);
+      }, (err) => {
+        console.error('Erro ao monitorar listas do painel:', err);
+      });
 
       const assinarMinhas = (usarOrderBy = true) => {
         const qMinhas = usarOrderBy
@@ -498,6 +945,7 @@
         onSnapshot(qMinhas, (snap) => {
           const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
           const ordenada = usarOrderBy ? lista : ordenarPorDataDesc(lista);
+          tarefasRecebidas = ordenada;
           const novoPend = ordenada.filter((t) => t.status === 'pendente').length;
           if (pendingCount && novoPend > pendingCount && Notification.permission === 'granted') {
             new Notification('Nova tarefa recebida', { body: `Você recebeu ${novoPend - pendingCount} nova(s) tarefa(s).` });
@@ -536,8 +984,23 @@
     document.getElementById('btn-delete-done').addEventListener('click', excluirConcluidas);
     document.getElementById('btn-cancel').addEventListener('click', fecharModal);
     document.getElementById('btn-save').addEventListener('click', salvarTarefa);
+    document.getElementById('btn-new-task').addEventListener('click', () => abrirModal());
+    document.getElementById('btn-add-list').addEventListener('click', criarLista);
     refs.setor.addEventListener('change', async () => preencherTipos());
     refs.tipo.addEventListener('change', renderOpcoes);
+    document.getElementById('btn-close-list-modal').addEventListener('click', fecharModalLista);
+    document.getElementById('act-add-card').addEventListener('click', () => {
+      const listaId = listaModalAtual?.id || LISTA_PADRAO_ID;
+      fecharModalLista();
+      abrirModal({ listaId });
+    });
+    document.getElementById('act-copy-list').addEventListener('click', () => copiarLista(listaModalAtual));
+    document.getElementById('act-move-list').addEventListener('click', () => moverLista(listaModalAtual));
+    document.getElementById('act-move-cards').addEventListener('click', () => moverCartoesDaLista(listaModalAtual));
+    document.getElementById('act-follow-list').addEventListener('click', () => alternarSeguirLista(listaModalAtual));
+    document.getElementById('btn-save-list-automation').addEventListener('click', salvarAutomacoesLista);
+    document.getElementById('act-archive-list').addEventListener('click', () => arquivarLista(listaModalAtual));
+    document.getElementById('act-archive-cards').addEventListener('click', () => arquivarCartoesDaLista(listaModalAtual));
 
     const sidebar = document.getElementById('sidebar');
     const toggleSide = () => sidebar.classList.toggle('open');
