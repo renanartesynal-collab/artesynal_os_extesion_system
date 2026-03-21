@@ -687,6 +687,10 @@
     }
 
     async function gerarEtiqueta() {
+      if (!itemAtualId) {
+        alert('Salve o item antes de gerar a etiqueta com QR Code.');
+        return;
+      }
       atualizarPreview();
       const formato = document.getElementById('etiqueta-formato').value;
       if (formato === 'pdf') {
