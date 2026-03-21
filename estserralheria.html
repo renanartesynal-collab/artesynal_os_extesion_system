@@ -94,6 +94,12 @@
         .btn-pdf-etiqueta:hover { filter: brightness(1.08); }
         .btn-img-etiqueta { background: linear-gradient(90deg, #0ea5a4, #2dd4bf); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 900; padding: 9px 12px; cursor: pointer; }
         .btn-img-etiqueta:hover { filter: brightness(1.08); }
+        .etiqueta-resumo-lote { color: var(--text-gray); font-size: 13px; margin-bottom: 10px; }
+        .etiqueta-preview-lista { display:flex; flex-direction:column; gap:14px; max-height:62vh; overflow:auto; padding-right:4px; }
+        .etiqueta-preview-item { background:#101010; border:1px solid #2c2c2c; border-radius:12px; padding:12px; }
+        .etiqueta-preview-item-header { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px; }
+        .etiqueta-preview-item-titulo { font-size:13px; font-weight:800; color:#fff; }
+        .etiqueta-preview-item-sub { font-size:11px; color:var(--text-gray); }
         .etiqueta-print-area { width: 480px; height: 280px; max-width: 100%; border-radius: 12px; border: 2px solid #111; background: linear-gradient(135deg, #f9fafb, #e5e7eb); padding: 4px; color: #101010; display: grid; grid-template-columns: 52% 48%; gap: 4px; overflow: hidden; }
         .etiqueta-print-area.pdf-render { max-width: none; }
         .etiqueta-col-esq { background: #fff; border: 1px solid #c9c9c9; border-radius: 10px; padding: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -526,7 +532,7 @@
             
             <h3 id="detalhes-nome" style="color: white; margin-bottom: 5px;">Nome do Material</h3>
             <div id="detalhes-registro-wrap" style="display:none; margin:8px 0 4px;">
-                <label class="label-standard" style="margin-bottom:6px;">Registro para editar/cortar</label>
+                <label class="label-standard" style="margin-bottom:6px;">Registro para editar/cortar ou gerar etiquetas em lote</label>
                 <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
                     <button id="btn-separar-registro" class="btn-adj" onclick="separarRegistroDetalhes()" style="margin-top:0; min-width:130px;">SEPARAR</button>
                 </div>
@@ -535,7 +541,7 @@
             <div id="detalhes-preview-wrapper"></div>
             <pre id="detalhes-info" style="color: var(--text-gray); font-family: inherit; margin-top:10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #333;"></pre>
             <div style="display:flex; gap:8px; margin-top:10px;">
-                <button class="btn-etiqueta" onclick="abrirModalEtiqueta()" style="margin-top:0; flex:1;">🏷️ GERAR ETIQUETA</button>
+                <button class="btn-etiqueta" id="btn-gerar-etiqueta-detalhes" onclick="abrirModalEtiqueta()" style="margin-top:0; flex:1;">🏷️ GERAR ETIQUETA</button>
                 <button class="btn-etiqueta" onclick="irParaCorteDireto()" style="margin-top:0; flex:1; background:#1f2937;">✂️ IR PARA CORTE</button>
             </div>
 
@@ -572,7 +578,8 @@
             <button class="btn-voltar-top" onclick="fecharModal('modal-etiqueta')">Fechar</button>
             <h2 style="margin-top:0; color:var(--orange); border-bottom:1px solid #333; padding-bottom:10px;">Etiqueta da Chapa</h2>
             <div class="etiqueta-toolbar"><button class="btn-pdf-etiqueta" onclick="gerarPdfEtiqueta()">📄 GERAR PDF (4,8x2,8 cm)</button><button class="btn-img-etiqueta" onclick="gerarImagemEtiqueta()">🖼️ GERAR IMAGEM</button></div>
-            <div id="etiqueta-card" class="etiqueta-print-area"></div>
+            <div id="etiqueta-resumo" class="etiqueta-resumo-lote"></div>
+            <div id="etiqueta-card" class="etiqueta-preview-lista"></div>
         </div>
     </div>
 
@@ -2467,6 +2474,7 @@ window.confirmarPosicionamentoSimulador = () => {
         let itemParaDetalhes = null;
         let itensDetalhesGrupo = [];
         let grupoDetalhesAtual = null;
+        let loteEtiquetasAtual = [];
 
         function atualizarVisibilidadeBotaoSeparar() {
             const btnSeparar = document.getElementById('btn-separar-registro');
@@ -2482,6 +2490,18 @@ window.confirmarPosicionamentoSimulador = () => {
                 btnSeparar.innerText = `SEPARAR (${String(totalSelecionado).padStart(2, '0')})`;
             } else {
                 btnSeparar.innerText = qtdAtual > 1 ? `SEPARAR (${qtdAtual})` : 'SEPARAR';
+            }
+        }
+
+        function atualizarBotaoEtiquetaDetalhes() {
+            const btnEtiqueta = document.getElementById('btn-gerar-etiqueta-detalhes');
+            if (!btnEtiqueta) return;
+
+            const totalSelecionado = unidadesSelecionadasDetalhes.size;
+            if (totalSelecionado > 1) {
+                btnEtiqueta.innerText = `🏷️ GERAR ${totalSelecionado} ETIQUETAS`;
+            } else {
+                btnEtiqueta.innerText = '🏷️ GERAR ETIQUETA';
             }
         }
 
@@ -2512,6 +2532,7 @@ window.confirmarPosicionamentoSimulador = () => {
             if (!unidades.length) {
                 lista.innerHTML = '';
                 atualizarVisibilidadeBotaoSeparar();
+                atualizarBotaoEtiquetaDetalhes();
                 return;
             }
 
@@ -2533,6 +2554,7 @@ window.confirmarPosicionamentoSimulador = () => {
             }).join('');
 
             atualizarVisibilidadeBotaoSeparar();
+            atualizarBotaoEtiquetaDetalhes();
         }
 
         function preencherModalDetalhes(item) {
@@ -2560,6 +2582,7 @@ window.confirmarPosicionamentoSimulador = () => {
             document.getElementById('detalhes-os').value = formatarOsNumero(item.osNumero || '');
             document.getElementById('detalhes-anotacoes').value = item.anotacoes || '';
             atualizarVisibilidadeBotaoSeparar();
+            atualizarBotaoEtiquetaDetalhes();
         }
 
         window.selecionarRegistroDetalhes = (chaveUnidade) => {
@@ -2579,6 +2602,87 @@ window.confirmarPosicionamentoSimulador = () => {
             }
             renderizarListaRegistrosDetalhes();
         };
+
+        function obterItensSelecionadosParaEtiqueta() {
+            if (!itensDetalhesGrupo.length) return [];
+
+            const unidades = construirListaUnidadesDetalhes();
+            const selecionadas = unidades.filter((u) => unidadesSelecionadasDetalhes.has(u.chave));
+            const origem = selecionadas.length
+                ? selecionadas
+                : unidades.filter((u) => u.chave === unidadeAtivaDetalhes).slice(0, 1);
+
+            return origem.map((u, index) => ({
+                id: `${u.item.id}::${u.indiceRegistro}::${index}`,
+                item: u.item,
+                indiceRegistro: u.indiceRegistro,
+                indiceGlobal: u.indiceGlobal
+            }));
+        }
+
+        function montarEtiquetaHtml(item) {
+            const tipoMaterial = `${item.categoria || ''}`.trim() || 'Material';
+            const corMaterial = `${item.cor || ''} ${item.acabamento || ''}`.replace(/\s+/g, ' ').trim() || 'Sem cor';
+            const espessura = `${item.espessura || ''}`.trim() || '-';
+            const tituloMaterial = espessura !== '-' ? `${tipoMaterial} ${espessura}` : tipoMaterial;
+            const medida = getDimensaoEtiqueta(item);
+            const registro = item.registroSerial || '---';
+            const urlDestino = `${window.location.origin}${window.location.pathname}#item-${item.id}`;
+            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(urlDestino)}`;
+
+            return `
+                <div class="etiqueta-col-esq">
+                    <div class="etiqueta-qr"><img src="${qrSrc}" alt="QR Code da chapa"></div>
+                </div>
+                <div class="etiqueta-col-dir etiqueta-lista-simples">
+                    <div class="etiqueta-txt-lg">${escaparHtml(tituloMaterial)}</div>
+                    <div class="etiqueta-txt-md">${escaparHtml(corMaterial)}</div>
+                    <div class="etiqueta-txt-md">${escaparHtml(medida)}</div>
+                    <div class="etiqueta-txt-md">${escaparHtml(String(registro))}</div>
+                </div>
+            `;
+        }
+
+        async function renderizarCanvasEtiqueta(elemento) {
+            return window.html2canvas(elemento, {
+                backgroundColor: '#ffffff',
+                scale: 3,
+                useCORS: true
+            });
+        }
+
+        async function gerarCanvasesEtiquetas() {
+            const alvo = document.getElementById('etiqueta-card');
+            const etiquetas = alvo ? [...alvo.querySelectorAll('.etiqueta-print-area')] : [];
+            if (!etiquetas.length) {
+                alert('Abra uma etiqueta antes de gerar o arquivo.');
+                return [];
+            }
+
+            const clones = etiquetas.map((etiqueta) => {
+                const clone = etiqueta.cloneNode(true);
+                clone.classList.add('pdf-render');
+                clone.style.width = '480px';
+                clone.style.height = '280px';
+                clone.style.maxWidth = 'none';
+                clone.style.position = 'fixed';
+                clone.style.left = '-10000px';
+                clone.style.top = '0';
+                clone.style.zIndex = '-1';
+                document.body.appendChild(clone);
+                return clone;
+            });
+
+            try {
+                const canvases = [];
+                for (const clone of clones) {
+                    canvases.push(await renderizarCanvasEtiqueta(clone));
+                }
+                return canvases;
+            } finally {
+                clones.forEach((clone) => clone.remove());
+            }
+        }
 
         window.separarRegistroDetalhes = async () => {
             if (!itensDetalhesGrupo.length) return;
@@ -2751,32 +2855,32 @@ window.confirmarPosicionamentoSimulador = () => {
 
         window.abrirModalEtiqueta = () => {
             if (!itemParaDetalhes) return;
-            const tipoMaterial = `${itemParaDetalhes.categoria || ''}`.trim() || 'Material';
-            const corMaterial = `${itemParaDetalhes.cor || ''} ${itemParaDetalhes.acabamento || ''}`.replace(/\s+/g, ' ').trim() || 'Sem cor';
-            const espessura = `${itemParaDetalhes.espessura || ''}`.trim() || '-';
-            const tituloMaterial = espessura !== '-' ? `${tipoMaterial} ${espessura}` : tipoMaterial;
-            const medida = getDimensaoEtiqueta(itemParaDetalhes);
-            const registro = itemParaDetalhes.registroSerial || '---';
-            const urlDestino = `${window.location.origin}${window.location.pathname}#item-${itemParaDetalhes.id}`;
-            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(urlDestino)}`;
-
-            document.getElementById('etiqueta-card').innerHTML = `
-                <div class="etiqueta-col-esq">
-                    <div class="etiqueta-qr"><img src="${qrSrc}" alt="QR Code da chapa"></div>
-                </div>
-                <div class="etiqueta-col-dir etiqueta-lista-simples">
-                    <div class="etiqueta-txt-lg">${escaparHtml(tituloMaterial)}</div>
-                    <div class="etiqueta-txt-md">${escaparHtml(corMaterial)}</div>
-                    <div class="etiqueta-txt-md">${escaparHtml(medida)}</div>
-                    <div class="etiqueta-txt-md">${escaparHtml(String(registro))}</div>
-                </div>
-            `;
+            loteEtiquetasAtual = obterItensSelecionadosParaEtiqueta();
+            const resumo = document.getElementById('etiqueta-resumo');
+            if (resumo) {
+                resumo.innerText = loteEtiquetasAtual.length > 1
+                    ? `${loteEtiquetasAtual.length} etiquetas preparadas a partir dos registros selecionados.`
+                    : '1 etiqueta preparada para o registro ativo.';
+            }
+            document.getElementById('etiqueta-card').innerHTML = loteEtiquetasAtual.map((registro, index) => {
+                const item = registro.item;
+                return `
+                    <div class="etiqueta-preview-item">
+                        <div class="etiqueta-preview-item-header">
+                            <div>
+                                <div class="etiqueta-preview-item-titulo">Etiqueta ${String(index + 1).padStart(2, '0')}</div>
+                                <div class="etiqueta-preview-item-sub">Registro ${escaparHtml(String(item.registroSerial || '---'))} · ${escaparHtml(getDimensaoEtiqueta(item))}</div>
+                            </div>
+                        </div>
+                        <div class="etiqueta-print-area">${montarEtiquetaHtml(item)}</div>
+                    </div>
+                `;
+            }).join('');
             document.getElementById('modal-etiqueta').style.display = 'flex';
         };
 
         window.gerarPdfEtiqueta = async () => {
-            const alvo = document.getElementById('etiqueta-card');
-            if (!alvo || !alvo.innerHTML.trim()) {
+            if (!loteEtiquetasAtual.length) {
                 alert('Abra uma etiqueta antes de gerar o PDF.');
                 return;
             }
@@ -2785,57 +2889,48 @@ window.confirmarPosicionamentoSimulador = () => {
                 return;
             }
 
-            const clone = alvo.cloneNode(true);
-            clone.classList.add('pdf-render');
-            clone.style.width = '480px';
-            clone.style.height = '280px';
-            clone.style.maxWidth = 'none';
-            clone.style.position = 'fixed';
-            clone.style.left = '-10000px';
-            clone.style.top = '0';
-            clone.style.zIndex = '-1';
-            document.body.appendChild(clone);
-
             try {
-                const canvas = await window.html2canvas(clone, {
-                    backgroundColor: '#ffffff',
-                    scale: 3,
-                    useCORS: true
-                });
-
-                const imgData = canvas.toDataURL('image/png');
+                const canvases = await gerarCanvasesEtiquetas();
+                if (!canvases.length) return;
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({ orientation: 'landscape', unit: 'cm', format: [4.8, 2.8] });
 
                 const pageW = 4.8;
                 const pageH = 2.8;
-                const imgRatio = canvas.width / canvas.height;
-                const pageRatio = pageW / pageH;
-                let drawW = pageW;
-                let drawH = pageH;
-                let posX = 0;
-                let posY = 0;
+                canvases.forEach((canvas, index) => {
+                    if (index > 0) pdf.addPage([pageW, pageH], 'landscape');
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgRatio = canvas.width / canvas.height;
+                    const pageRatio = pageW / pageH;
+                    let drawW = pageW;
+                    let drawH = pageH;
+                    let posX = 0;
+                    let posY = 0;
 
-                if (imgRatio > pageRatio) {
-                    drawH = pageW / imgRatio;
-                    posY = (pageH - drawH) / 2;
-                } else if (imgRatio < pageRatio) {
-                    drawW = pageH * imgRatio;
-                    posX = (pageW - drawW) / 2;
-                }
+                    if (imgRatio > pageRatio) {
+                        drawH = pageW / imgRatio;
+                        posY = (pageH - drawH) / 2;
+                    } else if (imgRatio < pageRatio) {
+                        drawW = pageH * imgRatio;
+                        posX = (pageW - drawW) / 2;
+                    }
 
-                pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
+                    pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
+                });
 
-                const reg = itemParaDetalhes?.registroSerial || 'sem-registro';
+                const reg = loteEtiquetasAtual.length === 1
+                    ? (loteEtiquetasAtual[0]?.item?.registroSerial || 'sem-registro')
+                    : `lote-${loteEtiquetasAtual.length}-registros`;
                 pdf.save(`etiqueta-${reg}.pdf`);
-            } finally {
-                clone.remove();
+            }
+            catch (e) {
+                console.error(e);
+                alert('Erro ao gerar o PDF das etiquetas.');
             }
         };
 
         window.gerarImagemEtiqueta = async () => {
-            const alvo = document.getElementById('etiqueta-card');
-            if (!alvo || !alvo.innerHTML.trim()) {
+            if (!loteEtiquetasAtual.length) {
                 alert('Abra uma etiqueta antes de gerar a imagem.');
                 return;
             }
@@ -2844,30 +2939,20 @@ window.confirmarPosicionamentoSimulador = () => {
                 return;
             }
 
-            const clone = alvo.cloneNode(true);
-            clone.classList.add('pdf-render');
-            clone.style.width = '480px';
-            clone.style.height = '280px';
-            clone.style.maxWidth = 'none';
-            clone.style.position = 'fixed';
-            clone.style.left = '-10000px';
-            clone.style.top = '0';
-            clone.style.zIndex = '-1';
-            document.body.appendChild(clone);
-
             try {
-                const canvas = await window.html2canvas(clone, {
-                    backgroundColor: '#ffffff',
-                    scale: 3,
-                    useCORS: true
+                const canvases = await gerarCanvasesEtiquetas();
+                if (!canvases.length) return;
+
+                canvases.forEach((canvas, index) => {
+                    const reg = loteEtiquetasAtual[index]?.item?.registroSerial || `registro-${index + 1}`;
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = `etiqueta-${reg}.png`;
+                    link.click();
                 });
-                const reg = itemParaDetalhes?.registroSerial || 'sem-registro';
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = `etiqueta-${reg}.png`;
-                link.click();
-            } finally {
-                clone.remove();
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar a(s) imagem(ns) das etiquetas.');
             }
         };
 
