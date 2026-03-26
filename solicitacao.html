@@ -9,7 +9,7 @@
         :root { --bg-dark: #222; --panel-bg: #333; --input-bg: #444; --yellow: #f1c40f; --blue: #00aeef; --green: #00a651; --red: #ed1c24; --text: #eee; }
         body { font-family: 'Montserrat', sans-serif; margin: 0; padding: 20px; background-color: var(--bg-dark); color: var(--text); }
 
-        .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; padding-bottom: 80px;}
+        .container { max-width: 800px; margin: 0 auto; background: var(--panel-bg); padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
         
         .btn-voltar { text-decoration: none; color: white; background: #555; padding: 8px 15px; border-radius: 5px; font-size: 12px; font-weight: bold; }
 
@@ -78,10 +78,6 @@
         .thumb-btn { width: 20px; height: 20px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 3px; font-size: 10px; font-weight: bold; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;}
         .btn-del-thumb { background: var(--red); align-self: flex-end; }
 
-        /* BOTOES FLUTUANTES */
-        .fab-edit { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--blue); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
-        .fab-vt { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px black; cursor: pointer; display: none; align-items: center; justify-content: center; text-decoration: none; z-index: 100;}
-
         /* MODAL DE DESENHO (ROBUSTO) */
         #draw-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -108,11 +104,14 @@
         .btn-v-action { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: 'Montserrat', sans-serif; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s;}
         
         .area-botoes-topo { background: #1a252f; padding: 0 20px 20px; border-bottom: 1px solid #444; }
-        .btn-gerar-vt { background: var(--blue); width: 100%; font-size: 14px;}
-        .botoes-pos-vt { display: none; gap: 10px; flex-wrap: wrap; }
-        .b-ver { background: var(--green); flex: 1; min-width: 120px; font-size: 12px;}
-        .b-link { background: var(--yellow); color: black; flex: 1; min-width: 120px; font-size: 12px;}
-        .b-edit { background: #555; flex: 1; min-width: 120px; font-size: 12px;}
+        .linha-acoes-topo { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-topo-mini { flex: 1; min-width: 120px; font-size: 12px; min-height: 42px;}
+        .btn-gerar-vt { background: var(--blue); }
+        .btn-open-vt { background: var(--green); }
+        .btn-topo-whats { background: #25D366; }
+        .btn-topo-link { background: var(--yellow); color: black; }
+        .btn-topo-edit { background: #555; }
+        .btn-vt-inline { background: #555; color: #fff; border: none; border-radius: 5px; padding: 10px 14px; font-weight: 700; font-family: 'Montserrat', sans-serif; cursor: pointer; margin-left: 8px; }
         .copy-end-btn { background: #555; color: white; border: none; border-radius: 5px; padding: 0 15px; cursor: pointer; font-weight: bold; font-size: 11px;}
         
         /* CARD DO TÉCNICO (MODO VT) */
@@ -235,6 +234,7 @@
                         <div style="display: flex; align-items: center;">
                             <div class="view-id" id="view-id">#000</div>
                             <span class="view-tag" id="view-tipo">TIPO</span>
+                            <button type="button" class="btn-vt-inline" onclick="window.gerarPDFSolicitacao()">📄 GERAR PDF</button>
                         </div>
                     </div>
                     <div style="text-align: right;">
@@ -243,11 +243,12 @@
                     </div>
                 </div>
                 <div class="area-botoes-topo">
-                    <button id="btn-acao-gerar-vt" class="btn-v-action btn-gerar-vt" onclick="window.abrirModalVisita()">📋 VISITA TÉCNICA</button>
-                    <div id="area-vt-gerada" class="botoes-pos-vt">
-                        <button class="btn-v-action b-ver" onclick="window.alternarModo('vt')">🚗 ABRIR CARD TÉCNICO</button>
-                        <button class="btn-v-action b-link" onclick="window.copiarLinkVT()">🔗 COPIAR LINK</button>
-                        <button class="btn-v-action b-edit" onclick="window.abrirModalVisita()">✏️ EDITAR INFO VISITA</button>
+                    <div class="linha-acoes-topo">
+                        <button id="btn-acao-gerar-vt" class="btn-v-action btn-gerar-vt btn-topo-mini" onclick="window.abrirModalVisita()">📋 VISITA TÉCNICA</button>
+                        <button id="btn-acao-open-vt" class="btn-v-action btn-open-vt btn-topo-mini" style="display:none;" onclick="window.alternarModo('vt')">🚗 ABRIR CARD TÉCNICO</button>
+                        <button class="btn-v-action btn-topo-whats btn-topo-mini" onclick="window.abrirWhatsSolicitacao()">💬 WHATS</button>
+                        <button class="btn-v-action btn-topo-edit btn-topo-mini" onclick="window.alternarModo('edit')">✏️ EDITAR</button>
+                        <button class="btn-v-action btn-topo-link btn-topo-mini" onclick="window.copiarLinkSolicitacao()">🔗 LINK</button>
                     </div>
                 </div>
                 <div style="margin-top:10px; border:1px solid #2f2f2f; border-radius:10px; background:#101010; padding:10px;">
@@ -316,6 +317,10 @@
                     <span class="vt-label">Instruções para a Visita</span>
                     <div class="vt-obs-box" id="vt-info">Sem instruções adicionais registradas.</div>
                 </div>
+                <div class="vt-actions-row">
+                    <button class="btn-vt-copy" onclick="window.copiarLinkVT()">🔗 COPIAR LINK</button>
+                    <button class="btn-vt-map" onclick="window.abrirModalVisita()">✏️ EDITAR INFO VISITA</button>
+                </div>
             </div>
             <p style="text-align: center; color: var(--yellow); font-size: 12px; margin-top: 20px; font-weight: bold;">ADICIONE FOTOS E MEDIDAS ABAIXO</p>
         </div>
@@ -338,17 +343,13 @@
             <button type="button" id="btn-medidas" class="btn-photo btn-measure" onclick="window.abrirEditor()">📏 ADICIONAR MEDIDAS NA FOTO</button>
             <input type="text" id="in-foto-obs" placeholder="Legenda da foto..." style="margin-top:10px" oninput="window.atualizarLegendaFoto()">
 
-            <button type="button" class="btn-save" id="btn-salvar-fotos-vt" style="margin-top: 20px;" onclick="window.salvarSolicitacao()">💾 SALVAR FOTOS NO SISTEMA</button>
         </div>
-
-        <button id="fab-edit" class="fab-edit" onclick="window.alternarModo('edit')">✏️</button>
-        <button id="fab-vt" class="fab-vt" onclick="window.alternarModo('vt')" title="Card do Técnico">🚗</button>
 
     </div>
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, addDoc, getDoc, doc, updateDoc, query, where, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, addDoc, getDoc, doc, updateDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar-1').href = ROTAS.orcamentos;
         document.getElementById('link-voltar-2').href = ROTAS.orcamentos;
@@ -358,6 +359,9 @@
         let idEdicao = null;
         let modoAtual = 'edit';
         let idVisitaTecnicaGerada = null;
+        let autoSaveTimer = null;
+        let autoSaving = false;
+        const autosaveDelayMs = 900;
         let usuariosTarefa = [];
         const sessaoTarefa = JSON.parse(localStorage.getItem('artesynal_session') || 'null');
         const userTaskMe = {
@@ -387,6 +391,7 @@
 
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
+            iniciarAutosave();
             
             // Eventos do Canvas (Mouse + Touch)
             canvas.addEventListener('mousedown', handleDown);
@@ -468,9 +473,6 @@
             document.getElementById('shared-gallery').style.display = (modo === 'edit' || modo === 'vt') ? 'block' : 'none';
             document.getElementById('view-gallery-readonly').style.display = modo === 'view' ? 'block' : 'none';
 
-            document.getElementById('fab-edit').style.display = (modo === 'view' || modo === 'vt') ? 'flex' : 'none';
-            document.getElementById('fab-vt').style.display = (idVisitaTecnicaGerada && (modo === 'view' || modo === 'edit')) ? 'flex' : 'none';
-
             if(modo === 'edit' || modo === 'vt') {
                 window.renderMiniaturas();
             } else {
@@ -491,7 +493,7 @@
             if (docSnap.exists()) {
                 const d = docSnap.data();
                 
-                document.getElementById('display-num-edit').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
+                document.getElementById('display-num-edit').innerText = "#" + String(d.numero_solicitacao || 0).padStart(4, '0');
                 document.getElementById('in-cliente').value = d.cliente || '';
                 document.getElementById('in-whatsapp').value = d.whatsapp || '';
                 document.getElementById('in-empresa').value = d.empresa || '';
@@ -501,7 +503,7 @@
                 document.getElementById('in-obs').value = d.observacoes || '';
                 if(d.tipo_servico_material) { document.querySelector(`input[name="tipo"][value="${d.tipo_servico_material}"]`).checked = true; }
                 
-                document.getElementById('view-id').innerText = "#" + String(d.numero_solicitacao || 0).padStart(3, '0');
+                document.getElementById('view-id').innerText = "#" + String(d.numero_solicitacao || 0).padStart(4, '0');
                 document.getElementById('view-cliente').innerText = d.cliente || '--';
                 document.getElementById('view-empresa').innerText = d.empresa || '--';
                 document.getElementById('view-servico').innerText = d.servico_titulo || '--';
@@ -513,8 +515,7 @@
                 if(d.visita_id) {
                     idVisitaTecnicaGerada = d.visita_id;
                     document.getElementById('btn-acao-gerar-vt').style.display = 'none';
-                    document.getElementById('area-vt-gerada').style.display = 'flex';
-                    document.getElementById('fab-vt').style.display = 'flex';
+                    document.getElementById('btn-acao-open-vt').style.display = 'flex';
                     
                     const visitaSnap = await getDoc(doc(db, "visitas", idVisitaTecnicaGerada));
                     if(visitaSnap.exists()) {
@@ -666,17 +667,8 @@
         // ==========================================
         // SALVAR SISTEMA PRINCIPAL E FOTOS
         // ==========================================
-        window.salvarSolicitacao = async () => {
-            const btnEdit = document.getElementById('btn-salvar-orcamento');
-            const btnVt = document.getElementById('btn-salvar-fotos-vt');
-            
-            btnEdit.disabled = true; btnVt.disabled = true;
-            const originalTextEdit = btnEdit.innerText;
-            const originalTextVt = btnVt.innerText;
-            
-            btnEdit.innerText = "⏳ SALVANDO..."; btnVt.innerText = "⏳ SALVANDO...";
-            
-            const dados = {
+        function obterDadosFormulario() {
+            return {
                 cliente: document.getElementById('in-cliente').value,
                 whatsapp: document.getElementById('in-whatsapp').value,
                 empresa: document.getElementById('in-empresa').value,
@@ -689,30 +681,58 @@
                 imagens: imagens,
                 data_atualizacao: serverTimestamp()
             };
+        }
+
+        async function salvarSolicitacaoInterno({ silencioso = false } = {}) {
+            const btnEdit = document.getElementById('btn-salvar-orcamento');
+            btnEdit.disabled = true;
+            const originalTextEdit = btnEdit.innerText;
+            btnEdit.innerText = silencioso ? "💾 PRÉ-SALVANDO..." : "⏳ SALVANDO...";
+            const dados = obterDadosFormulario();
 
             try {
                 if(idEdicao) {
                     await updateDoc(doc(db, "orcamentos", idEdicao), dados);
-                    alert("Salvo com sucesso!");
+                    if (!silencioso) alert("Salvo com sucesso!");
                 } else {
-                    const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"), limit(1));
-                    const snap = await getDocs(q);
-                    let proxNum = 1;
-                    if(!snap.empty) proxNum = snap.docs[0].data().numero_solicitacao + 1;
-                    dados.numero_solicitacao = proxNum;
+                    dados.numero_solicitacao = 0;
+                    dados.status = 'pendente';
+                    dados.prefixo = 'OR';
                     dados.data_criacao = serverTimestamp();
                     const novoDoc = await addDoc(collection(db, "orcamentos"), dados);
                     idEdicao = novoDoc.id;
-                    alert("Salvo com sucesso!");
-                    window.location.href = `${ROTAS.solicitacao}?id=${idEdicao}&mode=view`;
+                    document.getElementById('display-num-edit').innerText = '#0000';
+                    document.getElementById('view-id').innerText = '#0000';
+                    window.history.replaceState({}, '', `${ROTAS.solicitacao}?id=${idEdicao}&mode=${modoAtual}`);
+                    if (!silencioso) alert("Salvo com sucesso!");
                 }
             } catch(e) { 
                 console.error(e); 
-                alert("Erro ao salvar! O arquivo de imagens pode estar muito grande. Tente excluir alguma foto."); 
+                if (!silencioso) alert("Erro ao salvar! O arquivo de imagens pode estar muito grande. Tente excluir alguma foto.");
             }
-            
             btnEdit.disabled = false; btnEdit.innerText = originalTextEdit;
-            btnVt.disabled = false; btnVt.innerText = originalTextVt;
+        }
+
+        window.salvarSolicitacao = async () => salvarSolicitacaoInterno({ silencioso: false });
+
+        function iniciarAutosave() {
+            const ids = ['in-cliente', 'in-whatsapp', 'in-empresa', 'in-servico', 'in-medidas', 'in-endereco', 'in-obs', 'in-instalacao'];
+            ids.forEach((id) => {
+                const el = document.getElementById(id);
+                el?.addEventListener('input', agendarAutosave);
+                el?.addEventListener('change', agendarAutosave);
+            });
+            document.querySelectorAll('input[name="tipo"]').forEach((el) => el.addEventListener('change', agendarAutosave));
+        }
+
+        function agendarAutosave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(async () => {
+                if (autoSaving) return;
+                autoSaving = true;
+                try { await salvarSolicitacaoInterno({ silencioso: true }); }
+                finally { autoSaving = false; }
+            }, autosaveDelayMs);
         };
 
         // ==========================================
@@ -758,8 +778,7 @@
                 alert("Dados da Visita Técnica salvos com sucesso!");
                 document.getElementById('visita-modal').style.display = 'none';
                 document.getElementById('btn-acao-gerar-vt').style.display = 'none';
-                document.getElementById('area-vt-gerada').style.display = 'flex';
-                document.getElementById('fab-vt').style.display = 'flex';
+                document.getElementById('btn-acao-open-vt').style.display = 'flex';
                 
             } catch(e) { console.error("Erro:", e); alert("Erro ao salvar visita."); } 
             finally { btn.disabled = false; btn.innerText = "SALVAR VISITA"; }
@@ -789,6 +808,54 @@
                 return;
             }
             window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`, '_blank');
+        };
+
+        window.abrirWhatsSolicitacao = () => {
+            const numero = document.getElementById('in-whatsapp').value || document.getElementById('view-whatsapp').innerText;
+            if (!numero || numero === '--') return alert('WhatsApp não informado.');
+            let numLimpo = numero.replace(/\D/g, '');
+            if(numLimpo.length === 10 || numLimpo.length === 11) numLimpo = '55' + numLimpo;
+            window.open(`https://api.whatsapp.com/send?phone=${numLimpo}`, '_blank');
+        };
+
+        window.copiarLinkSolicitacao = () => {
+            if (!idEdicao) return alert('Salve primeiro para gerar o link.');
+            const link = `${window.location.origin}${window.location.pathname}?id=${idEdicao}&mode=view`;
+            navigator.clipboard.writeText(link).then(() => alert('Link da solicitação copiado!'));
+        };
+
+        window.gerarPDFSolicitacao = () => {
+            const fotos = imagens || [];
+            const cabecalho = `
+                <h1 style="margin:0 0 6px 0;">Solicitação de Orçamento ${document.getElementById('view-id').innerText || '#0000'}</h1>
+                <p style="margin:2px 0;"><b>Serviço:</b> ${document.getElementById('in-servico').value || '--'}</p>
+                <p style="margin:2px 0;"><b>Empresa:</b> ${document.getElementById('in-empresa').value || '--'} <b>Cliente:</b> ${document.getElementById('in-cliente').value || '--'}</p>
+                <p style="margin:2px 0;"><b>Medidas:</b> ${document.getElementById('in-medidas').value || '--'}</p>
+                <p style="margin:2px 0;"><b>Endereço:</b> ${document.getElementById('in-endereco').value || '--'}</p>
+                <p style="margin:2px 0;"><b>Observações:</b> ${document.getElementById('in-obs').value || '--'}</p>
+            `;
+            const fotosPrincipal = fotos.slice(0, 2).map((foto) => `
+                <div style="margin:18px 0; text-align:center; page-break-inside: avoid;">
+                    <img src="${foto.url}" style="max-width: 88%; max-height: 420px; object-fit: contain; border:1px solid #ddd;">
+                    <div style="font-size:12px; color:#444;">${foto.obs || ''}</div>
+                </div>
+            `).join('');
+            const fotosExtras = fotos.slice(2).map((foto, idx) => `
+                <div style="margin:16px 0; text-align:center; page-break-inside: avoid;">
+                    <img src="${foto.url}" style="max-width: 88%; max-height: 360px; object-fit: contain; border:1px solid #ddd;">
+                    <div style="font-size:12px; color:#444;">Imagem ${idx + 3} ${foto.obs ? `- ${foto.obs}` : ''}</div>
+                </div>
+            `).join('');
+            const w = window.open('', '_blank');
+            w.document.write(`
+                <html><head><title>PDF Solicitação</title></head><body style="font-family: Arial, sans-serif; padding:24px;">
+                    ${cabecalho}
+                    ${fotosPrincipal}
+                    ${fotosExtras ? `<div style="page-break-before: always;"><h2>Anexos de imagens e medidas</h2>${fotosExtras}</div>` : ''}
+                </body></html>
+            `);
+            w.document.close();
+            setTimeout(() => w.print(), 350);
         };
 
         // ==========================================
