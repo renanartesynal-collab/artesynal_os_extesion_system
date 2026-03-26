@@ -826,34 +826,41 @@
 
         window.gerarPDFSolicitacao = () => {
             const fotos = imagens || [];
-            const cabecalho = `
-                <h1 style="margin:0 0 6px 0;">Solicitação de Orçamento ${document.getElementById('view-id').innerText || '#0000'}</h1>
-                <p style="margin:2px 0;"><b>Serviço:</b> ${document.getElementById('in-servico').value || '--'}</p>
-                <p style="margin:2px 0;"><b>Empresa:</b> ${document.getElementById('in-empresa').value || '--'} <b>Cliente:</b> ${document.getElementById('in-cliente').value || '--'}</p>
-                <p style="margin:2px 0;"><b>Medidas:</b> ${document.getElementById('in-medidas').value || '--'}</p>
-                <p style="margin:2px 0;"><b>Endereço:</b> ${document.getElementById('in-endereco').value || '--'}</p>
-                <p style="margin:2px 0;"><b>Observações:</b> ${document.getElementById('in-obs').value || '--'}</p>
-            `;
-            const fotosPrincipal = fotos.slice(0, 2).map((foto) => `
-                <div style="margin:18px 0; text-align:center; page-break-inside: avoid;">
-                    <img src="${foto.url}" style="max-width: 88%; max-height: 420px; object-fit: contain; border:1px solid #ddd;">
-                    <div style="font-size:12px; color:#444;">${foto.obs || ''}</div>
-                </div>
-            `).join('');
-            const fotosExtras = fotos.slice(2).map((foto, idx) => `
-                <div style="margin:16px 0; text-align:center; page-break-inside: avoid;">
-                    <img src="${foto.url}" style="max-width: 88%; max-height: 360px; object-fit: contain; border:1px solid #ddd;">
-                    <div style="font-size:12px; color:#444;">Imagem ${idx + 3} ${foto.obs ? `- ${foto.obs}` : ''}</div>
-                </div>
-            `).join('');
+            const numero = document.getElementById('view-id').innerText || '#0000';
+            const servico = document.getElementById('in-servico').value || '--';
+            const empresa = document.getElementById('in-empresa').value || '--';
+            const cliente = document.getElementById('in-cliente').value || '--';
+            const medidas = document.getElementById('in-medidas').value || '--';
+            const endereco = document.getElementById('in-endereco').value || '--';
+            const obs = document.getElementById('in-obs').value || '--';
+
+            let cabecalho = '';
+            cabecalho += '<h1 style="margin:0 0 6px 0;">Solicitação de Orçamento ' + numero + '</h1>';
+            cabecalho += '<p style="margin:2px 0;"><b>Serviço:</b> ' + servico + '</p>';
+            cabecalho += '<p style="margin:2px 0;"><b>Empresa:</b> ' + empresa + ' <b>Cliente:</b> ' + cliente + '</p>';
+            cabecalho += '<p style="margin:2px 0;"><b>Medidas:</b> ' + medidas + '</p>';
+            cabecalho += '<p style="margin:2px 0;"><b>Endereço:</b> ' + endereco + '</p>';
+            cabecalho += '<p style="margin:2px 0;"><b>Observações:</b> ' + obs + '</p>';
+
+            const fotosPrincipal = fotos.slice(0, 2).map((foto) =>
+                '<div style="margin:18px 0; text-align:center; page-break-inside: avoid;">' +
+                '<img src="' + foto.url + '" style="max-width: 88%; max-height: 420px; object-fit: contain; border:1px solid #ddd;">' +
+                '<div style="font-size:12px; color:#444;">' + (foto.obs || '') + '</div>' +
+                '</div>'
+            ).join('');
+
+            const fotosExtras = fotos.slice(2).map((foto, idx) =>
+                '<div style="margin:16px 0; text-align:center; page-break-inside: avoid;">' +
+                '<img src="' + foto.url + '" style="max-width: 88%; max-height: 360px; object-fit: contain; border:1px solid #ddd;">' +
+                '<div style="font-size:12px; color:#444;">Imagem ' + (idx + 3) + (foto.obs ? ' - ' + foto.obs : '') + '</div>' +
+                '</div>'
+            ).join('');
+
             const w = window.open('', '_blank');
-            w.document.write(`
-                <html><head><title>PDF Solicitação</title></head><body style="font-family: Arial, sans-serif; padding:24px;">
-                    ${cabecalho}
-                    ${fotosPrincipal}
-                    ${fotosExtras ? `<div style="page-break-before: always;"><h2>Anexos de imagens e medidas</h2>${fotosExtras}</div>` : ''}
-                </body></html>
-            `);
+            const anexosHtml = fotosExtras ? '<div style="page-break-before: always;"><h2>Anexos de imagens e medidas</h2>' + fotosExtras + '</div>' : '';
+            const html = '<html><head><title>PDF Solicitação</title></head><body style="font-family: Arial, sans-serif; padding:24px;">' +
+                cabecalho + fotosPrincipal + anexosHtml + '</body></html>';
+            w.document.write(html);
             w.document.close();
             setTimeout(() => w.print(), 350);
         };
