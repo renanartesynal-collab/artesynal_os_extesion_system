@@ -144,11 +144,20 @@
 </head>
 <body>
 
-    <div id="draw-modal">
+        <div id="draw-modal">
         <div style="background: #111; padding: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
             <button class="btn-tool tool-select active" id="btn-tool-draw" onclick="window.setTool('draw')">✏️ DESENHAR</button>
             <button class="btn-tool tool-select" id="btn-tool-move" onclick="window.setTool('move')">✋ MOVER / EDITAR</button>
             <button class="btn-tool tool-select" id="btn-tool-del" onclick="window.setTool('del')">🗑️ APAGAR</button>
+            <button class="btn-tool" id="btn-tool-color" onclick="window.toggleColorPicker()" style="background:#374151; color:#fff;">🎨 COR</button>
+            <div id="color-picker" style="display:none; align-items:center; gap:6px; background:#1f2937; border:1px solid #374151; border-radius:8px; padding:6px 8px;">
+                <button type="button" onclick="window.setArrowColor('#00a651')" style="width:24px; height:24px; border-radius:50%; border:2px solid #fff; background:#00a651; cursor:pointer;" title="Verde"></button>
+                <button type="button" onclick="window.setArrowColor('#ef4444')" style="width:24px; height:24px; border-radius:50%; border:2px solid #fff; background:#ef4444; cursor:pointer;" title="Vermelho"></button>
+                <button type="button" onclick="window.setArrowColor('#3b82f6')" style="width:24px; height:24px; border-radius:50%; border:2px solid #fff; background:#3b82f6; cursor:pointer;" title="Azul"></button>
+                <button type="button" onclick="window.setArrowColor('#eab308')" style="width:24px; height:24px; border-radius:50%; border:2px solid #fff; background:#eab308; cursor:pointer;" title="Amarelo"></button>
+                <button type="button" onclick="window.setArrowColor('#ffffff')" style="width:24px; height:24px; border-radius:50%; border:2px solid #555; background:#ffffff; cursor:pointer;" title="Branco"></button>
+                <button type="button" onclick="window.setArrowColor('#000000')" style="width:24px; height:24px; border-radius:50%; border:2px solid #fff; background:#000000; cursor:pointer;" title="Preto"></button>
+            </div>
         </div>
         <div id="canvas-wrapper"><canvas id="editor-canvas"></canvas></div>
         <div class="draw-toolbar">
@@ -376,6 +385,7 @@
         let canvas = document.getElementById('editor-canvas');
         let ctx = canvas.getContext('2d');
         let arrows = []; // Armazena as setas matematicamente
+        let currentArrowColor = '#00a651';
         let editorTool = 'draw';
         let isDrawing = false, isDragging = false, didDrag = false;
         let startX, startY, currentX, currentY;
@@ -387,8 +397,8 @@
             idEdicao = params.get('id');
             const mode = params.get('mode') || 'edit';
             
-            if (idEdicao) await carregarDados(idEdicao);
             window.alternarModo(mode);
+            if (idEdicao) carregarDados(idEdicao);
 
             document.getElementById('file-input').addEventListener('change', window.processarImagens);
             document.getElementById('camera-input').addEventListener('change', window.processarImagens);
@@ -601,6 +611,7 @@
             btnUpload.innerText = originalText;
             btnUpload.disabled = false;
             window.renderMiniaturas();
+            await salvarSolicitacaoInterno({ silencioso: true });
         };
 
         window.renderMiniaturas = () => {
@@ -846,6 +857,18 @@
 
         window.fecharEditor = () => document.getElementById('draw-modal').style.display = 'none';
 
+        window.toggleColorPicker = () => {
+            const picker = document.getElementById('color-picker');
+            picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        window.setArrowColor = (cor) => {
+            currentArrowColor = cor;
+            document.getElementById('btn-tool-color').style.background = cor;
+            document.getElementById('btn-tool-color').style.color = (cor === '#ffffff' || cor === '#eab308') ? '#111' : '#fff';
+            document.getElementById('color-picker').style.display = 'none';
+        };
+
         window.setTool = (t) => {
             editorTool = t;
             document.querySelectorAll('.tool-select').forEach(b => b.classList.remove('active'));
@@ -934,7 +957,7 @@
                 if (dist(startX, startY, currentX, currentY) > 20) {
                     setTimeout(() => {
                         const txt = prompt("Digite a medida (Ex: 150cm):");
-                        if (txt) { arrows.push({ x1: startX, y1: startY, x2: currentX, y2: currentY, text: txt }); }
+                        if (txt) { arrows.push({ x1: startX, y1: startY, x2: currentX, y2: currentY, text: txt, color: currentArrowColor }); }
                         redrawCanvas();
                     }, 50); 
                 } else { redrawCanvas(); }
@@ -958,19 +981,19 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (currentEditorImg) ctx.drawImage(currentEditorImg, 0, 0);
 
-            arrows.forEach(a => drawArrow(a.x1, a.y1, a.x2, a.y2, a.text));
+            arrows.forEach(a => drawArrow(a.x1, a.y1, a.x2, a.y2, a.text, a.color || '#00a651'));
 
             if (isDrawing && editorTool === 'draw') {
-                drawArrow(startX, startY, currentX, currentY, "...");
+                drawArrow(startX, startY, currentX, currentY, "...", currentArrowColor);
             }
         }
 
-        function drawArrow(x1, y1, x2, y2, text) {
+        function drawArrow(x1, y1, x2, y2, text, color = '#00a651') {
             const headlen = 25; 
             const angle = Math.atan2(y2 - y1, x2 - x1);
             
-            ctx.strokeStyle = "#00a651"; 
-            ctx.fillStyle = "#00a651";
+            ctx.strokeStyle = color; 
+            ctx.fillStyle = color;
             ctx.lineWidth = 6;
 
             ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
@@ -1012,6 +1035,7 @@
             
             window.renderMiniaturas();
             window.fecharEditor();
+            salvarSolicitacaoInterno({ silencioso: true });
         };
 
     </script>
