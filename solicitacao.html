@@ -547,7 +547,8 @@
                     }
                 });
                 imagens = dbImgs;
-                window.renderMiniaturas();
+                if (modoAtual === 'view') window.renderVisualizadorView();
+                else window.renderMiniaturas();
             }
         }
 
