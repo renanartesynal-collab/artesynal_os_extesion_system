@@ -562,12 +562,12 @@
         }
 
         window.novaSolicitacao = () => { window.open(ROTAS.solicitacao, '_blank'); }
-        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}`, '_blank'); }
+        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}&_ts=${Date.now()}`, '_blank'); }
         
         window.gerarLink = (id, numDisplay) => {
             let baseUrl = window.location.href;
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
-            const urlFinal = `${baseUrl}/${ROTAS.solicitacao}?id=${id}&mode=view`;
+            const urlFinal = `${baseUrl}/${ROTAS.solicitacao}?id=${id}&mode=view&_ts=${Date.now()}`;
             navigator.clipboard.writeText(`Solicitação ${numDisplay}: ${urlFinal}`).then(() => {
                 alert("Link copiado!\n\n" + urlFinal);
             });
