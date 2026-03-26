@@ -129,18 +129,16 @@
             font-family: 'Mitra LT', 'Montserrat', sans-serif; position: absolute; right: 15px; top: 40px;
         }
 
-        .orc-cliente { font-size: 16px; font-weight: 800; color: white; margin-bottom: 2px; padding-right: 80px;} /* Espaço pro select mobile */
-        .orc-empresa { font-size: 11px; color: var(--yellow); font-weight: 600; margin-bottom: 10px; text-transform: uppercase;}
-        .orc-tipo { background: rgba(0,0,0,0.3); display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-bottom: 10px; }
-
-        .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .btn-card { flex: 1; min-width: 50px; border: none; padding: 6px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 10px; text-transform: uppercase; color: white; transition: opacity 0.2s; font-family: 'Mitra LT', 'Montserrat', sans-serif;}
-        .btn-card:hover { opacity: 0.8; }
-        
-        .btn-view { background: #555; }
-        .btn-edit { background: var(--blue); }
-        .btn-link { background: var(--yellow); color: #333; }
-        .btn-whats { background: #25D366; }
+        .orc-tipo { font-size: 24px; font-weight: 900; color: white; margin-bottom: 4px; line-height: 1.1; padding-right: 90px; text-transform: none; }
+        .orc-subtipo { display: inline-block; font-size: 10px; color: #dbe7ff; background: rgba(0,0,0,0.3); padding: 3px 6px; border-radius: 4px; margin-bottom: 6px; }
+        .orc-empresa-cliente { font-size: 11px; color: var(--yellow); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+        .actions-open { margin-top: 10px; }
+        .btn-open-card {
+            width: 100%; border: none; border-radius: 6px; padding: 8px 10px; cursor: pointer;
+            background: #4b5563; color: #fff; font-weight: 800; font-size: 12px; text-transform: uppercase;
+            font-family: 'Mitra LT', 'Montserrat', sans-serif;
+        }
+        .btn-open-card:hover { opacity: 0.9; }
 
         /* =========================================
            FAB (BOTÃO FLUTUANTE)
@@ -155,30 +153,6 @@
 
         #loading { text-align: center; color: #999; margin-top: 50px; width: 100%;}
 
-        .loading-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 4000;
-            display: none; align-items: flex-end; justify-content: flex-end;
-            padding: 22px; box-sizing: border-box;
-        }
-        .loading-overlay.show { display: flex; }
-        .loading-box {
-            width: min(280px, 80vw); background: rgba(20,20,20,0.95);
-            border: 1px solid #2f2f2f; border-radius: 10px; padding: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.45);
-        }
-        .loading-text {
-            font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
-            color: #f5f5f5; margin-bottom: 8px; font-weight: 700;
-        }
-        .loading-progress {
-            height: 8px; border-radius: 999px; background: #1f1f1f;
-            overflow: hidden; border: 1px solid #333;
-        }
-        .loading-progress-bar {
-            height: 100%; width: 0%; background: linear-gradient(90deg, #00aeef, #f1c40f);
-            transition: width 0.12s ease;
-        }
-
         @media (max-width: 600px) {
             .header-orc { flex-direction: column; align-items: flex-start; gap: 10px; }
             .header-actions { width: 100%; justify-content: space-between; }
@@ -187,13 +161,6 @@
     </style>
 </head>
 <body>
-
-    <div id="loading-overlay" class="loading-overlay show">
-        <div class="loading-box">
-            <div id="loading-text" class="loading-text">Carregando... 0%</div>
-            <div class="loading-progress"><div id="loading-progress-bar" class="loading-progress-bar"></div></div>
-        </div>
-    </div>
 
     <div id="sidebar-arquivados">
         <div class="sidebar-header">
@@ -237,27 +204,90 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar').href = ROTAS.painel;
 
         // ==========================================
         // CARREGAMENTO DE DADOS
         // ==========================================
-        function atualizarTelaCarregamento(percentual = 0) {
-            const valor = Math.max(0, Math.min(100, Math.round(percentual)));
-            document.getElementById('loading-text').innerText = `Carregando... ${valor}%`;
-            document.getElementById('loading-progress-bar').style.width = `${valor}%`;
+        function montarHtmlCards(listaDocs) {
+            const cardsPendente = [];
+            const cardsEnviado = [];
+            const cardsFinalizado = [];
+            const cardsArquivados = [];
+
+            listaDocs.forEach((item) => {
+                const data = item.data;
+                const id = item.id;
+                const prefixo = data.prefixo || 'OR';
+                const numeroPuro = data.numero_solicitacao || 0;
+                const num = String(numeroPuro).padStart(4, '0');
+                const numDisplay = `${prefixo}-${num}`;
+                const isArquivado = data.arquivado || false;
+
+                if (isArquivado) {
+                    cardsArquivados.push(`
+                        <div class="item-arquivado">
+                            <span class="item-arq-num">${numDisplay}</span>
+                            <div class="item-arq-tools">
+                                <button onclick="window.arquivarCard('${id}', false)" title="Desarquivar para o Kanban">⬆️</button>
+                                <button class="btn-del" onclick="window.deletarCard('${id}')" title="Excluir Definitivamente">🗑️</button>
+                            </div>
+                        </div>
+                    `);
+                    return;
+                }
+
+                const statusAtual = data.status || 'pendente';
+                const selectStatus = `
+                    <select class="select-status-mobile" onchange="mudarStatusViaSelect('${id}', this.value)">
+                        <option value="pendente" ${statusAtual === 'pendente' ? 'selected' : ''}>Pendente</option>
+                        <option value="enviado" ${statusAtual === 'enviado' ? 'selected' : ''}>Enviado</option>
+                        <option value="finalizado" ${statusAtual === 'finalizado' ? 'selected' : ''}>Finalizado</option>
+                    </select>
+                `;
+
+                let bordaCor = "var(--red)";
+                if(statusAtual === 'enviado') bordaCor = "var(--blue)";
+                if(statusAtual === 'finalizado') bordaCor = "var(--green)";
+
+                const html = `
+                    <div class="card-orc" id="card-${id}" draggable="true" ondragstart="drag(event, '${id}')" style="border-left-color: ${bordaCor};">
+                        <div class="card-top-row">
+                            <div class="prefix-group">
+                                <button class="btn-prefix ${prefixo === 'OR' ? 'active' : ''}" onclick="window.mudarPrefixo('${id}', 'OR')">OR</button>
+                                <button class="btn-prefix ${prefixo === 'OS' ? 'active' : ''}" onclick="window.mudarPrefixo('${id}', 'OS')">OS</button>
+                                <span class="orc-num" title="Clique para editar o número" onclick="window.editarNumero('${id}', '${numeroPuro}')">${num}</span>
+                            </div>
+                            <div class="card-tools">
+                                <button class="btn-mini-tool" onclick="window.arquivarCard('${id}', true)" title="Arquivar Solicitação">📁</button>
+                                <button class="btn-mini-tool btn-del" onclick="window.deletarCard('${id}')" title="Excluir Solicitação">🗑️</button>
+                            </div>
+                        </div>
+                        ${selectStatus}
+                        <div class="orc-tipo">${data.servico_titulo || 'Sem título'}</div>
+                        <div class="orc-subtipo">${data.tipo_servico_material || 'Serviço'}</div>
+                        <div class="orc-empresa-cliente">${data.empresa || 'Sem Empresa'} - ${data.cliente || 'Sem Cliente'}</div>
+                        <div class="actions-open">
+                            <button class="btn-open-card" onclick="window.abrirGuia('${id}', 'view')">ABRIR</button>
+                        </div>
+                    </div>
+                `;
+
+                if(statusAtual === 'pendente') cardsPendente.push(html);
+                else if(statusAtual === 'enviado') cardsEnviado.push(html);
+                else if(statusAtual === 'finalizado') cardsFinalizado.push(html);
+            });
+
+            return { cardsPendente, cardsEnviado, cardsFinalizado, cardsArquivados };
         }
 
-        function exibirTelaCarregamento() {
-            const overlay = document.getElementById('loading-overlay');
-            overlay.classList.add('show');
-            atualizarTelaCarregamento(0);
-        }
-
-        function esconderTelaCarregamento() {
-            document.getElementById('loading-overlay').classList.remove('show');
+        function renderizarListasRenderizadas(renderizado) {
+            document.getElementById('col-pendente').innerHTML = renderizado.cardsPendente.join('');
+            document.getElementById('col-enviado').innerHTML = renderizado.cardsEnviado.join('');
+            document.getElementById('col-finalizado').innerHTML = renderizado.cardsFinalizado.join('');
+            document.getElementById('container-arquivados').innerHTML = renderizado.cardsArquivados.join('');
         }
 
         async function carregarLista() {
@@ -272,97 +302,41 @@
             containerArquivados.innerHTML = '';
             document.getElementById('loading').style.display = 'block';
             document.getElementById('kanban-board').style.display = 'none';
-            exibirTelaCarregamento();
+
+            const cacheBruto = localStorage.getItem('cache_orcamentos_kanban');
+            if (cacheBruto) {
+                try {
+                    const cache = JSON.parse(cacheBruto);
+                    const renderizado = montarHtmlCards(cache);
+                    renderizarListasRenderizadas(renderizado);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('kanban-board').style.display = 'flex';
+                } catch (e) {
+                    console.warn('Cache do kanban inválido.', e);
+                }
+            }
 
             try {
-                const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"));
-                const snapshot = await getDocs(q);
+                const snapshot = await getDocs(collection(db, "orcamentos"));
 
-                const total = snapshot.size || 1;
-                const cardsPendente = [];
-                const cardsEnviado = [];
-                const cardsFinalizado = [];
-                const cardsArquivados = [];
-
-                snapshot.docs.forEach((docSnap, index) => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-
-                    const prefixo = data.prefixo || 'OR';
-                    const numeroPuro = data.numero_solicitacao || 0;
-                    const num = String(numeroPuro).padStart(4, '0');
-                    const numDisplay = `${prefixo}-${num}`;
-                    const isArquivado = data.arquivado || false;
-
-                    if (isArquivado) {
-                        cardsArquivados.push(`
-                            <div class="item-arquivado">
-                                <span class="item-arq-num">${numDisplay}</span>
-                                <div class="item-arq-tools">
-                                    <button onclick="window.arquivarCard('${id}', false)" title="Desarquivar para o Kanban">⬆️</button>
-                                    <button class="btn-del" onclick="window.deletarCard('${id}')" title="Excluir Definitivamente">🗑️</button>
-                                </div>
-                            </div>
-                        `);
-                    } else {
-                        const statusAtual = data.status || 'pendente';
-                        const btnWhats = data.whatsapp ? `<button class="btn-card btn-whats" onclick="chamarWhats('${data.whatsapp}')">💬 WHATS</button>` : '';
-
-                        const selectStatus = `
-                            <select class="select-status-mobile" onchange="mudarStatusViaSelect('${id}', this.value)">
-                                <option value="pendente" ${statusAtual === 'pendente' ? 'selected' : ''}>Pendente</option>
-                                <option value="enviado" ${statusAtual === 'enviado' ? 'selected' : ''}>Enviado</option>
-                                <option value="finalizado" ${statusAtual === 'finalizado' ? 'selected' : ''}>Finalizado</option>
-                            </select>
-                        `;
-
-                        let bordaCor = "var(--red)";
-                        if(statusAtual === 'enviado') bordaCor = "var(--blue)";
-                        if(statusAtual === 'finalizado') bordaCor = "var(--green)";
-
-                        const html = `
-                            <div class="card-orc" id="card-${id}" draggable="true" ondragstart="drag(event, '${id}')" style="border-left-color: ${bordaCor};">
-                                <div class="card-top-row">
-                                    <div class="prefix-group">
-                                        <button class="btn-prefix ${prefixo === 'OR' ? 'active' : ''}" onclick="window.mudarPrefixo('${id}', 'OR')">OR</button>
-                                        <button class="btn-prefix ${prefixo === 'OS' ? 'active' : ''}" onclick="window.mudarPrefixo('${id}', 'OS')">OS</button>
-                                        <span class="orc-num" title="Clique para editar o número" onclick="window.editarNumero('${id}', '${numeroPuro}')">${num}</span>
-                                    </div>
-                                    <div class="card-tools">
-                                        <button class="btn-mini-tool" onclick="window.arquivarCard('${id}', true)" title="Arquivar Solicitação">📁</button>
-                                        <button class="btn-mini-tool btn-del" onclick="window.deletarCard('${id}')" title="Excluir Solicitação">🗑️</button>
-                                    </div>
-                                </div>
-
-                                ${selectStatus}
-                                <div class="orc-cliente">${data.cliente || 'Sem Cliente'}</div>
-                                <div class="orc-empresa">${data.empresa || 'Sem Empresa'}</div>
-                                <div class="orc-tipo">${data.tipo_servico_material || 'Geral'}</div>
-                                <div style="font-size: 11px; color: #ccc; margin-bottom: 10px;">${data.servico_titulo || 'Sem título'}</div>
-
-                                <div class="actions">
-                                    <button class="btn-card btn-view" onclick="abrirGuia('${id}', 'view')">👁️ VER</button>
-                                    <button class="btn-card btn-edit" onclick="abrirGuia('${id}', 'edit')">✏️ EDITAR</button>
-                                    ${btnWhats}
-                                    <button class="btn-card btn-link" onclick="gerarLink('${id}', '${numDisplay}')">🔗 LINK</button>
-                                </div>
-                            </div>
-                        `;
-
-                        if(statusAtual === 'pendente') cardsPendente.push(html);
-                        else if(statusAtual === 'enviado') cardsEnviado.push(html);
-                        else if(statusAtual === 'finalizado') cardsFinalizado.push(html);
+                const listaDocs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, data: docSnap.data() }));
+                listaDocs.sort((a, b) => (b.data.numero_solicitacao || 0) - (a.data.numero_solicitacao || 0));
+                localStorage.setItem('cache_orcamentos_kanban', JSON.stringify(listaDocs.map((item) => ({
+                    id: item.id,
+                    data: {
+                        numero_solicitacao: item.data.numero_solicitacao || 0,
+                        status: item.data.status || 'pendente',
+                        arquivado: item.data.arquivado || false,
+                        prefixo: item.data.prefixo || 'OR',
+                        cliente: item.data.cliente || '',
+                        empresa: item.data.empresa || '',
+                        tipo_servico_material: item.data.tipo_servico_material || '',
+                        servico_titulo: item.data.servico_titulo || ''
                     }
+                }))));
 
-                    if (index % 10 === 0 || index === total - 1) {
-                        atualizarTelaCarregamento(((index + 1) / total) * 100);
-                    }
-                });
-
-                colPendente.innerHTML = cardsPendente.join('');
-                colEnviado.innerHTML = cardsEnviado.join('');
-                colFinalizado.innerHTML = cardsFinalizado.join('');
-                containerArquivados.innerHTML = cardsArquivados.join('');
+                const renderizado = montarHtmlCards(listaDocs);
+                renderizarListasRenderizadas(renderizado);
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('kanban-board').style.display = 'flex';
@@ -373,8 +347,6 @@
             } catch (error) {
                 console.error(error);
                 document.getElementById('loading').innerText = "Erro ao carregar os dados.";
-            } finally {
-                esconderTelaCarregamento();
             }
         }
 
@@ -533,20 +505,13 @@
             catch (e) { console.error(e); }
         }
 
-        window.chamarWhats = (numero) => {
-            if(!numero) return;
-            let numLimpo = numero.replace(/\D/g, ''); 
-            if(numLimpo.length === 10 || numLimpo.length === 11) numLimpo = '55' + numLimpo;
-            window.open(`https://api.whatsapp.com/send?phone=${numLimpo}`, '_blank');
-        }
-
         window.novaSolicitacao = () => { window.open(ROTAS.solicitacao, '_blank'); }
-        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}`, '_blank'); }
+        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}&_ts=${Date.now()}`, '_blank'); }
         
         window.gerarLink = (id, numDisplay) => {
             let baseUrl = window.location.href;
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
-            const urlFinal = `${baseUrl}/${ROTAS.solicitacao}?id=${id}&mode=view`;
+            const urlFinal = `${baseUrl}/${ROTAS.solicitacao}?id=${id}&mode=view&_ts=${Date.now()}`;
             navigator.clipboard.writeText(`Solicitação ${numDisplay}: ${urlFinal}`).then(() => {
                 alert("Link copiado!\n\n" + urlFinal);
             });
