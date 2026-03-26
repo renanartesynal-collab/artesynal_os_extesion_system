@@ -153,30 +153,6 @@
 
         #loading { text-align: center; color: #999; margin-top: 50px; width: 100%;}
 
-        .loading-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 4000;
-            display: none; align-items: flex-end; justify-content: flex-end;
-            padding: 22px; box-sizing: border-box;
-        }
-        .loading-overlay.show { display: flex; }
-        .loading-box {
-            width: min(280px, 80vw); background: rgba(20,20,20,0.95);
-            border: 1px solid #2f2f2f; border-radius: 10px; padding: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.45);
-        }
-        .loading-text {
-            font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
-            color: #f5f5f5; margin-bottom: 8px; font-weight: 700;
-        }
-        .loading-progress {
-            height: 8px; border-radius: 999px; background: #1f1f1f;
-            overflow: hidden; border: 1px solid #333;
-        }
-        .loading-progress-bar {
-            height: 100%; width: 0%; background: linear-gradient(90deg, #00aeef, #f1c40f);
-            transition: width 0.12s ease;
-        }
-
         @media (max-width: 600px) {
             .header-orc { flex-direction: column; align-items: flex-start; gap: 10px; }
             .header-actions { width: 100%; justify-content: space-between; }
@@ -185,13 +161,6 @@
     </style>
 </head>
 <body>
-
-    <div id="loading-overlay" class="loading-overlay show">
-        <div class="loading-box">
-            <div id="loading-text" class="loading-text">Carregando... 0%</div>
-            <div class="loading-progress"><div id="loading-progress-bar" class="loading-progress-bar"></div></div>
-        </div>
-    </div>
 
     <div id="sidebar-arquivados">
         <div class="sidebar-header">
@@ -242,22 +211,6 @@
         // ==========================================
         // CARREGAMENTO DE DADOS
         // ==========================================
-        function atualizarTelaCarregamento(percentual = 0) {
-            const valor = Math.max(0, Math.min(100, Math.round(percentual)));
-            document.getElementById('loading-text').innerText = `Carregando... ${valor}%`;
-            document.getElementById('loading-progress-bar').style.width = `${valor}%`;
-        }
-
-        function exibirTelaCarregamento() {
-            const overlay = document.getElementById('loading-overlay');
-            overlay.classList.add('show');
-            atualizarTelaCarregamento(0);
-        }
-
-        function esconderTelaCarregamento() {
-            document.getElementById('loading-overlay').classList.remove('show');
-        }
-
         function montarHtmlCards(listaDocs) {
             const cardsPendente = [];
             const cardsEnviado = [];
@@ -349,7 +302,6 @@
             containerArquivados.innerHTML = '';
             document.getElementById('loading').style.display = 'block';
             document.getElementById('kanban-board').style.display = 'none';
-            exibirTelaCarregamento();
 
             const cacheBruto = localStorage.getItem('cache_orcamentos_kanban');
             if (cacheBruto) {
@@ -367,14 +319,8 @@
             try {
                 const snapshot = await getDocs(collection(db, "orcamentos"));
 
-                const total = snapshot.size || 1;
                 const listaDocs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, data: docSnap.data() }));
                 listaDocs.sort((a, b) => (b.data.numero_solicitacao || 0) - (a.data.numero_solicitacao || 0));
-                listaDocs.forEach((item, index) => {
-                    if (index % 10 === 0 || index === total - 1) {
-                        atualizarTelaCarregamento(((index + 1) / total) * 100);
-                    }
-                });
                 localStorage.setItem('cache_orcamentos_kanban', JSON.stringify(listaDocs.map((item) => ({
                     id: item.id,
                     data: {
@@ -401,8 +347,6 @@
             } catch (error) {
                 console.error(error);
                 document.getElementById('loading').innerText = "Erro ao carregar os dados.";
-            } finally {
-                esconderTelaCarregamento();
             }
         }
 
