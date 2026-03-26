@@ -130,6 +130,7 @@
         }
 
         .orc-tipo { font-size: 24px; font-weight: 900; color: white; margin-bottom: 4px; line-height: 1.1; padding-right: 90px; text-transform: none; }
+        .orc-subtipo { display: inline-block; font-size: 10px; color: #dbe7ff; background: rgba(0,0,0,0.3); padding: 3px 6px; border-radius: 4px; margin-bottom: 6px; }
         .orc-empresa-cliente { font-size: 11px; color: var(--yellow); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
 
         /* =========================================
@@ -300,12 +301,14 @@
                                 <span class="orc-num" title="Clique para editar o número" onclick="window.editarNumero('${id}', '${numeroPuro}')">${num}</span>
                             </div>
                             <div class="card-tools">
+                                <button class="btn-mini-tool" onclick="window.abrirGuia('${id}', 'view')" title="Abrir Card">👁️</button>
                                 <button class="btn-mini-tool" onclick="window.arquivarCard('${id}', true)" title="Arquivar Solicitação">📁</button>
                                 <button class="btn-mini-tool btn-del" onclick="window.deletarCard('${id}')" title="Excluir Solicitação">🗑️</button>
                             </div>
                         </div>
                         ${selectStatus}
-                        <div class="orc-tipo">${data.tipo_servico_material || data.servico_titulo || 'Sem título'}</div>
+                        <div class="orc-tipo">${data.servico_titulo || 'Sem título'}</div>
+                        <div class="orc-subtipo">${data.tipo_servico_material || 'Serviço'}</div>
                         <div class="orc-empresa-cliente">${data.empresa || 'Sem Empresa'} - ${data.cliente || 'Sem Cliente'}</div>
                     </div>
                 `;
