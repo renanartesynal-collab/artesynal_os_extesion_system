@@ -114,6 +114,7 @@
         .btn-topo-whats { background: #25D366; }
         .btn-topo-link { background: var(--yellow); color: black; }
         .btn-topo-edit { background: #555; }
+        .btn-pdf-inline { background: #4b5563; color: #fff; border: none; border-radius: 5px; padding: 8px 12px; font-weight: 700; font-family: 'Montserrat', sans-serif; cursor: pointer; margin-left: 8px; font-size: 12px; }
         .copy-end-btn { background: #555; color: white; border: none; border-radius: 5px; padding: 0 15px; cursor: pointer; font-weight: bold; font-size: 11px;}
         
         /* CARD DO TÉCNICO (MODO VT) */
@@ -236,6 +237,7 @@
                         <div style="display: flex; align-items: center;">
                             <div class="view-id" id="view-id">#000</div>
                             <span class="view-tag" id="view-tipo">TIPO</span>
+                            <button type="button" class="btn-pdf-inline" onclick="window.gerarPDFSolicitacao()">📄 GERAR PDF</button>
                         </div>
                     </div>
                     <div style="text-align: right;">
@@ -823,6 +825,91 @@
             if (!idEdicao) return alert('Salve primeiro para gerar o link.');
             const link = `${window.location.origin}${window.location.pathname}?id=${idEdicao}&mode=view`;
             navigator.clipboard.writeText(link).then(() => alert('Link da solicitação copiado!'));
+        };
+
+        window.gerarPDFSolicitacao = () => {
+            const w = window.open('', '_blank');
+            if (!w) return alert('Permita pop-ups para gerar o PDF.');
+
+            const doc = w.document;
+            doc.open();
+            doc.write('<!doctype html><html><head><meta charset="utf-8"><title>Solicitação de Orçamento</title></head><body></body></html>');
+            doc.close();
+
+            const body = doc.body;
+            body.style.fontFamily = 'Arial, sans-serif';
+            body.style.padding = '24px';
+            body.style.color = '#111';
+
+            const numero = document.getElementById('view-id').innerText || '#0000';
+            const titulo = document.getElementById('in-servico').value || '--';
+            const empresa = document.getElementById('in-empresa').value || '--';
+            const cliente = document.getElementById('in-cliente').value || '--';
+            const medidas = document.getElementById('in-medidas').value || '--';
+            const endereco = document.getElementById('in-endereco').value || '--';
+            const obs = document.getElementById('in-obs').value || '--';
+
+            const h1 = doc.createElement('h1');
+            h1.innerText = `Solicitação de Orçamento ${numero}`;
+            h1.style.marginBottom = '10px';
+            body.appendChild(h1);
+
+            const infos = [
+                `Serviço: ${titulo}`,
+                `Empresa: ${empresa} | Cliente: ${cliente}`,
+                `Medidas: ${medidas}`,
+                `Endereço: ${endereco}`,
+                `Observações: ${obs}`
+            ];
+            infos.forEach((txt) => {
+                const p = doc.createElement('p');
+                p.innerText = txt;
+                p.style.margin = '4px 0';
+                body.appendChild(p);
+            });
+
+            const fotos = imagens || [];
+            if (fotos.length > 0) {
+                const blocoTitulo = doc.createElement('h2');
+                blocoTitulo.innerText = 'Imagens anexas';
+                blocoTitulo.style.marginTop = '20px';
+                body.appendChild(blocoTitulo);
+            }
+
+            fotos.forEach((foto, idx) => {
+                if (idx === 2) {
+                    const pageBreak = doc.createElement('div');
+                    pageBreak.style.pageBreakBefore = 'always';
+                    const t = doc.createElement('h2');
+                    t.innerText = 'Anexos adicionais';
+                    pageBreak.appendChild(t);
+                    body.appendChild(pageBreak);
+                }
+
+                const wrap = doc.createElement('div');
+                wrap.style.textAlign = 'center';
+                wrap.style.margin = '16px 0';
+                wrap.style.pageBreakInside = 'avoid';
+
+                const img = doc.createElement('img');
+                img.src = foto.url;
+                img.style.maxWidth = '88%';
+                img.style.maxHeight = idx < 2 ? '420px' : '360px';
+                img.style.objectFit = 'contain';
+                img.style.border = '1px solid #ddd';
+                wrap.appendChild(img);
+
+                const cap = doc.createElement('div');
+                cap.style.fontSize = '12px';
+                cap.style.color = '#444';
+                cap.style.marginTop = '6px';
+                cap.innerText = foto.obs ? foto.obs : `Imagem ${idx + 1}`;
+                wrap.appendChild(cap);
+
+                body.appendChild(wrap);
+            });
+
+            setTimeout(() => w.print(), 400);
         };
 
         // ==========================================
