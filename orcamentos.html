@@ -108,16 +108,13 @@
         
         .card-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;}
         
-        /* Controle OR/OS */
         .prefix-group { display: flex; align-items: center; background: #111; border-radius: 5px; overflow: hidden; border: 1px solid #444;}
         .btn-prefix { border: none; background: transparent; color: #777; font-size: 10px; font-weight: 900; padding: 4px 6px; cursor: pointer; transition: 0.2s; }
         .btn-prefix.active { background: var(--yellow); color: #000; }
         
-        /* Número Editável */
         .orc-num { font-size: 12px; color: white; font-weight: 900; padding: 0 8px; letter-spacing: 1px; cursor: pointer; transition: color 0.2s;}
         .orc-num:hover { color: var(--blue); }
         
-        /* Ferramentas Superiores (Arq e Del) */
         .card-tools { display: flex; gap: 5px; }
         .btn-mini-tool { background: transparent; border: 1px solid #555; border-radius: 4px; color: white; cursor: pointer; padding: 3px 6px; font-size: 11px; transition: 0.2s; }
         .btn-mini-tool:hover { background: #555; }
@@ -151,7 +148,39 @@
             display: flex; align-items: center; justify-content: center; z-index: 100;
         }
 
-        #loading { text-align: center; color: #999; margin-top: 50px; width: 100%;}
+        /* =========================================
+           ESTADO DE CARREGAMENTO E ERRO
+        ========================================= */
+        #loading { 
+            text-align: center; color: #999; margin-top: 50px; width: 100%;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+        .loading-spinner {
+            width: 40px; height: 40px; border: 4px solid #555;
+            border-top-color: var(--yellow); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text { font-size: 14px; color: #aaa; }
+
+        .erro-box {
+            background: rgba(237, 28, 36, 0.15); border: 1px solid var(--red);
+            border-radius: 8px; padding: 20px; max-width: 500px; text-align: center;
+        }
+        .erro-box h3 { color: var(--red); margin: 0 0 10px; }
+        .erro-box p { color: #ccc; font-size: 13px; margin: 0 0 10px; }
+        .erro-box code { background: #111; padding: 8px 12px; border-radius: 4px; font-size: 11px; color: #f1c40f; display: block; text-align: left; word-break: break-all; margin-top: 10px; }
+        .btn-retry {
+            background: var(--yellow); color: #000; border: none; border-radius: 5px;
+            padding: 10px 20px; font-weight: 900; cursor: pointer; margin-top: 10px;
+            font-family: 'Montserrat', sans-serif; font-size: 13px;
+        }
+        .btn-retry:hover { opacity: 0.85; }
+
+        .aviso-vazio {
+            color: #777; font-size: 12px; text-align: center; padding: 20px 0;
+        }
 
         @media (max-width: 600px) {
             .header-orc { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -167,8 +196,7 @@
             <h2>Arquivados</h2>
             <button class="btn-fechar-arq" onclick="window.toggleSidebar()">✖</button>
         </div>
-        <div class="lista-arquivados" id="container-arquivados">
-            </div>
+        <div class="lista-arquivados" id="container-arquivados"></div>
     </div>
 
     <div class="header-orc">
@@ -179,25 +207,24 @@
         </div>
     </div>
 
-    <div id="loading">A carregar o quadro Kanban...</div>
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">A carregar o quadro Kanban...</div>
+    </div>
     
     <div class="kanban-board" id="kanban-board" style="display: none;">
-        
         <div class="kanban-col">
             <div class="kanban-header hdr-pendente">Pendente</div>
             <div class="kanban-cards-container" id="col-pendente" ondrop="drop(event, 'pendente')" ondragover="allowDrop(event)"></div>
         </div>
-
         <div class="kanban-col">
             <div class="kanban-header hdr-enviado">Enviado</div>
             <div class="kanban-cards-container" id="col-enviado" ondrop="drop(event, 'enviado')" ondragover="allowDrop(event)"></div>
         </div>
-
         <div class="kanban-col">
             <div class="kanban-header hdr-finalizado">Finalizado</div>
             <div class="kanban-cards-container" id="col-finalizado" ondrop="drop(event, 'finalizado')" ondragover="allowDrop(event)"></div>
         </div>
-
     </div>
 
     <button class="fab-add" onclick="novaSolicitacao()">+</button>
@@ -206,10 +233,42 @@
         import { db, ROTAS } from "./config.js";
         import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        const CACHE_KEY = 'cache_orcamentos_kanban';
+
         document.getElementById('link-voltar').href = ROTAS.painel;
 
         // ==========================================
-        // CARREGAMENTO DE DADOS
+        // UTILITÁRIOS DE UI
+        // ==========================================
+        function mostrarLoading(msg = 'A carregar o quadro Kanban...') {
+            const el = document.getElementById('loading');
+            el.innerHTML = `<div class="loading-spinner"></div><div class="loading-text">${msg}</div>`;
+            el.style.display = 'flex';
+            document.getElementById('kanban-board').style.display = 'none';
+        }
+
+        function mostrarErro(mensagem, detalhe = '') {
+            const el = document.getElementById('loading');
+            el.innerHTML = `
+                <div class="erro-box">
+                    <h3>⚠️ Erro ao carregar</h3>
+                    <p>${mensagem}</p>
+                    ${detalhe ? `<code>${detalhe}</code>` : ''}
+                    <br>
+                    <button class="btn-retry" onclick="window._recarregar()">🔄 Tentar Novamente</button>
+                </div>
+            `;
+            el.style.display = 'flex';
+            document.getElementById('kanban-board').style.display = 'none';
+        }
+
+        function mostrarKanban() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('kanban-board').style.display = 'flex';
+        }
+
+        // ==========================================
+        // MONTAGEM DOS CARDS
         // ==========================================
         function montarHtmlCards(listaDocs) {
             const cardsPendente = [];
@@ -249,8 +308,8 @@
                 `;
 
                 let bordaCor = "var(--red)";
-                if(statusAtual === 'enviado') bordaCor = "var(--blue)";
-                if(statusAtual === 'finalizado') bordaCor = "var(--green)";
+                if (statusAtual === 'enviado') bordaCor = "var(--blue)";
+                if (statusAtual === 'finalizado') bordaCor = "var(--green)";
 
                 const html = `
                     <div class="card-orc" id="card-${id}" draggable="true" ondragstart="drag(event, '${id}')" style="border-left-color: ${bordaCor};">
@@ -275,239 +334,297 @@
                     </div>
                 `;
 
-                if(statusAtual === 'pendente') cardsPendente.push(html);
-                else if(statusAtual === 'enviado') cardsEnviado.push(html);
-                else if(statusAtual === 'finalizado') cardsFinalizado.push(html);
+                if (statusAtual === 'pendente') cardsPendente.push(html);
+                else if (statusAtual === 'enviado') cardsEnviado.push(html);
+                else if (statusAtual === 'finalizado') cardsFinalizado.push(html);
             });
 
             return { cardsPendente, cardsEnviado, cardsFinalizado, cardsArquivados };
         }
 
-        function renderizarListasRenderizadas(renderizado) {
-            document.getElementById('col-pendente').innerHTML = renderizado.cardsPendente.join('');
-            document.getElementById('col-enviado').innerHTML = renderizado.cardsEnviado.join('');
-            document.getElementById('col-finalizado').innerHTML = renderizado.cardsFinalizado.join('');
-            document.getElementById('container-arquivados').innerHTML = renderizado.cardsArquivados.join('');
-        }
-
-        async function carregarLista() {
+        function renderizarListas(renderizado) {
             const colPendente = document.getElementById('col-pendente');
             const colEnviado = document.getElementById('col-enviado');
             const colFinalizado = document.getElementById('col-finalizado');
             const containerArquivados = document.getElementById('container-arquivados');
 
-            colPendente.innerHTML = '';
-            colEnviado.innerHTML = '';
-            colFinalizado.innerHTML = '';
-            containerArquivados.innerHTML = '';
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('kanban-board').style.display = 'none';
+            colPendente.innerHTML = renderizado.cardsPendente.length
+                ? renderizado.cardsPendente.join('')
+                : '<div class="aviso-vazio">Vazio</div>';
 
-            const cacheBruto = localStorage.getItem('cache_orcamentos_kanban');
-            if (cacheBruto) {
-                try {
-                    const cache = JSON.parse(cacheBruto);
-                    const renderizado = montarHtmlCards(cache);
-                    renderizarListasRenderizadas(renderizado);
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('kanban-board').style.display = 'flex';
-                } catch (e) {
-                    console.warn('Cache do kanban inválido.', e);
-                }
-            }
+            colEnviado.innerHTML = renderizado.cardsEnviado.length
+                ? renderizado.cardsEnviado.join('')
+                : '<div class="aviso-vazio">Vazio</div>';
 
-            try {
-                const snapshot = await getDocs(collection(db, "orcamentos"));
+            colFinalizado.innerHTML = renderizado.cardsFinalizado.length
+                ? renderizado.cardsFinalizado.join('')
+                : '<div class="aviso-vazio">Vazio</div>';
 
-                const listaDocs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, data: docSnap.data() }));
-                listaDocs.sort((a, b) => (b.data.numero_solicitacao || 0) - (a.data.numero_solicitacao || 0));
-                localStorage.setItem('cache_orcamentos_kanban', JSON.stringify(listaDocs.map((item) => ({
-                    id: item.id,
-                    data: {
-                        numero_solicitacao: item.data.numero_solicitacao || 0,
-                        status: item.data.status || 'pendente',
-                        arquivado: item.data.arquivado || false,
-                        prefixo: item.data.prefixo || 'OR',
-                        cliente: item.data.cliente || '',
-                        empresa: item.data.empresa || '',
-                        tipo_servico_material: item.data.tipo_servico_material || '',
-                        servico_titulo: item.data.servico_titulo || ''
-                    }
-                }))));
-
-                const renderizado = montarHtmlCards(listaDocs);
-                renderizarListasRenderizadas(renderizado);
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('kanban-board').style.display = 'flex';
-
-                if (snapshot.empty) {
-                    colPendente.innerHTML = '<div style="color:#777; font-size:12px; text-align:center;">Vazio</div>';
-                }
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading').innerText = "Erro ao carregar os dados.";
-            }
+            containerArquivados.innerHTML = renderizado.cardsArquivados.length
+                ? renderizado.cardsArquivados.join('')
+                : '<div class="aviso-vazio">Nenhum item arquivado</div>';
         }
 
         // ==========================================
-        // FUNÇÕES DE GERENCIAMENTO DO CARD
+        // CARREGAMENTO PRINCIPAL — SEM DEPENDÊNCIA DE CACHE
         // ==========================================
-        
+        async function carregarDoFirebase(tentativa = 1) {
+            console.log(`[Kanban] Tentativa ${tentativa} de carregar do Firebase...`);
+
+            try {
+                // Timeout de segurança: se o Firebase demorar mais de 15s, considera erro
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Timeout: Firebase demorou mais de 15 segundos.')), 15000)
+                );
+
+                const snapshotPromise = getDocs(collection(db, "orcamentos"));
+                const snapshot = await Promise.race([snapshotPromise, timeoutPromise]);
+
+                console.log(`[Kanban] Firebase retornou ${snapshot.size} documento(s).`);
+
+                const listaDocs = snapshot.docs.map((docSnap) => ({
+                    id: docSnap.id,
+                    data: docSnap.data()
+                }));
+
+                // Ordena do mais recente para o mais antigo
+                listaDocs.sort((a, b) => (b.data.numero_solicitacao || 0) - (a.data.numero_solicitacao || 0));
+
+                // Atualiza cache somente se veio com dados reais
+                if (listaDocs.length > 0) {
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(
+                            listaDocs.map((item) => ({
+                                id: item.id,
+                                data: {
+                                    numero_solicitacao: item.data.numero_solicitacao || 0,
+                                    status: item.data.status || 'pendente',
+                                    arquivado: item.data.arquivado || false,
+                                    prefixo: item.data.prefixo || 'OR',
+                                    cliente: item.data.cliente || '',
+                                    empresa: item.data.empresa || '',
+                                    tipo_servico_material: item.data.tipo_servico_material || '',
+                                    servico_titulo: item.data.servico_titulo || ''
+                                }
+                            }))
+                        ));
+                        console.log('[Kanban] Cache atualizado com sucesso.');
+                    } catch (cacheErr) {
+                        // Cache cheio ou bloqueado — não é fatal
+                        console.warn('[Kanban] Não foi possível salvar o cache:', cacheErr);
+                    }
+                } else {
+                    // Firebase retornou vazio — limpa cache para não mostrar dados antigos
+                    console.warn('[Kanban] Firebase retornou 0 documentos. Limpando cache local.');
+                    localStorage.removeItem(CACHE_KEY);
+                }
+
+                const renderizado = montarHtmlCards(listaDocs);
+                renderizarListas(renderizado);
+                mostrarKanban();
+
+            } catch (error) {
+                console.error(`[Kanban] Erro na tentativa ${tentativa}:`, error);
+
+                // Tenta mais uma vez automaticamente antes de mostrar erro ao usuário
+                if (tentativa < 2) {
+                    console.log('[Kanban] Aguardando 3s e tentando novamente...');
+                    mostrarLoading('Falha na conexão. Tentando novamente...');
+                    await new Promise(res => setTimeout(res, 3000));
+                    return carregarDoFirebase(tentativa + 1);
+                }
+
+                // Após 2 tentativas falhas, tenta mostrar o cache se existir
+                const cacheBruto = localStorage.getItem(CACHE_KEY);
+                if (cacheBruto) {
+                    try {
+                        const cache = JSON.parse(cacheBruto);
+                        if (Array.isArray(cache) && cache.length > 0) {
+                            console.warn('[Kanban] Usando cache local como fallback.');
+                            const renderizado = montarHtmlCards(cache);
+                            renderizarListas(renderizado);
+                            mostrarKanban();
+
+                            // Avisa o usuário que está vendo dados antigos
+                            const aviso = document.createElement('div');
+                            aviso.style.cssText = 'position:fixed;bottom:90px;right:20px;background:#f1c40f;color:#000;padding:10px 15px;border-radius:8px;font-size:12px;font-weight:bold;z-index:999;max-width:220px;';
+                            aviso.innerHTML = '⚠️ Dados do cache local (sem conexão com Firebase)';
+                            document.body.appendChild(aviso);
+                            setTimeout(() => aviso.remove(), 6000);
+                            return;
+                        }
+                    } catch (e) {
+                        localStorage.removeItem(CACHE_KEY);
+                    }
+                }
+
+                // Sem cache e sem Firebase — mostra erro com detalhe técnico
+                mostrarErro(
+                    'Não foi possível conectar ao Firebase após 2 tentativas. Verifique sua conexão com a internet e as regras do Firestore.',
+                    `${error.code ? error.code + ': ' : ''}${error.message}`
+                );
+            }
+        }
+
+        // Função exposta para o botão "Tentar Novamente"
+        window._recarregar = () => {
+            mostrarLoading('Recarregando...');
+            carregarDoFirebase(1);
+        };
+
+        // ==========================================
+        // GERENCIAMENTO DOS CARDS
+        // ==========================================
         window.mudarPrefixo = async (id, novoPrefixo) => {
-            // 1. Atualiza visualmente na mesma hora (sem recarregar)
             const card = document.getElementById(`card-${id}`);
             if (card) {
-                const botoes = card.querySelectorAll('.btn-prefix');
-                botoes.forEach(btn => {
-                    if(btn.innerText === novoPrefixo) btn.classList.add('active');
-                    else btn.classList.remove('active');
+                card.querySelectorAll('.btn-prefix').forEach(btn => {
+                    btn.classList.toggle('active', btn.innerText === novoPrefixo);
                 });
-                
-                // Atualiza o botão de copiar link
-                const numSpan = card.querySelector('.orc-num');
-                const linkBtn = card.querySelector('.btn-link');
-                if (numSpan && linkBtn) {
-                    linkBtn.setAttribute('onclick', `window.gerarLink('${id}', '${novoPrefixo}-${numSpan.innerText}')`);
-                }
             }
-
-            // 2. Salva no banco "silenciosamente"
             try {
                 await updateDoc(doc(db, "orcamentos", id), { prefixo: novoPrefixo });
             } catch (e) {
                 console.error("Erro ao mudar prefixo", e);
                 alert("Erro ao alterar prefixo no banco de dados.");
             }
-        }
+        };
 
         window.editarNumero = async (id, numeroAtual) => {
             const novoNumStr = prompt("Digite o novo número (apenas números):", numeroAtual);
-            
-            if (novoNumStr !== null) {
-                const novoNum = parseInt(novoNumStr);
-                
-                if (!isNaN(novoNum)) {
-                    const numFormatado = String(novoNum).padStart(4, '0');
-                    
-                    // 1. Atualiza visualmente na mesma hora (sem recarregar)
-                    const card = document.getElementById(`card-${id}`);
-                    if (card) {
-                        const numSpan = card.querySelector('.orc-num');
-                        numSpan.innerText = numFormatado;
-                        
-                        // Garante que o próximo clique saiba o número atualizado
-                        numSpan.setAttribute('onclick', `window.editarNumero('${id}', '${novoNum}')`);
-                        
-                        // Atualiza o botão de Link para o novo número e mantendo o prefixo atual
-                        const btnAtivo = card.querySelector('.btn-prefix.active');
-                        const prefixoAtivo = btnAtivo ? btnAtivo.innerText : 'OR';
-                        
-                        const linkBtn = card.querySelector('.btn-link');
-                        if (linkBtn) {
-                            linkBtn.setAttribute('onclick', `window.gerarLink('${id}', '${prefixoAtivo}-${numFormatado}')`);
-                        }
-                    }
+            if (novoNumStr === null) return;
 
-                    // 2. Salva no banco "silenciosamente"
-                    try {
-                        await updateDoc(doc(db, "orcamentos", id), { numero_solicitacao: novoNum });
-                    } catch (e) {
-                        console.error("Erro ao editar número:", e);
-                        alert("Erro ao salvar o novo número.");
-                    }
-                } else {
-                    alert("Por favor, digite um número válido!");
-                }
+            const novoNum = parseInt(novoNumStr);
+            if (isNaN(novoNum)) {
+                alert("Por favor, digite um número válido!");
+                return;
             }
-        }
+
+            const numFormatado = String(novoNum).padStart(4, '0');
+            const card = document.getElementById(`card-${id}`);
+            if (card) {
+                const numSpan = card.querySelector('.orc-num');
+                numSpan.innerText = numFormatado;
+                numSpan.setAttribute('onclick', `window.editarNumero('${id}', '${novoNum}')`);
+            }
+
+            try {
+                await updateDoc(doc(db, "orcamentos", id), { numero_solicitacao: novoNum });
+            } catch (e) {
+                console.error("Erro ao editar número:", e);
+                alert("Erro ao salvar o novo número.");
+            }
+        };
 
         window.arquivarCard = async (id, statusBol) => {
             try {
                 await updateDoc(doc(db, "orcamentos", id), { arquivado: statusBol });
-                carregarLista();
-                if(statusBol) alert("Card arquivado com sucesso!");
+                mostrarLoading('Atualizando...');
+                carregarDoFirebase(1);
+                if (statusBol) alert("Card arquivado com sucesso!");
             } catch (e) {
                 console.error("Erro ao arquivar", e);
+                alert("Erro ao arquivar. Tente novamente.");
             }
-        }
+        };
 
         window.deletarCard = async (id) => {
-            if (confirm("⚠️ ATENÇÃO!\nTem certeza que deseja DELETAR PERMANENTEMENTE este item? Isso não pode ser desfeito.")) {
-                try {
-                    await deleteDoc(doc(db, "orcamentos", id));
-                    carregarLista();
-                } catch (e) {
-                    console.error("Erro ao deletar", e);
-                    alert("Erro ao tentar excluir.");
-                }
+            if (!confirm("⚠️ ATENÇÃO!\nTem certeza que deseja DELETAR PERMANENTEMENTE este item? Isso não pode ser desfeito.")) return;
+            try {
+                await deleteDoc(doc(db, "orcamentos", id));
+                mostrarLoading('Atualizando...');
+                carregarDoFirebase(1);
+            } catch (e) {
+                console.error("Erro ao deletar", e);
+                alert("Erro ao tentar excluir.");
             }
-        }
+        };
 
         // ==========================================
-        // SIDEBAR ACTIONS
+        // SIDEBAR
         // ==========================================
         window.toggleSidebar = () => {
-            const sb = document.getElementById('sidebar-arquivados');
-            sb.classList.toggle('open');
-        }
+            document.getElementById('sidebar-arquivados').classList.toggle('open');
+        };
 
         // ==========================================
-        // LÓGICA DE DRAG AND DROP (ARRASTAR)
+        // DRAG AND DROP
         // ==========================================
-        window.allowDrop = (ev) => { ev.preventDefault(); }
+        window.allowDrop = (ev) => { ev.preventDefault(); };
 
         window.drag = (ev, id) => {
             ev.dataTransfer.setData("text_id", id);
-            setTimeout(() => { document.getElementById(`card-${id}`).classList.add('dragged'); }, 0);
-        }
+            setTimeout(() => {
+                const el = document.getElementById(`card-${id}`);
+                if (el) el.classList.add('dragged');
+            }, 0);
+        };
 
         window.drop = async (ev, novoStatus) => {
             ev.preventDefault();
             const id = ev.dataTransfer.getData("text_id");
-            if(!id) return;
-            
+            if (!id) return;
+
             const card = document.getElementById(`card-${id}`);
+            if (!card) return;
             card.classList.remove('dragged');
 
             const colDestino = document.getElementById(`col-${novoStatus}`);
             colDestino.appendChild(card);
 
+            // Remove "Vazio" se existir
+            const avVazio = colDestino.querySelector('.aviso-vazio');
+            if (avVazio) avVazio.remove();
+
             let bordaCor = "var(--red)";
-            if(novoStatus === 'enviado') bordaCor = "var(--blue)";
-            if(novoStatus === 'finalizado') bordaCor = "var(--green)";
+            if (novoStatus === 'enviado') bordaCor = "var(--blue)";
+            if (novoStatus === 'finalizado') bordaCor = "var(--green)";
             card.style.borderLeftColor = bordaCor;
             card.querySelector('.select-status-mobile').value = novoStatus;
 
-            try { await updateDoc(doc(db, "orcamentos", id), { status: novoStatus }); } 
-            catch (e) { console.error(e); alert("Erro ao guardar alteração no banco."); }
-        }
+            try {
+                await updateDoc(doc(db, "orcamentos", id), { status: novoStatus });
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao guardar alteração no banco.");
+            }
+        };
 
         document.addEventListener('dragend', (e) => {
-            if(e.target.classList) e.target.classList.remove('dragged');
+            if (e.target.classList) e.target.classList.remove('dragged');
         });
 
         // ==========================================
-        // LÓGICA DO MENU DROPDOWN (MOBILE) E LINKS
+        // SELECT MOBILE
         // ==========================================
         window.mudarStatusViaSelect = async (id, novoStatus) => {
             const card = document.getElementById(`card-${id}`);
+            if (!card) return;
+
             const colDestino = document.getElementById(`col-${novoStatus}`);
-            
             colDestino.appendChild(card);
-            
+
+            const avVazio = colDestino.querySelector('.aviso-vazio');
+            if (avVazio) avVazio.remove();
+
             let bordaCor = "var(--red)";
-            if(novoStatus === 'enviado') bordaCor = "var(--blue)";
-            if(novoStatus === 'finalizado') bordaCor = "var(--green)";
+            if (novoStatus === 'enviado') bordaCor = "var(--blue)";
+            if (novoStatus === 'finalizado') bordaCor = "var(--green)";
             card.style.borderLeftColor = bordaCor;
 
-            try { await updateDoc(doc(db, "orcamentos", id), { status: novoStatus }); } 
-            catch (e) { console.error(e); }
-        }
+            try {
+                await updateDoc(doc(db, "orcamentos", id), { status: novoStatus });
+            } catch (e) {
+                console.error(e);
+            }
+        };
 
-        window.novaSolicitacao = () => { window.open(ROTAS.solicitacao, '_blank'); }
-        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}&_ts=${Date.now()}`, '_blank'); }
-        
+        // ==========================================
+        // NAVEGAÇÃO
+        // ==========================================
+        window.novaSolicitacao = () => { window.open(ROTAS.solicitacao, '_blank'); };
+        window.abrirGuia = (id, modo) => { window.open(`${ROTAS.solicitacao}?id=${id}&mode=${modo}&_ts=${Date.now()}`, '_blank'); };
+
         window.gerarLink = (id, numDisplay) => {
             let baseUrl = window.location.href;
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
@@ -515,10 +632,12 @@
             navigator.clipboard.writeText(`Solicitação ${numDisplay}: ${urlFinal}`).then(() => {
                 alert("Link copiado!\n\n" + urlFinal);
             });
-        }
+        };
 
-        // Inicialização
-        carregarLista();
+        // ==========================================
+        // INICIALIZAÇÃO
+        // ==========================================
+        carregarDoFirebase(1);
     </script>
 
     <script type="module">
