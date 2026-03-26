@@ -227,7 +227,7 @@
 
     <script type="module">
         import { db, ROTAS } from "./config.js";
-        import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.getElementById('link-voltar').href = ROTAS.painel;
 
@@ -353,15 +353,15 @@
             }
 
             try {
-                const q = query(collection(db, "orcamentos"), orderBy("numero_solicitacao", "desc"));
-                const snapshot = await getDocs(q);
+                const snapshot = await getDocs(collection(db, "orcamentos"));
 
                 const total = snapshot.size || 1;
-                const listaDocs = snapshot.docs.map((docSnap, index) => {
+                const listaDocs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, data: docSnap.data() }));
+                listaDocs.sort((a, b) => (b.data.numero_solicitacao || 0) - (a.data.numero_solicitacao || 0));
+                listaDocs.forEach((item, index) => {
                     if (index % 10 === 0 || index === total - 1) {
                         atualizarTelaCarregamento(((index + 1) / total) * 100);
                     }
-                    return { id: docSnap.id, data: docSnap.data() };
                 });
                 localStorage.setItem('cache_orcamentos_kanban', JSON.stringify(listaDocs.map((item) => ({
                     id: item.id,
