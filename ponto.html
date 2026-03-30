@@ -1,526 +1,326 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Ponto - Artesynal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #f4f4f7;
-            --text: #2d2d33;
-            --muted: #8b8b96;
-            --primary: #6f14b3;
-            --primary-soft: #efe1fb;
-            --card: #ffffff;
-            --danger: #ef3b3b;
-            --success: #21a66b;
-            --line: #e9e9ef;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            font-family: 'Montserrat', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .wrapper {
-            max-width: 1260px;
-            margin: 0 auto;
-            padding: 24px 18px 42px;
-        }
-
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 26px;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .top-nav a {
-            text-decoration: none;
-            color: #fff;
-            background: #32323d;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .tabs {
-            display: inline-flex;
-            background: #ececf0;
-            border-radius: 10px;
-            padding: 4px;
-            gap: 4px;
-        }
-
-        .tab {
-            border: none;
-            background: transparent;
-            border-radius: 8px;
-            padding: 11px 16px;
-            color: #787884;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .tab.active {
-            background: #fff;
-            color: var(--primary);
-        }
-
-        .hero {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr 0.95fr;
-            gap: 24px;
-            align-items: start;
-            margin-bottom: 26px;
-        }
-
-        .panel-card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 28px rgba(47, 31, 77, 0.06);
-        }
-
-        .employee {
-            font-size: clamp(24px, 2.6vw, 42px);
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .date-label {
-            color: var(--muted);
-            margin-bottom: 26px;
-        }
-
-        .clock-label {
-            color: #9999a4;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        #clock {
-            font-size: clamp(30px, 4vw, 56px);
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-        }
-
-        .btn-ponto {
-            border: none;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #7d15c4, #5f0e9a);
-            color: #fff;
-            font-size: 20px;
-            font-weight: 800;
-            padding: 14px 28px;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(111, 20, 179, 0.25);
-            margin-bottom: 18px;
-        }
-
-        .quick-links {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .quick-links a {
-            font-size: 12px;
-            text-decoration: none;
-            color: var(--primary);
-            background: var(--primary-soft);
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-weight: 700;
-        }
-
-        .circle {
-            width: min(340px, 100%);
-            aspect-ratio: 1/1;
-            border-radius: 50%;
-            border: 5px solid #d6b4f3;
-            border-right-color: var(--primary);
-            display: grid;
-            place-items: center;
-            margin: 0 auto;
-            text-align: center;
-            padding: 18px;
-        }
-
-        .circle strong {
-            font-size: clamp(24px, 3.2vw, 46px);
-            display: block;
-        }
-
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(180px, 1fr));
-            gap: 14px;
-            margin-top: 8px;
-        }
-
-        .metric {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px;
-            box-shadow: 0 8px 20px rgba(31, 31, 61, 0.06);
-        }
-
-        .metric .title {
-            color: #7d7d88;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .metric .value {
-            font-weight: 800;
-            font-size: 28px;
-            line-height: 1.05;
-        }
-
-        .summary {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 8px 22px rgba(25, 25, 45, 0.06);
-            padding: 22px;
-            margin-bottom: 24px;
-        }
-
-        .summary h2 {
-            margin: 0 0 14px;
-            font-size: 24px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 10px 22px;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            border-bottom: 1px solid var(--line);
-            padding-bottom: 8px;
-        }
-
-        .summary-item .label { color: #61616d; }
-        .summary-item .num { font-weight: 800; }
-
-        .timeline {
-            display: grid;
-            gap: 16px;
-        }
-
-        .day-card {
-            background: #fff;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 8px 22px rgba(37, 37, 67, 0.06);
-        }
-
-        .day-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .day-head h3 {
-            margin: 0;
-            font-size: 34px;
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-        }
-
-        .weekday {
-            color: #b4b4be;
-            font-weight: 600;
-            font-size: 28px;
-        }
-
-        .plus-btn {
-            border: none;
-            border-radius: 999px;
-            width: 42px;
-            height: 42px;
-            color: #fff;
-            background: var(--primary);
-            font-size: 30px;
-            line-height: 1;
-            cursor: pointer;
-            box-shadow: 0 8px 18px rgba(111, 20, 179, 0.28);
-        }
-
-        .total-day {
-            margin: 0;
-            color: #5a5a66;
-        }
-
-        .marks {
-            border-left: 5px solid #db35d5;
-            margin-top: 16px;
-            padding-left: 16px;
-            display: grid;
-            gap: 12px;
-        }
-
-        .mark {
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .mark.late { color: var(--danger); }
-
-        .post-entry {
-            margin-top: 12px;
-            background: #faf7ff;
-            border: 1px solid #e4d4f5;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 14px;
-            color: #555266;
-        }
-
-        .post-entry strong { color: #3b3554; }
-
-        dialog {
-            border: none;
-            border-radius: 14px;
-            width: min(94vw, 560px);
-            padding: 0;
-            box-shadow: 0 20px 40px rgba(15, 15, 20, .3);
-        }
-
-        .modal-body { padding: 18px; }
-
-        .modal-body h4 { margin: 0 0 14px; }
-
-        .field { margin-bottom: 10px; }
-
-        .field label { display: block; font-size: 13px; margin-bottom: 4px; color: #676773; }
-
-        .field input, .field textarea {
-            width: 100%;
-            border: 1px solid #d6d6df;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
-        .btn.cancel { background: #ececf1; color: #555; }
-        .btn.save { background: var(--primary); color: #fff; }
-
-        @media (max-width: 1080px) {
-            .hero { grid-template-columns: 1fr; }
-            .metrics { grid-template-columns: 1fr 1fr; }
-        }
-
-        @media (max-width: 680px) {
-            .metrics { grid-template-columns: 1fr; }
-            .day-head h3 { font-size: 28px; }
-            .weekday { font-size: 24px; }
-            .mark { font-size: 24px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ponto - Artesynal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f3f7;
+      --card: #fff;
+      --line: #e8e8f0;
+      --text: #2f2f39;
+      --muted: #8a8a97;
+      --primary: #6f14b3;
+      --soft: #f1e7fa;
+      --danger: #e53e3e;
+      --ok: #1f9d62;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'Montserrat',sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width:1240px; margin:0 auto; padding:22px 16px 34px; }
+    .top { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+    .back { text-decoration:none; color:#fff; background:#31313b; border-radius:8px; padding:9px 13px; font-size:13px; font-weight:700; }
+    .tabs { display:inline-flex; gap:4px; background:#ececf1; border-radius:10px; padding:4px; }
+    .tab { padding:10px 14px; border-radius:8px; text-decoration:none; color:#7d7d89; font-weight:600; }
+    .tab.active { background:#fff; color:var(--primary); }
+    .hero { display:grid; grid-template-columns:1.2fr 1fr .95fr; gap:18px; margin-bottom:18px; }
+    .card { background:var(--card); border-radius:14px; padding:20px; box-shadow:0 10px 24px rgba(25,25,42,.06); }
+    .name { font-size:clamp(22px,2.2vw,38px); font-weight:700; margin:0 0 6px; }
+    .small { color:var(--muted); }
+    #clock { font-size:clamp(30px,3.8vw,52px); margin:8px 0 14px; font-weight:700; }
+    .btn-main { border:0; background:linear-gradient(130deg,#7c1bc0,#5f0f99); color:#fff; border-radius:999px; padding:13px 22px; font-weight:800; font-size:19px; cursor:pointer; }
+    .btn-row { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+    .pill { font-size:12px; text-decoration:none; color:var(--primary); background:var(--soft); border-radius:999px; padding:8px 11px; font-weight:700; }
+    .ring { width:min(340px,100%); aspect-ratio:1/1; margin:auto; border-radius:50%; border:5px solid #d8b8f3; border-right-color:var(--primary); display:grid; place-items:center; text-align:center; }
+    .ring strong { display:block; font-size:clamp(22px,2.8vw,42px); }
+    .metrics { display:grid; gap:10px; }
+    .metric { background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 20px rgba(21,21,35,.05); }
+    .metric .v { font-size:28px; font-weight:800; }
+    .summary h2 { margin:0 0 12px; font-size:22px; }
+    .sum-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px 14px; }
+    .sum-line { display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:8px; }
+    .sum-line b { font-size:17px; }
+    .timeline { display:grid; gap:12px; }
+    .day-head { display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+    .date-title { margin:0; font-size:31px; }
+    .weekday { color:#b3b3bd; font-size:26px; font-weight:600; }
+    .plus { border:0; width:40px; height:40px; border-radius:999px; background:var(--primary); color:#fff; font-size:28px; cursor:pointer; box-shadow:0 8px 16px rgba(111,20,179,.25); }
+    .marks { border-left:4px solid #d630cf; padding-left:14px; display:grid; gap:10px; margin-top:10px; }
+    .mark { font-size:26px; font-weight:600; }
+    .mark-badge { font-size:11px; padding:3px 8px; border-radius:999px; background:#eef7f1; color:var(--ok); margin-left:8px; vertical-align:middle; }
+    .post-note { font-size:13px; color:#545466; background:#faf6ff; border:1px solid #e7d6f8; border-radius:10px; padding:10px; }
+    .empty { color:#8d8d99; text-align:center; padding:20px; border:2px dashed #dedee8; border-radius:12px; }
+    dialog { border:0; border-radius:12px; width:min(94vw,560px); padding:0; }
+    .modal { padding:16px; }
+    .f { margin-bottom:10px; }
+    .f label { display:block; margin-bottom:4px; font-size:13px; color:#666678; }
+    .f input,.f textarea { width:100%; border:1px solid #d8d8e3; border-radius:8px; padding:10px; font-family:inherit; }
+    .actions { display:flex; justify-content:flex-end; gap:8px; }
+    .btn { border:0; border-radius:8px; padding:10px 13px; font-weight:700; cursor:pointer; }
+    .btn.cancel { background:#ececf2; color:#59596a; }
+    .btn.save { background:var(--primary); color:#fff; }
+    @media (max-width:1080px){ .hero{grid-template-columns:1fr;} }
+  </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="top-nav">
-            <a href="index.html">⬅ Voltar ao painel</a>
-            <div class="tabs">
-                <button class="tab active" type="button">Controle de ponto</button>
-                <a class="tab" href="registrosponto.html" style="text-decoration:none;display:inline-flex;align-items:center;">Registros de ponto</a>
-            </div>
-        </div>
-
-        <section class="hero">
-            <article class="panel-card">
-                <div class="employee">Renan da Silva Ferreira</div>
-                <div class="date-label">Segunda, 30 de março de 2026</div>
-
-                <div class="clock-label">Horário atual</div>
-                <div id="clock">00:00:00</div>
-
-                <button id="btnRegistrar" class="btn-ponto" type="button">📍 Registrar ponto</button>
-
-                <div class="quick-links">
-                    <a href="registrosponto.html">Ver espelho de ponto</a>
-                    <a href="#resumo-periodo">Resumo do período</a>
-                </div>
-            </article>
-
-            <article class="panel-card" style="display:grid;place-items:center;">
-                <div class="circle">
-                    <div>
-                        <strong id="todayWorked">04h36min</strong>
-                        trabalhado hoje
-                    </div>
-                </div>
-            </article>
-
-            <div>
-                <p style="margin:0 0 12px;color:#767685;">Período: 01/03/2026 a 31/03/2026</p>
-                <div class="metrics">
-                    <div class="metric">
-                        <div class="title">Dias trabalhados</div>
-                        <div class="value" id="daysWorked">21</div>
-                    </div>
-                    <div class="metric">
-                        <div class="title">Horas registradas</div>
-                        <div class="value" id="hoursRegistered">181h14min</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="resumo-periodo" class="summary">
-            <h2>Resumo das horas trabalhadas no período</h2>
-            <div class="summary-grid" id="summaryGrid">
-                <div class="summary-item"><span class="label">Horas normais</span><span class="num">172h44min</span></div>
-                <div class="summary-item"><span class="label">Atraso*</span><span class="num">05h46min</span></div>
-                <div class="summary-item"><span class="label">Descanso Semanal Remunerado</span><span class="num">42h30min</span></div>
-                <div class="summary-item"><span class="label">Total trabalhado</span><span class="num">181h14min</span></div>
-                <div class="summary-item"><span class="label">Horas extras</span><span class="num">08h30min</span></div>
-            </div>
-            <small style="color:#8d8d96;display:block;margin-top:10px;">*Atraso é consolidado somente após o fechamento do dia.</small>
-        </section>
-
-        <section class="timeline" id="timeline">
-            <article class="day-card" data-dia="30/03/2026">
-                <div class="day-head">
-                    <h3>30 mar <span class="weekday">seg</span></h3>
-                    <button class="plus-btn" type="button" title="Adicionar ponto" onclick="openPostPoint(this)">+</button>
-                </div>
-                <p class="total-day">Total: 4h17mins</p>
-                <p class="total-day">Escala de trabalho: <strong style="color:#6f14b3;">Dia Comum</strong></p>
-                <div class="marks">
-                    <div class="mark">08:00</div>
-                    <div class="mark">12:17</div>
-                    <div class="mark">13:30</div>
-                    <div class="mark late">Incompleto</div>
-                </div>
-            </article>
-
-            <article class="day-card" data-dia="27/03/2026">
-                <div class="day-head">
-                    <h3>27 mar <span class="weekday">sex</span></h3>
-                    <button class="plus-btn" type="button" title="Adicionar ponto" onclick="openPostPoint(this)">+</button>
-                </div>
-                <p class="total-day">Total: 9h11mins</p>
-                <p class="total-day">Escala de trabalho: <strong style="color:#6f14b3;">Dia Comum</strong></p>
-                <div class="marks">
-                    <div class="mark">08:00</div>
-                    <div class="mark">12:09</div>
-                    <div class="mark">13:30</div>
-                    <div class="mark">18:41</div>
-                </div>
-                <div class="post-entry">
-                    <strong>Justificativa:</strong> Registro feito via ponto web com geolocalização aprovado automaticamente.<br>
-                    <strong>Pedido realizado em:</strong> 27/03/2026 08:00<br>
-                    <strong>Status:</strong> Registro auto aprovado.
-                </div>
-            </article>
-        </section>
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="index.html">⬅ Voltar ao painel</a>
+      <div class="tabs">
+        <a class="tab active" href="ponto.html">Controle de ponto</a>
+        <a class="tab" href="registrosponto.html">Registros de ponto</a>
+      </div>
     </div>
 
-    <dialog id="postPointModal">
-        <form method="dialog" class="modal-body" id="postPointForm">
-            <h4>Adicionar ponto posterior</h4>
-            <div class="field">
-                <label for="postTime">Horário</label>
-                <input id="postTime" type="time" required>
+    <section class="hero">
+      <article class="card">
+        <h1 class="name" id="nomeUsuario">Colaborador</h1>
+        <div class="small" id="hojeTexto"></div>
+        <div class="small" style="margin-top:18px;">Horário atual</div>
+        <div id="clock">00:00:00</div>
+        <button class="btn-main" id="registrarAgora" type="button">📍 Registrar ponto</button>
+        <div class="btn-row">
+          <a class="pill" href="registrosponto.html">Ver histórico mensal</a>
+          <a class="pill" href="#resumo">Resumo do período</a>
+        </div>
+      </article>
+
+      <article class="card" style="display:grid;place-items:center;">
+        <div class="ring">
+          <div>
+            <strong id="horasHoje">00h00min</strong>
+            trabalhado hoje
+          </div>
+        </div>
+      </article>
+
+      <article>
+        <p class="small" id="periodoLabel" style="margin:0 0 8px;"></p>
+        <div class="metrics">
+          <div class="metric"><div class="small">Dias trabalhados</div><div class="v" id="diasTrabalhados">0</div></div>
+          <div class="metric"><div class="small">Horas registradas</div><div class="v" id="horasRegistradas">00h00min</div></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="card summary" id="resumo">
+      <h2>Resumo das horas trabalhadas no período</h2>
+      <div class="sum-grid" id="resumoGrid"></div>
+      <small class="small">Atraso só é consolidado após fechamento do dia.</small>
+    </section>
+
+    <section class="timeline" id="timeline"></section>
+  </div>
+
+  <dialog id="modalPosterior">
+    <form class="modal" id="formPosterior">
+      <h3 style="margin:0 0 10px;">Adicionar ponto posterior</h3>
+      <div class="f"><label for="dataPosterior">Data</label><input id="dataPosterior" type="date" required></div>
+      <div class="f"><label for="horaPosterior">Horário</label><input id="horaPosterior" type="time" required></div>
+      <div class="f"><label for="justPosterior">Justificativa</label><textarea id="justPosterior" rows="4" required></textarea></div>
+      <div class="actions">
+        <button class="btn cancel" type="button" id="cancelarPosterior">Cancelar</button>
+        <button class="btn save" type="submit">Salvar ponto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const STORE_KEY = 'artesynal_ponto_registros_v2';
+    const USER_KEY = 'artesynal_ponto_usuario_v1';
+    const MAX_NORMAL_MIN = 8 * 60;
+
+    const nomeUsuario = document.getElementById('nomeUsuario');
+    const hojeTexto = document.getElementById('hojeTexto');
+    const clock = document.getElementById('clock');
+    const periodoLabel = document.getElementById('periodoLabel');
+    const diasTrabalhados = document.getElementById('diasTrabalhados');
+    const horasRegistradas = document.getElementById('horasRegistradas');
+    const horasHoje = document.getElementById('horasHoje');
+    const resumoGrid = document.getElementById('resumoGrid');
+    const timeline = document.getElementById('timeline');
+    const registrarAgora = document.getElementById('registrarAgora');
+
+    const modalPosterior = document.getElementById('modalPosterior');
+    const formPosterior = document.getElementById('formPosterior');
+    const dataPosterior = document.getElementById('dataPosterior');
+    const horaPosterior = document.getElementById('horaPosterior');
+    const justPosterior = document.getElementById('justPosterior');
+    const cancelarPosterior = document.getElementById('cancelarPosterior');
+
+    let dayTarget = null;
+
+    function loadRegistros() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveRegistros(list) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(list));
+    }
+
+    function ensureUserName() {
+      const fromLocal = localStorage.getItem(USER_KEY);
+      if (fromLocal) return fromLocal;
+      const nome = 'Novo colaborador';
+      localStorage.setItem(USER_KEY, nome);
+      return nome;
+    }
+
+    function nowDateISO(date = new Date()) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function toMin(hhmm) {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function fmtMin(total) {
+      const safe = Math.max(0, Math.floor(total || 0));
+      const h = String(Math.floor(safe / 60)).padStart(2, '0');
+      const m = String(safe % 60).padStart(2, '0');
+      return `${h}h${m}min`;
+    }
+
+    function weekdayShort(dateIso) {
+      const d = new Date(dateIso + 'T00:00:00');
+      return ['dom','seg','ter','qua','qui','sex','sáb'][d.getDay()];
+    }
+
+    function formatDateHeader(dateIso) {
+      const d = new Date(dateIso + 'T00:00:00');
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
+      return `${day} ${month}`;
+    }
+
+    function groupedByDay(records) {
+      return records.reduce((acc, rec) => {
+        acc[rec.date] = acc[rec.date] || [];
+        acc[rec.date].push(rec);
+        return acc;
+      }, {});
+    }
+
+    function calcWorkedMinutes(dayList) {
+      const ordered = [...dayList].sort((a,b) => a.time.localeCompare(b.time));
+      let total = 0;
+      for (let i = 0; i + 1 < ordered.length; i += 2) {
+        total += Math.max(0, toMin(ordered[i + 1].time) - toMin(ordered[i].time));
+      }
+      return total;
+    }
+
+    function render() {
+      const registros = loadRegistros();
+      const byDay = groupedByDay(registros);
+      const dates = Object.keys(byDay).sort((a,b) => b.localeCompare(a));
+      const todayIso = nowDateISO();
+
+      const first = dates.length ? dates[dates.length - 1].split('-') : todayIso.split('-');
+      const last = dates.length ? dates[0].split('-') : todayIso.split('-');
+      periodoLabel.textContent = `Período: ${first[2]}/${first[1]}/${first[0]} a ${last[2]}/${last[1]}/${last[0]}`;
+
+      let totalMins = 0;
+      let normal = 0;
+      let extra = 0;
+      let atraso = 0;
+      let daysDone = 0;
+
+      dates.forEach((d) => {
+        const worked = calcWorkedMinutes(byDay[d]);
+        if (worked > 0) daysDone += 1;
+        totalMins += worked;
+        normal += Math.min(worked, MAX_NORMAL_MIN);
+        extra += Math.max(0, worked - MAX_NORMAL_MIN);
+        if (d < todayIso) atraso += Math.max(0, MAX_NORMAL_MIN - worked);
+      });
+
+      const dsr = Math.floor(normal / 6);
+
+      diasTrabalhados.textContent = String(daysDone);
+      horasRegistradas.textContent = fmtMin(totalMins);
+      horasHoje.textContent = fmtMin(calcWorkedMinutes(byDay[todayIso] || []));
+
+      resumoGrid.innerHTML = `
+        <div class="sum-line"><span>Horas normais</span><b>${fmtMin(normal)}</b></div>
+        <div class="sum-line"><span>Atraso</span><b>${fmtMin(atraso)}</b></div>
+        <div class="sum-line"><span>Descanso Semanal Remunerado</span><b>${fmtMin(dsr)}</b></div>
+        <div class="sum-line"><span>Total trabalhado</span><b>${fmtMin(totalMins)}</b></div>
+        <div class="sum-line"><span>Horas extras</span><b>${fmtMin(extra)}</b></div>
+      `;
+
+      if (!dates.length) {
+        timeline.innerHTML = '<article class="card empty">Sem marcações ainda. Clique em <strong>Registrar ponto</strong> para iniciar.</article>';
+        return;
+      }
+
+      timeline.innerHTML = dates.map((dateIso) => {
+        const list = [...byDay[dateIso]].sort((a,b) => a.time.localeCompare(b.time));
+        const totalDay = fmtMin(calcWorkedMinutes(list));
+        const marks = list.map((m) => `<div class="mark">${m.time}${m.posterior ? '<span class="mark-badge">posterior</span>' : ''}</div>`).join('');
+        const posts = list.filter((m) => m.posterior).map((m) => `<div class="post-note"><strong>Ponto posterior em ${new Date(m.createdAt).toLocaleString('pt-BR')}</strong><br>Justificativa: ${m.justification}</div>`).join('');
+        return `
+          <article class="card">
+            <div class="day-head">
+              <h3 class="date-title">${formatDateHeader(dateIso)} <span class="weekday">${weekdayShort(dateIso)}</span></h3>
+              <button class="plus" type="button" onclick="abrirPosterior('${dateIso}')">+</button>
             </div>
-            <div class="field">
-                <label for="postReason">Justificativa</label>
-                <textarea id="postReason" rows="4" placeholder="Descreva o motivo do registro posterior" required></textarea>
-            </div>
-            <div class="modal-actions">
-                <button class="btn cancel" type="button" onclick="document.getElementById('postPointModal').close()">Cancelar</button>
-                <button class="btn save" type="submit">Adicionar ponto</button>
-            </div>
-        </form>
-    </dialog>
+            <p class="small" style="margin:0 0 5px;">Total: ${totalDay}</p>
+            <p class="small" style="margin:0;">Escala de trabalho: <b style="color:var(--primary)">Dia comum</b></p>
+            <div class="marks">${marks || '<div class="small">Sem marcações.</div>'}</div>
+            ${posts}
+          </article>
+        `;
+      }).join('');
+    }
 
-    <script>
-        const clock = document.getElementById('clock');
-        const btnRegistrar = document.getElementById('btnRegistrar');
-        const postModal = document.getElementById('postPointModal');
-        const postPointForm = document.getElementById('postPointForm');
-        let targetDayCard = null;
+    function registrar(dateIso, time, posterior = false, justification = '') {
+      const registros = loadRegistros();
+      registros.push({ id: crypto.randomUUID(), date: dateIso, time, posterior, justification, createdAt: new Date().toISOString() });
+      saveRegistros(registros);
+      render();
+    }
 
-        function updateClock() {
-            const now = new Date();
-            clock.textContent = now.toLocaleTimeString('pt-BR', { hour12: false });
-        }
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('pt-BR', { hour12: false });
+      hojeTexto.textContent = now.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+    }
 
-        setInterval(updateClock, 1000);
-        updateClock();
+    function abrirPosterior(dateIso) {
+      dayTarget = dateIso;
+      dataPosterior.value = dateIso;
+      horaPosterior.value = '';
+      justPosterior.value = '';
+      modalPosterior.showModal();
+    }
 
-        btnRegistrar.addEventListener('click', () => {
-            btnRegistrar.textContent = '✅ Ponto registrado agora';
-            btnRegistrar.disabled = true;
-            btnRegistrar.style.opacity = '0.7';
-        });
+    registrarAgora.addEventListener('click', () => {
+      const now = new Date();
+      registrar(nowDateISO(now), now.toTimeString().slice(0, 5));
+    });
 
-        function openPostPoint(button) {
-            targetDayCard = button.closest('.day-card');
-            postPointForm.reset();
-            postModal.showModal();
-        }
+    cancelarPosterior.addEventListener('click', () => modalPosterior.close());
 
-        postPointForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!targetDayCard) return;
+    formPosterior.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const d = dataPosterior.value || dayTarget || nowDateISO();
+      const h = horaPosterior.value;
+      const j = justPosterior.value.trim();
+      if (!h || !j) return;
+      registrar(d, h, true, j);
+      modalPosterior.close();
+    });
 
-            const horario = document.getElementById('postTime').value;
-            const justificativa = document.getElementById('postReason').value.trim();
-
-            if (!horario || !justificativa) return;
-
-            const marks = targetDayCard.querySelector('.marks');
-            const novoPonto = document.createElement('div');
-            novoPonto.className = 'mark';
-            novoPonto.textContent = horario;
-            marks.appendChild(novoPonto);
-
-            const detalhe = document.createElement('div');
-            detalhe.className = 'post-entry';
-            const now = new Date();
-            detalhe.innerHTML = `<strong>Ponto posterior adicionado:</strong> ${now.toLocaleString('pt-BR')}<br><strong>Justificativa:</strong> ${justificativa}`;
-            targetDayCard.appendChild(detalhe);
-
-            postModal.close();
-        });
-
-        window.openPostPoint = openPostPoint;
-    </script>
+    window.abrirPosterior = abrirPosterior;
+    nomeUsuario.textContent = ensureUserName();
+    setInterval(updateClock, 1000);
+    updateClock();
+    render();
+  </script>
 </body>
 </html>
