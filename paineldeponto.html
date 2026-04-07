@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Painel de Controle de Ponto</title>
+<style>body{font-family:Montserrat,Arial,sans-serif;margin:0;background:#eef2f7}.top{background:#231f20;color:#fff;padding:12px 16px;display:flex;justify-content:space-between}.btn{background:#111827;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;text-decoration:none}.wrap{max-width:1100px;margin:18px auto;padding:0 16px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.card{background:#fff;border-radius:10px;padding:10px}.panel{background:#fff;border-radius:10px;padding:12px;margin-top:12px}.row{display:flex;gap:8px;flex-wrap:wrap}.item{border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-top:8px}.muted{color:#6b7280;font-size:13px}@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}}</style></head>
+<body>
+<div class="top"><strong>Painel de Controle de Ponto</strong><div><a class="btn" href="historicoponto.html">Histórico</a> <a class="btn" href="index.html">Painel</a></div></div>
+<div class="wrap">
+  <div class="cards">
+    <div class="card"><div class="muted">Dias trabalhados</div><div id="dias">0</div></div>
+    <div class="card"><div class="muted">Horas trabalhadas</div><div id="horas">00h00min</div></div>
+    <div class="card"><div class="muted">Faltas</div><div id="faltas">0</div></div>
+    <div class="card"><div class="muted">Atrasos</div><div id="atrasos">0</div></div>
+    <div class="card"><div class="muted">Solicitações</div><div id="solPend">0</div></div>
+  </div>
+
+  <div class="panel"><h3>Feriados e férias (dias não contabilizados)</h3>
+    <div class="row"><input id="diaEspecial" type="date"><button class="btn" id="addEspecial">Adicionar</button></div>
+    <ul id="listaEspecial"></ul>
+  </div>
+
+  <div class="panel"><h3>Análise de solicitações</h3><div id="solicitacoes"></div></div>
+
+  <div class="panel"><h3>Detalhamento por usuário</h3>
+    <select id="usuarios"></select>
+    <div id="registrosUsuario"></div>
+  </div>
+</div>
+<script type="module">
+import { protegerPagina } from './auth.js';
+const sessao = await protegerPagina({ paginaAtual: 'paineldeponto.html', exigirAdmin:true });
+if (!sessao) throw new Error('Sem sessão');
+
+const cfgKey='ponto_config_global';
+const solKey='ponto_solicitacoes';
+const cfg=JSON.parse(localStorage.getItem(cfgKey)||'{"diasNaoContabilizados":[]}');
+const getS=()=>JSON.parse(localStorage.getItem(solKey)||'[]');
+const saveS=(v)=>localStorage.setItem(solKey,JSON.stringify(v));
+const pad=n=>String(n).padStart(2,'0');
+const fmt=min=>`${pad(Math.floor(min/60))}h${pad(min%60)}min`;
+const parse=(t)=>{const [h,m]=t.split(':').map(Number);return h*60+m;};
+
+function emailsDisponiveis(){ return Object.keys(localStorage).filter(k=>k.startsWith('ponto_registros_')).map(k=>k.replace('ponto_registros_','')); }
+function calc(reg){ let m=0; const mk=(reg.marcacoes||[]).slice().sort((a,b)=>a.timestamp-b.timestamp); for(let i=0;i<mk.length-1;i+=2){ m+=Math.max(0,Math.round((new Date(mk[i+1].timestamp)-new Date(mk[i].timestamp))/60000)); } return m; }
+
+function render(){
+  listaEspecial.innerHTML='';
+  (cfg.diasNaoContabilizados||[]).forEach((d,idx)=>{ const li=document.createElement('li'); li.innerHTML=`${new Date(d+'T00:00:00').toLocaleDateString('pt-BR')} <button data-i='${idx}'>remover</button>`; listaEspecial.appendChild(li); });
+  listaEspecial.querySelectorAll('button').forEach(b=>b.onclick=()=>{ cfg.diasNaoContabilizados.splice(Number(b.dataset.i),1); localStorage.setItem(cfgKey,JSON.stringify(cfg)); render(); });
+
+  const users=emailsDisponiveis();
+  usuarios.innerHTML=users.map(u=>`<option>${u}</option>`).join('');
+  if(!users.length) usuarios.innerHTML='<option>Nenhum usuário</option>';
+
+  const allRegs=users.flatMap(u=>JSON.parse(localStorage.getItem(`ponto_registros_${u}`)||'[]'));
+  const diasSet=new Set(allRegs.filter(r=>calc(r)>0).map(r=>r.date));
+  const horasTot=allRegs.reduce((s,r)=>s+calc(r),0);
+  const atras=allRegs.filter(r=>(r.marcacoes||[])[0]?.hora && parse(r.marcacoes[0].hora)>parse('08:00') && !(cfg.diasNaoContabilizados||[]).includes(r.date)).length;
+  dias.textContent=diasSet.size; horas.textContent=fmt(horasTot); atrasos.textContent=atras;
+  const now=new Date(); const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  faltas.textContent=Math.max(0,(users.length*dim)-diasSet.size-(cfg.diasNaoContabilizados||[]).length);
+
+  const sol=getS(); solPend.textContent=sol.filter(s=>s.status==='pendente').length;
+  solicitacoes.innerHTML='';
+  sol.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).forEach(s=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<strong>${s.email}</strong> - ${s.date} ${s.horaPretendida}<div class='muted'>${s.justificativa}</div><div class='row'><button class='btn ap' data-id='${s.id}'>Aprovar</button><button class='btn rc' data-id='${s.id}'>Recusar</button></div>`;solicitacoes.appendChild(d);});
+  solicitacoes.querySelectorAll('.ap').forEach(b=>b.onclick=()=>decidir(b.dataset.id,'aprovado'));
+  solicitacoes.querySelectorAll('.rc').forEach(b=>b.onclick=()=>decidir(b.dataset.id,'recusado'));
+
+  renderUser();
+}
+
+function decidir(id,status){
+  const sol=getS(); const s=sol.find(x=>x.id===id); if(!s)return; s.status=status; saveS(sol);
+  if(status==='aprovado'){
+    const k=`ponto_registros_${s.email}`; const regs=JSON.parse(localStorage.getItem(k)||'[]'); let day=regs.find(r=>r.date===s.date); if(!day){day={date:s.date,marcacoes:[]};regs.push(day);} day.marcacoes.push({timestamp:new Date(`${s.date}T${s.horaPretendida}:00`).toISOString(),hora:s.horaPretendida,endereco:'Registro manual aprovado',origem:'solicitacao'}); localStorage.setItem(k,JSON.stringify(regs));
+  }
+  render();
+}
+
+function renderUser(){
+  const u=usuarios.value; const k=`ponto_registros_${u}`; const regs=JSON.parse(localStorage.getItem(k)||'[]');
+  registrosUsuario.innerHTML='';
+  regs.sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{const marks=(r.marcacoes||[]).map((m,i)=>`<li>${m.hora} - ${m.endereco} <button class='del' data-date='${r.date}' data-i='${i}'>Excluir</button></li>`).join(''); const div=document.createElement('div');div.className='item';div.innerHTML=`<strong>${r.date}</strong><ul>${marks||'<li>Sem marcação</li>'}</ul>`;registrosUsuario.appendChild(div);});
+  registrosUsuario.querySelectorAll('.del').forEach(b=>b.onclick=()=>{const regs=JSON.parse(localStorage.getItem(k)||'[]'); const day=regs.find(r=>r.date===b.dataset.date); if(!day)return; day.marcacoes.splice(Number(b.dataset.i),1); localStorage.setItem(k,JSON.stringify(regs)); renderUser(); render(); });
+}
+
+addEspecial.onclick=()=>{ if(!diaEspecial.value) return; if(!cfg.diasNaoContabilizados.includes(diaEspecial.value)) cfg.diasNaoContabilizados.push(diaEspecial.value); localStorage.setItem(cfgKey,JSON.stringify(cfg)); render(); };
+usuarios.onchange=renderUser;
+render();
+</script>
+</body></html>

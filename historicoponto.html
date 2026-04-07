@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Histórico de Ponto</title>
+<style>body{font-family:Montserrat,Arial,sans-serif;background:#f3f4f6;margin:0}.top{background:#231f20;color:#fff;padding:12px 16px;display:flex;justify-content:space-between}.btn{background:#111827;color:#fff;border:none;border-radius:8px;padding:8px 12px;text-decoration:none;cursor:pointer}.wrap{max-width:1000px;margin:20px auto;padding:0 16px}.filters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:#fff;padding:12px;border-radius:10px}.list{margin-top:12px}.item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-top:8px}.muted{color:#6b7280;font-size:13px}@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}</style>
+</head>
+<body>
+<div class="top"><strong>Histórico de Ponto</strong><div><a class="btn" href="registrarponto.html">Registrar ponto</a> <a class="btn" href="index.html">Painel</a></div></div>
+<div class="wrap">
+  <div class="filters">
+    <input id="fDia" type="date"><input id="fMes" type="month"><input id="fHora" placeholder="HH:MM"><select id="fFaltas"><option value="">Faltas?</option><option value="com">Com faltas</option><option value="sem">Sem faltas</option></select><button class="btn" id="aplicar">Filtrar</button>
+  </div>
+  <div id="resumo" class="muted" style="margin-top:8px"></div>
+  <div class="list" id="lista"></div>
+</div>
+<script type="module">
+  import { protegerPagina } from './auth.js';
+  const sessao = await protegerPagina({ paginaAtual: 'historicoponto.html' });
+  if (!sessao) throw new Error('sem sessão');
+  const email=(sessao.user.email||sessao.acesso.email).toLowerCase();
+  const reg=JSON.parse(localStorage.getItem(`ponto_registros_${email}`)||'[]');
+  const ign=(JSON.parse(localStorage.getItem('ponto_config_global')||'{"diasNaoContabilizados":[]}').diasNaoContabilizados)||[];
+  const parse=(t)=>{const [h,m]=t.split(':').map(Number);return h*60+m;};
+  function render(){
+    const dia=fDia.value, mes=fMes.value, hora=fHora.value, faltas=fFaltas.value;
+    let arr=[...reg];
+    if(dia) arr=arr.filter(r=>r.date===dia);
+    if(mes) arr=arr.filter(r=>r.date.startsWith(mes));
+    if(hora) arr=arr.filter(r=>(r.marcacoes||[]).some(m=>m.hora.startsWith(hora)));
+    if(faltas){ arr=arr.filter(r=>{const has=(r.marcacoes||[]).length===0 && !ign.includes(r.date);return faltas==='com'?has:!has;}); }
+    resumo.textContent = `${arr.length} dia(s) localizado(s).`;
+    lista.innerHTML='';
+    arr.sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{
+      const marks=(r.marcacoes||[]).map(m=>`<li>${m.hora} - ${m.endereco}</li>`).join('');
+      const div=document.createElement('div');div.className='item';
+      div.innerHTML=`<strong>${new Date(r.date+'T00:00:00').toLocaleDateString('pt-BR')}</strong><div class='muted'>${(r.marcacoes||[]).length} marcações</div><ul>${marks||'<li>Sem marcação</li>'}</ul>`;
+      lista.appendChild(div);
+    });
+  }
+  aplicar.onclick=render; render();
+</script>
+</body></html>
