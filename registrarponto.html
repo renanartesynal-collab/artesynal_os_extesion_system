@@ -86,8 +86,6 @@
     const solicitaKey = 'ponto_solicitacoes';
     const feriadosFerias = JSON.parse(localStorage.getItem(configKey) || '{"diasNaoContabilizados":[]}');
 
-    const jornada = { inicio1: '08:00', fim1: '12:00', inicio2: '13:30', fim2: '18:00' };
-    const today = new Date();
     let periodoAtual = 'atual';
 
     const pad = (n) => String(n).padStart(2, '0');
@@ -160,17 +158,20 @@
       almocoInfo.textContent = `Almoço: ${pad(worked.lunch)}min`;
 
       const solic = getSolic().filter(s=>s.email===email && s.date.startsWith(key));
+      const diasNoMes = new Date(ini.getFullYear(), ini.getMonth() + 1, 0).getDate();
       listaDias.innerHTML = '';
-      [...lista].sort((a,b)=>b.date.localeCompare(a.date)).forEach((day)=>{
+      for (let d = diasNoMes; d >= 1; d -= 1) {
+        const date = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}-${pad(d)}`;
+        const day = lista.find(item => item.date === date) || { date, marcacoes: [] };
         const calc = calcWorkedForDay(day);
         const div = document.createElement('div');
         div.className='day';
-        const marks = day.marcacoes.map(m=>`<div class='mark'>${m.hora} <span class='small'>${m.endereco}</span></div>`).join('');
+        const marks = (day.marcacoes || []).sort((a, b) => a.hora.localeCompare(b.hora)).map(m=>`<div class='mark'>${m.hora} <span class='small'>${m.endereco}</span></div>`).join('');
         const pend = solic.filter(s=>s.date===day.date).map(s=>`<div class='mark pending'>Solicitação ${s.horaPretendida} - ${s.justificativa} <span class='pill'>${s.status}</span></div>`).join('');
         div.innerHTML = `<div class='day-head'><strong>${new Date(day.date+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'short',weekday:'short'})}</strong><button class='plus' data-date='${day.date}'>+</button></div>
-          <div class='small'>Total: ${fmtDur(calc.total)} | Almoço: ${pad(calc.lunch)}min</div>${marks || "<div class='small'>Sem marcações</div>"}${pend}`;
+          <div class='small'>Total: ${fmtDur(calc.total)} | Almoço: ${pad(calc.lunch)}min</div>${marks || "<div class='small'>Sem marcações no dia.</div>"}${pend}`;
         listaDias.appendChild(div);
-      });
+      }
 
       document.querySelectorAll('.plus').forEach(btn=>btn.onclick=()=>{
         const date = btn.dataset.date;
