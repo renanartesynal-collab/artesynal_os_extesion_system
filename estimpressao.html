@@ -529,7 +529,7 @@
                 return `<div class="banco-col"><h4>${col.titulo}</h4>${itens.map((m) => `
                     <div class="banco-item ${idsModelosSelecionados.has(m.id) ? 'selected' : ''}" onclick="alternarSelecaoModelo('${m.id}')">
                         <strong>${m.nome}</strong>
-                        <small>${m.tamanho || '-'} • ${m.unidade} • alerta: ${Number(m.margem_alerta || 0)}</small>
+                        <small>${Number(m.qtd || 0)} ${m.unidade || ''} • ${m.tamanho || '-'} • alerta: ${Number(m.margem_alerta || 0)}</small>
                     </div>`).join('') || '<small style="color:#666;">Sem mídias</small>'}
                 </div>`;
             }).join('');
@@ -625,7 +625,7 @@
         window.adicionarSelecionadasAoEstoque = async () => {
             const btn = document.getElementById('btn-salvar-final');
             const fromSelectId = document.getElementById('prod-modelo')?.value;
-            const qtdEntrada = parseFloat(document.getElementById('prod-qtd').value) || 1;
+            const qtdEntradaManual = parseFloat(document.getElementById('prod-qtd').value);
             const ids = idsModelosSelecionados.size ? [...idsModelosSelecionados] : (fromSelectId ? [fromSelectId] : []);
             if (!ids.length) return alert('Selecione ao menos uma mídia.');
             btn.disabled = true; btn.innerText = "SALVANDO...";
@@ -633,14 +633,18 @@
                 for (const modelId of ids) {
                     const modelo = modelosMidia.find((m) => m.id === modelId);
                     if (!modelo) continue;
+                    const qtdBaseModelo = parseFloat(modelo.qtd);
+                    const qtdFinal = idsModelosSelecionados.size
+                        ? (Number.isFinite(qtdBaseModelo) && qtdBaseModelo > 0 ? qtdBaseModelo : 1)
+                        : (Number.isFinite(qtdEntradaManual) && qtdEntradaManual > 0 ? qtdEntradaManual : (Number.isFinite(qtdBaseModelo) && qtdBaseModelo > 0 ? qtdBaseModelo : 1));
                     const docRefNovo = await addDoc(collection(db, "estoque"), {
                         setor: window.setorAtual,
                         categoria: modelo.categoria,
                         data_criacao: serverTimestamp(),
                         data_atualizacao: serverTimestamp(),
                         nome: modelo.nome,
-                        qtd: qtdEntrada,
-                        qtd_max: modelo.qtd_max || modelo.qtd || qtdEntrada,
+                        qtd: qtdFinal,
+                        qtd_max: modelo.qtd_max || modelo.qtd || qtdFinal,
                         unidade: modelo.unidade,
                         tamanho: modelo.tamanho || '',
                         margem_alerta: Number(modelo.margem_alerta || 0),
@@ -652,7 +656,7 @@
                         categoria: modelo.categoria,
                         unidade: modelo.unidade,
                         margem_alerta: Number(modelo.margem_alerta || 0)
-                    }, qtdEntrada);
+                    }, qtdFinal);
                 }
                 window.fecharModal('modal-prod');
                 window.fecharModal('modal-banco-midias');
