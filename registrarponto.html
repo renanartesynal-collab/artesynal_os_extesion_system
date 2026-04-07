@@ -29,6 +29,10 @@
     .mark.pending { border-color:var(--warn); color:var(--warn); }
     .small { color:var(--muted); font-size:13px; }
     .pill { padding:3px 8px; border-radius:99px; font-size:12px; background:#f3e8ff; color:var(--purple); }
+    .day-meta { margin-top:8px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+    .toggle-detail { border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; cursor:pointer; color:#374151; }
+    .details { margin-top:10px; display:none; }
+    .details.open { display:block; }
     @media (max-width:800px){ .hero{grid-template-columns:1fr;} .circle{justify-self:start;} .stat-grid{grid-template-columns:repeat(2,minmax(120px,1fr));} }
   </style>
 </head>
@@ -164,12 +168,14 @@
         const date = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}-${pad(d)}`;
         const day = lista.find(item => item.date === date) || { date, marcacoes: [] };
         const calc = calcWorkedForDay(day);
+        const hasMarks = (day.marcacoes || []).length > 0;
         const div = document.createElement('div');
         div.className='day';
         const marks = (day.marcacoes || []).sort((a, b) => a.hora.localeCompare(b.hora)).map(m=>`<div class='mark'>${m.hora} <span class='small'>${m.endereco}</span></div>`).join('');
         const pend = solic.filter(s=>s.date===day.date).map(s=>`<div class='mark pending'>Solicitação ${s.horaPretendida} - ${s.justificativa} <span class='pill'>${s.status}</span></div>`).join('');
         div.innerHTML = `<div class='day-head'><strong>${new Date(day.date+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'short',weekday:'short'})}</strong><button class='plus' data-date='${day.date}'>+</button></div>
-          <div class='small'>Total: ${fmtDur(calc.total)} | Almoço: ${pad(calc.lunch)}min</div>${marks || "<div class='small'>Sem marcações no dia.</div>"}${pend}`;
+          <div class='day-meta'><span class='small'>Escala de trabalho: <strong style='color:var(--purple);'>Dia Comum</strong></span>${hasMarks ? `<button class='toggle-detail' data-date='${day.date}'>Ver detalhes</button>` : ''}</div>
+          <div id='detail-${day.date}' class='details'>${hasMarks ? `<div class='small'>Total: ${fmtDur(calc.total)} | Almoço: ${pad(calc.lunch)}min</div>${marks}` : ''}${pend}</div>`;
         listaDias.appendChild(div);
       }
 
@@ -183,6 +189,13 @@
         arr.push({ id: crypto.randomUUID(), email, date, horaPretendida, justificativa, status:'pendente', createdAt:new Date().toISOString() });
         saveSolic(arr);
         render();
+      });
+      document.querySelectorAll('.toggle-detail').forEach((btn) => {
+        btn.onclick = () => {
+          const panel = document.getElementById(`detail-${btn.dataset.date}`);
+          const opened = panel.classList.toggle('open');
+          btn.textContent = opened ? 'Ocultar detalhes' : 'Ver detalhes';
+        };
       });
     }
 
