@@ -53,6 +53,14 @@
 
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 65px; height: 65px; background: var(--purple); color: white; border-radius: 50%; border: none; font-size: 35px; font-weight: bold; box-shadow: 0 4px 15px rgba(155, 89, 182, 0.5); cursor: pointer; z-index: 100; transition: transform 0.2s; display: flex; align-items: center; justify-content: center;}
         .fab-add:hover { transform: scale(1.1); }
+        .btn-registrar-midia { background: var(--green-new); color: #fff; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        .btn-registrar-midia:hover { filter: brightness(1.08); }
+        .banco-grid { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
+        .banco-col { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px; min-height: 220px; }
+        .banco-col h4 { margin: 0 0 8px; color: var(--purple); font-size: 13px; text-transform: uppercase; }
+        .banco-item { border: 1px solid #333; border-radius: 8px; padding: 8px; margin-bottom: 8px; cursor: pointer; background: #161616; }
+        .banco-item.selected { border-color: var(--green-new); box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5); }
+        .banco-item small { color: #aaa; display: block; margin-top: 4px; }
 
         /* Estilos dos Modais */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
@@ -121,10 +129,14 @@
 
     <a href="index.html" class="btn-voltar-home">⬅ VOLTAR AO PAINEL PRINCIPAL</a>
 
-    <div id="main-layout">
-        <div class="header-est">
-            <div><h1 id="page-title">📦 Sala de Impressão</h1></div>
-        </div>
+        <div id="main-layout">
+            <div class="header-est">
+                <div><h1 id="page-title">📦 Sala de Impressão</h1></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-adj" onclick="abrirModalSelecaoMidia()" style="background:#1f2937; border:1px solid #374151;">Selecionar mídia</button>
+                    <button class="btn-registrar-midia" onclick="abrirModalRegistroMidia()">Registrar mídia</button>
+                </div>
+            </div>
 
         <div id="painel-tintas" class="painel-tintas">
             <h2>Gestão de Insumos da Máquina (Frascos 900ml / 20cm)</h2>
@@ -138,7 +150,7 @@
             <div class="kanban-col"><div class="kanban-header" style="background:#444">Outros</div><div class="grid-est" id="grid-OUTROS-IMP"></div></div>
         </div>
 
-        <button class="fab-add" onclick="abrirModalProd()">+</button>
+        <button class="fab-add" onclick="abrirPainelBancoMidias()">+</button>
     </div>
 
     <div id="modal-prod" class="modal-overlay">
@@ -158,31 +170,76 @@
                         <select id="prod-cat" onchange="handleCategoryChange()"></select>
                     </div>
                 </div>
+                <button class="btn-registrar-midia" type="button" onclick="abrirModalRegistroMidia()">Registrar mídia</button>
+            </div>
+
+            <div id="div-nome-imp" style="margin-bottom: 15px;">
+                <label class="label-standard" style="margin-bottom: 8px;">Selecionar mídia registrada</label>
+                <select id="prod-modelo"></select>
+            </div>
+
+            <div id="div-qtd" style="margin-top:15px;">
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="label-standard" style="margin-bottom: 8px;">Quantidade a adicionar</label>
+                        <input type="number" id="prod-qtd" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-salvar" id="btn-salvar-final" onclick="adicionarSelecionadasAoEstoque()">ADICIONAR AO ESTOQUE</button>
+        </div>
+    </div>
+
+    <div id="modal-registro-midia" class="modal-overlay">
+        <div class="modal-box">
+            <button class="btn-voltar-top" onclick="fecharModal('modal-registro-midia')" style="background: transparent; color: white; border: 1px solid #555;">✖ CANCELAR</button>
+            <div class="header-row">
+                <h2 class="title-material">Registrar Mídia</h2>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label class="label-standard" style="margin-bottom: 8px;">Categoria</label>
+                <select id="reg-cat"></select>
             </div>
 
             <div id="div-nome-imp" style="margin-bottom: 15px;">
                 <label class="label-standard" style="margin-bottom: 8px;">Nome / Descrição do Rolo ou Item</label>
-                <input type="text" id="prod-nome" placeholder="Ex: Adesivo Brilho 1.22m x 50m">
+                <input type="text" id="reg-nome" placeholder="Ex: Adesivo Brilho 1.22m x 50m">
             </div>
 
             <div id="div-qtd" style="margin-top:15px;">
                 <div class="form-row">
                     <div class="field-group">
                         <label class="label-standard" style="margin-bottom: 8px;">Quantidade Em Estoque</label>
-                        <input type="number" id="prod-qtd" value="1">
+                        <input type="number" id="reg-qtd" value="1">
                     </div>
                     <div class="field-group">
                         <label class="label-standard" style="margin-bottom: 8px;">Unidade</label>
-                        <select id="prod-unidade">
+                        <select id="reg-unidade">
                             <option value="un">Rolos / Unidade</option>
                             <option value="m">Metros</option>
                             <option value="L">Litros</option>
                         </select>
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="label-standard" style="margin-bottom: 8px;">Margem de alerta</label>
+                        <input type="number" id="reg-alerta" value="0" min="0" placeholder="Quantidade mínima para alerta">
+                    </div>
+                </div>
             </div>
 
-            <button class="btn-salvar" id="btn-salvar-final" onclick="salvarProduto()">SALVAR NO ESTOQUE</button>
+            <button class="btn-salvar" id="btn-salvar-sistema" onclick="salvarMidiaSistema()">SALVAR NO SISTEMA</button>
+        </div>
+    </div>
+
+    <div id="modal-banco-midias" class="modal-overlay">
+        <div class="modal-box" style="max-width: 1050px;">
+            <button class="btn-voltar-top" onclick="fecharModal('modal-banco-midias')" style="background: transparent; color: white; border: 1px solid #555;">✖ FECHAR</button>
+            <h2 style="margin:0; color:var(--purple)">Banco de mídias</h2>
+            <div class="banco-grid" id="banco-midias-grid"></div>
+            <button class="btn-salvar" style="margin-top:12px;" onclick="adicionarSelecionadasAoEstoque()">ADICIONAR AO ESTOQUE</button>
         </div>
     </div>
 
@@ -261,8 +318,11 @@
         window.setorAtual = 'impressao'; // Fixo para este arquivo
         window.isNewCategory = false;
         let produtos = [];
+        let modelosMidia = [];
+        let idsModelosSelecionados = new Set();
         let categoriasDinamicas = [];
         let hashAbertoId = null;
+        const warteEmail = 'wartesynal@gmail.com';
         const sessaoLocal = JSON.parse(localStorage.getItem('artesynal_session') || 'null');
         const userTaskMe = {
             nome: sessaoLocal?.nome || '',
@@ -284,6 +344,7 @@
         // INICIALIZAÇÃO IMEDIATA
         document.addEventListener('DOMContentLoaded', () => {
             ouvirEstoque();
+            ouvirModelosMidia();
             iniciarPainelTintas();
             iniciarPainelTarefaCard();
             window.addEventListener('hashchange', () => {
@@ -328,6 +389,20 @@
             });
         }
 
+        function ouvirModelosMidia() {
+            const q = query(collection(db, "midias_sistema"), where("setor", "==", window.setorAtual));
+            onSnapshot(q, (snapshot) => {
+                modelosMidia = [];
+                snapshot.forEach((d) => {
+                    const it = d.data() || {};
+                    modelosMidia.push({ ...it, id: d.id });
+                });
+                modelosMidia.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+                preencherSelectModelos();
+                renderizarBancoMidias();
+            });
+        }
+
         function renderizarCards() {
             document.querySelectorAll('.grid-est').forEach(g => g.innerHTML = '');
 
@@ -339,6 +414,11 @@
                 if(grid) {
                     const card = document.createElement('div');
                     card.className = `card-prod`;
+                    const alertaItem = Number(p.margem_alerta || 0);
+                    if (alertaItem > 0 && Number(p.qtd || 0) <= alertaItem) {
+                        card.style.border = '1px solid #ff3b3b';
+                        card.style.boxShadow = '0 0 0 1px rgba(255, 59, 59, 0.45), 0 0 18px rgba(255, 59, 59, 0.25)';
+                    }
                     card.dataset.itemId = p.id;
                     let temNotaBadge = p.anotacoes ? `<span style="position:absolute; top:10px; right:35px; background:var(--purple); color:white; font-size:10px; padding:2px 5px; border-radius:4px; font-weight:bold;">📝 Nota</span>` : '';
                     let conteudo = temNotaBadge + `<button class="btn-del-card" onclick="deletarItem('${p.id}')">×</button>`;
@@ -368,15 +448,15 @@
         window.fecharModal = (id) => document.getElementById(id).style.display = 'none';
 
         // Lógica Formulário Categoria Dinâmica
-        window.abrirModalProd = () => {
+        window.abrirModalSelecaoMidia = () => {
             document.getElementById('modal-prod').style.display = 'flex';
             window.isNewCategory = false;
             window.resetarCategoriaField();
-            document.getElementById('prod-nome').value = '';
             document.getElementById('prod-qtd').value = '1';
+            preencherSelectModelos();
         };
 
-        window.handleCategoryChange = () => { /* Vazio aqui pois não temos mais dependência visual das chapas */ };
+        window.handleCategoryChange = () => { preencherSelectModelos(); };
 
         window.ativarNovaCategoria = () => {
             window.isNewCategory = true; document.getElementById('label-cat').innerText = "Nova Categoria";
@@ -409,6 +489,7 @@
             });
             document.getElementById('cat-container').innerHTML = '';
             document.getElementById('cat-container').appendChild(select);
+            preencherSelectModelos();
         };
 
         window.salvarNovaCategoriaNoArray = () => {
@@ -417,28 +498,125 @@
             else { input.focus(); }
         };
 
-        // Salvar Produto (Limpo)
-        window.salvarProduto = async () => {
-            const btn = document.getElementById('btn-salvar-final');
-            const cat = window.isNewCategory ? document.getElementById('prod-cat-new').value : document.getElementById('prod-cat').value;
+        function preencherSelectModelos() {
+            const select = document.getElementById('prod-modelo');
+            if (!select) return;
+            const cat = document.getElementById('prod-cat')?.value || '';
+            const lista = modelosMidia.filter((m) => !cat || m.categoria === cat);
+            select.innerHTML = `<option value="">Selecione...</option>${lista.map((m) => `<option value="${m.id}">${m.nome} • ${m.tamanho || '-'} • ${m.unidade}</option>`).join('')}`;
+        }
+
+        function renderizarBancoMidias() {
+            const el = document.getElementById('banco-midias-grid');
+            if (!el) return;
+            const colunas = [
+                { titulo: 'Adesivos', cat: 'Adesivo' },
+                { titulo: 'Lonas', cat: 'Lona' },
+                { titulo: 'Adesivos para recorte', cat: 'Adesivo de Recorte' },
+                { titulo: 'Outros', cat: 'Outros' }
+            ];
+            el.innerHTML = colunas.map((col) => {
+                const itens = modelosMidia.filter((m) => m.categoria === col.cat);
+                return `<div class="banco-col"><h4>${col.titulo}</h4>${itens.map((m) => `
+                    <div class="banco-item ${idsModelosSelecionados.has(m.id) ? 'selected' : ''}" onclick="alternarSelecaoModelo('${m.id}')">
+                        <strong>${m.nome}</strong>
+                        <small>${m.tamanho || '-'} • ${m.unidade} • alerta: ${Number(m.margem_alerta || 0)}</small>
+                    </div>`).join('') || '<small style="color:#666;">Sem mídias</small>'}
+                </div>`;
+            }).join('');
+        }
+
+        window.alternarSelecaoModelo = (id) => {
+            if (idsModelosSelecionados.has(id)) idsModelosSelecionados.delete(id);
+            else idsModelosSelecionados.add(id);
+            renderizarBancoMidias();
+        };
+
+        window.abrirModalRegistroMidia = () => {
+            document.getElementById('modal-registro-midia').style.display = 'flex';
+            document.getElementById('reg-nome').value = '';
+            document.getElementById('reg-qtd').value = '1';
+            document.getElementById('reg-alerta').value = '0';
+            const todasCats = [...new Set([...CATS_IMP, ...categoriasDinamicas])].sort();
+            document.getElementById('reg-cat').innerHTML = `<option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}`;
+        };
+
+        window.abrirPainelBancoMidias = () => {
+            idsModelosSelecionados = new Set();
+            renderizarBancoMidias();
+            document.getElementById('modal-banco-midias').style.display = 'flex';
+        };
+
+        window.salvarMidiaSistema = async () => {
+            const btn = document.getElementById('btn-salvar-sistema');
+            const cat = document.getElementById('reg-cat').value || (window.isNewCategory ? document.getElementById('prod-cat-new')?.value : document.getElementById('prod-cat')?.value);
             if (!cat) return alert("Selecione ou digite uma Categoria!");
-
             btn.disabled = true; btn.innerText = "SALVANDO...";
+            try {
+                await addDoc(collection(db, "midias_sistema"), {
+                    setor: window.setorAtual,
+                    categoria: cat,
+                    data_criacao: serverTimestamp(),
+                    data_atualizacao: serverTimestamp(),
+                    nome: document.getElementById('reg-nome').value || cat,
+                    qtd: parseFloat(document.getElementById('reg-qtd').value) || 0,
+                    qtd_max: parseFloat(document.getElementById('reg-qtd').value) || 0,
+                    unidade: document.getElementById('reg-unidade').value,
+                    tamanho: (document.getElementById('reg-nome').value.match(/(\d+[.,]?\d*\s?m\s?x\s?\d+[.,]?\d*\s?m)/i) || [])[0] || '',
+                    margem_alerta: parseFloat(document.getElementById('reg-alerta').value) || 0
+                });
+                window.fecharModal('modal-registro-midia');
+                idsModelosSelecionados = new Set();
+                document.getElementById('modal-banco-midias').style.display = 'flex';
+                renderizarBancoMidias();
+            } catch(e) {
+                console.error(e); alert("Erro ao salvar");
+            } finally {
+                btn.disabled = false; btn.innerText = "SALVAR NO SISTEMA";
+            }
+        };
 
-            let dados = {
-                setor: window.setorAtual,
-                categoria: cat,
-                data_criacao: serverTimestamp(),
-                data_atualizacao: serverTimestamp(),
-                nome: document.getElementById('prod-nome').value || cat,
-                qtd: parseFloat(document.getElementById('prod-qtd').value) || 0,
-                qtd_max: parseFloat(document.getElementById('prod-qtd').value) || 0,
-                unidade: document.getElementById('prod-unidade').value
-            };
-
-            try { await addDoc(collection(db, "estoque"), dados); window.fecharModal('modal-prod'); }
-            catch(e) { console.error(e); alert("Erro ao salvar"); }
-            btn.disabled = false; btn.innerText = "SALVAR NO ESTOQUE";
+        window.adicionarSelecionadasAoEstoque = async () => {
+            const btn = document.getElementById('btn-salvar-final');
+            const fromSelectId = document.getElementById('prod-modelo')?.value;
+            const qtdEntrada = parseFloat(document.getElementById('prod-qtd').value) || 1;
+            const ids = idsModelosSelecionados.size ? [...idsModelosSelecionados] : (fromSelectId ? [fromSelectId] : []);
+            if (!ids.length) return alert('Selecione ao menos uma mídia.');
+            btn.disabled = true; btn.innerText = "SALVANDO...";
+            try {
+                for (const modelId of ids) {
+                    const modelo = modelosMidia.find((m) => m.id === modelId);
+                    if (!modelo) continue;
+                    const docRefNovo = await addDoc(collection(db, "estoque"), {
+                        setor: window.setorAtual,
+                        categoria: modelo.categoria,
+                        data_criacao: serverTimestamp(),
+                        data_atualizacao: serverTimestamp(),
+                        nome: modelo.nome,
+                        qtd: qtdEntrada,
+                        qtd_max: modelo.qtd_max || modelo.qtd || qtdEntrada,
+                        unidade: modelo.unidade,
+                        tamanho: modelo.tamanho || '',
+                        margem_alerta: Number(modelo.margem_alerta || 0),
+                        modelo_id: modelo.id
+                    });
+                    await verificarAlertaECriarTarefa({
+                        id: docRefNovo.id,
+                        nome: modelo.nome,
+                        categoria: modelo.categoria,
+                        unidade: modelo.unidade,
+                        margem_alerta: Number(modelo.margem_alerta || 0)
+                    }, qtdEntrada);
+                }
+                window.fecharModal('modal-prod');
+                window.fecharModal('modal-banco-midias');
+                idsModelosSelecionados = new Set();
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao adicionar no estoque.');
+            } finally {
+                btn.disabled = false; btn.innerText = "ADICIONAR AO ESTOQUE";
+            }
         };
 
         // Lógica de Movimentação (Baixa/Entrada)
@@ -477,10 +655,68 @@
                 }
             }
 
-            try { await updateDoc(doc(db, "estoque", idParaAjuste), dadosAtualizacao); window.fecharModal('modal-mov'); }
+            try {
+                await updateDoc(doc(db, "estoque", idParaAjuste), dadosAtualizacao);
+                await atualizarTarefasRelacionadasAoCard(idParaAjuste, novaQtd, p.unidade);
+                await verificarAlertaECriarTarefa(p, novaQtd);
+                window.fecharModal('modal-mov');
+            }
             catch (e) { console.error(e); alert("Erro ao salvar."); }
             finally { btn.disabled = false; btn.innerText = "💾 CONFIRMAR REGISTRO"; }
         };
+
+        async function atualizarTarefasRelacionadasAoCard(cardId, qtdAtual, unidade) {
+            const qTar = query(collection(db, 'tarefas'), where('status', '==', 'pendente'));
+            const snap = await getDocs(qTar);
+            const updates = [];
+            snap.forEach((d) => {
+                const t = d.data() || {};
+                if (t?.cardAlvo?.id !== cardId || t?.cardAlvo?.setor !== 'impressao') return;
+                const base = String(t.descricao || '').replace(/\n\nEstoque atual:[\s\S]*$/g, '');
+                updates.push(updateDoc(doc(db, 'tarefas', d.id), {
+                    descricao: `${base}\n\nEstoque atual: ${qtdAtual} ${unidade}`,
+                    updated_at: serverTimestamp()
+                }));
+            });
+            await Promise.all(updates);
+        }
+
+        async function verificarAlertaECriarTarefa(item, qtdAtual) {
+            const margem = Number(item?.margem_alerta || 0);
+            if (margem <= 0 || qtdAtual > margem) return;
+            const qExiste = query(
+                collection(db, 'tarefas'),
+                where('destinatarioEmail', '==', warteEmail),
+                where('status', '==', 'pendente'),
+                where('origem', '==', 'estoque-impressao'),
+                where('itemId', '==', item.id)
+            );
+            const existe = await getDocs(qExiste);
+            if (!existe.empty) return;
+            await addDoc(collection(db, 'tarefas'), {
+                setor: 'impressao',
+                tipo: 'Compras',
+                resumo: `Reposição de mídia: ${item.nome || item.categoria}`,
+                descricao: `A mídia atingiu a margem de alerta.\nItem: ${item.nome || item.categoria}\nQtd atual: ${qtdAtual} ${item.unidade}\nAlerta: ${margem}`,
+                extras: { comprarMidia: true },
+                status: 'pendente',
+                destinatarioEmail: warteEmail,
+                destinatarioNome: 'warte',
+                solicitanteEmail: userTaskMe.email,
+                solicitanteNome: userTaskMe.nome || 'Sistema',
+                origem: 'estoque-impressao',
+                itemId: item.id,
+                listaId: '',
+                cardAlvo: {
+                    id: item.id,
+                    setor: 'impressao',
+                    label: `${item.nome || item.categoria} (${item.id})`,
+                    link: `${window.location.origin}${window.location.pathname}#item-${item.id}`
+                },
+                created_at: serverTimestamp(),
+                updated_at: serverTimestamp()
+            });
+        }
 
         // Detalhes e Histórico
         let itemParaDetalhes = null;
@@ -516,7 +752,7 @@
                 setor: 'impressao',
                 tipo: 'Card',
                 resumo: titulo,
-                descricao,
+                descricao: `${descricao}\n\nEstoque atual: ${itemParaDetalhes.qtd} ${itemParaDetalhes.unidade}`.trim(),
                 extras: {},
                 status: 'pendente',
                 destinatarioEmail: destino.email,
