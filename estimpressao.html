@@ -133,7 +133,6 @@
             <div class="header-est">
                 <div><h1 id="page-title">📦 Sala de Impressão</h1></div>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-adj" onclick="abrirModalSelecaoMidia()" style="background:#1f2937; border:1px solid #374151;">Selecionar mídia</button>
                     <button class="btn-registrar-midia" onclick="abrirModalRegistroMidia()">Registrar mídia</button>
                 </div>
             </div>
@@ -196,6 +195,14 @@
             <button class="btn-voltar-top" onclick="fecharModal('modal-registro-midia')" style="background: transparent; color: white; border: 1px solid #555;">✖ CANCELAR</button>
             <div class="header-row">
                 <h2 class="title-material">Registrar Mídia</h2>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label class="label-standard" style="margin-bottom: 8px;">Editar mídia já cadastrada</label>
+                <div style="display:flex; gap:8px;">
+                    <select id="reg-existente" style="flex:1;"></select>
+                    <button class="btn-adj" type="button" onclick="carregarMidiaExistente()">Carregar</button>
+                    <button class="btn-adj" type="button" onclick="excluirMidiaExistente()" style="background:#7f1d1d;">Excluir</button>
+                </div>
             </div>
             <div style="margin-bottom:15px;">
                 <label class="label-standard" style="margin-bottom: 8px;">Categoria</label>
@@ -320,6 +327,7 @@
         let produtos = [];
         let modelosMidia = [];
         let idsModelosSelecionados = new Set();
+        let midiaEditandoId = null;
         let categoriasDinamicas = [];
         let hashAbertoId = null;
         const warteEmail = 'wartesynal@gmail.com';
@@ -400,6 +408,7 @@
                 modelosMidia.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
                 preencherSelectModelos();
                 renderizarBancoMidias();
+                preencherSelectMidiasExistentes();
             });
         }
 
@@ -526,6 +535,12 @@
             }).join('');
         }
 
+        function preencherSelectMidiasExistentes() {
+            const select = document.getElementById('reg-existente');
+            if (!select) return;
+            select.innerHTML = `<option value="">Selecione...</option>${modelosMidia.map((m) => `<option value="${m.id}">${m.nome} (${m.categoria || '-'})</option>`).join('')}`;
+        }
+
         window.alternarSelecaoModelo = (id) => {
             if (idsModelosSelecionados.has(id)) idsModelosSelecionados.delete(id);
             else idsModelosSelecionados.add(id);
@@ -534,11 +549,38 @@
 
         window.abrirModalRegistroMidia = () => {
             document.getElementById('modal-registro-midia').style.display = 'flex';
+            midiaEditandoId = null;
             document.getElementById('reg-nome').value = '';
             document.getElementById('reg-qtd').value = '1';
             document.getElementById('reg-alerta').value = '0';
+            document.getElementById('btn-salvar-sistema').innerText = 'SALVAR NO SISTEMA';
             const todasCats = [...new Set([...CATS_IMP, ...categoriasDinamicas])].sort();
             document.getElementById('reg-cat').innerHTML = `<option value="">Selecione...</option>${todasCats.map(c => `<option value="${c}">${c}</option>`).join('')}`;
+            preencherSelectMidiasExistentes();
+            document.getElementById('reg-existente').value = '';
+        };
+
+        window.carregarMidiaExistente = () => {
+            const id = document.getElementById('reg-existente').value;
+            const midia = modelosMidia.find((m) => m.id === id);
+            if (!midia) return alert('Selecione uma mídia cadastrada.');
+            midiaEditandoId = id;
+            document.getElementById('reg-cat').value = midia.categoria || '';
+            document.getElementById('reg-nome').value = midia.nome || '';
+            document.getElementById('reg-qtd').value = String(Number(midia.qtd || 0));
+            document.getElementById('reg-unidade').value = midia.unidade || 'un';
+            document.getElementById('reg-alerta').value = String(Number(midia.margem_alerta || 0));
+            document.getElementById('btn-salvar-sistema').innerText = 'ATUALIZAR MÍDIA';
+        };
+
+        window.excluirMidiaExistente = async () => {
+            const id = document.getElementById('reg-existente').value;
+            const midia = modelosMidia.find((m) => m.id === id);
+            if (!midia) return alert('Selecione uma mídia cadastrada para excluir.');
+            if (!confirm(`Excluir a mídia "${midia.nome}" do sistema?`)) return;
+            await deleteDoc(doc(db, 'midias_sistema', id));
+            if (midiaEditandoId === id) midiaEditandoId = null;
+            alert('Mídia removida do sistema.');
         };
 
         window.abrirPainelBancoMidias = () => {
@@ -553,10 +595,9 @@
             if (!cat) return alert("Selecione ou digite uma Categoria!");
             btn.disabled = true; btn.innerText = "SALVANDO...";
             try {
-                await addDoc(collection(db, "midias_sistema"), {
+                const payload = {
                     setor: window.setorAtual,
                     categoria: cat,
-                    data_criacao: serverTimestamp(),
                     data_atualizacao: serverTimestamp(),
                     nome: document.getElementById('reg-nome').value || cat,
                     qtd: parseFloat(document.getElementById('reg-qtd').value) || 0,
@@ -564,7 +605,12 @@
                     unidade: document.getElementById('reg-unidade').value,
                     tamanho: (document.getElementById('reg-nome').value.match(/(\d+[.,]?\d*\s?m\s?x\s?\d+[.,]?\d*\s?m)/i) || [])[0] || '',
                     margem_alerta: parseFloat(document.getElementById('reg-alerta').value) || 0
-                });
+                };
+                if (midiaEditandoId) {
+                    await updateDoc(doc(db, "midias_sistema", midiaEditandoId), payload);
+                } else {
+                    await addDoc(collection(db, "midias_sistema"), { ...payload, data_criacao: serverTimestamp() });
+                }
                 window.fecharModal('modal-registro-midia');
                 idsModelosSelecionados = new Set();
                 document.getElementById('modal-banco-midias').style.display = 'flex';
