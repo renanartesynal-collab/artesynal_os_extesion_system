@@ -20,11 +20,11 @@ const ADMIN_PADRAO = {
 export const PERFIS = {
   producao: {
     label: "Produção",
-    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "estoque.html", "tarefas.html"]
+    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
   },
   instalacao: {
     label: "Instalação",
-    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "estoque.html", "tarefas.html"]
+    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
   },
   administracao: {
     label: "Administração",
@@ -38,7 +38,10 @@ export const PERFIS = {
       "estpintura.html",
       "estoque.html",
       "admin-acessos.html",
-      "tarefas.html"
+      "tarefas.html",
+      "registrarponto.html",
+      "historicoponto.html",
+      "paineldeponto.html"
     ]
   }
 };
@@ -53,7 +56,10 @@ export const MODULOS_MENU = [
   { pagina: "estpintura.html", label: "Pintura" },
   { pagina: "estoque.html", label: "Estoque" },
   { pagina: "admin-acessos.html", label: "Gerenciamento de Acessos" },
-  { pagina: "tarefas.html", label: "Tarefas" }
+  { pagina: "tarefas.html", label: "Tarefas" },
+  { pagina: "registrarponto.html", label: "Registrar Ponto" },
+  { pagina: "historicoponto.html", label: "Histórico de Ponto" },
+  { pagina: "paineldeponto.html", label: "Painel de Ponto" }
 ];
 
 const VISIBILIDADE_PADRAO = {
@@ -66,7 +72,10 @@ const VISIBILIDADE_PADRAO = {
     "estpintura.html": false,
     "estoque.html": true,
     "admin-acessos.html": false,
-    "tarefas.html": true
+    "tarefas.html": true,
+    "registrarponto.html": true,
+    "historicoponto.html": true,
+    "paineldeponto.html": false
   },
   instalacao: {
     "os.html": false,
@@ -77,7 +86,10 @@ const VISIBILIDADE_PADRAO = {
     "estpintura.html": true,
     "estoque.html": true,
     "admin-acessos.html": false,
-    "tarefas.html": true
+    "tarefas.html": true,
+    "registrarponto.html": true,
+    "historicoponto.html": true,
+    "paineldeponto.html": false
   },
   administracao: {
     "os.html": true,
@@ -88,7 +100,10 @@ const VISIBILIDADE_PADRAO = {
     "estpintura.html": true,
     "estoque.html": true,
     "admin-acessos.html": true,
-    "tarefas.html": true
+    "tarefas.html": true,
+    "registrarponto.html": true,
+    "historicoponto.html": true,
+    "paineldeponto.html": true
   }
 };
 

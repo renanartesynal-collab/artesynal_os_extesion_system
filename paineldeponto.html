@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Controle de Ponto</title>
+  <style>
+    :root {
+      --bg:#f3f3f7;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --header:#231f20;
+      --btn:#111827;
+      --card:#fff;
+      --purple:#6a0dad;
+      --purple-light:#f3e8ff;
+      --ok:#16a34a;
+      --ok-light:#dcfce7;
+      --warn:#dc2626;
+      --warn-light:#fee2e2;
+      --shadow:0 1px 3px rgba(0,0,0,0.1);
+    }
+    * {
+      box-sizing:border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Montserrat, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .top {
+      background:linear-gradient(135deg, #231f20 0%, #3d3536 100%);
+      color:#fff;
+      padding:16px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top strong {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .actions {
+      display:flex;
+      gap:8px;
+    }
+    .btn {
+      border:0;
+      background:var(--btn);
+      color:#fff;
+      border-radius:999px;
+      padding:10px 16px;
+      text-decoration:none;
+      cursor:pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      background:#374151;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .btn-approve {
+      background: var(--ok);
+    }
+    .btn-approve:hover {
+      background: #15803d;
+    }
+    .btn-reject {
+      background: var(--warn);
+    }
+    .btn-reject:hover {
+      background: #b91c1c;
+    }
+    .wrap {
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px;
+    }
+    .grid-cards {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+      gap:12px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .card-label {
+      color:var(--muted);
+      font-size:12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-size:32px;
+      font-weight:700;
+      color:var(--purple);
+      font-variant-numeric: tabular-nums;
+    }
+    .panel {
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .panel h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .row {
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom: 16px;
+    }
+    .input {
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:12px;
+      background:#f8fafc;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      flex: 1;
+      min-width: 140px;
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--purple);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--purple-light);
+    }
+    .item {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:12px;
+      transition: all 0.2s ease;
+      animation: slideIn 0.3s ease;
+    }
+    .item:hover {
+      border-color: var(--purple);
+      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.08);
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .item-title {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .item-meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .muted {
+      color:var(--muted);
+      font-size:13px;
+    }
+    .list {
+      list-style: none;
+      padding: 0;
+    }
+    .list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .list li:last-child {
+      border-bottom: none;
+    }
+    .pill {
+      display: inline-block;
+      padding:6px 12px;
+      border-radius:99px;
+      font-size:12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pill-pending {
+      background: var(--warn-light);
+      color: var(--warn);
+    }
+    .pill-approved {
+      background: var(--ok-light);
+      color: var(--ok);
+    }
+    .pill-rejected {
+      background: var(--warn-light);
+      color: var(--warn);
+    }
+    .action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--line);
+      margin-bottom: 16px;
+    }
+    .tab {
+      padding: 12px 16px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-weight: 500;
+      color: var(--muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s ease;
+    }
+    .tab:hover {
+      color: var(--text);
+    }
+    .tab.active {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Mobile */
+    @media (max-width:768px) {
+      .wrap {
+        padding: 16px;
+      }
+      .grid-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .row {
+        flex-direction: column;
+      }
+      .input {
+        width: 100%;
+        min-width: auto;
+      }
+      .item-header {
+        flex-direction: column;
+      }
+      .action-group {
+        width: 100%;
+      }
+      .btn-sm {
+        flex: 1;
+        min-width: 80px;
+      }
+      .top {
+        padding: 12px 16px;
+      }
+      .top strong {
+        font-size: 16px;
+      }
+      .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .actions {
+        gap: 6px;
+      }
+      .tabs {
+        flex-wrap: wrap;
+        gap: 0;
+      }
+      .tab {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width:480px) {
+      .grid-cards {
+        grid-template-columns: 1fr;
+      }
+      .panel {
+        padding: 16px;
+      }
+      .panel h3 {
+        font-size: 16px;
+      }
+      .item {
+        padding: 12px;
+      }
+      .card-value {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <strong>🛡️ Painel de Controle</strong>
+    <div class="actions">
+      <a class="btn" href="historicoponto.html">📚 Histórico</a>
+      <a class="btn" href="registrarponto.html">📍 Registrar</a>
+      <a class="btn" href="index.html">🏠 Painel</a>
+    </div>
+  </div>
+  <div class="wrap">
+    <!-- Cards de Resumo -->
+    <div class="grid-cards">
+      <div class="card">
+        <div class="card-label">Dias trabalhados</div>
+        <div class="card-value" id="dias">0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Horas registradas</div>
+        <div class="card-value" id="horas" style="font-size:24px;">00h00min</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Faltas</div>
+        <div class="card-value" id="faltas">0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Atrasos</div>
+        <div class="card-value" id="atrasos">0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Solicitações pendentes</div>
+        <div class="card-value" id="solPend">0</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Usuários ativos</div>
+        <div class="card-value" id="usuariosAtivos">0</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="margin-bottom: 24px;">
+      <div class="tabs">
+        <button class="tab active" data-tab="solicitacoes">📋 Solicitações</button>
+        <button class="tab" data-tab="feriados">📅 Feriados/Férias</button>
+        <button class="tab" data-tab="usuarios">👥 Usuários</button>
+      </div>
+
+      <!-- Section: Solicitações -->
+      <div id="solicitacoes" class="section active">
+        <div class="panel">
+          <h3>Solicitações de pontos</h3>
+          <div id="listaSolicitacoes" class="empty">
+            <div>✅</div>
+            <div>Nenhuma solicitação pendente</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Feriados e Férias -->
+      <div id="feriados" class="section">
+        <div class="panel">
+          <h3>Gerenciar feriados e férias</h3>
+          <div class="row">
+            <input id="diaEspecial" class="input" type="date" placeholder="Selecione a data">
+            <button class="btn" id="addEspecial" style="background: var(--ok); padding: 12px 20px;">+ Adicionar</button>
+          </div>
+          <div id="listaEspecial"></div>
+        </div>
+      </div>
+
+      <!-- Section: Usuários -->
+      <div id="usuarios" class="section">
+        <div class="panel">
+          <h3>Detalhamento por usuário</h3>
+          <div class="row">
+            <select id="usuariosSelect" class="input" style="flex: 0 1 250px;">
+              <option value="">Selecione um usuário...</option>
+            </select>
+          </div>
+          <div id="registrosUsuario"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { protegerPagina } from './auth.js';
+    const sessao = await protegerPagina({ paginaAtual: 'paineldeponto.html', exigirAdmin: true });
+    if (!sessao) throw new Error('sem sessão');
+
+    const cfgKey='ponto_config_global';
+    const solKey='ponto_solicitacoes';
+    const cfg=JSON.parse(localStorage.getItem(cfgKey)||'{"diasNaoContabilizados":[]}');
+    const getS=()=>JSON.parse(localStorage.getItem(solKey)||'[]');
+    const saveS=(v)=>localStorage.setItem(solKey,JSON.stringify(v));
+    const pad=n=>String(n).padStart(2,'0');
+    const fmt=min=>`${pad(Math.floor(min/60))}h${pad(min%60)}min`;
+    const parse=t=>{const [h,m]=t.split(':').map(Number);return h*60+m;};
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        const sectionId = tab.dataset.tab;
+        document.getElementById(sectionId).classList.add('active');
+      };
+    });
+
+    const emailsDisponiveis=()=>Object.keys(localStorage).filter(k=>k.startsWith('ponto_registros_')).map(k=>k.replace('ponto_registros_',''));
+    const calc=(reg)=>{
+      let m=0;
+      const mk=(reg.marcacoes||[]).slice().sort((a,b)=>a.timestamp-b.timestamp);
+      for(let i=0;i<mk.length-1;i+=2){
+        m+=Math.max(0,Math.round((new Date(mk[i+1].timestamp)-new Date(mk[i].timestamp))/60000));
+      }
+      return m;
+    };
+
+    function render(){
+      // Feriados/Férias
+      listaEspecial.innerHTML='';
+      if((cfg.diasNaoContabilizados||[]).length === 0) {
+        listaEspecial.innerHTML = '<div class="muted" style="padding: 20px; text-align: center;">Nenhum feriado/férias configurado</div>';
+      } else {
+        (cfg.diasNaoContabilizados||[]).forEach((d,idx)=>{
+          const li=document.createElement('div');
+          li.className='item';
+          li.innerHTML=`
+            <div class='item-header'>
+              <div>
+                <strong>${new Date(d+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',weekday:'short'})}</strong>
+              </div>
+              <button class='btn btn-sm btn-reject' data-i='${idx}'>Remover</button>
+            </div>
+          `;
+          listaEspecial.appendChild(li);
+        });
+      }
+      listaEspecial.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        cfg.diasNaoContabilizados.splice(Number(b.dataset.i),1);
+        localStorage.setItem(cfgKey,JSON.stringify(cfg));
+        render();
+      });
+
+      // Usuários
+      const users=emailsDisponiveis();
+      usuariosSelect.innerHTML='<option value="">Selecione um usuário...</option>' + users.map(u=>`<option value="${u}">${u}</option>`).join('');
+      document.getElementById('usuariosAtivos').textContent = users.length;
+
+      // Estatísticas gerais
+      const allRegs=users.flatMap(u=>JSON.parse(localStorage.getItem(`ponto_registros_${u}`)||'[]'));
+      const diasSet=new Set(allRegs.filter(r=>calc(r)>0).map(r=>r.date));
+      const horasTot=allRegs.reduce((s,r)=>s+calc(r),0);
+      const atras=allRegs.filter(r=>(r.marcacoes||[])[0]?.hora && parse(r.marcacoes[0].hora)>parse('08:00') && !(cfg.diasNaoContabilizados||[]).includes(r.date)).length;
+      dias.textContent=diasSet.size;
+      horas.textContent=fmt(horasTot);
+      atrasos.textContent=atras;
+      const now=new Date(); const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+      faltas.textContent=Math.max(0,(users.length*dim)-diasSet.size-(cfg.diasNaoContabilizados||[]).length);
+
+      // Solicitações
+      const sol=getS(); 
+      solPend.textContent=sol.filter(s=>s.status==='pendente').length;
+      listaSolicitacoes.innerHTML='';
+      
+      if(sol.length === 0) {
+        listaSolicitacoes.innerHTML = '<div class="empty"><div>✅</div><div>Nenhuma solicitação</div></div>';
+      } else {
+        const pendentes = sol.filter(s=>s.status==='pendente');
+        const analisadas = sol.filter(s=>s.status!=='pendente');
+
+        if(pendentes.length > 0) {
+          const pendHeader = document.createElement('h4');
+          pendHeader.style.cssText = 'margin-bottom: 12px; color: var(--warn); font-size: 14px;';
+          pendHeader.textContent = `⏳ ${pendentes.length} pendente(s)`;
+          listaSolicitacoes.appendChild(pendHeader);
+        }
+
+        pendentes.forEach(s=>{
+          const d=document.createElement('div');
+          d.className='item';
+          d.innerHTML=`
+            <div class='item-header'>
+              <div>
+                <div class='item-title'>${s.email}</div>
+                <div class='item-meta'><span>${s.date} às ${s.horaPretendida}</span></div>
+                <div class='muted'>${s.justificativa}</div>
+              </div>
+              <span class='pill pill-pending'>${s.status}</span>
+            </div>
+            <div class='action-group'>
+              <button class='btn btn-sm btn-approve ap' data-id='${s.id}'>✓ Aprovar</button>
+              <button class='btn btn-sm btn-reject rc' data-id='${s.id}'>✕ Recusar</button>
+            </div>
+          `;
+          listaSolicitacoes.appendChild(d);
+        });
+
+        if(analisadas.length > 0) {
+          const analHeader = document.createElement('h4');
+          analHeader.style.cssText = 'margin-top: 24px; margin-bottom: 12px; color: var(--muted); font-size: 14px;';
+          analHeader.textContent = `📋 Histórico (${analisadas.length})`;
+          listaSolicitacoes.appendChild(analHeader);
+
+          analisadas.forEach(s=>{
+            const d=document.createElement('div');
+            d.className='item';
+            const pillClass = s.status === 'aprovado' ? 'pill-approved' : 'pill-rejected';
+            d.innerHTML=`
+              <div class='item-header'>
+                <div>
+                  <div class='item-title'>${s.email}</div>
+                  <div class='item-meta'><span>${s.date} às ${s.horaPretendida}</span></div>
+                  <div class='muted'>${s.justificativa}</div>
+                </div>
+                <span class='pill ${pillClass}'>${s.status}</span>
+              </div>
+            `;
+            listaSolicitacoes.appendChild(d);
+          });
+        }
+      }
+
+      listaSolicitacoes.querySelectorAll('.ap').forEach(b=>b.onclick=()=>decidir(b.dataset.id,'aprovado'));
+      listaSolicitacoes.querySelectorAll('.rc').forEach(b=>b.onclick=()=>decidir(b.dataset.id,'recusado'));
+
+      renderUser();
+    }
+
+    function decidir(id,status){
+      const sol=getS(); const s=sol.find(x=>x.id===id); if(!s) return; s.status=status; saveS(sol);
+      if(status==='aprovado'){
+        const key=`ponto_registros_${s.email}`;
+        const regs=JSON.parse(localStorage.getItem(key)||'[]');
+        let day=regs.find(r=>r.date===s.date);
+        if(!day){day={date:s.date,marcacoes:[]};regs.push(day);}
+        day.marcacoes.push({
+          timestamp:new Date(`${s.date}T${s.horaPretendida}:00`).toISOString(),
+          hora:s.horaPretendida,
+          endereco:'📋 Registro manual aprovado',
+          origem:'solicitacao'
+        });
+        localStorage.setItem(key,JSON.stringify(regs));
+      }
+      render();
+    }
+
+    function renderUser(){
+      const u=usuariosSelect.value; if(!u){registrosUsuario.innerHTML='';return;}
+      const key=`ponto_registros_${u}`;
+      const regs=JSON.parse(localStorage.getItem(key)||'[]');
+      registrosUsuario.innerHTML='';
+
+      if(regs.length === 0) {
+        registrosUsuario.innerHTML = '<div class="empty"><div>📭</div><div>Nenhum registro para este usuário</div></div>';
+        return;
+      }
+
+      regs.sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{
+        const marks=(r.marcacoes||[]).map((m,i)=>`
+          <li>
+            <span>${m.hora} - ${m.endereco}</span>
+            <button class='btn btn-sm del' data-date='${r.date}' data-i='${i}' style='background: var(--warn);'>Excluir</button>
+          </li>
+        `).join('');
+
+        const div=document.createElement('div');
+        div.className='item';
+        div.innerHTML=`
+          <strong>${new Date(r.date+'T00:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</strong>
+          <ul class='list'>
+            ${marks || '<li style="text-align:center;">Sem marcação</li>'}
+          </ul>
+        `;
+        registrosUsuario.appendChild(div);
+      });
+
+      registrosUsuario.querySelectorAll('.del').forEach(b=>b.onclick=()=>{
+        const regs=JSON.parse(localStorage.getItem(key)||'[]');
+        const day=regs.find(r=>r.date===b.dataset.date); if(!day) return;
+        day.marcacoes.splice(Number(b.dataset.i),1);
+        localStorage.setItem(key,JSON.stringify(regs));
+        renderUser(); render();
+      });
+    }
+
+    addEspecial.onclick=()=>{
+      if(!diaEspecial.value) { alert('Selecione uma data'); return; }
+      if(!cfg.diasNaoContabilizados) cfg.diasNaoContabilizados=[];
+      if(!cfg.diasNaoContabilizados.includes(diaEspecial.value)){
+        cfg.diasNaoContabilizados.push(diaEspecial.value);
+        localStorage.setItem(cfgKey,JSON.stringify(cfg));
+        diaEspecial.value='';
+        render();
+      }
+    };
+    usuariosSelect.onchange=renderUser;
+    render();
+  </script>
+</body>
+</html>
