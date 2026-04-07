@@ -5,67 +5,517 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registrar Ponto - Artesynal</title>
   <style>
-    :root { --bg:#f3f3f7; --text:#1f2937; --muted:#6b7280; --purple:#6a0dad; --card:#fff; --line:#e5e7eb; --ok:#16a34a; --warn:#dc2626; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: Montserrat, Arial, sans-serif; background:var(--bg); color:var(--text); }
-    header { background:#231f20; color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
-    .header-actions { display:flex; gap:8px; }
-    .btn { border:0; border-radius:999px; background:#111827; color:#fff; padding:10px 14px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
-    .container { max-width:980px; margin:0 auto; padding:20px; }
-    .hero { display:grid; grid-template-columns:1fr 280px; gap:16px; align-items:center; }
-    .clock { font-size:38px; font-weight:700; margin:8px 0 14px; }
-    .register { background:var(--purple); font-weight:700; font-size:22px; padding:14px 24px; }
-    .circle { border:2px solid #d8b4fe; border-radius:50%; width:260px; height:260px; display:flex; align-items:center; justify-content:center; text-align:center; background:#fff; justify-self:end; }
-    .cards { background:#fff; border-radius:14px; padding:18px; margin-top:20px; }
-    .stat-grid { display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:12px; margin-top:12px; }
-    .stat { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:12px; }
-    .tabs { display:flex; gap:8px; margin-top:16px; }
-    .tab { border:1px solid var(--line); padding:10px 14px; border-radius:10px; cursor:pointer; background:#fff; }
-    .tab.active { border-color:var(--purple); color:var(--purple); font-weight:700; }
-    .day { background:#fff; border-radius:12px; padding:14px; border:1px solid var(--line); margin-top:12px; }
-    .day-head { display:flex; justify-content:space-between; align-items:center; }
-    .plus { border:none; background:var(--purple); color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; }
-    .mark { border-left:4px solid #d946ef; padding-left:8px; margin:8px 0; }
-    .mark.pending { border-color:var(--warn); color:var(--warn); }
-    .small { color:var(--muted); font-size:13px; }
-    .pill { padding:3px 8px; border-radius:99px; font-size:12px; background:#f3e8ff; color:var(--purple); }
-    .day-meta { margin-top:8px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
-    .toggle-detail { border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; cursor:pointer; color:#374151; }
-    .details { margin-top:10px; display:none; }
-    .details.open { display:block; }
-    @media (max-width:800px){ .hero{grid-template-columns:1fr;} .circle{justify-self:start;} .stat-grid{grid-template-columns:repeat(2,minmax(120px,1fr));} }
+    :root {
+      --bg:#f3f3f7;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --purple:#6a0dad;
+      --purple-light:#f3e8ff;
+      --card:#fff;
+      --line:#e5e7eb;
+      --ok:#16a34a;
+      --warn:#dc2626;
+      --shadow:0 1px 3px rgba(0,0,0,0.1);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Montserrat, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header {
+      background:linear-gradient(135deg, #231f20 0%, #3d3536 100%);
+      color:#fff;
+      padding:16px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header strong {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .header-actions {
+      display:flex;
+      gap:8px;
+      align-items: center;
+    }
+    .btn {
+      border:0;
+      border-radius:999px;
+      background:#111827;
+      color:#fff;
+      padding:10px 16px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background:#374151;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .container {
+      max-width:1000px;
+      margin:0 auto;
+      padding:20px;
+    }
+    .hero {
+      display:grid;
+      grid-template-columns:1fr 280px;
+      gap:24px;
+      align-items:center;
+      margin-bottom: 24px;
+    }
+    .hero-content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .hero-content .date {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .clock {
+      font-size:56px;
+      font-weight:700;
+      color: var(--purple);
+      margin:12px 0 24px;
+      font-variant-numeric: tabular-nums;
+    }
+    .register {
+      background:linear-gradient(135deg, var(--purple) 0%, #8b5cf6 100%);
+      font-weight:700;
+      font-size:16px;
+      padding:16px 32px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(106, 10, 173, 0.3);
+      transition: all 0.3s ease;
+    }
+    .register:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 16px rgba(106, 10, 173, 0.4);
+    }
+    .register:active {
+      transform: scale(0.98);
+    }
+    .register.loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    #statusRegistro {
+      margin-top:12px;
+      font-size: 13px;
+      min-height: 20px;
+      animation: slideIn 0.3s ease;
+    }
+    #statusRegistro.success {
+      color: var(--ok);
+      font-weight: 600;
+    }
+    #statusRegistro.error {
+      color: var(--warn);
+      font-weight: 600;
+    }
+    .circle {
+      border:4px solid var(--purple-light);
+      border-radius:50%;
+      width:100%;
+      max-width:280px;
+      aspect-ratio: 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      background:var(--card);
+      box-shadow: var(--shadow);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .circle-content {
+      padding: 20px;
+    }
+    .circle-time {
+      font-size:48px;
+      font-weight:700;
+      color: var(--purple);
+      font-variant-numeric: tabular-nums;
+    }
+    .circle-label {
+      color: var(--text);
+      font-size: 14px;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+    .circle-lunch {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .cards {
+      background:var(--card);
+      border-radius:16px;
+      padding:20px;
+      margin-bottom:24px;
+      box-shadow: var(--shadow);
+    }
+    .period-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .period-label strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .stat-grid {
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .stat {
+      background:linear-gradient(135deg, var(--purple-light) 0%, #f0e6ff 100%);
+      border:1px solid #e9d5ff;
+      border-radius:12px;
+      padding:16px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .stat:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.1);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size:12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      color: var(--purple);
+      font-size:24px;
+      font-weight:700;
+      font-variant-numeric: tabular-nums;
+    }
+    .tabs {
+      display:flex;
+      gap:8px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+    .tab {
+      border:1px solid var(--line);
+      padding:10px 16px;
+      border-radius:10px;
+      cursor:pointer;
+      background:#fff;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    .tab:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+    .tab.active {
+      border-color:var(--purple);
+      color:var(--purple);
+      background: var(--purple-light);
+      font-weight:700;
+    }
+    .day {
+      background:var(--card);
+      border-radius:12px;
+      padding:16px;
+      border:1px solid var(--line);
+      margin-bottom:12px;
+      transition: all 0.2s ease;
+    }
+    .day:hover {
+      border-color: var(--purple);
+      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.08);
+    }
+    .day-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom: 12px;
+    }
+    .day-head strong {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .plus {
+      border:none;
+      background:var(--purple);
+      color:#fff;
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      cursor:pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .plus:hover {
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.3);
+    }
+    .plus:active {
+      transform: scale(0.95);
+    }
+    .mark {
+      border-left:4px solid #d946ef;
+      padding:12px;
+      margin:8px 0;
+      background: #fff8fd;
+      border-radius: 8px;
+      animation: slideIn 0.3s ease;
+    }
+    .mark.pending {
+      border-left-color:var(--warn);
+      background: #fef2f2;
+      color:var(--warn);
+    }
+    .mark-time {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .mark-address {
+      color:var(--muted);
+      font-size:13px;
+      margin-top: 4px;
+    }
+    .small {
+      color:var(--muted);
+      font-size:13px;
+    }
+    .pill {
+      display: inline-block;
+      padding:4px 10px;
+      border-radius:99px;
+      font-size:11px;
+      background:var(--purple-light);
+      color:var(--purple);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .pill.recusado {
+      background: #fee2e2;
+      color: var(--warn);
+    }
+    .pill.aprovado {
+      background: #dcfce7;
+      color: var(--ok);
+    }
+    .day-meta {
+      margin-bottom:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .day-meta .small {
+      flex: 1;
+      min-width: 200px;
+    }
+    .toggle-detail {
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      padding:6px 12px;
+      cursor:pointer;
+      color:var(--purple);
+      font-weight: 500;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+    .toggle-detail:hover {
+      border-color: var(--purple);
+      background: var(--purple-light);
+    }
+    .details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .details.open {
+      max-height: 500px;
+    }
+    .details-content {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      margin-top: 12px;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Mobile Responsividade */
+    @media (max-width:800px) {
+      .container {
+        padding: 16px;
+      }
+      .hero {
+        grid-template-columns:1fr;
+        gap: 16px;
+      }
+      .circle {
+        max-width: 100%;
+        width: 100%;
+      }
+      .hero-content h1 {
+        font-size: 28px;
+      }
+      .stat-grid {
+        grid-template-columns:repeat(2, 1fr);
+      }
+      .stat {
+        padding: 12px;
+      }
+      .stat-value {
+        font-size: 20px;
+      }
+      .day-meta {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .day-meta .small {
+        width: 100%;
+      }
+      .header-actions {
+        gap: 6px;
+      }
+      .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .register {
+        font-size: 15px;
+        padding: 14px 24px;
+      }
+      .clock {
+        font-size: 44px;
+      }
+    }
+
+    @media (max-width:480px) {
+      header {
+        padding: 12px 16px;
+      }
+      header strong {
+        font-size: 16px;
+      }
+      .hero-content h1 {
+        font-size: 24px;
+      }
+      .stat-grid {
+        grid-template-columns:1fr;
+      }
+      .day-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .plus {
+        align-self: flex-start;
+      }
+      .tabs {
+        flex-wrap: wrap;
+      }
+      .tab {
+        flex: 1;
+        min-width: 140px;
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
-    <strong>Registrar Ponto</strong>
+    <strong>📍 Registrar Ponto</strong>
     <div class="header-actions">
-      <a class="btn" href="index.html">🏠 Painel</a>
-      <a class="btn" href="historicoponto.html">📚 Histórico</a>
-      <a class="btn" id="btn-admin" href="paineldeponto.html" style="display:none;">🛡️ Controle</a>
+      <a class="btn" href="index.html">🏠</a>
+      <a class="btn" href="historicoponto.html">📚</a>
+      <a class="btn" id="btn-admin" href="paineldeponto.html" style="display:none;">🛡️</a>
       <button class="btn" id="logout">Sair</button>
     </div>
   </header>
   <main class="container">
     <section class="hero">
-      <div>
+      <div class="hero-content">
         <h1 id="saudacao">Bom dia!</h1>
-        <div id="diaAtual" class="small"></div>
-        <div class="small" style="margin-top:18px;">Horário</div>
+        <div class="date" id="diaAtual">Carregando...</div>
+        <div class="small">Horário atual</div>
         <div class="clock" id="horaAtual">00:00:00</div>
         <button class="btn register" id="registrarBtn">📍 Registrar ponto</button>
-        <div class="small" id="statusRegistro" style="margin-top:8px;"></div>
+        <div id="statusRegistro"></div>
       </div>
-      <div class="circle"><div><div style="font-size:48px;" id="workedToday">00h00min</div><div>trabalhado hoje</div><div class="small" id="almocoInfo">Almoço: 00min</div></div></div>
+      <div class="circle">
+        <div class="circle-content">
+          <div class="circle-time" id="workedToday">00h00min</div>
+          <div class="circle-label">trabalhado hoje</div>
+          <div class="circle-lunch" id="almocoInfo">Almoço: 00min</div>
+        </div>
+      </div>
     </section>
 
     <section class="cards">
-      <div>Período: <strong id="periodoTxt"></strong></div>
+      <div class="period-label">Período: <strong id="periodoTxt">-</strong></div>
       <div class="stat-grid">
-        <div class="stat"><div class="small">Dias trabalhados</div><div id="diasTrabalhados">0</div></div>
-        <div class="stat"><div class="small">Horas registradas</div><div id="horasRegistradas">00h00min</div></div>
-        <div class="stat"><div class="small">Faltas</div><div id="faltas">0</div></div>
-        <div class="stat"><div class="small">Atrasos</div><div id="atrasos">0</div></div>
+        <div class="stat">
+          <div class="stat-label">Dias trabalhados</div>
+          <div class="stat-value" id="diasTrabalhados">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Horas registradas</div>
+          <div class="stat-value" id="horasRegistradas">00h00min</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Faltas</div>
+          <div class="stat-value" id="faltas">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Atrasos</div>
+          <div class="stat-value" id="atrasos">0</div>
+        </div>
       </div>
       <div class="tabs">
         <button class="tab active" data-period="atual">Neste período</button>
@@ -113,20 +563,47 @@
     }
 
     async function registrarPonto(){
-      if (!navigator.geolocation) { alert('Geolocalização não suportada no navegador.'); return; }
-      statusRegistro.textContent = 'Solicitando localização...';
+      const btn = document.getElementById('registrarBtn');
+      const status = document.getElementById('statusRegistro');
+      btn.classList.add('loading');
+      status.className = '';
+      status.textContent = '📍 Solicitando localização...';
+
+      if (!navigator.geolocation) {
+        status.className = 'error';
+        status.textContent = '❌ Geolocalização não suportada no navegador.';
+        btn.classList.remove('loading');
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition((pos)=>{
-        const lat = pos.coords.latitude.toFixed(5); const lng = pos.coords.longitude.toFixed(5);
+        const lat = pos.coords.latitude.toFixed(5);
+        const lng = pos.coords.longitude.toFixed(5);
         const now = new Date();
         const date = kDate(now);
         const lista = getReg();
         let day = lista.find(d=>d.date===date);
         if(!day){ day = { date, marcacoes:[] }; lista.push(day); }
-        day.marcacoes.push({ timestamp: now.toISOString(), hora: `${pad(now.getHours())}:${pad(now.getMinutes())}`, endereco: `Lat ${lat}, Lng ${lng}`, origem: 'web-gps' });
+        day.marcacoes.push({
+          timestamp: now.toISOString(),
+          hora: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+          endereco: `Lat ${lat}, Lng ${lng}`,
+          origem: 'web-gps'
+        });
         saveReg(lista);
-        statusRegistro.textContent = `Ponto registrado às ${pad(now.getHours())}:${pad(now.getMinutes())}.`;
+        status.className = 'success';
+        status.textContent = `✅ Ponto registrado às ${pad(now.getHours())}:${pad(now.getMinutes())}.`;
+        btn.classList.remove('loading');
         render();
-      }, ()=>{ statusRegistro.textContent = 'Sem permissão de localização. O ponto não foi aprovado.'; alert('Você precisa permitir localização para registrar o ponto.'); });
+      }, (error)=>{
+        status.className = 'error';
+        if(error.code === 1) {
+          status.textContent = '❌ Permissão de localização negada. O ponto não foi registrado.';
+        } else {
+          status.textContent = '❌ Erro ao obter localização. Tente novamente.';
+        }
+        btn.classList.remove('loading');
+      });
     }
 
     function periodoData(){
@@ -148,8 +625,16 @@
       const lista = getReg().filter(r=>r.date.startsWith(key));
 
       let totalMin=0, dias=0, atrasos=0;
-      lista.forEach((d)=>{ const c=calcWorkedForDay(d); totalMin+=c.total; if(c.total>0) dias++; const first=d.marcacoes?.[0]?.hora; if(first && parseTime(first)>parseTime('08:00') && !isIgnored(d.date)) atrasos++; });
-      const faltas = Math.max(0, new Date(ini.getFullYear(), ini.getMonth()+1, 0).getDate() - dias - (feriadosFerias.diasNaoContabilizados||[]).filter(x=>x.startsWith(key)).length);
+      lista.forEach((d)=>{
+        const c=calcWorkedForDay(d);
+        totalMin+=c.total;
+        if(c.total>0) dias++;
+        const first=d.marcacoes?.[0]?.hora;
+        if(first && parseTime(first)>parseTime('08:00') && !isIgnored(d.date)) atrasos++;
+      });
+      const diasNoMes = new Date(ini.getFullYear(), ini.getMonth()+1, 0).getDate();
+      const diasNaoContabilizados = (feriadosFerias.diasNaoContabilizados||[]).filter(x=>x.startsWith(key)).length;
+      const faltas = Math.max(0, diasNoMes - dias - diasNaoContabilizados);
 
       diasTrabalhados.textContent = dias;
       horasRegistradas.textContent = fmtDur(totalMin);
@@ -162,8 +647,8 @@
       almocoInfo.textContent = `Almoço: ${pad(worked.lunch)}min`;
 
       const solic = getSolic().filter(s=>s.email===email && s.date.startsWith(key));
-      const diasNoMes = new Date(ini.getFullYear(), ini.getMonth() + 1, 0).getDate();
       listaDias.innerHTML = '';
+
       for (let d = diasNoMes; d >= 1; d -= 1) {
         const date = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}-${pad(d)}`;
         const day = lista.find(item => item.date === date) || { date, marcacoes: [] };
@@ -171,36 +656,87 @@
         const hasMarks = (day.marcacoes || []).length > 0;
         const div = document.createElement('div');
         div.className='day';
-        const marks = (day.marcacoes || []).sort((a, b) => a.hora.localeCompare(b.hora)).map(m=>`<div class='mark'>${m.hora} <span class='small'>${m.endereco}</span></div>`).join('');
-        const pend = solic.filter(s=>s.date===day.date).map(s=>`<div class='mark pending'>Solicitação ${s.horaPretendida} - ${s.justificativa} <span class='pill'>${s.status}</span></div>`).join('');
-        div.innerHTML = `<div class='day-head'><strong>${new Date(day.date+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'short',weekday:'short'})}</strong><button class='plus' data-date='${day.date}'>+</button></div>
-          <div class='day-meta'><span class='small'>Escala de trabalho: <strong style='color:var(--purple);'>Dia Comum</strong></span>${hasMarks ? `<button class='toggle-detail' data-date='${day.date}'>Ver detalhes</button>` : ''}</div>
-          <div id='detail-${day.date}' class='details'>${hasMarks ? `<div class='small'>Total: ${fmtDur(calc.total)} | Almoço: ${pad(calc.lunch)}min</div>${marks}` : ''}${pend}</div>`;
+
+        const marks = (day.marcacoes || []).sort((a, b) => a.hora.localeCompare(b.hora)).map(m=>`
+          <div class='mark'>
+            <div class='mark-time'>${m.hora}</div>
+            <div class='mark-address'>${m.endereco}</div>
+          </div>
+        `).join('');
+
+        const pend = solic.filter(s=>s.date===day.date).map(s=>`
+          <div class='mark pending'>
+            <div class='mark-time'>Solicitação às ${s.horaPretendida}</div>
+            <div class='mark-address'>${s.justificativa}</div>
+            <span class='pill ${s.status}'>${s.status}</span>
+          </div>
+        `).join('');
+
+        const dayLabel = new Date(day.date+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'short',weekday:'short'});
+        const hasDetails = hasMarks || pend;
+
+        div.innerHTML = `
+          <div class='day-head'>
+            <strong>${dayLabel}</strong>
+            <button class='plus' data-date='${day.date}' title="Adicionar ponto esquecido">+</button>
+          </div>
+          <div class='day-meta'>
+            <span class='small'>Escala: <strong style='color:var(--purple);'>Dia Comum</strong></span>
+            ${hasDetails ? `<button class='toggle-detail' data-date='${day.date}'>Ver detalhes</button>` : ''}
+          </div>
+          <div id='detail-${day.date}' class='details'>
+            <div class='details-content'>
+              ${hasMarks ? `<div class='small' style='margin-bottom:8px;'><strong>Total:</strong> ${fmtDur(calc.total)} | <strong>Almoço:</strong> ${pad(calc.lunch)}min</div>` : ''}
+              ${marks}${pend}
+            </div>
+          </div>
+        `;
         listaDias.appendChild(div);
       }
 
       document.querySelectorAll('.plus').forEach(btn=>btn.onclick=()=>{
         const date = btn.dataset.date;
         const horaPretendida = prompt('Qual horário deseja adicionar? (HH:MM)');
-        if(!horaPretendida) return;
-        const justificativa = prompt('Descreva a justificativa de não ter batido o ponto:');
-        if(!justificativa) return;
+        if(!horaPretendida || !/^\d{2}:\d{2}$/.test(horaPretendida)) {
+          alert('Formato inválido. Use HH:MM');
+          return;
+        }
+        const justificativa = prompt('Descreva a justificativa:');
+        if(!justificativa || justificativa.trim().length < 5) {
+          alert('Justificativa deve ter pelo menos 5 caracteres');
+          return;
+        }
         const arr=getSolic();
-        arr.push({ id: crypto.randomUUID(), email, date, horaPretendida, justificativa, status:'pendente', createdAt:new Date().toISOString() });
+        arr.push({
+          id: crypto.randomUUID(),
+          email,
+          date,
+          horaPretendida,
+          justificativa,
+          status:'pendente',
+          createdAt:new Date().toISOString()
+        });
         saveSolic(arr);
         render();
       });
+
       document.querySelectorAll('.toggle-detail').forEach((btn) => {
         btn.onclick = () => {
           const panel = document.getElementById(`detail-${btn.dataset.date}`);
-          const opened = panel.classList.toggle('open');
-          btn.textContent = opened ? 'Ocultar detalhes' : 'Ver detalhes';
+          panel.classList.toggle('open');
+          btn.textContent = panel.classList.contains('open') ? '⬆️ Ocultar' : '⬇️ Ver detalhes';
         };
       });
     }
 
     document.getElementById('registrarBtn').onclick = registrarPonto;
-    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');periodoAtual=t.dataset.period;render();});
+    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      periodoAtual=t.dataset.period;
+      render();
+    });
+
     setInterval(render, 1000);
     render();
   </script>
