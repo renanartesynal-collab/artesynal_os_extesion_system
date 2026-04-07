@@ -5,28 +5,292 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Histórico de Ponto</title>
   <style>
-    :root{--bg:#f3f3f7;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--header:#231f20;--btn:#111827;--card:#fff;--purple:#6a0dad}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:Montserrat,Arial,sans-serif;color:var(--text)}
-    .top{background:var(--header);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
-    .actions{display:flex;gap:8px}.btn{border:0;background:var(--btn);color:#fff;border-radius:999px;padding:10px 14px;text-decoration:none;cursor:pointer}
-    .wrap{max-width:980px;margin:0 auto;padding:20px}.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
-    .filters{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.input{border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc}
-    .item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}.muted{color:var(--muted);font-size:13px}
-    @media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}
+    :root {
+      --bg:#f3f3f7;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --header:#231f20;
+      --btn:#111827;
+      --card:#fff;
+      --purple:#6a0dad;
+      --purple-light:#f3e8ff;
+      --shadow:0 1px 3px rgba(0,0,0,0.1);
+    }
+    * {
+      box-sizing:border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Montserrat, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .top {
+      background:linear-gradient(135deg, #231f20 0%, #3d3536 100%);
+      color:#fff;
+      padding:16px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top strong {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .actions {
+      display:flex;
+      gap:8px;
+    }
+    .btn {
+      border:0;
+      background:var(--btn);
+      color:#fff;
+      border-radius:999px;
+      padding:10px 16px;
+      text-decoration:none;
+      cursor:pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      background:#374151;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .wrap {
+      max-width:900px;
+      margin:0 auto;
+      padding:20px;
+    }
+    .panel {
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .filters {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:12px;
+      margin-bottom: 16px;
+    }
+    .input {
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:12px;
+      background:#f8fafc;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--purple);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--purple-light);
+    }
+    .filtros-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-filter {
+      flex: 1;
+      background:linear-gradient(135deg, var(--purple) 0%, #8b5cf6 100%);
+      font-weight: 600;
+      padding: 12px;
+    }
+    .btn-filter:hover {
+      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.3);
+    }
+    .btn-clear {
+      background: #e5e7eb;
+      color: var(--text);
+    }
+    .btn-clear:hover {
+      background: #d1d5db;
+      color: var(--text);
+    }
+    #resumo {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--purple-light);
+      border-left: 4px solid var(--purple);
+      border-radius: 8px;
+      font-weight: 500;
+      color: var(--purple);
+      font-size: 14px;
+    }
+    .item {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:12px;
+      transition: all 0.2s ease;
+      animation: slideIn 0.3s ease;
+    }
+    .item:hover {
+      border-color: var(--purple);
+      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.08);
+    }
+    .item strong {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .muted {
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom: 12px;
+    }
+    .item ul {
+      list-style: none;
+      padding: 0;
+    }
+    .item li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .item li:last-child {
+      border-bottom: none;
+    }
+    .item li .hora {
+      font-weight: 600;
+      color: var(--purple);
+      min-width: 50px;
+    }
+    .item li .endereco {
+      color: var(--muted);
+      font-size: 12px;
+      flex: 1;
+      text-align: right;
+      word-break: break-word;
+    }
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    .empty div {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Mobile */
+    @media (max-width:768px) {
+      .wrap {
+        padding: 16px;
+      }
+      .filters {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .filter-actions {
+        grid-column: 1 / -1;
+      }
+      .item li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .item li .endereco {
+        text-align: left;
+        width: 100%;
+      }
+      .top {
+        padding: 12px 16px;
+      }
+      .top strong {
+        font-size: 16px;
+      }
+      .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .actions {
+        gap: 6px;
+      }
+    }
+
+    @media (max-width:480px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+      .panel {
+        padding: 16px;
+      }
+      .item {
+        padding: 12px;
+      }
+      .btn-filter, .btn-clear {
+        padding: 10px;
+        font-size: 13px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="top"><strong>Histórico de Ponto</strong><div class="actions"><a class="btn" href="registrarponto.html">🕒 Registrar</a><a class="btn" href="index.html">🏠 Painel</a></div></div>
+  <div class="top">
+    <strong>📚 Histórico de Ponto</strong>
+    <div class="actions">
+      <a class="btn" href="registrarponto.html">📍 Registrar</a>
+      <a class="btn" href="index.html">🏠 Painel</a>
+    </div>
+  </div>
   <div class="wrap">
     <section class="panel">
+      <label class="filtros-label">🔍 Filtrar registros</label>
       <div class="filters">
-        <input id="fDia" class="input" type="date">
-        <input id="fMes" class="input" type="month">
-        <input id="fHora" class="input" placeholder="HH:MM">
-        <select id="fFaltas" class="input"><option value="">Faltas?</option><option value="com">Com faltas</option><option value="sem">Sem faltas</option></select>
-        <button class="btn" id="aplicar">Filtrar</button>
+        <input id="fDia" class="input" type="date" placeholder="Data específica">
+        <input id="fMes" class="input" type="month" placeholder="Mês">
+        <input id="fHora" class="input" placeholder="Hora (HH:MM)">
+        <select id="fFaltas" class="input">
+          <option value="">Status</option>
+          <option value="com">Com faltas</option>
+          <option value="sem">Sem faltas</option>
+        </select>
+        <div class="filter-actions">
+          <button class="btn btn-filter" id="aplicar">🔎 Filtrar</button>
+          <button class="btn btn-clear" id="limpar">✕ Limpar</button>
+        </div>
       </div>
-      <div id="resumo" class="muted" style="margin-top:8px"></div>
+      <div id="resumo"></div>
     </section>
     <section id="lista"></section>
   </div>
@@ -39,26 +303,86 @@
     const email = (sessao.user.email || sessao.acesso.email).toLowerCase();
     const reg = JSON.parse(localStorage.getItem(`ponto_registros_${email}`) || '[]');
     const ign = (JSON.parse(localStorage.getItem('ponto_config_global') || '{"diasNaoContabilizados":[]}').diasNaoContabilizados) || [];
+    const pad = (n) => String(n).padStart(2, '0');
 
     function render(){
       const dia=fDia.value, mes=fMes.value, hora=fHora.value, faltas=fFaltas.value;
       let arr=[...reg];
+
       if(dia) arr=arr.filter(r=>r.date===dia);
       if(mes) arr=arr.filter(r=>r.date.startsWith(mes));
       if(hora) arr=arr.filter(r=>(r.marcacoes||[]).some(m=>m.hora.startsWith(hora)));
-      if(faltas){ arr=arr.filter(r=>{const has=(r.marcacoes||[]).length===0 && !ign.includes(r.date); return faltas==='com'?has:!has;}); }
-      resumo.textContent = `${arr.length} dia(s) localizado(s).`;
+      if(faltas){
+        arr=arr.filter(r=>{
+          const has=(r.marcacoes||[]).length===0 && !ign.includes(r.date);
+          return faltas==='com'?has:!has;
+        });
+      }
+
+      resumo.innerHTML = `
+        <strong>📊 Resultado:</strong> ${arr.length} dia(s) localizado(s)
+        ${arr.length > 0 ? ` | Total: ${(arr.reduce((s,r)=>(r.marcacoes||[]).length+s, 0))} marcações` : ''}
+      `;
 
       lista.innerHTML='';
+      if(arr.length === 0) {
+        lista.innerHTML = `
+          <div class="empty">
+            <div>🔍</div>
+            <div>Nenhum registro encontrado</div>
+          </div>
+        `;
+        return;
+      }
+
       arr.sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{
-        const marks=(r.marcacoes||[]).map(m=>`<li>${m.hora} - ${m.endereco}</li>`).join('');
+        const dateObj = new Date(r.date+'T00:00:00');
+        const dateLabel = dateObj.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+        const marks=(r.marcacoes||[]).sort((a,b)=>a.hora.localeCompare(b.hora)).map(m=>`
+          <li>
+            <span class="hora">${m.hora}</span>
+            <span class="endereco">${m.endereco}</span>
+          </li>
+        `).join('');
+
         const div=document.createElement('div');
         div.className='item';
-        div.innerHTML=`<strong>${new Date(r.date+'T00:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'})}</strong><div class='muted'>${(r.marcacoes||[]).length} marcações</div><ul>${marks||'<li>Sem marcação</li>'}</ul>`;
+        div.innerHTML=`
+          <strong>${dateLabel}</strong>
+          <div class='muted'>
+            ${(r.marcacoes||[]).length} marcação(ões)
+            ${(r.marcacoes||[]).length > 1 ? ` | ${calcularDuracao(r.marcacoes)}` : ''}
+          </div>
+          <ul>
+            ${marks || '<li style="text-align:center;">Sem marcações registradas</li>'}
+          </ul>
+        `;
         lista.appendChild(div);
       });
     }
-    aplicar.onclick=render; render();
+
+    function calcularDuracao(marcacoes) {
+      if(marcacoes.length < 2) return '';
+      const arr = [...marcacoes].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+      let total = 0;
+      for(let i=0; i<arr.length-1; i+=2) {
+        total += (new Date(arr[i+1].timestamp) - new Date(arr[i].timestamp)) / 60000;
+      }
+      const h = Math.floor(total/60);
+      const m = Math.round(total%60);
+      return `${pad(h)}h${pad(m)}min`;
+    }
+
+    aplicar.onclick=render;
+    limpar.onclick=()=>{
+      fDia.value='';
+      fMes.value='';
+      fHora.value='';
+      fFaltas.value='';
+      render();
+    };
+
+    render();
   </script>
 </body>
 </html>
