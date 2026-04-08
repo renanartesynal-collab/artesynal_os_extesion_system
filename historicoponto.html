@@ -1,386 +1,548 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Histórico de Ponto</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Histórico de ponto</title>
   <style>
     :root {
-      --bg:#f3f3f7;
-      --text:#1f2937;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --header:#231f20;
-      --btn:#111827;
-      --card:#fff;
-      --purple:#6a0dad;
-      --purple-light:#f3e8ff;
-      --shadow:0 1px 3px rgba(0,0,0,0.1);
+      --bg: #ececec;
+      --surface: #f6f6f6;
+      --orange: #f68a1e;
+      --green: #07ad56;
+      --red: #f3273a;
+      --dark: #231f20;
+      --text: #2f2e39;
+      --muted: #8a8993;
+      --shadow: 0 16px 40px rgba(0,0,0,.14);
+      --radius: 24px;
     }
-    * {
-      box-sizing:border-box;
-      margin: 0;
-      padding: 0;
-    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Montserrat, Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-    .top {
-      background:linear-gradient(135deg, #231f20 0%, #3d3536 100%);
-      color:#fff;
-      padding:16px 20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      box-shadow: var(--shadow);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .top strong {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .actions {
-      display:flex;
-      gap:8px;
-    }
-    .btn {
-      border:0;
-      background:var(--btn);
-      color:#fff;
-      border-radius:999px;
-      padding:10px 16px;
-      text-decoration:none;
-      cursor:pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn:hover {
-      background:#374151;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
-    }
-    .btn:active {
-      transform: translateY(0);
-    }
-    .wrap {
-      max-width:900px;
-      margin:0 auto;
-      padding:20px;
-    }
-    .panel {
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:20px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
-    }
-    .filters {
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
-      gap:12px;
-      margin-bottom: 16px;
-    }
-    .input {
-      border:1px solid var(--line);
-      border-radius:10px;
-      padding:12px;
-      background:#f8fafc;
-      font-size: 14px;
-      font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    .input:focus {
-      outline: none;
-      border-color: var(--purple);
-      background: #fff;
-      box-shadow: 0 0 0 3px var(--purple-light);
-    }
-    .filtros-label {
-      font-size: 14px;
-      font-weight: 600;
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
       color: var(--text);
-      margin-bottom: 12px;
-      display: block;
+      font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
     }
-    .filter-actions {
+
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px 16px 40px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,.22);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .top-pill {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 22px;
+      background: var(--orange);
+      color: #fff;
+      font-size: clamp(1.9rem, 5.8vw, 3rem);
+      font-weight: 800;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .period-row {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .period-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: clamp(1.2rem, 3.8vw, 2.1rem);
+      cursor: pointer;
+    }
+
+    .day-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .day-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+    }
+
+    .day-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .day-title {
+      margin: 0;
+      color: var(--orange);
+      font-size: clamp(2rem, 6.5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .add-point {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 999px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 700;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .marks {
+      margin-top: 8px;
+      display: grid;
       gap: 8px;
     }
-    .btn-filter {
-      flex: 1;
-      background:linear-gradient(135deg, var(--purple) 0%, #8b5cf6 100%);
-      font-weight: 600;
-      padding: 12px;
+
+    .mark {
+      display: grid;
+      grid-template-columns: 8px 1fr;
+      gap: 10px;
+      align-items: start;
     }
-    .btn-filter:hover {
-      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.3);
+
+    .line {
+      width: 8px;
+      min-height: 56px;
+      border-radius: 999px;
+      background: var(--green);
+      margin-top: 4px;
     }
-    .btn-clear {
-      background: #e5e7eb;
-      color: var(--text);
+
+    .line.manual { background: var(--red); }
+
+    .mark-main {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px 14px;
     }
-    .btn-clear:hover {
-      background: #d1d5db;
-      color: var(--text);
+
+    .hour {
+      margin: 0;
+      font-size: clamp(2.3rem, 8vw, 3.3rem);
+      font-weight: 800;
+      line-height: 1;
+      color: #000;
+      font-variant-numeric: tabular-nums;
     }
-    #resumo {
-      margin-bottom: 16px;
-      padding: 12px;
-      background: var(--purple-light);
-      border-left: 4px solid var(--purple);
-      border-radius: 8px;
-      font-weight: 500;
-      color: var(--purple);
-      font-size: 14px;
-    }
-    .item {
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:16px;
-      margin-bottom:12px;
-      transition: all 0.2s ease;
-      animation: slideIn 0.3s ease;
-    }
-    .item:hover {
-      border-color: var(--purple);
-      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.08);
-    }
-    .item strong {
-      font-size: 16px;
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-    .muted {
-      color:var(--muted);
-      font-size:13px;
-      margin-bottom: 12px;
-    }
-    .item ul {
-      list-style: none;
+
+    .details-toggle {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: clamp(1.1rem, 3.8vw, 1.9rem);
+      cursor: pointer;
       padding: 0;
     }
-    .item li {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
+
+    .details {
+      display: none;
+      margin-top: 6px;
+      font-size: 0.98rem;
+      color: #6a6874;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
     }
-    .item li:last-child {
-      border-bottom: none;
-    }
-    .item li .hora {
-      font-weight: 600;
-      color: var(--purple);
-      min-width: 50px;
-    }
-    .item li .endereco {
-      color: var(--muted);
-      font-size: 12px;
-      flex: 1;
-      text-align: right;
-      word-break: break-word;
-    }
+
+    .details.show { display: block; }
+    .details p { margin: 5px 0; }
+    .details iframe { width: 100%; height: 160px; border: 0; border-radius: 8px; margin-top: 4px; }
+
     .empty {
-      text-align: center;
-      padding: 40px 20px;
+      margin: 2px 0 0;
       color: var(--muted);
-    }
-    .empty div {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      font-size: clamp(1.08rem, 3.4vw, 1.5rem);
     }
 
-    /* Mobile */
-    @media (max-width:768px) {
-      .wrap {
-        padding: 16px;
-      }
-      .filters {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .filter-actions {
-        grid-column: 1 / -1;
-      }
-      .item li {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .item li .endereco {
-        text-align: left;
-        width: 100%;
-      }
-      .top {
-        padding: 12px 16px;
-      }
-      .top strong {
-        font-size: 16px;
-      }
-      .btn {
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-      .actions {
-        gap: 6px;
-      }
+    .back {
+      display: inline-block;
+      margin-top: 12px;
+      color: #4f4f56;
+      text-decoration: none;
     }
 
-    @media (max-width:480px) {
-      .filters {
-        grid-template-columns: 1fr;
-      }
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.42);
+      padding: 12px;
+      z-index: 20;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-card {
+      width: min(620px, 100%);
+      background: #fff;
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .pill-date {
+      margin: 0;
+      background: var(--dark);
+      color: #fff;
+      border-radius: 999px;
+      text-align: center;
+      padding: 10px 14px;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      font-weight: 500;
+    }
+
+    .modal-card h2 {
+      margin: 14px 0 10px;
+      font-size: clamp(1.75rem, 5.5vw, 2.7rem);
+      font-weight: 500;
+    }
+
+    .types { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .type {
+      border: 0;
+      min-height: 58px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: clamp(1.55rem, 4.8vw, 2.3rem);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .type.g { background: var(--green); }
+    .type.o { background: var(--orange); }
+    .type.active { outline: 3px solid #2d2d2d; }
+
+    .time-line {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: clamp(1.75rem, 6vw, 2.9rem);
+    }
+
+    .time-line input {
+      border: none;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      min-width: 120px;
+    }
+
+    .map {
+      width: 100%;
+      height: 200px;
+      border: 0;
+      border-radius: 8px;
+      margin-top: 8px;
+      background: #ddd;
+    }
+
+    .just {
+      width: 100%;
+      margin-top: 12px;
+      min-height: 108px;
+      border: 2px solid var(--orange);
+      border-radius: 10px;
+      padding: 10px;
+      font: inherit;
+      resize: vertical;
+    }
+
+    .confirm {
+      width: 100%;
+      margin-top: 12px;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: var(--green);
+      color: #fff;
+      font-size: clamp(2rem, 6.4vw, 3rem);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .close {
+      width: 100%;
+      margin-top: 8px;
+      border: none;
+      border-radius: 999px;
+      padding: 9px;
+      background: #ececec;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    @media (min-width: 900px) {
+      body { display: grid; align-items: center; }
       .panel {
-        padding: 16px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+        background: rgba(255,255,255,.25);
       }
-      .item {
-        padding: 12px;
+
+      .day-list {
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
       }
-      .btn-filter, .btn-clear {
-        padding: 10px;
-        font-size: 13px;
+
+      .day-title {
+        font-size: clamp(2rem, 3.2vw, 2.9rem);
+      }
+
+      .hour {
+        font-size: clamp(2.1rem, 3vw, 3rem);
+      }
+
+      .details-toggle {
+        font-size: clamp(1.1rem, 1.8vw, 1.55rem);
       }
     }
   </style>
 </head>
 <body>
-  <div class="top">
-    <strong>📚 Histórico de Ponto</strong>
-    <div class="actions">
-      <a class="btn" href="registrarponto.html">📍 Registrar</a>
-      <a class="btn" href="index.html">🏠 Painel</a>
-    </div>
-  </div>
-  <div class="wrap">
+  <main class="shell">
     <section class="panel">
-      <label class="filtros-label">🔍 Filtrar registros</label>
-      <div class="filters">
-        <input id="fDia" class="input" type="date" placeholder="Data específica">
-        <input id="fMes" class="input" type="month" placeholder="Mês">
-        <input id="fHora" class="input" placeholder="Hora (HH:MM)">
-        <select id="fFaltas" class="input">
-          <option value="">Status</option>
-          <option value="com">Com faltas</option>
-          <option value="sem">Sem faltas</option>
-        </select>
-        <div class="filter-actions">
-          <button class="btn btn-filter" id="aplicar">🔎 Filtrar</button>
-          <button class="btn btn-clear" id="limpar">✕ Limpar</button>
-        </div>
-      </div>
-      <div id="resumo"></div>
+      <a class="top-pill" href="#"><span>Registros</span><span id="monthLabel">---</span></a>
+      <div class="period-row"><button class="period-btn" id="otherPeriods">Outros períodos &gt;</button></div>
+      <div id="dayList" class="day-list"></div>
+      <a class="back" href="registrarponto.html">← Voltar para registrar ponto</a>
     </section>
-    <section id="lista"></section>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <p class="pill-date" id="modalDate"></p>
+      <h2>Registrar como ponto de:</h2>
+      <div class="types" id="types"></div>
+      <div class="time-line">Horário: <input type="time" id="manualTime" step="60"></div>
+      <iframe class="map" id="mapFrame" loading="lazy"></iframe>
+      <textarea class="just" id="justification" placeholder="Escreva a justificativa:"></textarea>
+      <button class="confirm" id="confirm">Confirmar registro</button>
+      <button class="close" id="close">Cancelar</button>
+    </div>
   </div>
 
   <script type="module">
     import { protegerPagina } from './auth.js';
-    const sessao = await protegerPagina({ paginaAtual: 'historicoponto.html' });
-    if (!sessao) throw new Error('sem sessão');
 
-    const email = (sessao.user.email || sessao.acesso.email).toLowerCase();
-    const reg = JSON.parse(localStorage.getItem(`ponto_registros_${email}`) || '[]');
-    const ign = (JSON.parse(localStorage.getItem('ponto_config_global') || '{"diasNaoContabilizados":[]}').diasNaoContabilizados) || [];
-    const pad = (n) => String(n).padStart(2, '0');
+    const session = await protegerPagina({ paginaAtual: 'historicoponto.html' });
+    if (!session) throw new Error('Sessão inválida');
 
-    function render(){
-      const dia=fDia.value, mes=fMes.value, hora=fHora.value, faltas=fFaltas.value;
-      let arr=[...reg];
+    const email = (session.user.email || session.acesso.email).toLowerCase();
+    const storageKey = `ponto_registros_${email}`;
+    const dayList = document.getElementById('dayList');
+    const monthLabel = document.getElementById('monthLabel');
 
-      if(dia) arr=arr.filter(r=>r.date===dia);
-      if(mes) arr=arr.filter(r=>r.date.startsWith(mes));
-      if(hora) arr=arr.filter(r=>(r.marcacoes||[]).some(m=>m.hora.startsWith(hora)));
-      if(faltas){
-        arr=arr.filter(r=>{
-          const has=(r.marcacoes||[]).length===0 && !ign.includes(r.date);
-          return faltas==='com'?has:!has;
-        });
-      }
+    const modal = document.getElementById('modal');
+    const modalDate = document.getElementById('modalDate');
+    const types = document.getElementById('types');
+    const manualTime = document.getElementById('manualTime');
+    const mapFrame = document.getElementById('mapFrame');
+    const justification = document.getElementById('justification');
 
-      resumo.innerHTML = `
-        <strong>📊 Resultado:</strong> ${arr.length} dia(s) localizado(s)
-        ${arr.length > 0 ? ` | Total: ${(arr.reduce((s,r)=>(r.marcacoes||[]).length+s, 0))} marcações` : ''}
+    const f2 = (n) => String(n).padStart(2, '0');
+    const read = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const write = (arr) => localStorage.setItem(storageKey, JSON.stringify(arr));
+
+    let currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let chosenDate = '';
+    let selectedType = 'entrada';
+    let latitude = -25.4297;
+    let longitude = -49.2719;
+
+    const pointTypes = [
+      { key: 'entrada', label: 'ENTRADA', cls: 'g' },
+      { key: 'pausa', label: 'PAUSA', cls: 'o' },
+      { key: 'volta', label: 'VOLTA', cls: 'g' },
+      { key: 'saida', label: 'SAÍDA', cls: 'o' }
+    ];
+
+    function ym(d) { return `${d.getFullYear()}-${f2(d.getMonth() + 1)}`; }
+    function labelMes(d) { return d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase().replace('.', ''); }
+
+    function openPeriodPicker() {
+      const current = ym(currentMonth);
+      const selected = prompt('Informe o mês no formato AAAA-MM', current);
+      if (!selected || !/^\d{4}-\d{2}$/.test(selected)) return;
+      const [y, m] = selected.split('-').map(Number);
+      currentMonth = new Date(y, m - 1, 1);
+      render();
+    }
+
+    function mapSrc(lat, lng) {
+      return `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+    }
+
+    function detailsHTML(mark) {
+      const lat = mark.geo?.lat ?? latitude;
+      const lng = mark.geo?.lng ?? longitude;
+      return `
+        <p><strong>Justificativa:</strong> ${mark.justificativa || 'Sem justificativa.'}</p>
+        <p><strong>Período realizado o ponto:</strong> ${mark.timestamp ? new Date(mark.timestamp).toLocaleString('pt-BR') : '-'}</p>
+        <p><strong>Registro:</strong> ${mark.manual ? 'Manual com justificativa' : 'Automático'}</p>
+        <iframe src="${mapSrc(lat, lng)}" loading="lazy"></iframe>
       `;
+    }
 
-      lista.innerHTML='';
-      if(arr.length === 0) {
-        lista.innerHTML = `
-          <div class="empty">
-            <div>🔍</div>
-            <div>Nenhum registro encontrado</div>
-          </div>
-        `;
-        return;
+    function render() {
+      monthLabel.textContent = labelMes(currentMonth);
+      const records = read();
+      const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      const now = new Date();
+      const lastDay = currentMonth.getFullYear() === now.getFullYear() && currentMonth.getMonth() === now.getMonth()
+        ? now.getDate()
+        : endOfMonth.getDate();
+
+      dayList.innerHTML = '';
+
+      for (let d = lastDay; d >= 1; d--) {
+        const dateIso = `${currentMonth.getFullYear()}-${f2(currentMonth.getMonth() + 1)}-${f2(d)}`;
+        const day = records.find((x) => x.date === dateIso) || { date: dateIso, marcacoes: [] };
+        const dateObj = new Date(`${dateIso}T00:00:00`);
+        const title = `${d} ${labelMes(currentMonth).toLowerCase()} ${dateObj.toLocaleDateString('pt-BR', { weekday: 'short' })}`;
+
+        const marks = [...(day.marcacoes || [])]
+          .sort((a, b) => a.hora.localeCompare(b.hora))
+          .map((mark) => {
+            const id = crypto.randomUUID();
+            return `
+              <div class="mark">
+                <div class="line ${mark.justificativa ? 'manual' : ''}"></div>
+                <div>
+                  <div class="mark-main">
+                    <p class="hour">${mark.hora}</p>
+                    <button class="details-toggle" data-target="${id}">Mostrar detalhes</button>
+                  </div>
+                  <div class="details" id="${id}">${detailsHTML(mark)}</div>
+                </div>
+              </div>
+            `;
+          }).join('') || `<p class="empty">Sem registros neste dia.</p>`;
+
+        dayList.insertAdjacentHTML('beforeend', `
+          <section class="day-card" data-date="${dateIso}">
+            <div class="day-head">
+              <h3 class="day-title">${title}</h3>
+              <button class="add-point" data-date="${dateIso}">+</button>
+            </div>
+            <div class="marks">${marks}</div>
+          </section>
+        `);
       }
 
-      arr.sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{
-        const dateObj = new Date(r.date+'T00:00:00');
-        const dateLabel = dateObj.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
-        const marks=(r.marcacoes||[]).sort((a,b)=>a.hora.localeCompare(b.hora)).map(m=>`
-          <li>
-            <span class="hora">${m.hora}</span>
-            <span class="endereco">${m.endereco}</span>
-          </li>
-        `).join('');
+      [...document.querySelectorAll('.details-toggle')].forEach((btn) => {
+        btn.onclick = () => {
+          const panel = document.getElementById(btn.dataset.target);
+          const showing = panel.classList.toggle('show');
+          btn.textContent = showing ? 'Ocultar detalhes' : 'Mostrar detalhes';
+        };
+      });
 
-        const div=document.createElement('div');
-        div.className='item';
-        div.innerHTML=`
-          <strong>${dateLabel}</strong>
-          <div class='muted'>
-            ${(r.marcacoes||[]).length} marcação(ões)
-            ${(r.marcacoes||[]).length > 1 ? ` | ${calcularDuracao(r.marcacoes)}` : ''}
-          </div>
-          <ul>
-            ${marks || '<li style="text-align:center;">Sem marcações registradas</li>'}
-          </ul>
-        `;
-        lista.appendChild(div);
+      [...document.querySelectorAll('.add-point')].forEach((btn) => {
+        btn.onclick = () => openModal(btn.dataset.date);
       });
     }
 
-    function calcularDuracao(marcacoes) {
-      if(marcacoes.length < 2) return '';
-      const arr = [...marcacoes].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-      let total = 0;
-      for(let i=0; i<arr.length-1; i+=2) {
-        total += (new Date(arr[i+1].timestamp) - new Date(arr[i].timestamp)) / 60000;
-      }
-      const h = Math.floor(total/60);
-      const m = Math.round(total%60);
-      return `${pad(h)}h${pad(m)}min`;
+    function mountTypes() {
+      types.innerHTML = pointTypes.map((t) => `
+        <button class="type ${t.cls} ${selectedType === t.key ? 'active' : ''}" data-key="${t.key}">${t.label}</button>
+      `).join('');
+
+      [...types.querySelectorAll('.type')].forEach((button) => {
+        button.onclick = () => {
+          selectedType = button.dataset.key;
+          mountTypes();
+        };
+      });
     }
 
-    aplicar.onclick=render;
-    limpar.onclick=()=>{
-      fDia.value='';
-      fMes.value='';
-      fHora.value='';
-      fFaltas.value='';
+    async function locate() {
+      mapFrame.src = mapSrc(latitude, longitude);
+      if (!navigator.geolocation) return;
+      await new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          latitude = pos.coords.latitude;
+          longitude = pos.coords.longitude;
+          mapFrame.src = mapSrc(latitude, longitude);
+          resolve();
+        }, () => resolve(), { timeout: 5000 });
+      });
+    }
+
+    function openModal(date) {
+      chosenDate = date;
+      modalDate.textContent = new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      const n = new Date();
+      manualTime.value = `${f2(n.getHours())}:${f2(n.getMinutes())}`;
+      selectedType = 'entrada';
+      justification.value = '';
+      mountTypes();
+      modal.classList.add('show');
+      locate();
+    }
+
+    function closeModal() {
+      modal.classList.remove('show');
+    }
+
+    function savePoint() {
+      if (!manualTime.value) return alert('Informe o horário.');
+      if (!justification.value.trim()) return alert('A justificativa é obrigatória nesse lançamento.');
+
+      const all = read();
+      const idx = all.findIndex((x) => x.date === chosenDate);
+      const mark = {
+        hora: manualTime.value,
+        timestamp: new Date(`${chosenDate}T${manualTime.value}:00`).toISOString(),
+        tipo: selectedType,
+        endereco: `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+        geo: { lat: latitude, lng: longitude },
+        justificativa: justification.value.trim(),
+        manual: true
+      };
+
+      if (idx === -1) all.push({ date: chosenDate, marcacoes: [mark] });
+      else all[idx].marcacoes = [...(all[idx].marcacoes || []), mark];
+
+      write(all);
+      closeModal();
       render();
-    };
+    }
+
+    document.getElementById('otherPeriods').onclick = openPeriodPicker;
+    document.getElementById('confirm').onclick = savePoint;
+    document.getElementById('close').onclick = closeModal;
+    modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
 
     render();
   </script>
