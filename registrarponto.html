@@ -4,741 +4,1069 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registrar Ponto - Artesynal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg:#f3f3f7;
-      --text:#1f2937;
-      --muted:#6b7280;
-      --purple:#6a0dad;
-      --purple-light:#f3e8ff;
-      --card:#fff;
-      --line:#e5e7eb;
-      --ok:#16a34a;
-      --warn:#dc2626;
-      --shadow:0 1px 3px rgba(0,0,0,0.1);
+      --purple: #6a0dad;
+      --purple-light: #f3e8ff;
+      --purple-dark: #581c87;
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 25px -5px rgb(0 0 0 / 0.1);
     }
+    
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
+    
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Montserrat, Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
     }
+
     header {
-      background:linear-gradient(135deg, #231f20 0%, #3d3536 100%);
-      color:#fff;
-      padding:16px 20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      box-shadow:var(--shadow);
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-lg);
       position: sticky;
       top: 0;
       z-index: 100;
     }
-    header strong {
-      font-size: 18px;
+
+    header h1 {
+      font-size: 20px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
+
     .header-actions {
-      display:flex;
-      gap:8px;
+      display: flex;
+      gap: 10px;
       align-items: center;
     }
+
     .btn {
-      border:0;
-      border-radius:999px;
-      background:#111827;
-      color:#fff;
-      padding:10px 16px;
-      cursor:pointer;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
       font-size: 14px;
       font-weight: 500;
-      transition: all 0.2s ease;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
     .btn:hover {
-      background:#374151;
+      background: rgba(255, 255, 255, 0.2);
       transform: translateY(-1px);
-      box-shadow: var(--shadow);
     }
-    .btn:active {
-      transform: translateY(0);
+
+    .btn-primary {
+      background: var(--purple);
+      color: white;
+      border: none;
     }
+
+    .btn-primary:hover {
+      background: var(--purple-dark);
+      box-shadow: 0 0 20px rgba(106, 10, 173, 0.3);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+      border: none;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      border: none;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
     .container {
-      max-width:1000px;
-      margin:0 auto;
-      padding:20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
     }
-    .hero {
-      display:grid;
-      grid-template-columns:1fr 280px;
-      gap:24px;
-      align-items:center;
-      margin-bottom: 24px;
+
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+      margin-bottom: 32px;
+      align-items: center;
     }
-    .hero-content h1 {
-      font-size: 32px;
-      font-weight: 700;
+
+    .hero-content h2 {
+      font-size: 36px;
       margin-bottom: 4px;
-      color: var(--text);
     }
+
     .hero-content .date {
       color: var(--muted);
       font-size: 14px;
       margin-bottom: 24px;
     }
-    .clock {
-      font-size:56px;
-      font-weight:700;
+
+    .time-display {
+      font-size: 56px;
       color: var(--purple);
-      margin:12px 0 24px;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
+      margin: 16px 0;
+      font-family: 'Courier New', monospace;
     }
-    .register {
-      background:linear-gradient(135deg, var(--purple) 0%, #8b5cf6 100%);
-      font-weight:700;
-      font-size:16px;
-      padding:16px 32px;
+
+    .circle-time {
+      background: var(--card);
+      border: 4px solid var(--purple-light);
+      border-radius: 50%;
       width: 100%;
-      box-shadow: 0 4px 12px rgba(106, 10, 173, 0.3);
-      transition: all 0.3s ease;
-    }
-    .register:hover {
-      transform: scale(1.02);
-      box-shadow: 0 6px 16px rgba(106, 10, 173, 0.4);
-    }
-    .register:active {
-      transform: scale(0.98);
-    }
-    .register.loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-    #statusRegistro {
-      margin-top:12px;
-      font-size: 13px;
-      min-height: 20px;
-      animation: slideIn 0.3s ease;
-    }
-    #statusRegistro.success {
-      color: var(--ok);
-      font-weight: 600;
-    }
-    #statusRegistro.error {
-      color: var(--warn);
-      font-weight: 600;
-    }
-    .circle {
-      border:4px solid var(--purple-light);
-      border-radius:50%;
-      width:100%;
-      max-width:280px;
+      max-width: 300px;
       aspect-ratio: 1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      background:var(--card);
-      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
       animation: float 3s ease-in-out infinite;
     }
+
     @keyframes float {
-      0%, 100% { transform: translateY(0px); }
+      0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
     }
-    .circle-content {
-      padding: 20px;
-    }
-    .circle-time {
-      font-size:48px;
-      font-weight:700;
+
+    .circle-time-value {
+      font-size: 48px;
+      font-weight: 700;
       color: var(--purple);
       font-variant-numeric: tabular-nums;
     }
-    .circle-label {
-      color: var(--text);
+
+    .circle-time-label {
       font-size: 14px;
+      color: var(--text);
       margin-top: 8px;
       font-weight: 500;
     }
+
     .circle-lunch {
-      color: var(--muted);
       font-size: 12px;
+      color: var(--muted);
       margin-top: 8px;
     }
-    .cards {
-      background:var(--card);
-      border-radius:16px;
-      padding:20px;
-      margin-bottom:24px;
+
+    .stats-section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
       box-shadow: var(--shadow);
     }
-    .period-label {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 16px;
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
     }
-    .period-label strong {
-      color: var(--text);
-      font-weight: 600;
-    }
-    .stat-grid {
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:12px;
-      margin-bottom:20px;
-    }
-    .stat {
-      background:linear-gradient(135deg, var(--purple-light) 0%, #f0e6ff 100%);
-      border:1px solid #e9d5ff;
-      border-radius:12px;
-      padding:16px;
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--purple-light), #f5e6ff);
+      border: 1px solid #e9d5ff;
+      border-radius: 10px;
+      padding: 16px;
       text-align: center;
-      transition: all 0.2s ease;
     }
-    .stat:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.1);
-    }
+
     .stat-label {
+      font-size: 12px;
       color: var(--muted);
-      font-size:12px;
-      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
-    }
-    .stat-value {
-      color: var(--purple);
-      font-size:24px;
-      font-weight:700;
-      font-variant-numeric: tabular-nums;
-    }
-    .tabs {
-      display:flex;
-      gap:8px;
-      border-top: 1px solid var(--line);
-      padding-top: 16px;
-    }
-    .tab {
-      border:1px solid var(--line);
-      padding:10px 16px;
-      border-radius:10px;
-      cursor:pointer;
-      background:#fff;
-      color: var(--text);
-      font-weight: 500;
-      font-size: 14px;
-      transition: all 0.2s ease;
-    }
-    .tab:hover {
-      border-color: var(--purple);
-      color: var(--purple);
-    }
-    .tab.active {
-      border-color:var(--purple);
-      color:var(--purple);
-      background: var(--purple-light);
-      font-weight:700;
-    }
-    .day {
-      background:var(--card);
-      border-radius:12px;
-      padding:16px;
-      border:1px solid var(--line);
-      margin-bottom:12px;
-      transition: all 0.2s ease;
-    }
-    .day:hover {
-      border-color: var(--purple);
-      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.08);
-    }
-    .day-head {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom: 12px;
-    }
-    .day-head strong {
-      font-size: 15px;
       font-weight: 600;
     }
-    .plus {
-      border:none;
-      background:var(--purple);
-      color:#fff;
-      width:40px;
-      height:40px;
-      border-radius:50%;
-      cursor:pointer;
-      font-size: 20px;
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--purple);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .period-tabs {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: var(--purple-light);
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+
+    .calendar-section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .calendar-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .calendar-day:hover {
+      border-color: var(--purple);
+      background: var(--purple-light);
+    }
+
+    .calendar-day.has-points {
+      background: var(--purple-light);
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+
+    .calendar-day.today {
+      background: var(--purple);
+      color: white;
+      font-weight: 700;
+    }
+
+    .calendar-day-badge {
+      font-size: 10px;
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
+      position: absolute;
+      top: -6px;
+      right: -6px;
     }
-    .plus:hover {
-      transform: scale(1.1);
-      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.3);
+
+    .day-name {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
     }
-    .plus:active {
-      transform: scale(0.95);
+
+    /* Modal de Registro */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
     }
-    .mark {
-      border-left:4px solid #d946ef;
-      padding:12px;
-      margin:8px 0;
-      background: #fff8fd;
-      border-radius: 8px;
-      animation: slideIn 0.3s ease;
+
+    .modal.show {
+      display: flex;
     }
-    .mark.pending {
-      border-left-color:var(--warn);
-      background: #fef2f2;
-      color:var(--warn);
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
-    .mark-time {
+
+    .modal-content {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
       font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .modal-close:hover {
       color: var(--text);
     }
-    .mark-address {
-      color:var(--muted);
-      font-size:13px;
-      margin-top: 4px;
+
+    .form-group {
+      margin-bottom: 20px;
     }
-    .small {
-      color:var(--muted);
-      font-size:13px;
-    }
-    .pill {
-      display: inline-block;
-      padding:4px 10px;
-      border-radius:99px;
-      font-size:11px;
-      background:var(--purple-light);
-      color:var(--purple);
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
       font-weight: 600;
-      margin-top: 4px;
+      margin-bottom: 8px;
+      color: var(--text);
     }
-    .pill.recusado {
-      background: #fee2e2;
-      color: var(--warn);
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
     }
-    .pill.aprovado {
-      background: #dcfce7;
-      color: var(--ok);
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px var(--purple-light);
     }
-    .day-meta {
-      margin-bottom:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:8px;
+
+    .point-type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
     }
-    .day-meta .small {
-      flex: 1;
-      min-width: 200px;
-    }
-    .toggle-detail {
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:999px;
-      padding:6px 12px;
-      cursor:pointer;
-      color:var(--purple);
+
+    .point-type-btn {
+      padding: 12px;
+      border: 2px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+      font-size: 13px;
       font-weight: 500;
-      font-size: 12px;
-      transition: all 0.2s ease;
     }
-    .toggle-detail:hover {
+
+    .point-type-btn:hover {
       border-color: var(--purple);
       background: var(--purple-light);
     }
-    .details {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-    .details.open {
-      max-height: 500px;
-    }
-    .details-content {
-      padding: 12px 0;
-      border-top: 1px solid var(--line);
-      margin-top: 12px;
-    }
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+
+    .point-type-btn.selected {
+      border-color: var(--purple);
+      background: var(--purple);
+      color: white;
     }
 
-    /* Mobile Responsividade */
-    @media (max-width:800px) {
+    .map-preview {
+      width: 100%;
+      height: 200px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-top: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .map-preview iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .modal-footer button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-submit {
+      background: var(--purple);
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background: var(--purple-dark);
+    }
+
+    .btn-cancel {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .btn-cancel:hover {
+      background: #d1d5db;
+    }
+
+    .day-details {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .day-details h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .point-item {
+      background: var(--card);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: 4px solid var(--purple);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .point-time {
+      font-weight: 600;
+      color: var(--purple);
+    }
+
+    .point-type {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: var(--danger);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .success-message {
+      background: #dcfce7;
+      color: var(--success);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
       .container {
         padding: 16px;
       }
-      .hero {
-        grid-template-columns:1fr;
-        gap: 16px;
+
+      .hero-section {
+        grid-template-columns: 1fr;
       }
-      .circle {
-        max-width: 100%;
-        width: 100%;
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
-      .hero-content h1 {
-        font-size: 28px;
+
+      .time-display {
+        font-size: 40px;
       }
-      .stat-grid {
-        grid-template-columns:repeat(2, 1fr);
+
+      .calendar-grid {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
       }
-      .stat {
-        padding: 12px;
+
+      .modal-content {
+        padding: 20px;
       }
-      .stat-value {
-        font-size: 20px;
-      }
-      .day-meta {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .day-meta .small {
-        width: 100%;
-      }
-      .header-actions {
-        gap: 6px;
-      }
-      .btn {
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-      .register {
-        font-size: 15px;
-        padding: 14px 24px;
-      }
-      .clock {
-        font-size: 44px;
+
+      .point-type-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width:480px) {
+    @media (max-width: 480px) {
       header {
         padding: 12px 16px;
       }
-      header strong {
-        font-size: 16px;
+
+      header h1 {
+        font-size: 18px;
       }
-      .hero-content h1 {
-        font-size: 24px;
+
+      .hero-content h2 {
+        font-size: 28px;
       }
-      .stat-grid {
-        grid-template-columns:1fr;
+
+      .time-display {
+        font-size: 32px;
       }
-      .day-head {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+
+      .stats-grid {
+        grid-template-columns: 1fr;
       }
-      .plus {
-        align-self: flex-start;
+
+      .circle-time {
+        max-width: 100%;
+        margin: 0 auto;
       }
-      .tabs {
-        flex-wrap: wrap;
+
+      .modal-content {
+        padding: 16px;
       }
-      .tab {
-        flex: 1;
-        min-width: 140px;
-        font-size: 12px;
-        padding: 8px 12px;
+
+      .point-type-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <strong>📍 Registrar Ponto</strong>
+    <h1>📍 Registrar Ponto</h1>
     <div class="header-actions">
-      <a class="btn" href="index.html">🏠</a>
-      <a class="btn" href="historicoponto.html">📚</a>
-      <a class="btn" id="btn-admin" href="paineldeponto.html" style="display:none;">🛡️</a>
+      <a href="index.html" class="btn">🏠 Painel</a>
+      <a href="paineldeponto.html" class="btn" id="btn-admin" style="display: none;">🛡️ Admin</a>
       <button class="btn" id="logout">Sair</button>
     </div>
   </header>
-  <main class="container">
-    <section class="hero">
-      <div class="hero-content">
-        <h1 id="saudacao">Bom dia!</h1>
-        <div class="date" id="diaAtual">Carregando...</div>
-        <div class="small">Horário atual</div>
-        <div class="clock" id="horaAtual">00:00:00</div>
-        <button class="btn register" id="registrarBtn">📍 Registrar ponto</button>
-        <div id="statusRegistro"></div>
-      </div>
-      <div class="circle">
-        <div class="circle-content">
-          <div class="circle-time" id="workedToday">00h00min</div>
-          <div class="circle-label">trabalhado hoje</div>
-          <div class="circle-lunch" id="almocoInfo">Almoço: 00min</div>
-        </div>
-      </div>
-    </section>
 
-    <section class="cards">
-      <div class="period-label">Período: <strong id="periodoTxt">-</strong></div>
-      <div class="stat-grid">
-        <div class="stat">
+  <div class="container">
+    <!-- Seção Hero -->
+    <div class="hero-section">
+      <div class="hero-content">
+        <h2 id="saudacao">Olá, Renan!</h2>
+        <div class="date" id="diaAtual">Carregando...</div>
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Horário atual</div>
+        <div class="time-display" id="horaAtual">00:00:00</div>
+        <button class="btn btn-primary btn-lg" id="registrarBtn" style="width: 100%; padding: 16px; font-size: 16px; margin-top: 12px;">
+          📍 Registrar Ponto
+        </button>
+        <div id="statusRegistro" style="margin-top: 12px; font-size: 13px;"></div>
+      </div>
+      <div class="circle-time">
+        <div class="circle-time-value" id="workedToday">00h00min</div>
+        <div class="circle-time-label">trabalhado hoje</div>
+        <div class="circle-lunch" id="almocoInfo">Almoço: 00min</div>
+      </div>
+    </div>
+
+    <!-- Seção de Estatísticas -->
+    <div class="stats-section">
+      <div style="font-size: 14px; color: var(--muted); margin-bottom: 16px;">
+        <strong>Período:</strong> <span id="periodoTxt">-</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
           <div class="stat-label">Dias trabalhados</div>
           <div class="stat-value" id="diasTrabalhados">0</div>
         </div>
-        <div class="stat">
+        <div class="stat-card">
           <div class="stat-label">Horas registradas</div>
-          <div class="stat-value" id="horasRegistradas">00h00min</div>
+          <div class="stat-value" id="horasRegistradas" style="font-size: 20px;">00h00min</div>
         </div>
-        <div class="stat">
+        <div class="stat-card">
           <div class="stat-label">Faltas</div>
           <div class="stat-value" id="faltas">0</div>
         </div>
-        <div class="stat">
+        <div class="stat-card">
           <div class="stat-label">Atrasos</div>
           <div class="stat-value" id="atrasos">0</div>
         </div>
       </div>
-      <div class="tabs">
-        <button class="tab active" data-period="atual">Neste período</button>
-        <button class="tab" data-period="anterior">Período anterior</button>
+      <div class="period-tabs">
+        <button class="tab-btn active" data-period="atual">📅 Neste período</button>
+        <button class="tab-btn" data-period="anterior">📅 Período anterior</button>
       </div>
-    </section>
+    </div>
 
-    <section id="listaDias"></section>
-  </main>
+    <!-- Seção Calendário -->
+    <div class="calendar-section">
+      <div class="calendar-header">
+        <h3>Registros do mês</h3>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="day-details" id="dayDetails" style="display: none;">
+        <h4 id="dayDetailsTitle">Detalhes</h4>
+        <div id="dayPointsList"></div>
+        <button class="btn btn-primary" id="addPointBtn" style="width: 100%; margin-top: 12px;">+ Adicionar solicitação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Registro -->
+  <div class="modal" id="registerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Registrar Ponto</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div id="modalMessage"></div>
+
+      <div class="form-group">
+        <label for="pointDate">Selecione a data</label>
+        <input type="date" id="pointDate" required>
+      </div>
+
+      <div class="form-group">
+        <label for="pointTime">Hora</label>
+        <input type="time" id="pointTime" required>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de ponto</label>
+        <div class="point-type-grid">
+          <button class="point-type-btn" data-type="entrada">🟢 Entrada</button>
+          <button class="point-type-btn" data-type="pausa">🟡 Pausa</button>
+          <button class="point-type-btn" data-type="retorno">🔵 Retorno</button>
+          <button class="point-type-btn" data-type="saida">🔴 Saída</button>
+          <button class="point-type-btn" data-type="extra">⭐ Hora Extra</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Localização</label>
+        <div class="map-preview" id="mapPreview">
+          <div style="text-align: center;">
+            <div style="font-size: 14px; margin-bottom: 8px;">📍 Localização atual</div>
+            <div style="font-size: 12px; opacity: 0.8;" id="coordsDisplay">Aguardando...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" id="justificativaGroup" style="display: none;">
+        <label for="justificativa">Justificativa (para solicitação)</label>
+        <textarea id="justificativa" placeholder="Explique o motivo da solicitação..." rows="3"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-submit" id="submitBtn">Registrar</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { protegerPagina, logout } from './auth.js';
 
-    const sessao = await protegerPagina({ paginaAtual: 'registrarponto.html' });
-    if (!sessao) throw new Error('sem sessão');
-    document.getElementById('logout').onclick = () => logout();
-    if (sessao.acesso.categoria === 'administracao') document.getElementById('btn-admin').style.display = 'inline-flex';
+    let sessao = null;
+    let email = '';
+    let currentLat = 0;
+    let currentLng = 0;
+    let isSubmission = false;
+    let selectedPointType = 'entrada';
 
-    const email = (sessao.user.email || sessao.acesso.email).toLowerCase();
-    const storageKey = `ponto_registros_${email}`;
-    const configKey = 'ponto_config_global';
-    const solicitaKey = 'ponto_solicitacoes';
-    const feriadosFerias = JSON.parse(localStorage.getItem(configKey) || '{"diasNaoContabilizados":[]}');
+    (async () => {
+      sessao = await protegerPagina({ paginaAtual: 'registrarponto.html' });
+      if (!sessao) throw new Error('sem sessão');
+      
+      email = (sessao.user.email || sessao.acesso.email).toLowerCase();
+      document.getElementById('logout').onclick = () => logout();
+      
+      if (sessao.acesso.categoria === 'administracao') {
+        document.getElementById('btn-admin').style.display = 'inline-flex';
+      }
 
-    let periodoAtual = 'atual';
+      getGeolocation();
+      render();
+      setInterval(render, 1000);
+    })();
 
     const pad = (n) => String(n).padStart(2, '0');
-    const fmtDur = (mins) => `${pad(Math.floor(mins/60))}h${pad(mins%60)}min`;
     const kDate = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    const parseTime = (t) => { const [h,m]=t.split(':').map(Number); return h*60+m; };
-    const diffMin = (a,b) => Math.max(0, Math.round((b-a)/60000));
-    const isIgnored = (dateStr) => (feriadosFerias.diasNaoContabilizados || []).includes(dateStr);
+    const fmt = (mins) => `${pad(Math.floor(mins/60))}h${pad(mins%60)}min`;
+    const getReg = () => JSON.parse(localStorage.getItem(`ponto_registros_${email}`) || '[]');
+    const saveReg = (v) => localStorage.setItem(`ponto_registros_${email}`, JSON.stringify(v));
+    const getSolic = () => JSON.parse(localStorage.getItem('ponto_solicitacoes') || '[]');
+    const saveSolic = (v) => localStorage.setItem('ponto_solicitacoes', JSON.stringify(v));
+    const cfg = JSON.parse(localStorage.getItem('ponto_config_global') || '{"diasNaoContabilizados":[]}');
 
-    const getReg = () => JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const saveReg = (v) => localStorage.setItem(storageKey, JSON.stringify(v));
-    const getSolic = () => JSON.parse(localStorage.getItem(solicitaKey) || '[]');
-    const saveSolic = (v) => localStorage.setItem(solicitaKey, JSON.stringify(v));
-
-    function calcWorkedForDay(regDay){
-      const arr = (regDay.marcacoes||[]).slice().sort((a,b)=>a.timestamp-b.timestamp);
-      let total=0, lunch=0;
-      for(let i=0;i<arr.length-1;i+=2){ total += diffMin(new Date(arr[i].timestamp), new Date(arr[i+1].timestamp)); }
-      if(arr[1] && arr[2]) lunch = diffMin(new Date(arr[1].timestamp), new Date(arr[2].timestamp));
-      return { total, lunch };
+    function getGeolocation() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          currentLat = pos.coords.latitude;
+          currentLng = pos.coords.longitude;
+          updateMapPreview();
+        },
+        () => console.log('Geolocalização negada')
+      );
     }
 
-    async function registrarPonto(){
-      const btn = document.getElementById('registrarBtn');
-      const status = document.getElementById('statusRegistro');
-      btn.classList.add('loading');
-      status.className = '';
-      status.textContent = '📍 Solicitando localização...';
+    function updateMapPreview() {
+      const mapDiv = document.getElementById('mapPreview');
+      if (currentLat && currentLng) {
+        mapDiv.innerHTML = `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${currentLng-0.005},${currentLat-0.005},${currentLng+0.005},${currentLat+0.005}&layer=mapnik&marker=${currentLat},${currentLng}" width="100%" height="100%"></iframe>`;
+        document.getElementById('coordsDisplay').textContent = `${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
+      }
+    }
 
-      if (!navigator.geolocation) {
-        status.className = 'error';
-        status.textContent = '❌ Geolocalização não suportada no navegador.';
-        btn.classList.remove('loading');
+    function render() {
+      const now = new Date();
+      document.getElementById('horaAtual').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      document.getElementById('diaAtual').textContent = now.toLocaleDateString('pt-BR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      const nome = sessao.user.displayName || sessao.acesso.nome || 'usuário';
+      document.getElementById('saudacao').textContent = `Olá, ${nome}!`;
+
+      renderStats();
+      renderCalendar();
+    }
+
+    function renderStats() {
+      const period = document.querySelector('.tab-btn.active').dataset.period;
+      const d = new Date();
+      if (period === 'anterior') d.setMonth(d.getMonth() - 1);
+      
+      const ini = new Date(d.getFullYear(), d.getMonth(), 1);
+      const fim = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      const key = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}`;
+      
+      document.getElementById('periodoTxt').textContent = `${ini.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
+      
+      const regs = getReg().filter(r => r.date.startsWith(key));
+      
+      let totalMins = 0;
+      let dias = 0;
+      let atrasos = 0;
+      
+      regs.forEach(r => {
+        const marks = (r.marcacoes || []).sort((a, b) => a.timestamp - b.timestamp);
+        let dayTotal = 0;
+        for (let i = 0; i < marks.length - 1; i += 2) {
+          dayTotal += Math.max(0, Math.round((new Date(marks[i+1].timestamp) - new Date(marks[i].timestamp)) / 60000));
+        }
+        totalMins += dayTotal;
+        if (dayTotal > 0) dias++;
+        
+        const first = marks[0]?.hora;
+        if (first && parseInt(first) > 8) atrasos++;
+      });
+      
+      const diasNoMes = fim.getDate();
+      const faltas = Math.max(0, diasNoMes - dias - (cfg.diasNaoContabilizados || []).filter(x => x.startsWith(key)).length);
+      
+      document.getElementById('diasTrabalhados').textContent = dias;
+      document.getElementById('horasRegistradas').textContent = fmt(totalMins);
+      document.getElementById('faltas').textContent = faltas;
+      document.getElementById('atrasos').textContent = atrasos;
+
+      // Hoje
+      const hoje = getReg().find(r => r.date === kDate(new Date()));
+      if (hoje) {
+        const marks = (hoje.marcacoes || []).sort((a, b) => a.timestamp - b.timestamp);
+        let hojeTotal = 0;
+        let almoço = 0;
+        for (let i = 0; i < marks.length - 1; i += 2) {
+          hojeTotal += Math.max(0, Math.round((new Date(marks[i+1].timestamp) - new Date(marks[i].timestamp)) / 60000));
+        }
+        if (marks[1] && marks[2]) {
+          almoço = Math.round((new Date(marks[2].timestamp) - new Date(marks[1].timestamp)) / 60000);
+        }
+        document.getElementById('workedToday').textContent = fmt(hojeTotal);
+        document.getElementById('almocoInfo').textContent = `Almoço: ${pad(almoço)}min`;
+      }
+    }
+
+    function renderCalendar() {
+      const period = document.querySelector('.tab-btn.active').dataset.period;
+      const d = new Date();
+      if (period === 'anterior') d.setMonth(d.getMonth() - 1);
+      
+      const ini = new Date(d.getFullYear(), d.getMonth(), 1);
+      const fim = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      const hoje = new Date();
+      const key = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}`;
+      
+      const regs = getReg().filter(r => r.date.startsWith(key));
+      const regMap = {};
+      regs.forEach(r => {
+        regMap[r.date] = r.marcacoes || [];
+      });
+
+      const calendar = document.getElementById('calendarGrid');
+      calendar.innerHTML = '';
+
+      for (let i = 1; i <= fim.getDate(); i++) {
+        const date = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}-${pad(i)}`;
+        const dateObj = new Date(date + 'T00:00:00');
+        
+        // Não mostrar dias futuros no período atual
+        if (period === 'atual' && dateObj > hoje) break;
+
+        const hasPoints = regMap[date] && regMap[date].length > 0;
+        const isToday = kDate(hoje) === date;
+        
+        const day = document.createElement('div');
+        day.className = 'calendar-day';
+        if (hasPoints) day.classList.add('has-points');
+        if (isToday) day.classList.add('today');
+
+        const dayName = dateObj.toLocaleDateString('pt-BR', { weekday: 'short' }).substring(0, 1);
+        let badge = '';
+        if (hasPoints) {
+          badge = `<div class="calendar-day-badge">${(regMap[date] || []).length}</div>`;
+        }
+
+        day.innerHTML = `${badge}<div class="day-name">${dayName}</div><div>${i}</div>`;
+        day.onclick = () => showDayDetails(date, regMap[date] || []);
+        calendar.appendChild(day);
+      }
+    }
+
+    function showDayDetails(date, points) {
+      const dateObj = new Date(date + 'T00:00:00');
+      const dateLabel = dateObj.toLocaleDateString('pt-BR', { 
+        weekday: 'short', 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      });
+
+      document.getElementById('dayDetailsTitle').textContent = `Detalhes - ${dateLabel}`;
+      
+      const list = document.getElementById('dayPointsList');
+      list.innerHTML = '';
+
+      if (points.length === 0) {
+        list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--muted);">Nenhum ponto registrado</div>';
+      } else {
+        points.sort((a, b) => a.hora.localeCompare(b.hora)).forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'point-item';
+          item.innerHTML = `
+            <div>
+              <div class="point-time">${p.hora}</div>
+              <div class="point-type">${p.endereco}</div>
+            </div>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      document.getElementById('dayDetails').style.display = 'block';
+      document.getElementById('addPointBtn').onclick = () => openModal(date, true);
+    }
+
+    document.getElementById('registrarBtn').onclick = () => {
+      const today = kDate(new Date());
+      openModal(today, false);
+    };
+
+    function openModal(date, isSubmission = false) {
+      const modal = document.getElementById('registerModal');
+      modal.classList.add('show');
+      
+      const now = new Date();
+      document.getElementById('pointDate').value = date;
+      document.getElementById('pointTime').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      
+      isSubmission ? 
+        document.getElementById('justificativaGroup').style.display = 'block' :
+        document.getElementById('justificativaGroup').style.display = 'none';
+      
+      document.querySelectorAll('.point-type-btn').forEach(btn => btn.classList.remove('selected'));
+      document.querySelector('.point-type-btn[data-type="entrada"]').classList.add('selected');
+      selectedPointType = 'entrada';
+      
+      updateMapPreview();
+    }
+
+    function closeModal() {
+      document.getElementById('registerModal').classList.remove('show');
+      document.getElementById('modalMessage').innerHTML = '';
+    }
+
+    document.querySelectorAll('.point-type-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.point-type-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedPointType = btn.dataset.type;
+      };
+    });
+
+    document.getElementById('submitBtn').onclick = () => {
+      const date = document.getElementById('pointDate').value;
+      const time = document.getElementById('pointTime').value;
+      
+      if (!date || !time) {
+        showModalMessage('Preencha data e hora', 'error');
         return;
       }
 
-      navigator.geolocation.getCurrentPosition((pos)=>{
-        const lat = pos.coords.latitude.toFixed(5);
-        const lng = pos.coords.longitude.toFixed(5);
-        const now = new Date();
-        const date = kDate(now);
-        const lista = getReg();
-        let day = lista.find(d=>d.date===date);
-        if(!day){ day = { date, marcacoes:[] }; lista.push(day); }
-        day.marcacoes.push({
-          timestamp: now.toISOString(),
-          hora: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-          endereco: `Lat ${lat}, Lng ${lng}`,
-          origem: 'web-gps'
-        });
-        saveReg(lista);
-        status.className = 'success';
-        status.textContent = `✅ Ponto registrado às ${pad(now.getHours())}:${pad(now.getMinutes())}.`;
-        btn.classList.remove('loading');
-        render();
-      }, (error)=>{
-        status.className = 'error';
-        if(error.code === 1) {
-          status.textContent = '❌ Permissão de localização negada. O ponto não foi registrado.';
-        } else {
-          status.textContent = '❌ Erro ao obter localização. Tente novamente.';
-        }
-        btn.classList.remove('loading');
-      });
-    }
-
-    function periodoData(){
-      const d = new Date();
-      if (periodoAtual === 'anterior') d.setMonth(d.getMonth()-1);
-      const ini = new Date(d.getFullYear(), d.getMonth(), 1);
-      const fim = new Date(d.getFullYear(), d.getMonth()+1, 0);
-      return { ini, fim, key:`${ini.getFullYear()}-${pad(ini.getMonth()+1)}` };
-    }
-
-    function render(){
-      const now = new Date();
-      horaAtual.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-      diaAtual.textContent = now.toLocaleDateString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-      saudacao.textContent = `Olá, ${(sessao.user.displayName || sessao.acesso.nome || 'usuário')}!`;
-
-      const {ini,fim,key} = periodoData();
-      periodoTxt.textContent = `${ini.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
-      const lista = getReg().filter(r=>r.date.startsWith(key));
-
-      let totalMin=0, dias=0, atrasos=0;
-      lista.forEach((d)=>{
-        const c=calcWorkedForDay(d);
-        totalMin+=c.total;
-        if(c.total>0) dias++;
-        const first=d.marcacoes?.[0]?.hora;
-        if(first && parseTime(first)>parseTime('08:00') && !isIgnored(d.date)) atrasos++;
-      });
-      const diasNoMes = new Date(ini.getFullYear(), ini.getMonth()+1, 0).getDate();
-      const diasNaoContabilizados = (feriadosFerias.diasNaoContabilizados||[]).filter(x=>x.startsWith(key)).length;
-      const faltas = Math.max(0, diasNoMes - dias - diasNaoContabilizados);
-
-      diasTrabalhados.textContent = dias;
-      horasRegistradas.textContent = fmtDur(totalMin);
-      faltas.textContent = faltas;
-      atrasos.textContent = atrasos;
-
-      const hoje = getReg().find(r=>r.date===kDate(now));
-      const worked = hoje ? calcWorkedForDay(hoje) : {total:0,lunch:0};
-      workedToday.textContent = fmtDur(worked.total);
-      almocoInfo.textContent = `Almoço: ${pad(worked.lunch)}min`;
-
-      const solic = getSolic().filter(s=>s.email===email && s.date.startsWith(key));
-      listaDias.innerHTML = '';
-
-      for (let d = diasNoMes; d >= 1; d -= 1) {
-        const date = `${ini.getFullYear()}-${pad(ini.getMonth()+1)}-${pad(d)}`;
-        const day = lista.find(item => item.date === date) || { date, marcacoes: [] };
-        const calc = calcWorkedForDay(day);
-        const hasMarks = (day.marcacoes || []).length > 0;
-        const div = document.createElement('div');
-        div.className='day';
-
-        const marks = (day.marcacoes || []).sort((a, b) => a.hora.localeCompare(b.hora)).map(m=>`
-          <div class='mark'>
-            <div class='mark-time'>${m.hora}</div>
-            <div class='mark-address'>${m.endereco}</div>
-          </div>
-        `).join('');
-
-        const pend = solic.filter(s=>s.date===day.date).map(s=>`
-          <div class='mark pending'>
-            <div class='mark-time'>Solicitação às ${s.horaPretendida}</div>
-            <div class='mark-address'>${s.justificativa}</div>
-            <span class='pill ${s.status}'>${s.status}</span>
-          </div>
-        `).join('');
-
-        const dayLabel = new Date(day.date+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'short',weekday:'short'});
-        const hasDetails = hasMarks || pend;
-
-        div.innerHTML = `
-          <div class='day-head'>
-            <strong>${dayLabel}</strong>
-            <button class='plus' data-date='${day.date}' title="Adicionar ponto esquecido">+</button>
-          </div>
-          <div class='day-meta'>
-            <span class='small'>Escala: <strong style='color:var(--purple);'>Dia Comum</strong></span>
-            ${hasDetails ? `<button class='toggle-detail' data-date='${day.date}'>Ver detalhes</button>` : ''}
-          </div>
-          <div id='detail-${day.date}' class='details'>
-            <div class='details-content'>
-              ${hasMarks ? `<div class='small' style='margin-bottom:8px;'><strong>Total:</strong> ${fmtDur(calc.total)} | <strong>Almoço:</strong> ${pad(calc.lunch)}min</div>` : ''}
-              ${marks}${pend}
-            </div>
-          </div>
-        `;
-        listaDias.appendChild(div);
+      const regs = getReg();
+      let day = regs.find(r => r.date === date);
+      if (!day) {
+        day = { date, marcacoes: [] };
+        regs.push(day);
       }
 
-      document.querySelectorAll('.plus').forEach(btn=>btn.onclick=()=>{
-        const date = btn.dataset.date;
-        const horaPretendida = prompt('Qual horário deseja adicionar? (HH:MM)');
-        if(!horaPretendida || !/^\d{2}:\d{2}$/.test(horaPretendida)) {
-          alert('Formato inválido. Use HH:MM');
-          return;
-        }
-        const justificativa = prompt('Descreva a justificativa:');
-        if(!justificativa || justificativa.trim().length < 5) {
-          alert('Justificativa deve ter pelo menos 5 caracteres');
-          return;
-        }
-        const arr=getSolic();
-        arr.push({
-          id: crypto.randomUUID(),
-          email,
-          date,
-          horaPretendida,
-          justificativa,
-          status:'pendente',
-          createdAt:new Date().toISOString()
-        });
-        saveSolic(arr);
-        render();
+      const timestamp = new Date(`${date}T${time}:00`).toISOString();
+      day.marcacoes.push({
+        timestamp,
+        hora: time,
+        tipo: selectedPointType,
+        endereco: `${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`,
+        origem: 'web-manual'
       });
 
-      document.querySelectorAll('.toggle-detail').forEach((btn) => {
-        btn.onclick = () => {
-          const panel = document.getElementById(`detail-${btn.dataset.date}`);
-          panel.classList.toggle('open');
-          btn.textContent = panel.classList.contains('open') ? '⬆️ Ocultar' : '⬇️ Ver detalhes';
-        };
-      });
+      saveReg(regs);
+      showModalMessage('✅ Ponto registrado com sucesso!', 'success');
+      
+      setTimeout(() => {
+        closeModal();
+        render();
+      }, 1500);
+    };
+
+    function showModalMessage(msg, type) {
+      const div = document.getElementById('modalMessage');
+      div.className = type === 'error' ? 'error-message' : 'success-message';
+      div.textContent = msg;
     }
 
-    document.getElementById('registrarBtn').onclick = registrarPonto;
-    document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      periodoAtual=t.dataset.period;
-      render();
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderStats();
+        renderCalendar();
+      };
     });
 
-    setInterval(render, 1000);
-    render();
+    window.closeModal = closeModal;
   </script>
 </body>
 </html>
