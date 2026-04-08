@@ -7,232 +7,385 @@
   <style>
     :root {
       --bg: #ececec;
+      --surface: #f6f6f6;
       --orange: #f68a1e;
       --green: #07ad56;
-      --red: #f3273a;
       --dark: #231f20;
-      --text: #2b2a30;
-      --muted: #8e8d95;
-      --card: #ffffff;
-      --line: #2f2c2f;
-      --radius: 20px;
-      --shadow: 0 18px 30px rgba(0,0,0,0.2);
+      --text: #2f2e39;
+      --muted: #8a8993;
+      --border: #3f3f46;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
       background: var(--bg);
       color: var(--text);
       font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+      line-height: 1.25;
     }
 
-    .page {
-      max-width: 430px;
+    .shell {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 28px 20px 40px;
+      padding: 24px 16px 40px;
     }
 
-    .hello { font-size: clamp(32px, 9vw, 56px); margin: 0; font-weight: 800; }
-    .date { margin: 6px 0 24px; font-size: 22px; }
+    .panel {
+      background: rgba(255,255,255,0.22);
+      border-radius: 24px;
+      padding: 22px;
+    }
 
-    .work-box {
+    .header h1 {
+      margin: 0;
+      font-size: clamp(2.3rem, 7vw, 3.6rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      margin: 8px 0 0;
+      color: var(--text);
+      font-size: clamp(1.2rem, 3.9vw, 2rem);
+      font-weight: 500;
+    }
+
+    .layout {
+      margin-top: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .worked-box {
+      background: var(--surface);
       border: 4px solid var(--orange);
-      border-radius: var(--radius);
+      border-radius: var(--radius-lg);
       text-align: center;
-      padding: 12px;
-      background: #f6f6f6;
+      padding: 14px 16px;
     }
-    .work-box small { display: block; color: var(--muted); font-size: 20px; }
-    .work-time { font-size: clamp(40px, 11vw, 68px); line-height: 1; font-variant-numeric: tabular-nums; }
 
-    .now { margin: 32px 0 12px; }
-    .now-label { color: var(--muted); font-size: 20px; }
-    .now-time { margin: 0; font-size: clamp(48px, 13vw, 72px); font-variant-numeric: tabular-nums; }
+    .worked-box .label {
+      display: block;
+      color: var(--muted);
+      font-size: clamp(1.1rem, 3.7vw, 1.8rem);
+    }
 
-    .action-btn {
+    .worked-box .value,
+    .clock .value {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .worked-box .value {
+      font-size: clamp(3.1rem, 11vw, 4.8rem);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .clock { margin-top: 18px; }
+
+    .clock .label {
+      color: var(--muted);
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      margin-bottom: 2px;
+      display: block;
+    }
+
+    .clock .value {
+      margin: 0;
+      font-size: clamp(3.2rem, 11vw, 5rem);
+      font-weight: 500;
+    }
+
+    .btn-main {
       width: 100%;
+      margin-top: 16px;
       border: none;
       border-radius: 999px;
-      padding: 16px;
+      padding: 15px 20px;
+      font-size: clamp(2rem, 8vw, 3.4rem);
       font-weight: 800;
-      font-size: clamp(24px, 7vw, 52px);
+      background: var(--orange);
+      color: #fff;
       cursor: pointer;
-      transition: .2s ease;
+      transition: transform .2s ease, filter .2s ease;
     }
-    .action-btn:hover { transform: translateY(-1px); }
-    .btn-orange { background: var(--orange); color: #fff; }
+
+    .btn-main:hover { transform: translateY(-1px); filter: brightness(1.04); }
 
     .stats {
-      margin-top: 22px;
+      margin-top: 16px;
       display: grid;
-      gap: 12px;
+      gap: 10px;
       grid-template-columns: 1fr 1fr;
     }
+
     .stat {
-      border: 1px solid #444;
-      border-radius: 12px;
-      background: #f6f6f6;
-      padding: 10px;
+      background: var(--surface);
+      border: 1.6px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 11px 12px;
       text-align: center;
     }
-    .stat-title { font-size: 16px; }
-    .stat hr { border: 0; border-top: 2px solid var(--orange); margin: 8px 0; }
-    .stat-value { font-size: clamp(36px, 8vw, 46px); line-height: 1; }
 
-    .footer-access {
-      margin-top: 26px;
+    .stat-title {
+      margin: 0;
+      font-size: clamp(0.98rem, 3vw, 1.35rem);
+      font-weight: 500;
+    }
+
+    .stat hr {
+      margin: 8px 0;
+      border: 0;
+      border-top: 2px solid var(--orange);
+    }
+
+    .stat-value {
+      margin: 0;
+      font-size: clamp(2.1rem, 7vw, 3rem);
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .records-btn {
+      margin-top: 14px;
+      text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
-      text-decoration: none;
+      gap: 8px;
+    }
+
+    .records-btn span:last-child {
+      font-size: clamp(1.6rem, 5vw, 2.3rem);
+      font-weight: 500;
+      opacity: .95;
     }
 
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.45);
+      background: rgba(0, 0, 0, 0.42);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 14px;
       z-index: 20;
+      padding: 14px;
     }
+
     .modal.show { display: flex; }
 
-    .card {
-      width: min(540px, 100%);
-      border-radius: 34px;
-      background: var(--card);
+    .modal-card {
+      width: min(620px, 100%);
+      background: #fff;
+      border-radius: 30px;
       box-shadow: var(--shadow);
       padding: 18px;
     }
 
     .pill-date {
+      margin: 0;
       background: var(--dark);
       color: #fff;
-      text-align: center;
       border-radius: 999px;
-      padding: 12px 18px;
-      font-size: clamp(24px, 5vw, 40px);
-      margin-bottom: 10px;
+      text-align: center;
+      padding: 10px 14px;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      font-weight: 500;
     }
-    h2 { margin: 8px 0 12px; font-size: clamp(28px, 6vw, 46px); }
 
-    .types { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-card h2 {
+      margin: 14px 0 10px;
+      font-size: clamp(1.8rem, 5.6vw, 2.8rem);
+      font-weight: 500;
+    }
+
+    .types {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
     .type {
       border: 0;
-      color: #fff;
+      min-height: 58px;
       border-radius: 8px;
-      min-height: 74px;
-      font-size: clamp(22px, 5vw, 42px);
+      color: #fff;
+      font-size: clamp(1.6rem, 4.7vw, 2.3rem);
       font-weight: 800;
       cursor: pointer;
     }
-    .type small { display: block; font-size: 14px; font-weight: 500; }
+
+    .type small { display: block; font-size: .72rem; font-weight: 500; margin-top: -2px; }
     .type.green { background: var(--green); }
     .type.orange { background: var(--orange); }
-    .type.active { outline: 4px solid var(--line); }
+    .type.active { outline: 3px solid #2d2d2d; }
 
-    .time-row { margin: 14px 0 8px; font-size: clamp(28px, 6vw, 48px); }
-    .time-row span { color: var(--muted); }
-    #manualTime { border: 0; background: transparent; font-size: inherit; font-weight: 500; color: inherit; }
+    .time-line {
+      margin-top: 12px;
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .time-line span { color: var(--muted); }
+
+    #manualTime {
+      border: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: 500;
+      min-width: 130px;
+    }
 
     .map {
       width: 100%;
-      height: 220px;
-      border-radius: 8px;
+      height: 200px;
+      margin-top: 8px;
       border: 0;
+      border-radius: 8px;
       background: #ddd;
-      object-fit: cover;
     }
 
     .justification {
-      width: 100%;
-      min-height: 120px;
-      margin-top: 12px;
-      border: 3px solid var(--orange);
-      border-radius: 10px;
-      resize: vertical;
-      padding: 10px;
-      font-family: inherit;
       display: none;
+      width: 100%;
+      margin-top: 12px;
+      min-height: 110px;
+      border: 2px solid var(--orange);
+      border-radius: 10px;
+      padding: 10px;
+      font: inherit;
+      resize: vertical;
     }
 
-    .confirm { margin-top: 12px; background: var(--green); color: #fff; }
-    .close {
-      margin-top: 8px;
+    .confirm {
+      margin-top: 12px;
       width: 100%;
-      border: 0;
-      background: #eee;
+      border: none;
       border-radius: 999px;
-      padding: 10px;
+      padding: 10px 14px;
+      font-size: clamp(2rem, 6.4vw, 3rem);
+      font-weight: 800;
+      background: var(--green);
+      color: #fff;
       cursor: pointer;
     }
 
+    .close-modal {
+      margin-top: 8px;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 9px;
+      background: #ececec;
+      cursor: pointer;
+      font: inherit;
+    }
+
     @media (min-width: 900px) {
-      body { display: grid; place-items: center; padding: 26px; }
-      .page { max-width: 860px; background: #f5f5f5; border-radius: 24px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-      .main-col { grid-column: 1; }
-      .stats-col { grid-column: 2; align-self: end; }
-      .stats { grid-template-columns: 1fr; margin-top: 0; }
+      body { display: grid; align-items: center; }
+      .shell { padding-top: 28px; }
+      .panel {
+        padding: 28px;
+        background: rgba(255,255,255,0.25);
+        box-shadow: var(--shadow);
+      }
+
+      .layout {
+        grid-template-columns: 1.1fr .9fr;
+        column-gap: 18px;
+        align-items: end;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 0;
+      }
+
+      .btn-main {
+        margin-top: 18px;
+        font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+      }
+
+      .records-btn { margin-top: 12px; }
     }
   </style>
 </head>
 <body>
-  <main class="page">
-    <section class="main-col">
-      <h1 class="hello" id="hello">Bom dia, @usuário!</h1>
-      <p class="date" id="todayDate"></p>
+  <main class="shell">
+    <section class="panel">
+      <header class="header">
+        <h1 id="hello">Bom dia, @usuário!</h1>
+        <p id="todayDate"></p>
+      </header>
 
-      <div class="work-box">
-        <small>Horas trabalhadas</small>
-        <div class="work-time" id="workedToday">00:00:00</div>
+      <div class="layout">
+        <section>
+          <div class="worked-box">
+            <span class="label">Horas trabalhadas</span>
+            <div class="value" id="workedToday">00:00:00</div>
+          </div>
+
+          <div class="clock">
+            <span class="label">Horário atual</span>
+            <p class="value" id="liveClock">00:00:00</p>
+          </div>
+
+          <button class="btn-main" id="openRegister">Registrar ponto</button>
+        </section>
+
+        <section>
+          <div class="stats">
+            <article class="stat">
+              <p class="stat-title">Dias trabalhados</p>
+              <hr>
+              <p class="stat-value" id="daysWorked">0</p>
+            </article>
+            <article class="stat">
+              <p class="stat-title">Horas registradas</p>
+              <hr>
+              <p class="stat-value" id="hoursRegistered">0h00min</p>
+            </article>
+          </div>
+
+          <a href="historicoponto.html" class="btn-main records-btn">
+            <span>Acessar registros</span>
+            <span id="monthTag"></span>
+          </a>
+        </section>
       </div>
-
-      <div class="now">
-        <div class="now-label">Horário atual</div>
-        <p class="now-time" id="liveClock">00:00:00</p>
-      </div>
-
-      <button class="action-btn btn-orange" id="openRegister">Registrar ponto</button>
-    </section>
-
-    <section class="stats-col">
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-title">Dias trabalhados</div>
-          <hr>
-          <div class="stat-value" id="daysWorked">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-title">Horas registradas</div>
-          <hr>
-          <div class="stat-value" id="hoursRegistered">0h00min</div>
-        </div>
-      </div>
-
-      <a href="historicoponto.html" class="action-btn btn-orange footer-access">
-        <span>Acessar registros</span>
-        <span id="monthTag"></span>
-      </a>
     </section>
   </main>
 
   <div class="modal" id="registerModal">
-    <div class="card">
-      <div class="pill-date" id="modalDate"></div>
+    <div class="modal-card">
+      <p class="pill-date" id="modalDate"></p>
       <h2>Registrar como ponto de:</h2>
       <div class="types" id="types"></div>
 
-      <div class="time-row"><span>Horário atual:</span> <input id="manualTime" type="time" step="60"></div>
+      <div class="time-line">
+        <span>Horário atual:</span>
+        <input id="manualTime" type="time" step="60">
+      </div>
+
       <iframe class="map" id="mapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <textarea class="justification" id="justification" placeholder="Escreva a justificativa:"></textarea>
 
-      <button class="action-btn confirm" id="confirmPoint">Confirmar registro</button>
-      <button class="close" id="closeModal">Fechar</button>
+      <button class="confirm" id="confirmPoint">Confirmar registro</button>
+      <button class="close-modal" id="closeModal">Fechar</button>
     </div>
   </div>
 
@@ -256,7 +409,7 @@
       { key: 'entrada', label: 'ENTRADA', color: 'green' },
       { key: 'pausa', label: 'PAUSA', color: 'orange' },
       { key: 'volta', label: 'VOLTA', sub: '(PÓS PAUSA)', color: 'green' },
-      { key: 'saida', label: 'SAÍDA', color: 'orange' },
+      { key: 'saida', label: 'SAÍDA', color: 'orange' }
     ];
 
     const hello = document.getElementById('hello');
@@ -302,11 +455,11 @@
     }
 
     function calcWorkedMs(marcacoes = []) {
-      const ordered = [...marcacoes].sort((a,b) => a.hora.localeCompare(b.hora));
+      const ordered = [...marcacoes].sort((a, b) => a.hora.localeCompare(b.hora));
       let total = 0;
       for (let i = 0; i < ordered.length - 1; i += 2) {
         const [h1, m1] = ordered[i].hora.split(':').map(Number);
-        const [h2, m2] = ordered[i+1].hora.split(':').map(Number);
+        const [h2, m2] = ordered[i + 1].hora.split(':').map(Number);
         total += Math.max(0, ((h2 * 60 + m2) - (h1 * 60 + m1)) * 60000);
       }
       return total;
