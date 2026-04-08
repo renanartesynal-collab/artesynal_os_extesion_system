@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - Controle de Ponto</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
   <style>
     :root {
       --purple: #6a0dad;
@@ -82,7 +84,6 @@
 
     .btn-nav:hover {
       background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-1px);
     }
 
     .btn-primary {
@@ -93,7 +94,6 @@
 
     .btn-primary:hover {
       background: var(--purple-dark);
-      box-shadow: 0 0 20px rgba(106, 10, 173, 0.3);
     }
 
     .btn-success {
@@ -187,7 +187,6 @@
       border-color: var(--purple);
     }
 
-    /* Estatísticas */
     .stats-section {
       background: var(--card);
       border-radius: 12px;
@@ -198,7 +197,7 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
     }
 
@@ -226,26 +225,46 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Filtros de Período */
-    .period-selector {
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+      padding: 12px;
+      background: var(--purple-light);
+      border-radius: 8px;
+      border-left: 4px solid var(--purple);
+    }
+
+    /* Periodo e Configurações */
+    .config-section {
       background: var(--card);
       border-radius: 12px;
-      padding: 20px;
+      padding: 24px;
       margin-bottom: 24px;
       box-shadow: var(--shadow);
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .config-item {
       display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .period-selector label {
+    .config-item label {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
+      color: var(--text);
     }
 
-    .period-selector select,
-    .period-selector input {
+    .config-item input,
+    .config-item select {
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -253,8 +272,8 @@
       font-family: inherit;
     }
 
-    .period-selector select:focus,
-    .period-selector input:focus {
+    .config-item input:focus,
+    .config-item select:focus {
       outline: none;
       border-color: var(--purple);
       box-shadow: 0 0 0 3px var(--purple-light);
@@ -266,12 +285,6 @@
       border-radius: 12px;
       padding: 24px;
       box-shadow: var(--shadow);
-    }
-
-    .points-section h3 {
-      font-size: 18px;
-      margin-bottom: 20px;
-      font-weight: 600;
     }
 
     .month-group {
@@ -298,9 +311,9 @@
       transition: all 0.3s ease;
     }
 
-    .day-card:hover {
-      border-color: var(--purple);
-      box-shadow: 0 2px 8px rgba(106, 10, 173, 0.1);
+    .day-card.canceled {
+      opacity: 0.5;
+      background: #f3f4f6;
     }
 
     .day-header {
@@ -390,75 +403,6 @@
     .point-actions {
       display: flex;
       gap: 8px;
-    }
-
-    .point-canceled {
-      opacity: 0.5;
-      background: #f3f4f6;
-    }
-
-    .point-canceled .point-time,
-    .point-canceled .point-type,
-    .point-canceled .point-address {
-      color: var(--gray);
-      text-decoration: line-through;
-    }
-
-    /* Solicitações */
-    .submission-item {
-      border: 2px solid var(--warning);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-      background: #fffbeb;
-    }
-
-    .submission-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-
-    .submission-info {
-      flex: 1;
-    }
-
-    .submission-title {
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .submission-details {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .submission-justificativa {
-      font-size: 13px;
-      color: var(--text);
-      background: white;
-      padding: 8px;
-      border-radius: 6px;
-      margin: 8px 0;
-      font-style: italic;
-    }
-
-    .submission-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-    }
-
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
     }
 
     /* Modal */
@@ -552,6 +496,12 @@
       cursor: pointer;
     }
 
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 16px;
@@ -565,9 +515,8 @@
         grid-template-columns: 1fr;
       }
 
-      .period-selector {
-        flex-direction: column;
-        align-items: flex-start;
+      .config-grid {
+        grid-template-columns: 1fr;
       }
 
       .point-row {
@@ -582,24 +531,11 @@
       .point-actions button {
         flex: 1;
       }
-
-      .submission-actions {
-        flex-wrap: wrap;
-      }
-
-      .submission-actions button {
-        flex: 1;
-        min-width: 100px;
-      }
     }
 
     @media (max-width: 480px) {
       header {
         padding: 12px 16px;
-      }
-
-      header h1 {
-        font-size: 18px;
       }
 
       .container {
@@ -613,14 +549,6 @@
       .stat-value {
         font-size: 24px;
       }
-
-      .user-select-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .point-row {
-        padding: 12px;
-      }
     }
   </style>
 </head>
@@ -628,7 +556,6 @@
   <header>
     <h1>🛡️ Painel de Controle</h1>
     <div class="header-actions">
-      <a href="historicoponto.html" class="btn btn-nav">📚 Histórico</a>
       <a href="registrarponto.html" class="btn btn-nav">📍 Registrar</a>
       <a href="index.html" class="btn btn-nav">🏠 Painel</a>
     </div>
@@ -641,7 +568,7 @@
       <div class="user-select-grid" id="userGrid"></div>
     </div>
 
-    <!-- Estatísticas (atualiza com seleção de usuário e período) -->
+    <!-- Estatísticas -->
     <div class="stats-section" id="statsSection" style="display: none;">
       <div class="stats-grid">
         <div class="stat-card">
@@ -663,23 +590,101 @@
       </div>
     </div>
 
-    <!-- Seleção de Período -->
-    <div class="period-selector" id="periodSelector" style="display: none;">
-      <label>Período:</label>
-      <select id="periodSelect">
-        <option value="atual">Mês atual</option>
-        <option value="anterior">Mês anterior</option>
-        <option value="custom">Personalizado</option>
-      </select>
-      <select id="customMonth" style="display: none;">
-        <option value="">Selecione um mês...</option>
-      </select>
-      <button class="btn btn-primary btn-sm" id="resetPeriodBtn">Mês atual</button>
+    <!-- Configurações -->
+    <div class="config-section" id="configSection" style="display: none;">
+      <div class="section-title">⚙️ Período & Configurações</div>
+      
+      <div class="config-grid">
+        <div class="config-item">
+          <label>Período</label>
+          <select id="periodSelect">
+            <option value="atual">Mês atual</option>
+            <option value="anterior">Mês anterior</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="config-item" id="customMonthGroup" style="display: none;">
+          <label>Selecione o mês</label>
+          <select id="customMonth"></select>
+        </div>
+        <div class="config-item">
+          <button class="btn btn-primary btn-sm" id="resetPeriodBtn" style="padding: 10px; align-self: flex-end;">Mês atual</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção de Feriados/Férias -->
+    <div class="config-section" id="holidaySection" style="display: none;">
+      <div class="section-title">📅 Feriados & Férias</div>
+      
+      <div class="config-grid">
+        <div class="config-item">
+          <label>Data</label>
+          <input type="date" id="holidayDate">
+        </div>
+        <div class="config-item">
+          <label>Tipo</label>
+          <select id="holidayType">
+            <option value="feriadoGeral">Feriado (Todos)</option>
+            <option value="feriadoUsuario">Férias/Folga (Este usuário)</option>
+            <option value="cargaHoraria">Carga Horária Diferente</option>
+          </select>
+        </div>
+        <div class="config-item" id="cargaHorariaGroup" style="display: none;">
+          <label>Horas do dia</label>
+          <input type="number" id="cargaHoraria" placeholder="Ex: 4 para meio turno" min="0" max="24">
+        </div>
+        <div class="config-item">
+          <button class="btn btn-primary btn-sm" id="addHolidayBtn" style="padding: 10px; align-self: flex-end;">+ Adicionar</button>
+        </div>
+      </div>
+
+      <div id="holidayList" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- Seção de Configuração de Horário -->
+    <div class="config-section" id="scheduleSection" style="display: none;">
+      <div class="section-title">⏰ Configuração de Horário de Trabalho</div>
+      
+      <div class="config-grid">
+        <div class="config-item">
+          <label>Horário Inicial</label>
+          <input type="time" id="scheduleStart" value="08:00">
+        </div>
+        <div class="config-item">
+          <label>Horário Final</label>
+          <input type="time" id="scheduleEnd" value="18:00">
+        </div>
+        <div class="config-item">
+          <label>Almoço (minutos)</label>
+          <input type="number" id="lunchDuration" value="90" min="0" max="180">
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <h4 style="margin-bottom: 16px; font-weight: 600;">Horas Extras</h4>
+        <div class="config-grid">
+          <div class="config-item">
+            <label>Até quantas horas 40%</label>
+            <input type="number" id="extra40" value="2" min="0">
+          </div>
+          <div class="config-item">
+            <label>Até quantas horas 60%</label>
+            <input type="number" id="extra60" value="4" min="0">
+          </div>
+          <div class="config-item">
+            <label>Acima disso 100%</label>
+            <input type="number" id="extra100" value="6" min="0">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="saveScheduleBtn" style="width: 100%; margin-top: 20px;">Salvar Configurações</button>
     </div>
 
     <!-- Pontos do Usuário -->
     <div class="points-section" id="pointsSection" style="display: none;">
-      <h3>📍 Registros de Ponto</h3>
+      <h3 style="margin-bottom: 20px; font-weight: 600;">📍 Registros de Ponto</h3>
       <div id="pointsList"></div>
     </div>
   </div>
@@ -697,40 +702,53 @@
       </div>
       <div class="modal-actions">
         <button onclick="closeModal()" style="background: var(--border); color: var(--text);">Cancelar</button>
-        <button onclick="saveEdit()" class="btn btn-primary" style="border: none; width: 100%; padding: 12px;">Salvar</button>
+        <button onclick="saveEdit()" style="background: var(--purple); color: white;">Salvar</button>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { protegerPagina } from './auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, set, get, push, update, remove } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-    let sessao = null;
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
+      authDomain: "artesynal-os-system.firebaseapp.com",
+      projectId: "artesynal-os-system",
+      storageBucket: "artesynal-os-system.firebasestorage.app",
+      messagingSenderId: "539958005846",
+      appId: "1:539958005846:web:9120505e097b56bf16ebf7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth(app);
+
     let selectedUser = null;
     let selectedMonth = null;
     let editingPoint = null;
-
-    (async () => {
-      sessao = await protegerPagina({ paginaAtual: 'paineldeponto.html', exigirAdmin: true });
-      if (!sessao) throw new Error('sem sessão');
-      
-      renderUsers();
-      setupPeriodSelector();
-    })();
+    let userNames = {};
 
     const pad = (n) => String(n).padStart(2, '0');
     const fmt = (mins) => `${pad(Math.floor(mins/60))}h${pad(mins%60)}min`;
     const kDate = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
-    function getUsers() {
-      return Object.keys(localStorage)
-        .filter(k => k.startsWith('ponto_registros_'))
-        .map(k => k.replace('ponto_registros_', ''))
-        .sort();
+    async function getUsers() {
+      try {
+        const usersRef = ref(database, 'ponto_registros');
+        const snapshot = await get(usersRef);
+        if (snapshot.exists()) {
+          return Object.keys(snapshot.val());
+        }
+      } catch (e) {
+        console.error('Erro ao buscar usuários:', e);
+      }
+      return [];
     }
 
-    function renderUsers() {
-      const users = getUsers();
+    async function renderUsers() {
+      const users = await getUsers();
       const grid = document.getElementById('userGrid');
       grid.innerHTML = '';
 
@@ -739,24 +757,28 @@
         return;
       }
 
-      users.forEach(user => {
+      for (const user of users) {
         const btn = document.createElement('div');
         btn.className = 'user-option';
-        btn.textContent = user;
-        btn.onclick = () => selectUser(user);
+        const userEmail = user.replace(/_/g, '.');
+        btn.textContent = userEmail;
+        btn.onclick = () => selectUser(user, userEmail, btn);
         grid.appendChild(btn);
-      });
+      }
     }
 
-    function selectUser(user) {
-      selectedUser = user;
+    function selectUser(userKey, userEmail, btn) {
+      selectedUser = userKey;
       selectedMonth = null;
+      userNames[userKey] = userEmail;
       
-      document.querySelectorAll('.user-option').forEach(btn => btn.classList.remove('selected'));
-      event.target.classList.add('selected');
+      document.querySelectorAll('.user-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
       
       document.getElementById('statsSection').style.display = 'block';
-      document.getElementById('periodSelector').style.display = 'flex';
+      document.getElementById('configSection').style.display = 'block';
+      document.getElementById('holidaySection').style.display = 'block';
+      document.getElementById('scheduleSection').style.display = 'block';
       document.getElementById('pointsSection').style.display = 'block';
       
       renderPoints();
@@ -778,7 +800,7 @@
 
       document.getElementById('periodSelect').onchange = () => {
         const val = document.getElementById('periodSelect').value;
-        document.getElementById('customMonth').style.display = val === 'custom' ? 'block' : 'none';
+        document.getElementById('customMonthGroup').style.display = val === 'custom' ? 'block' : 'none';
         if (val !== 'custom') renderPoints();
       };
 
@@ -786,12 +808,122 @@
       
       document.getElementById('resetPeriodBtn').onclick = () => {
         document.getElementById('periodSelect').value = 'atual';
-        document.getElementById('customMonth').style.display = 'none';
+        document.getElementById('customMonthGroup').style.display = 'none';
         renderPoints();
       };
+
+      // Holiday type selector
+      document.getElementById('holidayType').onchange = () => {
+        const type = document.getElementById('holidayType').value;
+        document.getElementById('cargaHorariaGroup').style.display = type === 'cargaHoraria' ? 'block' : 'none';
+      };
+
+      document.getElementById('addHolidayBtn').onclick = addHoliday;
+      document.getElementById('saveScheduleBtn').onclick = saveSchedule;
     }
 
-    function renderPoints() {
+    async function addHoliday() {
+      const date = document.getElementById('holidayDate').value;
+      const type = document.getElementById('holidayType').value;
+      const cargaHoraria = document.getElementById('cargaHoraria').value;
+
+      if (!date || !selectedUser) {
+        alert('Selecione uma data e um usuário');
+        return;
+      }
+
+      try {
+        const holiday = {
+          date,
+          type,
+          cargaHoraria: type === 'cargaHoraria' ? parseInt(cargaHoraria) : null,
+          createdAt: new Date().toISOString()
+        };
+
+        const holidayRef = ref(database, `feriados_ferias/${selectedUser}/${date.replace(/-/g, '_')}`);
+        await set(holidayRef, holiday);
+
+        document.getElementById('holidayDate').value = '';
+        document.getElementById('cargaHoraria').value = '';
+        renderHolidayList();
+      } catch (e) {
+        console.error('Erro ao adicionar feriado:', e);
+        alert('Erro ao adicionar feriado');
+      }
+    }
+
+    async function renderHolidayList() {
+      if (!selectedUser) return;
+
+      try {
+        const holidayRef = ref(database, `feriados_ferias/${selectedUser}`);
+        const snapshot = await get(holidayRef);
+        const listDiv = document.getElementById('holidayList');
+        listDiv.innerHTML = '';
+
+        if (!snapshot.exists()) {
+          listDiv.innerHTML = '<p style="text-align: center; color: var(--muted);">Nenhum feriado/férias registrado</p>';
+          return;
+        }
+
+        Object.entries(snapshot.val()).forEach(([key, holiday]) => {
+          const item = document.createElement('div');
+          item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px;';
+          
+          const typeLabel = holiday.type === 'feriadoGeral' ? 'Feriado Geral' : 
+                           holiday.type === 'feriadoUsuario' ? 'Férias/Folga' : 
+                           `Carga ${holiday.cargaHoraria}h`;
+          
+          item.innerHTML = `
+            <div>
+              <strong>${holiday.date}</strong> - ${typeLabel}
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteHoliday('${key}')">Remover</button>
+          `;
+          listDiv.appendChild(item);
+        });
+      } catch (e) {
+        console.error('Erro ao carregar feriados:', e);
+      }
+    }
+
+    window.deleteHoliday = async (key) => {
+      if (!selectedUser) return;
+      try {
+        const holidayRef = ref(database, `feriados_ferias/${selectedUser}/${key}`);
+        await remove(holidayRef);
+        renderHolidayList();
+      } catch (e) {
+        console.error('Erro ao deletar feriado:', e);
+      }
+    };
+
+    async function saveSchedule() {
+      if (!selectedUser) {
+        alert('Selecione um usuário primeiro');
+        return;
+      }
+
+      try {
+        const schedule = {
+          scheduleStart: document.getElementById('scheduleStart').value,
+          scheduleEnd: document.getElementById('scheduleEnd').value,
+          lunchDuration: parseInt(document.getElementById('lunchDuration').value),
+          extra40: parseInt(document.getElementById('extra40').value),
+          extra60: parseInt(document.getElementById('extra60').value),
+          extra100: parseInt(document.getElementById('extra100').value)
+        };
+
+        const scheduleRef = ref(database, `horario_trabalho/${selectedUser}`);
+        await set(scheduleRef, schedule);
+        alert('Configurações salvas com sucesso!');
+      } catch (e) {
+        console.error('Erro ao salvar configurações:', e);
+        alert('Erro ao salvar configurações');
+      }
+    }
+
+    async function renderPoints() {
       if (!selectedUser) return;
 
       const periodSelect = document.getElementById('periodSelect').value;
@@ -809,15 +941,19 @@
 
       selectedMonth = targetMonth;
 
-      const regs = JSON.parse(localStorage.getItem(`ponto_registros_${selectedUser}`) || '[]')
-        .filter(r => r.date.startsWith(targetMonth))
-        .sort((a, b) => b.date.localeCompare(a.date));
+      try {
+        const userRef = ref(database, `ponto_registros/${selectedUser}`);
+        const snapshot = await get(userRef);
+        const regs = snapshot.exists() ? Object.values(snapshot.val())
+          .filter(r => r.date.startsWith(targetMonth))
+          .sort((a, b) => b.date.localeCompare(a.date)) : [];
 
-      const solic = JSON.parse(localStorage.getItem('ponto_solicitacoes') || '[]')
-        .filter(s => s.email === selectedUser && s.date.startsWith(targetMonth));
-
-      updateStats(regs);
-      renderPointsList(regs, solic);
+        updateStats(regs);
+        renderPointsList(regs);
+        renderHolidayList();
+      } catch (e) {
+        console.error('Erro ao buscar pontos:', e);
+      }
     }
 
     function updateStats(regs) {
@@ -826,7 +962,7 @@
       let atrasos = 0;
 
       regs.forEach(r => {
-        const marks = (r.marcacoes || []).sort((a, b) => a.timestamp - b.timestamp);
+        const marks = (r.marcacoes || []).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         let dayTotal = 0;
         for (let i = 0; i < marks.length - 1; i += 2) {
           dayTotal += Math.max(0, Math.round((new Date(marks[i+1].timestamp) - new Date(marks[i].timestamp)) / 60000));
@@ -848,7 +984,7 @@
       document.getElementById('atrasos').textContent = atrasos;
     }
 
-    function renderPointsList(regs, solic) {
+    function renderPointsList(regs) {
       const list = document.getElementById('pointsList');
       list.innerHTML = '';
 
@@ -860,7 +996,7 @@
       });
 
       if (regs.length === 0) {
-        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>Nenhum registro neste período</div></div>';
+        list.innerHTML = '<div class="empty-state"><div>📭</div><div>Nenhum registro neste período</div></div>';
         return;
       }
 
@@ -879,6 +1015,7 @@
         months[monthKey].forEach(dayReg => {
           const dayCard = document.createElement('div');
           dayCard.className = 'day-card';
+          if (dayReg.cancelado) dayCard.classList.add('canceled');
 
           const dateObj = new Date(dayReg.date + 'T00:00:00');
           const dateLabel = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
@@ -911,7 +1048,7 @@
               </div>
               <div class="point-actions">
                 <button class="btn btn-warning" onclick="openEditModal('${dayReg.date}', ${idx}, '${mark.hora}')">Corrigir</button>
-                <button class="btn btn-danger" onclick="cancelPoint('${dayReg.date}', ${idx})">Anular</button>
+                <button class="btn btn-danger" onclick="cancelPoint('${dayReg.date}')">Anular</button>
               </div>
             `;
             pointsDiv.appendChild(row);
@@ -920,29 +1057,6 @@
           dayCard.appendChild(pointsDiv);
           monthGroup.appendChild(dayCard);
         });
-
-        // Solicitações deste dia
-        const solicitacoes = solic.filter(s => s.date === dayReg.date);
-        if (solicitacoes.length > 0) {
-          solicitacoes.forEach(sol => {
-            const solDiv = document.createElement('div');
-            solDiv.className = 'submission-item';
-            solDiv.innerHTML = `
-              <div class="submission-header">
-                <div class="submission-info">
-                  <div class="submission-title">Solicitação de Ponto</div>
-                  <div class="submission-details">${sol.horaPretendida}</div>
-                  <div class="submission-justificativa">"${sol.justificativa}"</div>
-                </div>
-              </div>
-              <div class="submission-actions">
-                <button class="btn btn-success" onclick="approveSub('${sol.id}')">✓ Aprovar</button>
-                <button class="btn btn-danger" onclick="rejectSub('${sol.id}')">✕ Recusar</button>
-              </div>
-            `;
-            pointsDiv.appendChild(solDiv);
-          });
-        }
 
         list.appendChild(monthGroup);
       });
@@ -958,63 +1072,59 @@
       document.getElementById('editModal').classList.remove('show');
     };
 
-    window.saveEdit = () => {
-      const newTime = document.getElementById('editTime').value;
-      const regs = JSON.parse(localStorage.getItem(`ponto_registros_${selectedUser}`) || '[]');
-      const day = regs.find(r => r.date === editingPoint.date);
-      if (day) {
-        day.marcacoes[editingPoint.idx].hora = newTime;
-        day.marcacoes[editingPoint.idx].timestamp = new Date(`${editingPoint.date}T${newTime}:00`).toISOString();
-        localStorage.setItem(`ponto_registros_${selectedUser}`, JSON.stringify(regs));
-      }
-      closeModal();
-      renderPoints();
-    };
+    window.saveEdit = async () => {
+      if (!selectedUser || !editingPoint) return;
 
-    window.cancelPoint = (date, idx) => {
-      const regs = JSON.parse(localStorage.getItem(`ponto_registros_${selectedUser}`) || '[]');
-      const day = regs.find(r => r.date === date);
-      if (day) {
-        day.marcacoes[idx].cancelado = true;
-        localStorage.setItem(`ponto_registros_${selectedUser}`, JSON.stringify(regs));
-      }
-      renderPoints();
-    };
-
-    window.approveSub = (id) => {
-      const solic = JSON.parse(localStorage.getItem('ponto_solicitacoes') || '[]');
-      const sol = solic.find(s => s.id === id);
-      if (sol) {
-        sol.status = 'aprovado';
-        // Adicionar ao registro
-        const regs = JSON.parse(localStorage.getItem(`ponto_registros_${sol.email}`) || '[]');
-        let day = regs.find(r => r.date === sol.date);
-        if (!day) {
-          day = { date: sol.date, marcacoes: [] };
-          regs.push(day);
+      try {
+        const newTime = document.getElementById('editTime').value;
+        const userRef = ref(database, `ponto_registros/${selectedUser}/${editingPoint.date}`);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          const day = snapshot.val();
+          day.marcacoes[editingPoint.idx].hora = newTime;
+          day.marcacoes[editingPoint.idx].timestamp = new Date(`${editingPoint.date}T${newTime}:00`).toISOString();
+          await set(userRef, day);
+          
+          window.closeModal();
+          renderPoints();
         }
-        day.marcacoes.push({
-          timestamp: new Date(`${sol.date}T${sol.horaPretendida}:00`).toISOString(),
-          hora: sol.horaPretendida,
-          tipo: 'solicitacao',
-          endereco: 'Aprovado via solicitação',
-          origem: 'solicitacao'
-        });
-        localStorage.setItem(`ponto_registros_${sol.email}`, JSON.stringify(regs));
-        localStorage.setItem('ponto_solicitacoes', JSON.stringify(solic));
+      } catch (e) {
+        console.error('Erro ao salvar edição:', e);
+        alert('Erro ao salvar');
       }
-      renderPoints();
     };
 
-    window.rejectSub = (id) => {
-      const solic = JSON.parse(localStorage.getItem('ponto_solicitacoes') || '[]');
-      const sol = solic.find(s => s.id === id);
-      if (sol) {
-        sol.status = 'recusado';
-        localStorage.setItem('ponto_solicitacoes', JSON.stringify(solic));
+    window.cancelPoint = async (date) => {
+      if (!selectedUser) return;
+
+      try {
+        const userRef = ref(database, `ponto_registros/${selectedUser}/${date}`);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          const day = snapshot.val();
+          day.cancelado = !day.cancelado;
+          await set(userRef, day);
+          renderPoints();
+        }
+      } catch (e) {
+        console.error('Erro ao anular ponto:', e);
+        alert('Erro ao anular ponto');
       }
-      renderPoints();
     };
+
+    // Inicialização
+    (async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      setupPeriodSelector();
+      await renderUsers();
+    })();
   </script>
 </body>
 </html>
