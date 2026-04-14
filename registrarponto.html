@@ -59,13 +59,7 @@
       margin-bottom: 20px;
     }
 
-    .loader-text {
-      font-size: 14px;
-      color: var(--text-muted);
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
-
+    .loader-text { font-size: 14px; color: var(--text-muted); font-weight: 500; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Layout */
@@ -80,13 +74,7 @@
 
     .app-container.ready { opacity: 1; }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     .user-info { display: flex; align-items: center; gap: 12px; }
 
     .avatar {
@@ -105,12 +93,7 @@
     .user-name h2 { font-size: 18px; font-family: var(--font-title); }
     .user-name p { font-size: 13px; color: var(--text-muted); }
 
-    /* Localização Status Area */
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .header-right { display: flex; align-items: center; gap: 12px; }
 
     .geo-status {
       font-size: 10px;
@@ -123,7 +106,6 @@
       gap: 5px;
       font-weight: 600;
     }
-
     .geo-status.allowed { color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
     .geo-status.denied { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
 
@@ -137,18 +119,15 @@
       align-items: center;
       justify-content: center;
       color: var(--text);
-      text-decoration: none;
       transition: all 0.3s ease;
       cursor: pointer;
     }
-
     .btn-nav:hover { background: var(--border); transform: scale(1.1); }
 
     /* Status Card */
     .status-card {
       background: var(--card);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border-radius: 24px;
       padding: 30px;
       border: 1px solid var(--border);
@@ -180,17 +159,9 @@
       font-weight: 600;
       margin-bottom: 30px;
     }
-
     .status-badge.working { color: var(--success); background: rgba(16, 185, 129, 0.1); }
     .status-badge.resting { color: var(--warning); background: rgba(245, 158, 11, 0.1); }
     .status-badge.off { color: var(--text-muted); background: rgba(148, 163, 184, 0.1); }
-
-    .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-animation 2s infinite; }
-    @keyframes pulse-animation {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
 
     /* Main Action Button */
     .action-button {
@@ -202,7 +173,6 @@
       color: white;
       font-size: 18px;
       font-weight: 700;
-      font-family: var(--font-title);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -210,12 +180,8 @@
       gap: 12px;
       box-shadow: 0 10px 20px rgba(157, 80, 187, 0.2);
       margin-bottom: 24px;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-
     .action-button:active { transform: scale(0.95); }
-    .action-button.pause { background: linear-gradient(135deg, var(--warning), #d97706); }
-    .action-button.return { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .action-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* Stats & Timeline */
@@ -226,14 +192,7 @@
     .stat-value { font-size: 20px; font-weight: 600; }
 
     .timeline-card { background: var(--card); border-radius: 24px; padding: 24px; border: 1px solid var(--border); }
-    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; justify-content: space-between; }
-    .timeline { display: flex; flex-direction: column; gap: 16px; }
-    .timeline-item { display: flex; gap: 14px; position: relative; }
-    .timeline-marker { width: 12px; height: 12px; border-radius: 50%; background: var(--border); margin-top: 4px; z-index: 1; }
-    .timeline-item.active .timeline-marker { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
-    .timeline-item:not(:last-child)::after { content: ''; position: absolute; left: 5px; top: 16px; bottom: -24px; width: 2px; background: var(--border); }
-    .timeline-time { font-size: 14px; font-weight: 600; }
-    .timeline-label { font-size: 12px; color: var(--text-muted); }
+    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
 
     .toast {
       position: fixed;
@@ -244,59 +203,53 @@
       padding: 12px 24px;
       border-radius: 12px;
       z-index: 10000;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.3s ease;
       font-weight: 600;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.danger { background: var(--danger); }
   </style>
 </head>
 <body>
-  <!-- Loader com TRAVA EXTERNA para garantir que suma -->
   <div class="loader-overlay" id="loader">
     <div class="spinner"></div>
     <div class="loader-text">Conectando ao serviço de ponto...</div>
   </div>
 
   <script>
-    // Trava de segurança que roda ANTES de qualquer outro script pesado
-    window.addEventListener('load', function() {
+    // TRAVA EXTERNA: Garante que os botões funcionem mesmo se o carregamento falhar
+    function setupBasics() {
+        document.getElementById('backBtn').onclick = function() { window.location.href = 'index.html'; };
+        
+        // Timer de segurança
         setTimeout(function() {
-            var loader = document.getElementById('loader');
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(function() { loader.style.display = 'none'; }, 400);
-            }
+            var l = document.getElementById('loader');
+            if(l) { l.style.opacity = '0'; setTimeout(function(){ l.style.display='none'; }, 400); }
             document.getElementById('app').classList.add('ready');
-        }, 3000); // 3 segundos NO MÁXIMO
-    });
+        }, 3000);
+    }
+    window.onload = setupBasics;
   </script>
 
   <div class="app-container" id="app">
     <header>
       <div class="user-info">
-        <div class="avatar" id="avatarInitials">--</div>
+        <div class="avatar" id="avatarInitials">..</div>
         <div class="user-name">
           <h2 id="userName">Carregando...</h2>
           <p>Seja bem-vindo!</p>
         </div>
       </div>
       <div class="header-right">
-        <div class="geo-status denied" id="geoLabel">
-          <i class="fas fa-location-dot"></i>
-          <span>Local não verificado</span>
-        </div>
-        <button id="backBtn" class="btn-nav" title="Voltar ao Painel"><i class="fas fa-sign-out-alt"></i></button>
+        <div class="geo-status denied" id="geoLabel"><i class="fas fa-location-dot"></i><span>Verificando local...</span></div>
+        <button id="backBtn" class="btn-nav"><i class="fas fa-sign-out-alt"></i></button>
       </div>
     </header>
 
     <div class="status-card">
       <div class="clock-time" id="clock">00:00:00</div>
-      <div class="clock-date" id="date">Aguardando...</div>
+      <div class="clock-date" id="date">--/--/--</div>
       <div class="status-badge off" id="statusBadge">
-        <div class="pulse"></div>
-        <span id="statusText">DIA NÃO INICIADO</span>
+        <span id="statusText">CARREGANDO...</span>
       </div>
     </div>
 
@@ -306,25 +259,17 @@
     </button>
 
     <div class="stats-grid">
-      <div class="stat-mini-card">
-        <i class="fas fa-business-time"></i>
-        <div class="stat-label">Horas Hoje</div>
-        <div class="stat-value" id="hoursToday">00h 00m</div>
-      </div>
-      <div class="stat-mini-card">
-        <i class="fas fa-mug-hot"></i>
-        <div class="stat-label">Almoço</div>
-        <div class="stat-value" id="lunchBreak">00m</div>
-      </div>
+      <div class="stat-mini-card"><i class="fas fa-business-time"></i><div class="stat-label">Horas Hoje</div><div class="stat-value" id="hoursToday">--h --m</div></div>
+      <div class="stat-mini-card"><i class="fas fa-mug-hot"></i><div class="stat-label">Almoço</div><div class="stat-value" id="lunchBreak">--m</div></div>
     </div>
 
     <div class="timeline-card">
-      <div class="section-title">Resumo do Dia <span id="currentDateMini" style="font-size: 12px; color: var(--text-muted);">--/--</span></div>
+      <div class="section-title">Resumo do Dia</div>
       <div class="timeline" id="timelineList"></div>
     </div>
   </div>
 
-  <div id="toast" class="toast">Mensagem do sistema</div>
+  <div id="toast" class="toast"></div>
 
   <script type="module">
     import { protegerPagina, emailParaId } from './auth.js';
@@ -349,24 +294,37 @@
     let currentStatus = 'OFF';
     let geo = { lat: null, lon: null };
 
+    // --- SETUP PRINCIPAL ---
     (async () => {
+      // 1. Relógio inicia independente de tudo
+      setInterval(updateClock, 1000);
+      updateClock();
+
       try {
+        // 2. Tentar pegar sessão
         userSession = await protegerPagina({ paginaAtual: 'registrarponto.html' });
         if (!userSession) return;
 
-        document.getElementById('userName').textContent = userSession.user.displayName || 'Usuário';
-        document.getElementById('avatarInitials').textContent = (userSession.user.displayName || 'U').substring(0, 1).toUpperCase();
-        
-        document.getElementById('backBtn').onclick = () => window.location.href = 'index.html';
+        // Mostrar nome imediatamente
+        const name = userSession.user.displayName || 'Usuário';
+        document.getElementById('userName').textContent = name;
+        document.getElementById('avatarInitials').textContent = name.substring(0, 1).toUpperCase();
+
+        // 3. Ativar botão de ação
         document.getElementById('mainAction').onclick = handleMainAction;
 
-        setInterval(updateClock, 1000);
-        updateClock();
+        // 4. Carregar dados do banco
         await refreshDayData();
         initGPS();
 
       } catch (err) {
-        console.error("Erro no script principal:", err);
+        console.error("Erro na carga de dados:", err);
+        // Fallback caso o Firebase trave: usa info da sessão local
+        const saved = JSON.parse(localStorage.getItem('artesynal_session') || '{}');
+        if(saved.nome) {
+            document.getElementById('userName').textContent = saved.nome;
+            document.getElementById('avatarInitials').textContent = saved.nome.substring(0, 1).toUpperCase();
+        }
       }
     })();
 
@@ -374,20 +332,21 @@
       const now = new Date();
       document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', { hour12: false });
       document.getElementById('date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-      document.getElementById('currentDateMini').textContent = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
     }
 
     async function refreshDayData() {
       const emailId = emailParaId(userSession.user.email);
       const pointsRef = ref(rtDb, `ponto_registros/${emailId}`);
-      const snap = await get(pointsRef);
-      if (snap.exists()) {
-        const data = snap.val();
-        dailyPoints = Object.values(data).filter(p => new Date(p.timestamp).toLocaleDateString() === new Date().toLocaleDateString()).sort((a,b) => a.timestamp - b.timestamp);
-      }
-      updateUIStatus();
-      renderTimeline();
-      calculateHours();
+      try {
+          const snap = await get(pointsRef);
+          if (snap.exists()) {
+            const data = snap.val();
+            dailyPoints = Object.values(data).filter(p => new Date(p.timestamp).toLocaleDateString() === new Date().toLocaleDateString()).sort((a,b) => a.timestamp - b.timestamp);
+          }
+          updateUIStatus();
+          renderTimeline();
+          calculateHours();
+      } catch(e) { console.error("Erro ao carregar registros:", e); }
     }
 
     function updateUIStatus() {
@@ -407,6 +366,7 @@
     }
 
     async function handleMainAction() {
+      if(!userSession) return;
       let type = 'entrada';
       if (currentStatus === 'OFF') type = 'entrada';
       else if (currentStatus === 'WORKING') type = dailyPoints.some(p => p.type === 'pausa') ? 'saida' : 'pausa';
@@ -414,10 +374,12 @@
       
       const btn = document.getElementById('mainAction');
       btn.disabled = true;
+      showToast("Salvando...");
       
       try {
         const emailId = emailParaId(userSession.user.email);
-        await set(push(ref(rtDb, `ponto_registros/${emailId}`)), {
+        const refNew = push(ref(rtDb, `ponto_registros/${emailId}`));
+        await set(refNew, {
           user_id: emailId,
           user_name: userSession.user.displayName,
           timestamp: Date.now(),
@@ -425,10 +387,11 @@
           geo: geo,
           device: 'Tic-Tac Web'
         });
-        showToast("✅ Ponto registrado!", "success");
+        showToast("✅ Ponto registrado!");
         await refreshDayData();
       } catch (e) {
-        showToast("❌ Erro ao salvar", "danger");
+        console.error(e);
+        showToast("❌ Erro ao salvar");
       } finally {
         btn.disabled = false;
       }
@@ -436,29 +399,17 @@
 
     function renderTimeline() {
       const container = document.getElementById('timelineList');
-      if (dailyPoints.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 10px;">Vazio</div>';
-        return;
-      }
-      const labels = { entrada: "Entrada", pausa: "Almoço", retorno: "Retorno", saida: "Saída" };
-      container.innerHTML = dailyPoints.map((p, i) => `
-        <div class="timeline-item ${i === dailyPoints.length - 1 ? 'active' : ''}">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <div class="timeline-time">${new Date(p.timestamp).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</div>
-            <div class="timeline-label">${labels[p.type] || p.type}</div>
-          </div>
+      container.innerHTML = dailyPoints.length ? dailyPoints.map((p, i) => `
+        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #ffffff10">
+          <span>${new Date(p.timestamp).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</span>
+          <span style="font-weight:bold">${p.type.toUpperCase()}</span>
         </div>
-      `).reverse().join('');
+      `).reverse().join('') : '<div style="text-align:center; padding:20px; color:#ffffff50">Nenhum registro</div>';
     }
 
     function calculateHours() {
       let worked = 0; let last = null;
-      dailyPoints.forEach(p => {
-        const t = p.timestamp;
-        if (p.type === 'entrada' || p.type === 'retorno') last = t;
-        else if ((p.type === 'pausa' || p.type === 'saida') && last) worked += (t - last);
-      });
+      dailyPoints.forEach(p => { if (p.type === 'entrada' || p.type === 'retorno') last = p.timestamp; else if (last) worked += (p.timestamp - last); });
       const h = Math.floor(worked/3600000); const m = Math.floor((worked%3600000)/60000);
       document.getElementById('hoursToday').textContent = `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
     }
@@ -469,17 +420,12 @@
           geo.lat=p.coords.latitude; geo.lon=p.coords.longitude; 
           document.getElementById('geoLabel').className = "geo-status allowed";
           document.getElementById('geoLabel').innerHTML = '<i class="fas fa-location-dot"></i><span>Local Permitido</span>';
-        }, err => {
-          document.getElementById('geoLabel').className = "geo-status denied";
-          document.getElementById('geoLabel').innerHTML = '<i class="fas fa-location-xmark"></i><span>GPS Desativado</span>';
-        }); 
+        });
       }
     }
     
-    function showToast(msg, type) { 
-      const t = document.getElementById('toast'); 
-      t.textContent = msg; t.className = `toast ${type === 'danger' ? 'danger' : ''}`;
-      t.classList.add('show'); 
+    function showToast(msg) { 
+      const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000); 
     }
   </script>
