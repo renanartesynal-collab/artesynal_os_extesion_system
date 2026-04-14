@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ponto Tic-Tac | Artesynal</title>
+  <title>Ponto Eletrônico | Artesynal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -26,11 +26,7 @@
       --font-title: 'Outfit', sans-serif;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: var(--font-main);
@@ -40,13 +36,49 @@
       overflow-x: hidden;
     }
 
+    /* Loader */
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loader-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* Layout */
     .app-container {
       max-width: 500px;
       margin: 0 auto;
       padding: 20px;
       padding-top: 40px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
+
+    .app-container.ready { opacity: 1; }
 
     header {
       display: flex;
@@ -55,11 +87,7 @@
       margin-bottom: 30px;
     }
 
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .user-info { display: flex; align-items: center; gap: 12px; }
 
     .avatar {
       width: 48px;
@@ -74,15 +102,8 @@
       box-shadow: 0 4px 12px rgba(157, 80, 187, 0.3);
     }
 
-    .user-name h2 {
-      font-size: 18px;
-      font-family: var(--font-title);
-    }
-
-    .user-name p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+    .user-name h2 { font-size: 18px; font-family: var(--font-title); }
+    .user-name p { font-size: 13px; color: var(--text-muted); }
 
     .btn-nav {
       width: 40px;
@@ -98,10 +119,7 @@
       transition: all 0.3s ease;
     }
 
-    .btn-nav:hover {
-      background: var(--border);
-      transform: scale(1.1);
-    }
+    .btn-nav:hover { background: var(--border); transform: scale(1.1); }
 
     /* Status Card */
     .status-card {
@@ -113,24 +131,6 @@
       border: 1px solid var(--border);
       text-align: center;
       margin-bottom: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .status-card::before {
-      content: '';
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 150px;
-      height: 150px;
-      background: radial-gradient(circle, rgba(157, 80, 187, 0.1) 0%, transparent 70%);
-      z-index: 0;
-    }
-
-    .clock-display {
-      position: relative;
-      z-index: 1;
     }
 
     .clock-time {
@@ -144,12 +144,7 @@
       -webkit-text-fill-color: transparent;
     }
 
-    .clock-date {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-      text-transform: capitalize;
-    }
+    .clock-date { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; text-transform: capitalize; }
 
     .status-badge {
       display: inline-flex;
@@ -167,15 +162,7 @@
     .status-badge.resting { color: var(--warning); background: rgba(245, 158, 11, 0.1); }
     .status-badge.off { color: var(--text-muted); background: rgba(148, 163, 184, 0.1); }
 
-    .pulse {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 0 rgba(0,0,0,0.2);
-      animation: pulse-animation 2s infinite;
-    }
-
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-animation 2s infinite; }
     @keyframes pulse-animation {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
       70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
@@ -198,133 +185,32 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       box-shadow: 0 10px 20px rgba(157, 80, 187, 0.2);
       margin-bottom: 24px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .action-button:active {
-      transform: scale(0.95);
-    }
-
-    .action-button.out { background: linear-gradient(135deg, #475569, #1e293b); }
+    .action-button:active { transform: scale(0.95); }
     .action-button.pause { background: linear-gradient(135deg, var(--warning), #d97706); }
     .action-button.return { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
+    /* Stats & Timeline */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .stat-mini-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--border); }
+    .stat-mini-card i { font-size: 18px; margin-bottom: 12px; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 600; }
 
-    .stat-mini-card {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 20px;
-      border: 1px solid var(--border);
-    }
+    .timeline-card { background: var(--card); border-radius: 24px; padding: 24px; border: 1px solid var(--border); }
+    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; justify-content: space-between; }
+    .timeline { display: flex; flex-direction: column; gap: 16px; }
+    .timeline-item { display: flex; gap: 14px; position: relative; }
+    .timeline-marker { width: 12px; height: 12px; border-radius: 50%; background: var(--border); margin-top: 4px; z-index: 1; }
+    .timeline-item.active .timeline-marker { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+    .timeline-item:not(:last-child)::after { content: ''; position: absolute; left: 5px; top: 16px; bottom: -24px; width: 2px; background: var(--border); }
+    .timeline-time { font-size: 14px; font-weight: 600; }
+    .timeline-label { font-size: 12px; color: var(--text-muted); }
 
-    .stat-mini-card i {
-      font-size: 18px;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    /* Timeline */
-    .timeline-card {
-      background: var(--card);
-      border-radius: 24px;
-      padding: 24px;
-      border: 1px solid var(--border);
-    }
-
-    .section-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .section-title span {
-      font-size: 12px;
-      padding: 4px 10px;
-      background: var(--glass);
-      border-radius: 8px;
-      color: var(--text-muted);
-    }
-
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .timeline-item {
-      display: flex;
-      gap: 14px;
-      position: relative;
-    }
-
-    .timeline-marker {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--border);
-      margin-top: 4px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .timeline-item.active .timeline-marker {
-      background: var(--primary);
-      box-shadow: 0 0 10px var(--primary);
-    }
-
-    .timeline-item::after {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 16px;
-      bottom: -20px;
-      width: 2px;
-      background: var(--border);
-      z-index: 0;
-    }
-
-    .timeline-item:last-child::after { display: none; }
-
-    .timeline-content {
-      flex: 1;
-    }
-
-    .timeline-time {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .timeline-label {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    /* Modals & Loaders */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -333,23 +219,21 @@
       background: var(--primary);
       padding: 12px 24px;
       border-radius: 12px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-      z-index: 1000;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10000;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       font-weight: 600;
     }
-
     .toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* Responsividade */
-    @media (max-width: 480px) {
-      .app-container { padding: 16px; }
-      .clock-time { font-size: 52px; }
-    }
   </style>
 </head>
 <body>
-  <div class="app-container">
+  <!-- Loader Modernizado -->
+  <div class="loader-overlay" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">Conectando ao serviço de ponto...</div>
+  </div>
+
+  <div class="app-container" id="app">
     <header>
       <div class="user-info">
         <div class="avatar" id="avatarInitials">--</div>
@@ -359,73 +243,68 @@
         </div>
       </div>
       <div style="display: flex; gap: 8px;">
-        <a href="index.html" class="btn-nav" title="Painel Total"><i class="fas fa-grid-2"></i></a>
-        <button id="logoutBtn" class="btn-nav" title="Sair"><i class="fas fa-sign-out-alt"></i></button>
+        <a href="index.html" class="btn-nav"><i class="fas fa-grid-2"></i></a>
+        <button id="logoutBtn" class="btn-nav"><i class="fas fa-sign-out-alt"></i></button>
       </div>
     </header>
 
     <div class="status-card">
-      <div class="clock-display">
-        <div class="clock-time" id="clock">00:00:00</div>
-        <div class="clock-date" id="date">Aguardando...</div>
-        <div class="status-badge off" id="statusBadge">
-          <div class="pulse"></div>
-          <span id="statusText">DIA NÃO INICIADO</span>
-        </div>
+      <div class="clock-time" id="clock">00:00:00</div>
+      <div class="clock-date" id="date">Aguardando...</div>
+      <div class="status-badge off" id="statusBadge">
+        <div class="pulse"></div>
+        <span id="statusText">DIA NÃO INICIADO</span>
       </div>
     </div>
 
     <button class="action-button" id="mainAction">
-      <i class="fas fa-map-marker-alt"></i>
+      <i class="fas fa-fingerprint"></i>
       <span id="actionLabel">Iniciar Jornada</span>
     </button>
 
     <div class="stats-grid">
       <div class="stat-mini-card">
-        <i class="fas fa-clock"></i>
+        <i class="fas fa-business-time"></i>
         <div class="stat-label">Horas Hoje</div>
         <div class="stat-value" id="hoursToday">00h 00m</div>
       </div>
       <div class="stat-mini-card">
-        <i class="fas fa-utensils"></i>
-        <div class="stat-label">Tempo Almoço</div>
+        <i class="fas fa-mug-hot"></i>
+        <div class="stat-label">Almoço</div>
         <div class="stat-value" id="lunchBreak">00m</div>
       </div>
     </div>
 
     <div class="timeline-card">
-      <div class="section-title">
-        Resumo do Dia
-        <span id="currentDateMini">--/--</span>
-      </div>
-      <div class="timeline" id="timelineList">
-        <div style="text-align: center; color: var(--text-muted); padding: 10px; font-size: 13px;">
-          Nenhum registro hoje
-        </div>
-      </div>
+      <div class="section-title">Resumo do Dia <span id="currentDateMini" style="font-size: 12px; color: var(--text-muted);">--/--</span></div>
+      <div class="timeline" id="timelineList"></div>
     </div>
   </div>
 
   <div id="toast" class="toast">Mensagem do sistema</div>
 
   <script type="module">
-    import { db } from './config.js';
     import { protegerPagina, logout, emailParaId } from './auth.js';
-    import { 
-      collection, 
-      query, 
-      where, 
-      orderBy, 
-      getDocs, 
-      addDoc, 
-      serverTimestamp,
-      limit
-    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { db } from './config.js';
+    import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     let userSession = null;
-    let currentStatus = 'OFF'; // OFF, WORKING, RESTING
     let dailyPoints = [];
+    let currentStatus = 'OFF';
     let geo = { lat: null, lon: null };
+
+    // --- SEGURANÇA: Trava de Liberação do Loader ---
+    const hideLoader = () => {
+      const loader = document.getElementById('loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 400);
+      }
+      document.getElementById('app').classList.add('ready');
+    };
+    
+    // Se em 3 segundos o sistema não liberar, libera na marra!
+    const safetyTimer = setTimeout(hideLoader, 3000);
 
     // --- Inicialização ---
     (async () => {
@@ -433,122 +312,71 @@
         userSession = await protegerPagina({ paginaAtual: 'registrarponto.html' });
         if (!userSession) return;
 
-        // UI Inicial
         const name = userSession.user.displayName || 'Usuário';
         document.getElementById('userName').textContent = name;
         document.getElementById('avatarInitials').textContent = name.substring(0, 1).toUpperCase();
         
-        // Setup Eventos
         document.getElementById('logoutBtn').onclick = logout;
         document.getElementById('mainAction').onclick = handleMainAction;
 
-        // Iniciar Relógio
         setInterval(updateClock, 1000);
         updateClock();
-
-        // Carregar Dados
         await refreshDayData();
-        
-        // Pegar Localização
         initGPS();
+        
+        // Sucesso! Esconde o loader antes do tempo limite
+        clearTimeout(safetyTimer);
+        hideLoader();
+
       } catch (err) {
-        console.error("Erro na inicialização:", err);
+        console.error("Erro fatal:", err);
+        hideLoader(); // Libera a tela mesmo com erro para não ficar travado
       }
     })();
 
     function updateClock() {
       const now = new Date();
       document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', { hour12: false });
-      document.getElementById('date').textContent = now.toLocaleDateString('pt-BR', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long' 
-      });
+      document.getElementById('date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
       document.getElementById('currentDateMini').textContent = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
     }
 
-    function initGPS() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          geo.lat = pos.coords.latitude;
-          geo.lon = pos.coords.longitude;
-        }, err => {
-          showToast("⚠️ GPS desativado. Ligue para registrar.", "warning");
-        });
-      }
-    }
-
-    // --- Lógica de Ponto ---
     async function refreshDayData() {
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      
+      const today = new Date(); today.setHours(0,0,0,0);
       const emailId = emailParaId(userSession.user.email);
-      const q = query(
-        collection(db, "point_records"),
-        where("user_id", "==", emailId),
-        where("timestamp", ">=", today),
-        orderBy("timestamp", "asc")
-      );
-
+      const q = query(collection(db, "point_records"), where("user_id", "==", emailId), where("timestamp", ">=", today), orderBy("timestamp", "asc"));
       const snap = await getDocs(q);
-      dailyPoints = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
+      dailyPoints = snap.docs.map(doc => doc.data());
       updateUIStatus();
       renderTimeline();
       calculateHours();
     }
 
     function updateUIStatus() {
-      const lastPoint = dailyPoints[dailyPoints.length - 1];
+      const last = dailyPoints[dailyPoints.length - 1];
       const btn = document.getElementById('mainAction');
       const label = document.getElementById('actionLabel');
       const bage = document.getElementById('statusBadge');
       const statusText = document.getElementById('statusText');
 
-      if (!lastPoint || lastPoint.type === 'saida') {
-        currentStatus = 'OFF';
-        label.textContent = "Iniciar Jornada";
-        btn.className = "action-button";
-        bage.className = "status-badge off";
-        statusText.textContent = "DIA NÃO INICIADO";
-      } else if (lastPoint.type === 'entrada' || lastPoint.type === 'retorno') {
-        currentStatus = 'WORKING';
-        label.textContent = "Pausa / Saída"; // Oferecer opções no clique ou lógica simples
-        btn.className = "action-button pause"; // Mostra pausa como padrão seguinte
-        bage.className = "status-badge working";
-        statusText.textContent = "TRABALHANDO";
-      } else if (lastPoint.type === 'pausa') {
-        currentStatus = 'RESTING';
-        label.textContent = "Retornar ao Trabalho";
-        btn.className = "action-button return";
-        bage.className = "status-badge resting";
-        statusText.textContent = "EM PAUSA ALMOÇO";
+      if (!last || last.type === 'saida') {
+        currentStatus = 'OFF'; label.textContent = "Iniciar Jornada"; btn.className = "action-button"; bage.className = "status-badge off"; statusText.textContent = "DIA NÃO INICIADO";
+      } else if (last.type === 'entrada' || last.type === 'retorno') {
+        currentStatus = 'WORKING'; label.textContent = dailyPoints.some(p => p.type === 'pausa') ? "Encerrar Dia" : "Pausa Almoço"; btn.className = "action-button pause"; bage.className = "status-badge working"; statusText.textContent = "TRABALHANDO";
+      } else if (last.type === 'pausa') {
+        currentStatus = 'RESTING'; label.textContent = "Retornar ao Trabalho"; btn.className = "action-button return"; bage.className = "status-badge resting"; statusText.textContent = "EM PAUSA ALMOÇO";
       }
     }
 
     async function handleMainAction() {
       let type = 'entrada';
-      
       if (currentStatus === 'OFF') type = 'entrada';
-      else if (currentStatus === 'WORKING') {
-          // Lógica simplificada: Se já teve entrada e pausa, o próximo é saída.
-          const hasPausa = dailyPoints.some(p => p.type === 'pausa');
-          type = hasPausa ? 'saida' : 'pausa';
-      }
+      else if (currentStatus === 'WORKING') type = dailyPoints.some(p => p.type === 'pausa') ? 'saida' : 'pausa';
       else if (currentStatus === 'RESTING') type = 'retorno';
-
-      await registrarPonto(type);
-    }
-
-    async function registrarPonto(type) {
-      if (!geo.lat) {
-        // Tentar recarregar GPS antes de falhar
-        initGPS();
-        showToast("Obtendo localização...", "info");
-      }
-
-      showToast("Gravando ponto...", "info");
+      
+      const btn = document.getElementById('mainAction');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
       
       try {
         await addDoc(collection(db, "point_records"), {
@@ -559,91 +387,47 @@
           geo: geo,
           device: 'Tic-Tac Web'
         });
-
         showToast("✅ Ponto registrado!", "success");
         await refreshDayData();
       } catch (e) {
         showToast("❌ Erro ao salvar", "danger");
-        console.error(e);
+      } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
       }
     }
 
     function renderTimeline() {
       const container = document.getElementById('timelineList');
       if (dailyPoints.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 10px; font-size: 13px;">Nenhum registro hoje</div>';
+        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 10px;">Vazio</div>';
         return;
       }
-
-      const types = {
-        entrada: "Entrada",
-        pausa: "Pausa Almoço",
-        retorno: "Retorno Almoço",
-        saida: "Saída Final"
-      };
-
-      container.innerHTML = dailyPoints.map((p, index) => {
-        const date = p.timestamp?.toDate ? p.timestamp.toDate() : new Date();
-        const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const isActive = index === dailyPoints.length - 1 ? 'active' : '';
-        
-        return `
-          <div class="timeline-item ${isActive}">
-            <div class="timeline-marker"></div>
-            <div class="timeline-content">
-              <div class="timeline-time">${time}</div>
-              <div class="timeline-label">${types[p.type] || p.type}</div>
-            </div>
+      const labels = { entrada: "Entrada", pausa: "Almoço", retorno: "Retorno", saida: "Saída" };
+      container.innerHTML = dailyPoints.map((p, i) => `
+        <div class="timeline-item ${i === dailyPoints.length - 1 ? 'active' : ''}">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-time">${p.timestamp?.toDate ? p.timestamp.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '--:--'}</div>
+            <div class="timeline-label">${labels[p.type] || p.type}</div>
           </div>
-        `;
-      }).reverse().join('');
+        </div>
+      `).reverse().join('');
     }
 
     function calculateHours() {
-      let workedMs = 0;
-      let lunchMs = 0;
-      let lastTime = null;
-
+      let worked = 0; let last = null;
       dailyPoints.forEach(p => {
-        const time = p.timestamp?.toDate ? p.timestamp.toDate().getTime() : Date.now();
-        
-        if (p.type === 'entrada' || p.type === 'retorno') {
-          lastTime = time;
-        } else if (p.type === 'pausa' || p.type === 'saida') {
-          if (lastTime) workedMs += (time - lastTime);
-          lastTime = null;
-        }
-
-        // Almoço especifico
-        if (p.type === 'retorno') {
-          const pausa = dailyPoints.find(dp => dp.type === 'pausa');
-          if (pausa) {
-             const pausaTime = pausa.timestamp?.toDate ? pausa.timestamp.toDate().getTime() : 0;
-             lunchMs = time - pausaTime;
-          }
-        }
+        const t = p.timestamp?.toDate?.() || new Date();
+        if (p.type === 'entrada' || p.type === 'retorno') last = t;
+        else if ((p.type === 'pausa' || p.type === 'saida') && last) worked += (t - last);
       });
-
-      // Se ainda estiver trabalhando, adicionar tempo até agora
-      if (currentStatus === 'WORKING' && lastTime) {
-        workedMs += (Date.now() - lastTime);
-        setTimeout(calculateHours, 60000); // Recalcular a cada minuto
-      }
-
-      const h = Math.floor(workedMs / 3600000);
-      const m = Math.floor((workedMs % 3600000) / 60000);
-      const lm = Math.floor(lunchMs / 60000);
-
-      document.getElementById('hoursToday').textContent = `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
-      document.getElementById('lunchBreak').textContent = `${lm}m`;
+      const h = Math.floor(worked/3600000); const m = Math.floor((worked%3600000)/60000);
+      document.getElementById('hoursToday').textContent = `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
     }
 
-    function showToast(msg, type) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
-    }
+    function initGPS() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { geo.lat=p.coords.latitude; geo.lon=p.coords.longitude; }); }
+    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
   </script>
 </body>
 </html>
