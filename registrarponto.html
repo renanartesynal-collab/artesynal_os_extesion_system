@@ -105,6 +105,28 @@
     .user-name h2 { font-size: 18px; font-family: var(--font-title); }
     .user-name p { font-size: 13px; color: var(--text-muted); }
 
+    /* Localização Status Area */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .geo-status {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+    }
+
+    .geo-status.allowed { color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+    .geo-status.denied { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+
     .btn-nav {
       width: 40px;
       height: 40px;
@@ -117,6 +139,7 @@
       color: var(--text);
       text-decoration: none;
       transition: all 0.3s ease;
+      cursor: pointer;
     }
 
     .btn-nav:hover { background: var(--border); transform: scale(1.1); }
@@ -193,6 +216,7 @@
     .action-button:active { transform: scale(0.95); }
     .action-button.pause { background: linear-gradient(135deg, var(--warning), #d97706); }
     .action-button.return { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .action-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* Stats & Timeline */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
@@ -222,8 +246,10 @@
       z-index: 10000;
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.danger { background: var(--danger); }
   </style>
 </head>
 <body>
@@ -242,9 +268,12 @@
           <p>Seja bem-vindo!</p>
         </div>
       </div>
-      <div style="display: flex; gap: 8px;">
-        <a href="index.html" class="btn-nav"><i class="fas fa-grid-2"></i></a>
-        <button id="logoutBtn" class="btn-nav"><i class="fas fa-sign-out-alt"></i></button>
+      <div class="header-right">
+        <div class="geo-status denied" id="geoLabel">
+          <i class="fas fa-location-dot"></i>
+          <span>Local não verificado</span>
+        </div>
+        <button id="backBtn" class="btn-nav" title="Voltar ao Painel"><i class="fas fa-sign-out-alt"></i></button>
       </div>
     </header>
 
@@ -284,9 +313,23 @@
   <div id="toast" class="toast">Mensagem do sistema</div>
 
   <script type="module">
-    import { protegerPagina, logout, emailParaId } from './auth.js';
-    import { db } from './config.js';
-    import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { protegerPagina, emailParaId } from './auth.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, push, serverTimestamp as rtServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Configuração para o Realtime Database (usando os mesmos dados do seu config.js)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
+      authDomain: "artesynal-os-system.firebaseapp.com",
+      projectId: "artesynal-os-system",
+      databaseURL: "https://artesynal-os-system-default-rtdb.firebaseio.com",
+      storageBucket: "artesynal-os-system.firebasestorage.app",
+      messagingSenderId: "539958005846",
+      appId: "1:539958005846:web:9120505e097b56bf16ebf7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const rtDb = getDatabase(app);
 
     let userSession = null;
     let dailyPoints = [];
@@ -316,7 +359,8 @@
         document.getElementById('userName').textContent = name;
         document.getElementById('avatarInitials').textContent = name.substring(0, 1).toUpperCase();
         
-        document.getElementById('logoutBtn').onclick = logout;
+        // CORREÇÃO: Botão de voltar para o Painel Central
+        document.getElementById('backBtn').onclick = () => window.location.href = 'index.html';
         document.getElementById('mainAction').onclick = handleMainAction;
 
         setInterval(updateClock, 1000);
@@ -330,7 +374,7 @@
 
       } catch (err) {
         console.error("Erro fatal:", err);
-        hideLoader(); // Libera a tela mesmo com erro para não ficar travado
+        hideLoader();
       }
     })();
 
@@ -342,11 +386,20 @@
     }
 
     async function refreshDayData() {
-      const today = new Date(); today.setHours(0,0,0,0);
       const emailId = emailParaId(userSession.user.email);
-      const q = query(collection(db, "point_records"), where("user_id", "==", emailId), where("timestamp", ">=", today), orderBy("timestamp", "asc"));
-      const snap = await getDocs(q);
-      dailyPoints = snap.docs.map(doc => doc.data());
+      const pointsRef = ref(rtDb, `ponto_registros/${emailId}`);
+      
+      const snap = await get(pointsRef);
+      if (snap.exists()) {
+        const data = snap.val();
+        dailyPoints = Object.values(data).filter(p => {
+          const pDate = new Date(p.timestamp).toLocaleDateString();
+          return pDate === new Date().toLocaleDateString();
+        }).sort((a,b) => a.timestamp - b.timestamp);
+      } else {
+        dailyPoints = [];
+      }
+      
       updateUIStatus();
       renderTimeline();
       calculateHours();
@@ -376,24 +429,27 @@
       
       const btn = document.getElementById('mainAction');
       btn.disabled = true;
-      btn.style.opacity = '0.5';
       
       try {
-        await addDoc(collection(db, "point_records"), {
-          user_id: emailParaId(userSession.user.email),
+        const emailId = emailParaId(userSession.user.email);
+        const newPointRef = push(ref(rtDb, `ponto_registros/${emailId}`));
+        
+        await set(newPointRef, {
+          user_id: emailId,
           user_name: userSession.user.displayName,
-          timestamp: serverTimestamp(),
+          timestamp: Date.now(),
           type: type,
           geo: geo,
           device: 'Tic-Tac Web'
         });
+        
         showToast("✅ Ponto registrado!", "success");
         await refreshDayData();
       } catch (e) {
+        console.error(e);
         showToast("❌ Erro ao salvar", "danger");
       } finally {
         btn.disabled = false;
-        btn.style.opacity = '1';
       }
     }
 
@@ -408,7 +464,7 @@
         <div class="timeline-item ${i === dailyPoints.length - 1 ? 'active' : ''}">
           <div class="timeline-marker"></div>
           <div class="timeline-content">
-            <div class="timeline-time">${p.timestamp?.toDate ? p.timestamp.toDate().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '--:--'}</div>
+            <div class="timeline-time">${new Date(p.timestamp).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</div>
             <div class="timeline-label">${labels[p.type] || p.type}</div>
           </div>
         </div>
@@ -418,7 +474,7 @@
     function calculateHours() {
       let worked = 0; let last = null;
       dailyPoints.forEach(p => {
-        const t = p.timestamp?.toDate?.() || new Date();
+        const t = p.timestamp;
         if (p.type === 'entrada' || p.type === 'retorno') last = t;
         else if ((p.type === 'pausa' || p.type === 'saida') && last) worked += (t - last);
       });
@@ -426,8 +482,29 @@
       document.getElementById('hoursToday').textContent = `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
     }
 
-    function initGPS() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { geo.lat=p.coords.latitude; geo.lon=p.coords.longitude; }); }
-    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+    function initGPS() { 
+      if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(p => { 
+          geo.lat=p.coords.latitude; 
+          geo.lon=p.coords.longitude; 
+          const label = document.getElementById('geoLabel');
+          label.className = "geo-status allowed";
+          label.innerHTML = '<i class="fas fa-location-dot"></i><span>Local Permitido</span>';
+        }, err => {
+          const label = document.getElementById('geoLabel');
+          label.className = "geo-status denied";
+          label.innerHTML = '<i class="fas fa-location-xmark"></i><span>GPS Desativado</span>';
+        }); 
+      }
+    }
+    
+    function showToast(msg, type) { 
+      const t = document.getElementById('toast'); 
+      t.textContent = msg; 
+      t.className = `toast ${type === 'danger' ? 'danger' : ''}`;
+      t.classList.add('show'); 
+      setTimeout(() => t.classList.remove('show'), 3000); 
+    }
   </script>
 </body>
 </html>
