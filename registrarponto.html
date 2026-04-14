@@ -253,11 +253,25 @@
   </style>
 </head>
 <body>
-  <!-- Loader Modernizado -->
+  <!-- Loader com TRAVA EXTERNA para garantir que suma -->
   <div class="loader-overlay" id="loader">
     <div class="spinner"></div>
     <div class="loader-text">Conectando ao serviço de ponto...</div>
   </div>
+
+  <script>
+    // Trava de segurança que roda ANTES de qualquer outro script pesado
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            var loader = document.getElementById('loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(function() { loader.style.display = 'none'; }, 400);
+            }
+            document.getElementById('app').classList.add('ready');
+        }, 3000); // 3 segundos NO MÁXIMO
+    });
+  </script>
 
   <div class="app-container" id="app">
     <header>
@@ -315,9 +329,8 @@
   <script type="module">
     import { protegerPagina, emailParaId } from './auth.js';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, push, serverTimestamp as rtServerTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Configuração para o Realtime Database (usando os mesmos dados do seu config.js)
     const firebaseConfig = {
       apiKey: "AIzaSyBxG9GNxfJxWiw8hpreTeShrG009svRmPI",
       authDomain: "artesynal-os-system.firebaseapp.com",
@@ -336,30 +349,14 @@
     let currentStatus = 'OFF';
     let geo = { lat: null, lon: null };
 
-    // --- SEGURANÇA: Trava de Liberação do Loader ---
-    const hideLoader = () => {
-      const loader = document.getElementById('loader');
-      if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => loader.style.display = 'none', 400);
-      }
-      document.getElementById('app').classList.add('ready');
-    };
-    
-    // Se em 3 segundos o sistema não liberar, libera na marra!
-    const safetyTimer = setTimeout(hideLoader, 3000);
-
-    // --- Inicialização ---
     (async () => {
       try {
         userSession = await protegerPagina({ paginaAtual: 'registrarponto.html' });
         if (!userSession) return;
 
-        const name = userSession.user.displayName || 'Usuário';
-        document.getElementById('userName').textContent = name;
-        document.getElementById('avatarInitials').textContent = name.substring(0, 1).toUpperCase();
+        document.getElementById('userName').textContent = userSession.user.displayName || 'Usuário';
+        document.getElementById('avatarInitials').textContent = (userSession.user.displayName || 'U').substring(0, 1).toUpperCase();
         
-        // CORREÇÃO: Botão de voltar para o Painel Central
         document.getElementById('backBtn').onclick = () => window.location.href = 'index.html';
         document.getElementById('mainAction').onclick = handleMainAction;
 
@@ -367,14 +364,9 @@
         updateClock();
         await refreshDayData();
         initGPS();
-        
-        // Sucesso! Esconde o loader antes do tempo limite
-        clearTimeout(safetyTimer);
-        hideLoader();
 
       } catch (err) {
-        console.error("Erro fatal:", err);
-        hideLoader();
+        console.error("Erro no script principal:", err);
       }
     })();
 
@@ -388,18 +380,11 @@
     async function refreshDayData() {
       const emailId = emailParaId(userSession.user.email);
       const pointsRef = ref(rtDb, `ponto_registros/${emailId}`);
-      
       const snap = await get(pointsRef);
       if (snap.exists()) {
         const data = snap.val();
-        dailyPoints = Object.values(data).filter(p => {
-          const pDate = new Date(p.timestamp).toLocaleDateString();
-          return pDate === new Date().toLocaleDateString();
-        }).sort((a,b) => a.timestamp - b.timestamp);
-      } else {
-        dailyPoints = [];
+        dailyPoints = Object.values(data).filter(p => new Date(p.timestamp).toLocaleDateString() === new Date().toLocaleDateString()).sort((a,b) => a.timestamp - b.timestamp);
       }
-      
       updateUIStatus();
       renderTimeline();
       calculateHours();
@@ -432,9 +417,7 @@
       
       try {
         const emailId = emailParaId(userSession.user.email);
-        const newPointRef = push(ref(rtDb, `ponto_registros/${emailId}`));
-        
-        await set(newPointRef, {
+        await set(push(ref(rtDb, `ponto_registros/${emailId}`)), {
           user_id: emailId,
           user_name: userSession.user.displayName,
           timestamp: Date.now(),
@@ -442,11 +425,9 @@
           geo: geo,
           device: 'Tic-Tac Web'
         });
-        
         showToast("✅ Ponto registrado!", "success");
         await refreshDayData();
       } catch (e) {
-        console.error(e);
         showToast("❌ Erro ao salvar", "danger");
       } finally {
         btn.disabled = false;
@@ -485,23 +466,19 @@
     function initGPS() { 
       if(navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(p => { 
-          geo.lat=p.coords.latitude; 
-          geo.lon=p.coords.longitude; 
-          const label = document.getElementById('geoLabel');
-          label.className = "geo-status allowed";
-          label.innerHTML = '<i class="fas fa-location-dot"></i><span>Local Permitido</span>';
+          geo.lat=p.coords.latitude; geo.lon=p.coords.longitude; 
+          document.getElementById('geoLabel').className = "geo-status allowed";
+          document.getElementById('geoLabel').innerHTML = '<i class="fas fa-location-dot"></i><span>Local Permitido</span>';
         }, err => {
-          const label = document.getElementById('geoLabel');
-          label.className = "geo-status denied";
-          label.innerHTML = '<i class="fas fa-location-xmark"></i><span>GPS Desativado</span>';
+          document.getElementById('geoLabel').className = "geo-status denied";
+          document.getElementById('geoLabel').innerHTML = '<i class="fas fa-location-xmark"></i><span>GPS Desativado</span>';
         }); 
       }
     }
     
     function showToast(msg, type) { 
       const t = document.getElementById('toast'); 
-      t.textContent = msg; 
-      t.className = `toast ${type === 'danger' ? 'danger' : ''}`;
+      t.textContent = msg; t.className = `toast ${type === 'danger' ? 'danger' : ''}`;
       t.classList.add('show'); 
       setTimeout(() => t.classList.remove('show'), 3000); 
     }
