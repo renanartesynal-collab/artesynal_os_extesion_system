@@ -243,11 +243,6 @@
       color: white;
     }
 
-    /* Loader */
-    #loader { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.5s; }
-    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     /* Responsive */
     @media (max-width: 900px) {
       .admin-layout { grid-template-columns: 1fr; }
@@ -262,8 +257,6 @@
   </style>
 </head>
 <body>
-  <div id="loader"><div class="spinner"></div></div>
-
   <div class="container">
     <header>
       <div class="brand">
@@ -392,10 +385,6 @@
       document.getElementById('monthFilter').onchange = () => loadUserPoints(selectedEmail);
 
       await loadUsers();
-      
-      // Esconder Loader
-      document.getElementById('loader').style.opacity = '0';
-      setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
     })();
 
     async function loadUsers() {

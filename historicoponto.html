@@ -165,11 +165,6 @@
 
     .point-time { font-size: 18px; font-weight: 700; font-family: var(--font-title); }
 
-    /* Loader */
-    #loader { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     @media (max-width: 480px) {
       .summary-card { padding: 20px; grid-template-columns: 1fr; }
       .point-time { font-size: 16px; }
@@ -177,8 +172,6 @@
   </style>
 </head>
 <body>
-  <div id="loader"><div class="spinner"></div></div>
-
   <div class="container">
     <header>
       <a href="registrarponto.html" class="btn-back"><i class="fas fa-arrow-left"></i></a>
@@ -231,8 +224,6 @@
       document.getElementById('monthFilter').onchange = loadHistory;
 
       await loadHistory();
-
-      document.getElementById('loader').style.display = 'none';
     })();
 
     async function loadHistory() {

@@ -325,30 +325,6 @@
     }
 
     /* Modals & Loaders */
-    .loader-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.5s ease;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 16px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     .toast {
       position: fixed;
       bottom: 30px;
@@ -373,11 +349,6 @@
   </style>
 </head>
 <body>
-  <div class="loader-overlay" id="loader">
-    <div class="spinner"></div>
-    <div class="clock-date">Conectando ao sistema tic-tac...</div>
-  </div>
-
   <div class="app-container">
     <header>
       <div class="user-info">
@@ -480,13 +451,6 @@
         
         // Pegar Localização
         initGPS();
-
-        // Esconder Loader
-        setTimeout(() => {
-          document.getElementById('loader').style.opacity = '0';
-          setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-        }, 800);
-
       } catch (err) {
         console.error("Erro na inicialização:", err);
       }
