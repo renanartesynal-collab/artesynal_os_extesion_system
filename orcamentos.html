@@ -57,7 +57,9 @@
             display: flex; justify-content: space-between; align-items: center; 
             background: #2c2c2c; padding: 12px; border-radius: 6px; border-left: 3px solid #555;
         }
-        .item-arq-num { font-weight: 900; font-size: 14px; color: #ddd;}
+        .item-arq-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .item-arq-empresa { font-weight: 800; font-size: 16px; color: #f2f2f2; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-arq-num { font-weight: 700; font-size: 11px; color: #9ca3af; letter-spacing: 0.4px; }
         .item-arq-tools button { 
             border: none; border-radius: 3px; cursor: pointer; padding: 5px; 
             font-size: 12px; margin-left: 5px; background: rgba(255,255,255,0.1); transition: 0.2s;
@@ -286,9 +288,14 @@
                 const isArquivado = data.arquivado || false;
 
                 if (isArquivado) {
+                    const empresa = data.empresa || data.cliente || 'Sem Empresa';
+                    const empresaTitle = String(empresa).replace(/"/g, '&quot;');
                     cardsArquivados.push(`
                         <div class="item-arquivado">
-                            <span class="item-arq-num">${numDisplay}</span>
+                            <div class="item-arq-info">
+                                <span class="item-arq-empresa" title="${empresaTitle}">${empresa}</span>
+                                <span class="item-arq-num">${numDisplay}</span>
+                            </div>
                             <div class="item-arq-tools">
                                 <button onclick="window.arquivarCard('${id}', false)" title="Desarquivar para o Kanban">⬆️</button>
                                 <button class="btn-del" onclick="window.deletarCard('${id}')" title="Excluir Definitivamente">🗑️</button>
