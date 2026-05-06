@@ -65,6 +65,19 @@ export const MODULOS_MENU = [
   { pagina: "paineldeponto.html", label: "Painel de Ponto" }
 ];
 
+const PAGINAS_MEDIDAS_VISITAS = ["medidas-visitas.html", "detalhes-visita.html"];
+const PERFIS_MEDIDAS_VISITAS = ["producao", "instalacao", "administracao"];
+
+function aplicarPermissaoObrigatoriaMedidas(categorias) {
+  for (const perfil of PERFIS_MEDIDAS_VISITAS) {
+    if (!categorias[perfil]) continue;
+    for (const pagina of PAGINAS_MEDIDAS_VISITAS) {
+      categorias[perfil][pagina] = true;
+    }
+  }
+  return categorias;
+}
+
 const VISIBILIDADE_PADRAO = {
   producao: {
     "os.html": true,
@@ -127,7 +140,7 @@ function normalizarConfiguracaoCategorias(categorias = {}) {
     }
   }
 
-  return base;
+  return aplicarPermissaoObrigatoriaMedidas(base);
 }
 
 export async function obterConfiguracaoCategorias() {
@@ -135,7 +148,7 @@ export async function obterConfiguracaoCategorias() {
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    const categorias = structuredClone(VISIBILIDADE_PADRAO);
+    const categorias = aplicarPermissaoObrigatoriaMedidas(structuredClone(VISIBILIDADE_PADRAO));
     await setDoc(ref, { categorias, created_at: serverTimestamp(), updated_at: serverTimestamp() }, { merge: true });
     return categorias;
   }

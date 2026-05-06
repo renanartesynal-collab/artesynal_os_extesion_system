@@ -119,22 +119,22 @@
             return `<div class="archive-item"><div><div class="archive-title">${safe(v.empresa || 'Sem empresa')}</div><div class="archive-sub">${safe(v.servico || 'Serviço')} • ${safe(v.cliente || 'Cliente')}</div></div><div class="archive-tools"><button class="mini-btn" onclick="window.arquivarCard('${v.id}', false)" title="Desarquivar">⬆️</button><button class="mini-btn" onclick="window.abrirCard('${v.id}')" title="Abrir">👁️</button><button class="mini-btn btn-del" onclick="window.deletarCard('${v.id}')" title="Deletar">🗑️</button></div></div>`;
         }
         async function carregar() {
-            const snap = await getDocs(collection(db, 'visitas'));
+            const snap = await getDocs(collection(db, 'medidas_visitas'));
             visitas = snap.docs.map((d) => ({ id:d.id, ...d.data(), status:normalizeStatus(d.data().status) }));
             visitas.sort((a,b) => (b.criado_em?.seconds || 0) - (a.criado_em?.seconds || 0));
             render();
         }
         window.abrirCard = (id) => { window.location.href = `${ROTAS.detalhesVisita || 'detalhes-visita.html'}?id=${id}`; };
-        window.moverCard = async (id, dir) => { const v = visitas.find((x) => x.id === id); if (!v) return; const idx = STATUS.indexOf(normalizeStatus(v.status)); const next = STATUS[idx + dir]; if (!next) return; await updateDoc(doc(db,'visitas',id), { status:next }); v.status = next; render(); };
-        window.arquivarCard = async (id, flag) => { await updateDoc(doc(db,'visitas',id), { arquivado:flag }); const v = visitas.find((x) => x.id === id); if (v) v.arquivado = flag; render(); };
-        window.deletarCard = async (id) => { if (!confirm('Tem certeza que deseja deletar permanentemente esta visita?')) return; await deleteDoc(doc(db,'visitas',id)); visitas = visitas.filter((v) => v.id !== id); render(); };
+        window.moverCard = async (id, dir) => { const v = visitas.find((x) => x.id === id); if (!v) return; const idx = STATUS.indexOf(normalizeStatus(v.status)); const next = STATUS[idx + dir]; if (!next) return; await updateDoc(doc(db,'medidas_visitas',id), { status:next }); v.status = next; render(); };
+        window.arquivarCard = async (id, flag) => { await updateDoc(doc(db,'medidas_visitas',id), { arquivado:flag }); const v = visitas.find((x) => x.id === id); if (v) v.arquivado = flag; render(); };
+        window.deletarCard = async (id) => { if (!confirm('Tem certeza que deseja deletar permanentemente esta visita?')) return; await deleteDoc(doc(db,'medidas_visitas',id)); visitas = visitas.filter((v) => v.id !== id); render(); };
         window.toggleSidebar = () => document.getElementById('sidebar-arquivados').classList.toggle('open');
         window.abrirModalNovo = () => document.getElementById('modal-novo').classList.add('open');
         window.fecharModalNovo = () => document.getElementById('modal-novo').classList.remove('open');
         document.getElementById('form-novo').addEventListener('submit', async (ev) => {
             ev.preventDefault();
-            const novo = { empresa:document.getElementById('novo-empresa').value.trim(), cliente:document.getElementById('novo-cliente').value.trim(), servico:document.getElementById('novo-servico').value.trim(), tipo_servico:document.getElementById('novo-servico').value.trim(), endereco:'', status:'solicitacoes', arquivado:false, imagens:[], criado_em:serverTimestamp() };
-            const ref = await addDoc(collection(db, 'visitas'), novo);
+            const novo = { empresa:document.getElementById('novo-empresa').value.trim(), cliente:document.getElementById('novo-cliente').value.trim(), servico:document.getElementById('novo-servico').value.trim(), tipo_servico:document.getElementById('novo-servico').value.trim(), endereco:'', status:'solicitacoes', arquivado:false, imagens:[], criado_em:serverTimestamp(), origem:'medidas_visitas' };
+            const ref = await addDoc(collection(db, 'medidas_visitas'), novo);
             window.abrirCard(ref.id);
         });
         carregar();
