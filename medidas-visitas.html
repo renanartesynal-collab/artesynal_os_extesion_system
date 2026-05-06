@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medidas/Visitas - Artesynal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark:#333; --panel-bg:#222; --card-bg:#2c3e50; --yellow:#f1c40f; --blue:#00aeef; --green:#00a651; --red:#ed1c24; --text-gray:#bdc3c7; }
+        body { font-family:'Mitra LT','Montserrat',sans-serif; margin:0; padding:20px; background:var(--bg-dark); color:#fff; min-height:100vh; box-sizing:border-box; overflow:hidden; display:flex; flex-direction:column; }
+        .header-visitas { display:flex; justify-content:space-between; align-items:center; gap:14px; border-bottom:2px solid #555; padding-bottom:15px; margin-bottom:20px; flex-shrink:0; }
+        h1 { margin:0; color:var(--yellow); font-size:24px; text-transform:uppercase; }
+        .header-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+        .btn-top { border:none; border-radius:6px; padding:9px 14px; color:#fff; cursor:pointer; font-size:12px; font-weight:900; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+        .btn-arq { background:var(--blue); } .btn-voltar { background:#555; } .btn-novo { background:var(--yellow); color:#1f2937; }
+        .kanban-board { flex:1; display:flex; gap:20px; overflow-x:auto; padding-bottom:18px; align-items:flex-start; }
+        .kanban-col { background:var(--panel-bg); border:1px solid #444; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,.45); min-width:320px; width:33%; max-height:100%; padding:10px; box-sizing:border-box; display:flex; flex-direction:column; }
+        .kanban-header { text-align:center; padding:12px; border-radius:6px; margin-bottom:15px; text-transform:uppercase; font-weight:900; letter-spacing:1px; box-shadow:0 4px 0 rgba(0,0,0,.2); }
+        .hdr-solicitacoes { background:var(--red); } .hdr-andamento { background:var(--blue); } .hdr-concluido { background:var(--green); }
+        .cards-container { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; min-height:160px; padding-right:5px; }
+        .visit-card { background:var(--card-bg); border-left:5px solid var(--blue); border-radius:8px; padding:14px; box-shadow:0 4px 10px rgba(0,0,0,.3); cursor:pointer; transition:.2s; }
+        .visit-card:hover { transform:translateY(-2px); border-color:var(--yellow); }
+        .card-actions { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:8px; }
+        .card-actions-left, .card-actions-right { display:flex; gap:5px; }
+        .mini-btn { background:transparent; border:1px solid #55606f; color:#fff; border-radius:5px; padding:5px 8px; cursor:pointer; font-size:12px; }
+        .mini-btn:hover:not(:disabled) { background:#4b5563; } .mini-btn:disabled { opacity:.25; cursor:not-allowed; }
+        .btn-del:hover { background:var(--red)!important; border-color:var(--red); }
+        .empresa { color:#fff; font-size:22px; font-weight:900; line-height:1.1; margin-bottom:5px; overflow:hidden; text-overflow:ellipsis; }
+        .servico { color:var(--yellow); font-weight:800; font-size:13px; text-transform:uppercase; margin-bottom:5px; }
+        .cliente { color:#d1d5db; font-size:12px; font-weight:700; }
+        .empty { color:#777; text-align:center; font-size:12px; padding:22px 0; border:1px dashed #444; border-radius:8px; }
+        #sidebar-arquivados { position:fixed; top:0; right:-380px; width:340px; height:100vh; background:#1a1a1a; box-shadow:-5px 0 20px rgba(0,0,0,.8); z-index:20; transition:right .3s; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; }
+        #sidebar-arquivados.open { right:0; }
+        .sidebar-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:12px; margin-bottom:12px; }
+        .sidebar-header h2 { margin:0; color:var(--yellow); font-size:16px; text-transform:uppercase; }
+        .archive-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+        .archive-item { background:#2c2c2c; border-left:3px solid #555; border-radius:6px; padding:11px; display:flex; justify-content:space-between; gap:10px; align-items:center; }
+        .archive-title { font-size:14px; font-weight:900; color:#fff; } .archive-sub { font-size:11px; color:#aaa; margin-top:3px; }
+        .archive-tools { display:flex; gap:5px; flex-shrink:0; }
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:30; align-items:center; justify-content:center; padding:18px; }
+        .modal.open { display:flex; }
+        .modal-box { width:100%; max-width:520px; background:#222; border-top:5px solid var(--yellow); border-radius:14px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.7); box-sizing:border-box; }
+        .modal-box h2 { margin:0 0 16px; color:var(--yellow); text-transform:uppercase; font-size:18px; }
+        label { display:block; font-size:10px; color:var(--yellow); font-weight:900; text-transform:uppercase; margin:12px 0 5px; }
+        input { width:100%; box-sizing:border-box; padding:12px; background:#111; color:#fff; border:1px solid #444; border-radius:7px; font-family:inherit; }
+        .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+        @media (max-width:700px) { body{padding:14px; overflow:auto;} .header-visitas{align-items:flex-start; flex-direction:column;} .header-actions{width:100%; justify-content:space-between;} .kanban-board{min-height:65vh;} .kanban-col{min-width:86vw; width:86vw;} #sidebar-arquivados{width:88vw; right:-92vw;} }
+    </style>
+</head>
+<body>
+    <aside id="sidebar-arquivados">
+        <div class="sidebar-header"><h2>Cards arquivados</h2><button class="mini-btn" onclick="window.toggleSidebar()">✖</button></div>
+        <div id="archive-list" class="archive-list"></div>
+    </aside>
+
+    <header class="header-visitas">
+        <h1>📏 Medidas/Visitas</h1>
+        <div class="header-actions">
+            <button class="btn-top btn-novo" onclick="window.abrirModalNovo()">+ NOVO CARD</button>
+            <button class="btn-top btn-arq" onclick="window.toggleSidebar()">📁 ARQUIVADOS</button>
+            <a id="link-voltar" class="btn-top btn-voltar" href="index.html">⬅ VOLTAR AO PAINEL</a>
+        </div>
+    </header>
+
+    <main id="kanban" class="kanban-board">
+        <section class="kanban-col"><div class="kanban-header hdr-solicitacoes">Solicitações</div><div id="col-solicitacoes" class="cards-container"></div></section>
+        <section class="kanban-col"><div class="kanban-header hdr-andamento">Em andamento</div><div id="col-andamento" class="cards-container"></div></section>
+        <section class="kanban-col"><div class="kanban-header hdr-concluido">Concluído</div><div id="col-concluido" class="cards-container"></div></section>
+    </main>
+
+    <div id="modal-novo" class="modal">
+        <form id="form-novo" class="modal-box">
+            <h2>Criar Medida/Visita</h2>
+            <label for="novo-empresa">Nome da empresa</label><input id="novo-empresa" required autocomplete="organization">
+            <label for="novo-cliente">Nome do cliente</label><input id="novo-cliente" required autocomplete="name">
+            <label for="novo-servico">Tipo / nome do serviço</label><input id="novo-servico" required>
+            <div class="modal-actions"><button type="button" class="btn-top btn-voltar" onclick="window.fecharModalNovo()">Cancelar</button><button type="submit" class="btn-top btn-novo">Criar e abrir</button></div>
+        </form>
+    </div>
+
+    <script type="module">
+        import { db, ROTAS } from './config.js';
+        import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        const STATUS = ['solicitacoes', 'andamento', 'concluido'];
+        let visitas = [];
+        document.getElementById('link-voltar').href = ROTAS.painel;
+        const safe = (v) => String(v ?? '').replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+        const normalizeStatus = (s) => {
+            const v = String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_');
+            if (['andamento','em_andamento','enviado'].includes(v)) return 'andamento';
+            if (['concluido','concluida','finalizado','finalizada'].includes(v)) return 'concluido';
+            return 'solicitacoes';
+        };
+        function render() {
+            const groups = { solicitacoes:[], andamento:[], concluido:[], arquivados:[] };
+            visitas.forEach((v) => (v.arquivado ? groups.arquivados : groups[normalizeStatus(v.status)]).push(v));
+            STATUS.forEach((st) => {
+                const col = document.getElementById(`col-${st}`);
+                col.innerHTML = groups[st].length ? groups[st].map(cardHtml).join('') : '<div class="empty">Vazio</div>';
+            });
+            document.getElementById('archive-list').innerHTML = groups.arquivados.length ? groups.arquivados.map(archiveHtml).join('') : '<div class="empty">Nenhum card arquivado</div>';
+        }
+        function cardHtml(v) {
+            const st = normalizeStatus(v.status), idx = STATUS.indexOf(st);
+            return `<article id="card-${v.id}" class="visit-card" onclick="window.abrirCard('${v.id}')">
+                <div class="card-actions" onclick="event.stopPropagation()">
+                    <div class="card-actions-left">
+                        <button class="mini-btn" ${idx === 0 ? 'disabled' : ''} onclick="window.moverCard('${v.id}', -1)">⬅</button>
+                        <button class="mini-btn" ${idx === STATUS.length - 1 ? 'disabled' : ''} onclick="window.moverCard('${v.id}', 1)">➡</button>
+                    </div>
+                    <div class="card-actions-right"><button class="mini-btn" onclick="window.arquivarCard('${v.id}', true)">📁</button><button class="mini-btn btn-del" onclick="window.deletarCard('${v.id}')">🗑️</button></div>
+                </div>
+                <div class="empresa" title="${safe(v.empresa)}">${safe(v.empresa || 'Sem empresa')}</div>
+                <div class="servico">${safe(v.servico || v.tipo_servico || 'Sem serviço')}</div>
+                <div class="cliente">Cliente: ${safe(v.cliente || 'Sem cliente')}</div>
+            </article>`;
+        }
+        function archiveHtml(v) {
+            return `<div class="archive-item"><div><div class="archive-title">${safe(v.empresa || 'Sem empresa')}</div><div class="archive-sub">${safe(v.servico || 'Serviço')} • ${safe(v.cliente || 'Cliente')}</div></div><div class="archive-tools"><button class="mini-btn" onclick="window.arquivarCard('${v.id}', false)" title="Desarquivar">⬆️</button><button class="mini-btn" onclick="window.abrirCard('${v.id}')" title="Abrir">👁️</button><button class="mini-btn btn-del" onclick="window.deletarCard('${v.id}')" title="Deletar">🗑️</button></div></div>`;
+        }
+        async function carregar() {
+            const snap = await getDocs(collection(db, 'visitas'));
+            visitas = snap.docs.map((d) => ({ id:d.id, ...d.data(), status:normalizeStatus(d.data().status) }));
+            visitas.sort((a,b) => (b.criado_em?.seconds || 0) - (a.criado_em?.seconds || 0));
+            render();
+        }
+        window.abrirCard = (id) => { window.location.href = `${ROTAS.detalhesVisita || 'detalhes-visita.html'}?id=${id}`; };
+        window.moverCard = async (id, dir) => { const v = visitas.find((x) => x.id === id); if (!v) return; const idx = STATUS.indexOf(normalizeStatus(v.status)); const next = STATUS[idx + dir]; if (!next) return; await updateDoc(doc(db,'visitas',id), { status:next }); v.status = next; render(); };
+        window.arquivarCard = async (id, flag) => { await updateDoc(doc(db,'visitas',id), { arquivado:flag }); const v = visitas.find((x) => x.id === id); if (v) v.arquivado = flag; render(); };
+        window.deletarCard = async (id) => { if (!confirm('Tem certeza que deseja deletar permanentemente esta visita?')) return; await deleteDoc(doc(db,'visitas',id)); visitas = visitas.filter((v) => v.id !== id); render(); };
+        window.toggleSidebar = () => document.getElementById('sidebar-arquivados').classList.toggle('open');
+        window.abrirModalNovo = () => document.getElementById('modal-novo').classList.add('open');
+        window.fecharModalNovo = () => document.getElementById('modal-novo').classList.remove('open');
+        document.getElementById('form-novo').addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            const novo = { empresa:document.getElementById('novo-empresa').value.trim(), cliente:document.getElementById('novo-cliente').value.trim(), servico:document.getElementById('novo-servico').value.trim(), tipo_servico:document.getElementById('novo-servico').value.trim(), endereco:'', status:'solicitacoes', arquivado:false, imagens:[], criado_em:serverTimestamp() };
+            const ref = await addDoc(collection(db, 'visitas'), novo);
+            window.abrirCard(ref.id);
+        });
+        carregar();
+    </script>
+    <script type="module">import { protegerPagina } from './auth.js'; await protegerPagina({ paginaAtual:'medidas-visitas.html' });</script>
+    <script src="./task-shortcut.js"></script>
+</body>
+</html>

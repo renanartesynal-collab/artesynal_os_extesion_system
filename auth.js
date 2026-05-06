@@ -24,7 +24,7 @@ export const PERFIS = {
   },
   instalacao: {
     label: "Instalação",
-    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
+    paginas: ["index.html", "medidas-visitas.html", "detalhes-visita.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
   },
   administracao: {
     label: "Administração",
@@ -33,6 +33,8 @@ export const PERFIS = {
       "os.html",
       "lista.html",
       "orcamentos.html",
+      "medidas-visitas.html",
+      "detalhes-visita.html",
       "estimpressao.html",
       "estserralheria.html",
       "estpintura.html",
@@ -51,6 +53,7 @@ export const MODULOS_MENU = [
   { pagina: "os.html", label: "Gerar O.S." },
   { pagina: "lista.html", label: "Lista de O.S." },
   { pagina: "orcamentos.html", label: "Orçamentos" },
+  { pagina: "medidas-visitas.html", label: "Medidas/Visitas" },
   { pagina: "estimpressao.html", label: "Impressão" },
   { pagina: "estserralheria.html", label: "Serralheria" },
   { pagina: "estpintura.html", label: "Pintura" },
@@ -67,6 +70,8 @@ const VISIBILIDADE_PADRAO = {
     "os.html": true,
     "lista.html": true,
     "orcamentos.html": true,
+    "medidas-visitas.html": false,
+    "detalhes-visita.html": false,
     "estimpressao.html": false,
     "estserralheria.html": false,
     "estpintura.html": false,
@@ -81,6 +86,8 @@ const VISIBILIDADE_PADRAO = {
     "os.html": false,
     "lista.html": false,
     "orcamentos.html": false,
+    "medidas-visitas.html": true,
+    "detalhes-visita.html": true,
     "estimpressao.html": true,
     "estserralheria.html": true,
     "estpintura.html": true,
@@ -95,6 +102,8 @@ const VISIBILIDADE_PADRAO = {
     "os.html": true,
     "lista.html": true,
     "orcamentos.html": true,
+    "medidas-visitas.html": true,
+    "detalhes-visita.html": true,
     "estimpressao.html": true,
     "estserralheria.html": true,
     "estpintura.html": true,
