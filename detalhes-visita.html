@@ -8,7 +8,7 @@
     <style>
         :root { --bg:#333; --card:#222; --yellow:#f1c40f; --blue:#00aeef; --green:#00a651; --red:#ed1c24; --text:#eee; --muted:#bdc3c7; --input:#111; }
         * { box-sizing:border-box; }
-        body { font-family:'Mitra LT','Montserrat',sans-serif; background:var(--bg); color:var(--text); margin:0; padding:18px; padding-bottom:40px; }
+        body { font-family:'Mitra LT','Montserrat',sans-serif; background:var(--bg); color:var(--text); margin:0; padding:18px; padding-bottom:96px; }
         .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:2px solid #555; padding-bottom:14px; margin-bottom:18px; }
         h1 { margin:0; color:var(--yellow); text-transform:uppercase; font-size:22px; }
         .btn { border:none; border-radius:7px; padding:10px 13px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; color:#fff; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
@@ -41,7 +41,8 @@
         #editor-canvas { max-width:100%; max-height:100%; box-shadow:0 0 22px #000; touch-action:none; cursor:crosshair; transform-origin:center center; }
         .draw-toolbar { min-height:70px; background:#222; border-top:2px solid var(--yellow); padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
         .zoom-label { color:#ccc; font-size:12px; font-weight:900; min-width:50px; text-align:center; }
-        @media (max-width:850px) { body{padding:12px;} .layout{grid-template-columns:1fr;} .topbar{flex-direction:column; align-items:flex-start;} .photo-viewer{min-height:260px;} .tool{font-size:10px; padding:8px;} .draw-toolbar{justify-content:center;} }
+        .floating-save { position:fixed; left:14px; right:14px; bottom:14px; z-index:20; min-height:52px; box-shadow:0 8px 26px rgba(0,0,0,.55); display:none; }
+        @media (max-width:850px) { body{padding:12px; padding-bottom:92px;} .layout{grid-template-columns:1fr;} .topbar{flex-direction:column; align-items:flex-start;} .photo-viewer{min-height:260px;} .tool{font-size:10px; padding:8px;} .draw-toolbar{justify-content:center;} .floating-save{display:flex;} }
     </style>
 </head>
 <body>
@@ -82,6 +83,7 @@
             <label>Nota da imagem selecionada</label><input id="img-obs" placeholder="Nota sobre esta foto" oninput="window.saveLocalObs()">
         </section>
     </main>
+    <button id="save-btn-mobile" class="btn btn-save floating-save" onclick="window.salvarVisita()">💾 SALVAR ALTERAÇÕES</button>
 
     <script type="module">
         import { db } from './config.js';
@@ -112,12 +114,19 @@
         }
         function preencher(v) { $('empresa').value = v.empresa || ''; $('cliente').value = v.cliente || ''; $('servico').value = v.servico || v.tipo_servico || ''; $('endereco').value = v.endereco || ''; $('observacoes').value = v.observacoes || v.info_adicional || ''; imagens = (v.imagens || []).map((img) => ({ ...img, originalUrl: img.originalUrl || img.url, elementos: img.elementos || img.arrows || [] })); }
         function visitaPayload() { return { empresa:$('empresa').value.trim(), cliente:$('cliente').value.trim(), servico:$('servico').value.trim(), tipo_servico:$('servico').value.trim(), endereco:$('endereco').value.trim(), observacoes:$('observacoes').value.trim(), imagens, atualizado_em:serverTimestamp() }; }
-        window.salvarVisita = async () => { const btn = $('save-btn'); btn.disabled = true; btn.textContent = 'SALVANDO...'; try { if (visitaId) await updateDoc(doc(db,'medidas_visitas',visitaId), visitaPayload()); else { const ref = await addDoc(collection(db,'medidas_visitas'), { ...visitaPayload(), status:'solicitacoes', arquivado:false, criado_em:serverTimestamp(), origem:'medidas_visitas' }); visitaId = ref.id; history.replaceState(null,'',`?id=${visitaId}`); } alert('Visita salva com sucesso.'); } catch(e) { console.error(e); alert('Erro ao salvar visita.'); } finally { btn.disabled = false; btn.textContent = '💾 SALVAR'; } };
+        function setSavingState(salvando) {
+            const botoes = [$('save-btn'), $('save-btn-mobile')].filter(Boolean);
+            botoes.forEach((btn) => {
+                btn.disabled = salvando;
+                btn.textContent = salvando ? 'SALVANDO...' : (btn.id === 'save-btn-mobile' ? '💾 SALVAR ALTERAÇÕES' : '💾 SALVAR');
+            });
+        }
+        window.salvarVisita = async ({ silencioso = false } = {}) => { setSavingState(true); try { if (visitaId) await updateDoc(doc(db,'medidas_visitas',visitaId), visitaPayload()); else { const ref = await addDoc(collection(db,'medidas_visitas'), { ...visitaPayload(), status:'solicitacoes', arquivado:false, criado_em:serverTimestamp(), origem:'medidas_visitas' }); visitaId = ref.id; history.replaceState(null,'',`?id=${visitaId}`); } if (!silencioso) alert('Visita salva com sucesso.'); } catch(e) { console.error(e); alert('Erro ao salvar visita.'); } finally { setSavingState(false); } };
         window.abrirMapa = () => { const end = $('endereco').value.trim(); if (!end) return alert('Preencha o endereço primeiro.'); window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`, '_blank'); };
-        window.addFotos = (ev) => { [...ev.target.files].forEach((file) => { const reader = new FileReader(); reader.onload = (e) => { imagens.push({ url:e.target.result, originalUrl:e.target.result, obs:'', elementos:[] }); indiceAtual = imagens.length - 1; renderGallery(); window.salvarVisita(); }; reader.readAsDataURL(file); }); ev.target.value = ''; };
+        window.addFotos = (ev) => { [...ev.target.files].forEach((file) => { const reader = new FileReader(); reader.onload = (e) => { imagens.push({ url:e.target.result, originalUrl:e.target.result, obs:'', elementos:[] }); indiceAtual = imagens.length - 1; renderGallery(); window.salvarVisita({ silencioso:true }); }; reader.readAsDataURL(file); }); ev.target.value = ''; };
         function renderGallery() { const mini = $('mini-gallery'); mini.innerHTML = ''; imagens.forEach((img,i) => { const div = document.createElement('div'); div.className = `thumb ${i === indiceAtual ? 'selected' : ''}`; div.onclick = () => { indiceAtual = i; renderGallery(); }; div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`; mini.appendChild(div); }); if (imagens[indiceAtual]) { $('main-img').src = imagens[indiceAtual].url; $('main-img').style.display = 'block'; $('photo-empty').style.display = 'none'; $('photo-count').textContent = `${indiceAtual + 1} / ${imagens.length}`; $('img-obs').value = imagens[indiceAtual].obs || ''; } else { $('main-img').style.display = 'none'; $('photo-empty').style.display = 'block'; $('photo-count').textContent = '0 / 0'; $('img-obs').value = ''; } }
         window.mudarFoto = (dir) => { if (!imagens.length) return; indiceAtual = (indiceAtual + dir + imagens.length) % imagens.length; renderGallery(); };
-        window.removerFoto = (i) => { if (!confirm('Remover esta imagem?')) return; imagens.splice(i,1); indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1)); renderGallery(); window.salvarVisita(); };
+        window.removerFoto = (i) => { if (!confirm('Remover esta imagem?')) return; imagens.splice(i,1); indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1)); renderGallery(); window.salvarVisita({ silencioso:true }); };
         window.saveLocalObs = () => { if (imagens[indiceAtual]) imagens[indiceAtual].obs = $('img-obs').value; };
         window.abrirEditor = () => { if (!imagens[indiceAtual]) return alert('Anexe uma imagem primeiro.'); $('draw-modal').style.display = 'flex'; elementos = JSON.parse(JSON.stringify(imagens[indiceAtual].elementos || [])); zoom = 1; applyZoom(); window.setTool('measure'); const img = new Image(); img.onload = () => { canvas.width = img.width; canvas.height = img.height; currentEditorImg = img; redrawCanvas(); }; img.src = imagens[indiceAtual].originalUrl || imagens[indiceAtual].url; };
         window.fecharEditor = () => { $('draw-modal').style.display = 'none'; };
@@ -137,7 +146,7 @@
         function drawLine(x1,y1,x2,y2,color) { ctx.strokeStyle = color; ctx.lineWidth = Math.max(4, canvas.width / 220); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
         function drawMeasure(x1,y1,x2,y2,text,color) { drawLine(x1,y1,x2,y2,color); const head = Math.max(18, canvas.width/70), ang = Math.atan2(y2-y1,x2-x1); ctx.fillStyle = color; [[x2,y2,Math.PI],[x1,y1,0]].forEach(([x,y,off]) => { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x - head*Math.cos(ang - Math.PI/6 + off), y - head*Math.sin(ang - Math.PI/6 + off)); ctx.lineTo(x - head*Math.cos(ang + Math.PI/6 + off), y - head*Math.sin(ang + Math.PI/6 + off)); ctx.fill(); }); if (text && text !== '...') drawText((x1+x2)/2, (y1+y2)/2, text, '#fff'); }
         function drawText(x,y,text,color) { ctx.save(); ctx.font = `bold ${Math.max(28, canvas.width/35)}px Montserrat, sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; const m = ctx.measureText(text), pad = 12; ctx.fillStyle='rgba(0,0,0,.72)'; ctx.fillRect(x - m.width/2 - pad, y - 18 - pad, m.width + pad*2, 36 + pad*2); ctx.fillStyle = color; ctx.fillText(text, x, y); ctx.restore(); }
-        window.salvarEditor = () => { imagens[indiceAtual].elementos = JSON.parse(JSON.stringify(elementos)); imagens[indiceAtual].url = canvas.toDataURL('image/jpeg', .85); renderGallery(); window.fecharEditor(); window.salvarVisita(); };
+        window.salvarEditor = () => { imagens[indiceAtual].elementos = JSON.parse(JSON.stringify(elementos)); imagens[indiceAtual].url = canvas.toDataURL('image/jpeg', .85); renderGallery(); window.fecharEditor(); window.salvarVisita({ silencioso:true }); };
         window.baixarImagem = (withMeasures) => { if (!imagens[indiceAtual]) return; dataUrlDownload(withMeasures ? imagens[indiceAtual].url : (imagens[indiceAtual].originalUrl || imagens[indiceAtual].url), `visita-${visitaId || 'imagem'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'sem-medidas'}.jpg`); };
         init();
     </script>
