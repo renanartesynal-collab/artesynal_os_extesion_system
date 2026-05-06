@@ -20,7 +20,7 @@ const ADMIN_PADRAO = {
 export const PERFIS = {
   producao: {
     label: "Produção",
-    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
+    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "medidas-visitas.html", "detalhes-visita.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
   },
   instalacao: {
     label: "Instalação",
@@ -70,8 +70,8 @@ const VISIBILIDADE_PADRAO = {
     "os.html": true,
     "lista.html": true,
     "orcamentos.html": true,
-    "medidas-visitas.html": false,
-    "detalhes-visita.html": false,
+    "medidas-visitas.html": true,
+    "detalhes-visita.html": true,
     "estimpressao.html": false,
     "estserralheria.html": false,
     "estpintura.html": false,
