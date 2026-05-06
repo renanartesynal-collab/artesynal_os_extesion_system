@@ -20,11 +20,11 @@ const ADMIN_PADRAO = {
 export const PERFIS = {
   producao: {
     label: "Produção",
-    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
+    paginas: ["index.html", "os.html", "lista.html", "orcamentos.html", "medidas-visitas.html", "detalhes-visita.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
   },
   instalacao: {
     label: "Instalação",
-    paginas: ["index.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
+    paginas: ["index.html", "medidas-visitas.html", "detalhes-visita.html", "estimpressao.html", "estserralheria.html", "estpintura.html", "estoque.html", "tarefas.html", "registrarponto.html", "historicoponto.html"]
   },
   administracao: {
     label: "Administração",
@@ -33,6 +33,8 @@ export const PERFIS = {
       "os.html",
       "lista.html",
       "orcamentos.html",
+      "medidas-visitas.html",
+      "detalhes-visita.html",
       "estimpressao.html",
       "estserralheria.html",
       "estpintura.html",
@@ -51,6 +53,7 @@ export const MODULOS_MENU = [
   { pagina: "os.html", label: "Gerar O.S." },
   { pagina: "lista.html", label: "Lista de O.S." },
   { pagina: "orcamentos.html", label: "Orçamentos" },
+  { pagina: "medidas-visitas.html", label: "Medidas/Visitas" },
   { pagina: "estimpressao.html", label: "Impressão" },
   { pagina: "estserralheria.html", label: "Serralheria" },
   { pagina: "estpintura.html", label: "Pintura" },
@@ -62,11 +65,26 @@ export const MODULOS_MENU = [
   { pagina: "paineldeponto.html", label: "Painel de Ponto" }
 ];
 
+const PAGINAS_MEDIDAS_VISITAS = ["medidas-visitas.html", "detalhes-visita.html"];
+const PERFIS_MEDIDAS_VISITAS = ["producao", "instalacao", "administracao"];
+
+function aplicarPermissaoObrigatoriaMedidas(categorias) {
+  for (const perfil of PERFIS_MEDIDAS_VISITAS) {
+    if (!categorias[perfil]) continue;
+    for (const pagina of PAGINAS_MEDIDAS_VISITAS) {
+      categorias[perfil][pagina] = true;
+    }
+  }
+  return categorias;
+}
+
 const VISIBILIDADE_PADRAO = {
   producao: {
     "os.html": true,
     "lista.html": true,
     "orcamentos.html": true,
+    "medidas-visitas.html": true,
+    "detalhes-visita.html": true,
     "estimpressao.html": false,
     "estserralheria.html": false,
     "estpintura.html": false,
@@ -81,6 +99,8 @@ const VISIBILIDADE_PADRAO = {
     "os.html": false,
     "lista.html": false,
     "orcamentos.html": false,
+    "medidas-visitas.html": true,
+    "detalhes-visita.html": true,
     "estimpressao.html": true,
     "estserralheria.html": true,
     "estpintura.html": true,
@@ -95,6 +115,8 @@ const VISIBILIDADE_PADRAO = {
     "os.html": true,
     "lista.html": true,
     "orcamentos.html": true,
+    "medidas-visitas.html": true,
+    "detalhes-visita.html": true,
     "estimpressao.html": true,
     "estserralheria.html": true,
     "estpintura.html": true,
@@ -118,7 +140,7 @@ function normalizarConfiguracaoCategorias(categorias = {}) {
     }
   }
 
-  return base;
+  return aplicarPermissaoObrigatoriaMedidas(base);
 }
 
 export async function obterConfiguracaoCategorias() {
@@ -126,7 +148,7 @@ export async function obterConfiguracaoCategorias() {
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    const categorias = structuredClone(VISIBILIDADE_PADRAO);
+    const categorias = aplicarPermissaoObrigatoriaMedidas(structuredClone(VISIBILIDADE_PADRAO));
     await setDoc(ref, { categorias, created_at: serverTimestamp(), updated_at: serverTimestamp() }, { merge: true });
     return categorias;
   }
