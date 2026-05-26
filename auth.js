@@ -65,6 +65,18 @@ export const MODULOS_MENU = [
   { pagina: "paineldeponto.html", label: "Painel de Ponto" }
 ];
 
+
+function normalizarPerfilCategoria(categoria) {
+  const bruto = String(categoria || "").trim().toLowerCase();
+  const ascii = bruto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  if (ascii === "producao") return "producao";
+  if (ascii === "instalacao") return "instalacao";
+  if (ascii === "administracao" || ascii === "admin") return "administracao";
+
+  return "";
+}
+
 const PAGINAS_MEDIDAS_VISITAS = ["medidas-visitas.html", "detalhes-visita.html"];
 const PERFIS_MEDIDAS_VISITAS = ["producao", "instalacao", "administracao"];
 
@@ -206,7 +218,7 @@ export async function garantirAdministradorPadrao() {
   await setDoc(ref, {
     nome: atual.nome || ADMIN_PADRAO.nome,
     email: atual.email || ADMIN_PADRAO.email,
-    categoria: atual.categoria || ADMIN_PADRAO.categoria,
+    categoria: normalizarPerfilCategoria(atual.categoria) || ADMIN_PADRAO.categoria,
     senha_hash: atual.senha_hash || ADMIN_PADRAO.senhaHash,
     status: "approved",
     blocked: false,
@@ -257,7 +269,8 @@ export async function realizarLogin(email, senha) {
     return { ok: false, codigo: "senha-incorreta", mensagem: "Senha inválida." };
   }
 
-  salvarSessao({ email: acesso.email, nome: acesso.nome, categoria: acesso.categoria });
+  const categoriaNormalizada = normalizarPerfilCategoria(acesso.categoria) || acesso.categoria;
+  salvarSessao({ email: acesso.email, nome: acesso.nome, categoria: categoriaNormalizada });
   return { ok: true, acesso };
 }
 
@@ -299,7 +312,7 @@ export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) 
     return null;
   }
 
-  const perfil = acesso.categoria;
+  const perfil = normalizarPerfilCategoria(acesso.categoria) || acesso.categoria;
   const admin = perfil === "administracao";
   const categoriasConfig = await obterConfiguracaoCategorias();
   const permitido = paginaPermitidaParaPerfil({ perfil, paginaAtual, categoriasConfig });
