@@ -99,7 +99,34 @@
         const dist = (x1,y1,x2,y2) => Math.hypot(x2-x1, y2-y1);
         function dataUrlDownload(url, filename) { const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); }
         function getCurrentColor() { return editorTool === 'line' ? lineColor : measureColor; }
-        async function init() {
+function estimarTamanhoImagens() { return JSON.stringify(imagens).length; }
+        function erroDeTamanho(e) {
+            return e?.code === 'invalid-argument' || /size|too large|larger than|bytes/i.test(String(e?.message || ''));
+        }
+        async function compactarImagemDataUrl(dataUrl) {
+            const img = new Image();
+            await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = dataUrl; });
+            let { width, height } = img;
+            const scale = Math.min(1, MAX_DIMENSAO_IMAGEM / Math.max(width, height));
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+            const off = document.createElement('canvas');
+            off.width = width;
+            off.height = height;
+            const offCtx = off.getContext('2d');
+            offCtx.drawImage(img, 0, 0, width, height);
+            return off.toDataURL('image/jpeg', QUALIDADE_IMAGEM);
+        }
+        async function lerArquivoCompactado(file) {
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            return compactarImagemDataUrl(dataUrl);
+        }
+                async function init() {
             if (visitaId) {
                 const snap = await getDoc(doc(db, 'medidas_visitas', visitaId));
                 if (snap.exists()) preencher(snap.data()); else alert('Visita não encontrada.');
@@ -120,6 +147,9 @@
         function preencher(v) { $('empresa').value = v.empresa || ''; $('cliente').value = v.cliente || ''; $('servico').value = v.servico || v.tipo_servico || ''; $('endereco').value = v.endereco || ''; $('observacoes').value = v.observacoes || v.info_adicional || ''; imagens = (v.imagens || []).map((img) => ({ ...img, originalUrl: img.originalUrl || img.url, elementos: img.elementos || img.arrows || [] })); }
         function visitaPayload() { return { empresa:$('empresa').value.trim(), cliente:$('cliente').value.trim(), servico:$('servico').value.trim(), tipo_servico:$('servico').value.trim(), endereco:$('endereco').value.trim(), observacoes:$('observacoes').value.trim(), imagens, atualizado_em:serverTimestamp() }; }
         const MAX_IMAGENS = 30;
+        const MAX_DIMENSAO_IMAGEM = 1600;
+        const QUALIDADE_IMAGEM = 0.72;
+        const LIMITE_TAMANHO_CAMPO = 850000;
         let saveTimer = null, periodicTimer = null;
         let saveInFlight = false, saveQueued = false;
         function notifySaveError() {
@@ -139,7 +169,10 @@
                 return true;
             } catch(e) {
                 console.error('Erro ao salvar visita:', e);
-                if (!silencioso) notifySaveError();
+                if (!silencioso) {
+                    if (erroDeTamanho(e)) alert('Erro ao salvar: o card está muito pesado (imagens grandes). Reduza a quantidade/tamanho das fotos.');
+                    else notifySaveError();
+                }
                 return false;
             } finally {
                 saveInFlight = false;
@@ -154,25 +187,32 @@
             saveTimer = setTimeout(() => persistirVisita({ silencioso:true }), 1000);
         }
         window.salvarVisita = async ({ silencioso = false } = {}) => {
-            const ok = await persistirVisita({ silencioso });
-            if (!ok && !silencioso) notifySaveError();
+            await persistirVisita({ silencioso });
         };
         window.abrirMapa = () => { const end = $('endereco').value.trim(); if (!end) return alert('Preencha o endereço primeiro.'); window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`, '_blank'); };
-        window.addFotos = (ev) => {
+        window.addFotos = async (ev) => {
             const files = [...(ev.target.files || [])];
             const vagas = MAX_IMAGENS - imagens.length;
             if (vagas <= 0) { alert(`Limite de ${MAX_IMAGENS} imagens por card atingido.`); ev.target.value = ''; return; }
             if (files.length > vagas) alert(`Somente ${vagas} imagem(ns) foram adicionadas. Limite de ${MAX_IMAGENS} imagens por card.`);
-            files.slice(0, vagas).forEach((file) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagens.push({ url:e.target.result, originalUrl:e.target.result, obs:'', elementos:[] });
+            for (const file of files.slice(0, vagas)) {
+                try {
+                    const dataCompactada = await lerArquivoCompactado(file);
+                    imagens.push({ url:dataCompactada, originalUrl:dataCompactada, obs:'', elementos:[] });
                     indiceAtual = imagens.length - 1;
+                    if (estimarTamanhoImagens() > LIMITE_TAMANHO_CAMPO) {
+                        imagens.pop();
+                        indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1));
+                        alert('Limite de dados do card atingido. Use menos fotos ou imagens menores.');
+                        break;
+                    }
                     renderGallery();
                     agendarAutoSave();
-                };
-                reader.readAsDataURL(file);
-            });
+                } catch (e) {
+                    console.error('Erro ao processar imagem:', e);
+                    alert(`Não foi possível processar a imagem "${file.name}".`);
+                }
+            }
             ev.target.value = '';
         };
         function renderGallery() { const mini = $('mini-gallery'); mini.innerHTML = ''; imagens.forEach((img,i) => { const div = document.createElement('div'); div.className = `thumb ${i === indiceAtual ? 'selected' : ''}`; div.onclick = () => { indiceAtual = i; renderGallery(); }; div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`; mini.appendChild(div); }); if (imagens[indiceAtual]) { $('main-img').src = imagens[indiceAtual].url; $('main-img').style.display = 'block'; $('photo-empty').style.display = 'none'; $('photo-count').textContent = `${indiceAtual + 1} / ${imagens.length}`; $('img-obs').value = imagens[indiceAtual].obs || ''; } else { $('main-img').style.display = 'none'; $('photo-empty').style.display = 'block'; $('photo-count').textContent = '0 / 0'; $('img-obs').value = ''; } }
@@ -197,7 +237,7 @@
         function drawLine(x1,y1,x2,y2,color) { ctx.strokeStyle = color; ctx.lineWidth = Math.max(4, canvas.width / 220); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
         function drawMeasure(x1,y1,x2,y2,text,color) { drawLine(x1,y1,x2,y2,color); const head = Math.max(18, canvas.width/70), ang = Math.atan2(y2-y1,x2-x1); ctx.fillStyle = color; [[x2,y2,Math.PI],[x1,y1,0]].forEach(([x,y,off]) => { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x - head*Math.cos(ang - Math.PI/6 + off), y - head*Math.sin(ang - Math.PI/6 + off)); ctx.lineTo(x - head*Math.cos(ang + Math.PI/6 + off), y - head*Math.sin(ang + Math.PI/6 + off)); ctx.fill(); }); if (text && text !== '...') drawText((x1+x2)/2, (y1+y2)/2, text, '#fff'); }
         function drawText(x,y,text,color) { ctx.save(); ctx.font = `bold ${Math.max(28, canvas.width/35)}px Montserrat, sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; const m = ctx.measureText(text), pad = 12; ctx.fillStyle='rgba(0,0,0,.72)'; ctx.fillRect(x - m.width/2 - pad, y - 18 - pad, m.width + pad*2, 36 + pad*2); ctx.fillStyle = color; ctx.fillText(text, x, y); ctx.restore(); }
-        window.salvarEditor = () => { imagens[indiceAtual].elementos = JSON.parse(JSON.stringify(elementos)); imagens[indiceAtual].url = canvas.toDataURL('image/jpeg', .85); renderGallery(); window.fecharEditor(); agendarAutoSave(); };
+        window.salvarEditor = () => { imagens[indiceAtual].elementos = JSON.parse(JSON.stringify(elementos)); imagens[indiceAtual].url = canvas.toDataURL('image/jpeg', QUALIDADE_IMAGEM); if (estimarTamanhoImagens() > LIMITE_TAMANHO_CAMPO) { alert('Não foi possível salvar a edição da imagem: limite de dados do card atingido.'); return; } renderGallery(); window.fecharEditor(); agendarAutoSave(); };
         window.baixarImagem = (withMeasures) => { if (!imagens[indiceAtual]) return; dataUrlDownload(withMeasures ? imagens[indiceAtual].url : (imagens[indiceAtual].originalUrl || imagens[indiceAtual].url), `visita-${visitaId || 'imagem'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'sem-medidas'}.jpg`); };
         init().catch((e) => { console.error('Erro ao iniciar página de visita:', e); alert('Erro ao carregar os dados da visita. Recarregue a página.'); });
     </script>
