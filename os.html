@@ -596,11 +596,15 @@
             setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
         }
 
-        const formatarMoeda = (valor) => {
-            const digitos = (valor || '').replace(/\D/g, '');
+        const formatarMoedaPorDigitos = (digitos) => {
             const centavos = parseInt(digitos || '0', 10);
-            return centavos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         };
+
+        const normalizarDigitosMoeda = (valor) => (valor || '')
+            .replace(/\D/g, '')
+            .replace(/^0+(?=\d)/, '')
+            .slice(0, 12);
 
         const formatarDataCurta = (valor) => {
             const digitos = (valor || '').replace(/\D/g, '').slice(0, 6);
@@ -630,8 +634,73 @@
             window.up();
         };
 
-        document.getElementById('in-pag').addEventListener('input', () => aplicarMascara('in-pag', formatarMoeda));
-        document.getElementById('in-pag').addEventListener('blur', () => aplicarMascara('in-pag', formatarMoeda));
+        const inputValorRestante = document.getElementById('in-pag');
+        let valorRestanteDigitos = normalizarDigitosMoeda(inputValorRestante.value);
+
+        const atualizarValorRestante = (digitos) => {
+            valorRestanteDigitos = normalizarDigitosMoeda(digitos);
+            inputValorRestante.value = formatarMoedaPorDigitos(valorRestanteDigitos);
+            inputValorRestante.setSelectionRange(inputValorRestante.value.length, inputValorRestante.value.length);
+            window.up();
+        };
+
+        inputValorRestante.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+            if (/^\d$/.test(event.key)) {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos + event.key);
+                return;
+            }
+
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos.slice(0, -1));
+                return;
+            }
+
+            if (event.key === 'Delete') {
+                event.preventDefault();
+                atualizarValorRestante('');
+            }
+        });
+
+        inputValorRestante.addEventListener('beforeinput', (event) => {
+            if (event.isComposing) return;
+
+            if (event.inputType === 'insertText' && /^\d$/.test(event.data || '')) {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos + event.data);
+                return;
+            }
+
+            if (event.inputType === 'deleteContentBackward') {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos.slice(0, -1));
+                return;
+            }
+
+            if (event.inputType === 'deleteContentForward') {
+                event.preventDefault();
+                atualizarValorRestante('');
+            }
+        });
+
+        inputValorRestante.addEventListener('paste', (event) => {
+            event.preventDefault();
+            atualizarValorRestante(event.clipboardData.getData('text'));
+        });
+
+        inputValorRestante.addEventListener('input', () => {
+            atualizarValorRestante(inputValorRestante.value);
+        });
+
+        const moverCursorValorRestanteParaFim = () => {
+            inputValorRestante.setSelectionRange(inputValorRestante.value.length, inputValorRestante.value.length);
+        };
+
+        inputValorRestante.addEventListener('focus', moverCursorValorRestanteParaFim);
+        inputValorRestante.addEventListener('click', () => setTimeout(moverCursorValorRestanteParaFim, 0));
         ['in-data-aprov', 'in-data-limite'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => aplicarMascara(id, formatarDataCurta));
             document.getElementById(id).addEventListener('paste', () => setTimeout(() => aplicarMascara(id, formatarDataCurta), 0));
@@ -647,7 +716,7 @@
             }
         });
 
-        aplicarMascara('in-pag', formatarMoeda);
+        atualizarValorRestante(valorRestanteDigitos);
 
         // --- 2. RESIZER DA ÁREA DE OBSERVAÇÕES ---
         const resizer = document.getElementById('resizer');
