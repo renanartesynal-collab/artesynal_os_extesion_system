@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistema OS - Comunicação Visual</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
+
     <style>
         /* ==========================================================================
            1. VARIÁVEIS E RESET GERAL
@@ -19,40 +19,40 @@
             --border-radius: 6px;
         }
 
-        body { 
-            font-family: 'Mitra LT', 'Montserrat', sans-serif; 
+        body {
+            font-family: 'Mitra LT', 'Montserrat', sans-serif;
             margin: 0; padding: 0;
             background: #333; display: flex;
             user-select: none;
-            overflow: hidden; 
-            color: white; 
+            overflow: hidden;
+            color: white;
         }
 
         /* ==========================================================================
            2. PAINEL DE CONTROLE (ESQUERDA) E FORMULÁRIOS
            ========================================================================== */
-        #painel-controle { 
+        #painel-controle {
             width: 380px; padding: 25px; background: #2c3e50; color: white;
             height: 100vh; overflow-y: auto; box-sizing: border-box; position: fixed;
             border-right: 5px solid #1a252f; z-index: 20;
             transition: transform 0.3s ease;
         }
-        
+
         #painel-controle::-webkit-scrollbar { width: 8px; }
         #painel-controle::-webkit-scrollbar-track { background: #1a252f; }
         #painel-controle::-webkit-scrollbar-thumb { background: #f1c40f; border-radius: 4px; }
-        
+
         .grupo-input { margin-bottom: 15px; }
         .titulo-secao { color: #f1c40f; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 10px;}
         label { display: block; font-size: 12px; margin-bottom: 5px; color: #bdc3c7; }
-        
-        input[type="text"], input[type="date"], input[type="number"], select, textarea { 
-            width: 100%; padding: 10px; border-radius: 6px; border: none; 
+
+        input[type="text"], input[type="date"], input[type="number"], select, textarea {
+            width: 100%; padding: 10px; border-radius: 6px; border: none;
             box-sizing: border-box; font-family: 'Mitra LT', 'Montserrat', sans-serif; font-weight: bold;
             background: #34495e; color: white;
         }
         textarea { height: 80px; resize: none; }
-        
+
         .check-group { display: flex; flex-direction: column; gap: 8px; }
         .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .check-item input { transform: scale(1.2); accent-color: #f1c40f; }
@@ -66,20 +66,20 @@
         /* ==========================================================================
            3. ÁREA DE IMPRESSÃO (DIREITA) E ESTRUTURA DA FOLHA A4
            ========================================================================== */
-        #area-impressao { 
-            margin-left: 380px; display: flex; justify-content: center; 
-            padding: 40px; width: calc(100% - 380px); 
+        #area-impressao {
+            margin-left: 380px; display: flex; justify-content: center;
+            padding: 40px; width: calc(100% - 380px);
             background: #555; height: 100vh; overflow-y: auto; box-sizing: border-box;
         }
-        
+
         .folha-a4 {
-            width: 210mm; min-height: 296mm; 
-            background: white; position: relative; 
+            width: 210mm; min-height: 296mm;
+            background: white; position: relative;
             padding: 10mm; box-sizing: border-box;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             display: flex; flex-direction: column;
-            transform-origin: top center; 
-            color: var(--black); 
+            transform-origin: top center;
+            color: var(--black);
         }
 
         /* ==========================================================================
@@ -88,9 +88,9 @@
         .header-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px; }
         .col-esq { display: flex; flex-direction: column; gap: 4px; }
         .col-dir { display: flex; flex-direction: column; border: 2px solid var(--black); border-radius: var(--border-radius); overflow: hidden; }
-        
+
         .header-top { background: var(--black); color: white; padding: 8px 12px; font-weight: 900; font-size: 22px; text-transform: uppercase; border-radius: var(--border-radius); margin-bottom: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        
+
         .linha-dados { display: flex; border: 1px solid #ddd; border-radius: var(--border-radius); overflow: hidden; height: 32px;}
         .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; color: var(--black); }
         .col:last-child { border-right: none; }
@@ -98,17 +98,15 @@
 
         /* OS e Valores */
         .box-os { background: var(--black); display: flex; flex-direction: row; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--black); -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 5px 8px; height: 35px; }
-        .os-label { font-size: 14px; font-weight: 900; color: white; margin-right: 5px; margin-bottom: 0;}
-        .os-valor-box { background: white; flex: 1; text-align: center; border-radius: 4px; padding: 2px 0;}
+        .os-label { font-size: 14px; font-weight: 900; color: white; margin-right: 8px; margin-bottom: 0; text-transform: uppercase;}
+        .os-valor-box { background: white; flex: 1; text-align: center; border-radius: 4px; padding: 2px 0; min-height: 22px;}
         .os-valor { font-size: 20px; font-weight: 900; color: var(--black); line-height: 1; }
-        
-        /* Logística e QR Code */
+
+        /* Logística */
         .logistica-qr-flex { display: flex; flex: 1; background: white; }
-        .box-logistica { padding: 5px; flex: 1; display: flex; flex-direction: column; justify-content: center; background: white; border-right: 1px solid #ddd; }
-        .log-item { display: flex; align-items: center; margin-bottom: 2px; font-size: 10px; font-weight: bold; color: var(--black); }
-        .box-check-log { width: 10px; height: 10px; border: 1px solid var(--black); margin-right: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--red); line-height: 10px; border-radius: 50%; }
-        .box-qr { width: 75px; display: flex; align-items: center; justify-content: center; padding: 2px; overflow: hidden; }
-        #img-preview-qr { max-width: 100%; max-height: 100%; display: none; }
+        .box-logistica { padding: 8px 10px; flex: 1; display: flex; flex-direction: column; justify-content: center; background: white; }
+        .log-item { display: flex; align-items: center; margin-bottom: 4px; font-size: 13px; font-weight: 900; color: var(--black); }
+        .box-check-log { width: 14px; height: 14px; border: 1px solid var(--black); margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--red); line-height: 14px; border-radius: 50%; }
 
         /* Datas e Pagamentos */
         .grid-datas-pag { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px; }
@@ -123,23 +121,23 @@
            ========================================================================== */
         .area-status { display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc; }
         .badges-wrapper { display: flex; gap: 6px; align-items: center; }
-        .badge-box { display: flex; width: 60px; height: 26px; border: 1px solid #ccc; border-radius: 13px; overflow: hidden; box-shadow: 1px 1px 0px rgba(0,0,0,0.1); -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .badge-box { display: flex; align-items: center; height: 26px; border: 1px solid #ccc; border-radius: 13px; overflow: hidden; box-shadow: 1px 1px 0px rgba(0,0,0,0.1); -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .bg-red { background-color: #ed1c24 !important; border-color: var(--red) !important; }
         .bg-blue { background-color: #00aeef !important; border-color: var(--blue) !important; }
         .bg-green { background-color: #00a651 !important; border-color: var(--green) !important; }
-        .badge-letra { width: 24px; display: flex; align-items: center; justify-content: center; color: white !important; font-weight: 900; font-size: 14px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        .badge-x { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: var(--black); background: white; }
+        .badge-letra { min-width: 62px; padding: 0 8px; display: flex; align-items: center; justify-content: center; color: white !important; font-weight: 900; font-size: 10px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .badge-x { width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; background: white; }
         .maq-cartao { margin-left: auto; background: var(--red) !important; color: white !important; font-weight: 900; font-size: 10px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; height: 20px; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900;}
 
-        .titulo-servico { text-align: center; color: var(--red); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
-        
+        .titulo-servico { text-align: center; color: var(--black); font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
+
         /* Box de Imagens */
         .area-imagens { flex-grow: 1; border: 2px dashed #ccc; border-radius: var(--border-radius); position: relative; overflow: hidden; background-color: #fcfcfc; touch-action: none; }
         .draggable-img { position: absolute; cursor: move; width: 150px; touch-action: none;}
         .img-selected { border: 2px solid var(--blue); box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
         .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;}
-        
+
         /* Barra de Redimensionamento (Resizer) */
         .resizer { height: 12px; background: #e0e0e0; cursor: ns-resize; border-radius: 4px; margin: 5px 0; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; transition: background 0.2s;}
         .resizer:hover { background: #d0d0d0; }
@@ -182,7 +180,7 @@
             .area-imagens { border: 1px dashed #ccc; }
             .placeholder-text { display: none; }
             .img-selected { border: none; box-shadow: none; }
-            
+
             /* REFORÇO DE CORES NA IMPRESSÃO */
             .bg-red { background-color: #ed1c24 !important; -webkit-print-color-adjust: exact; }
             .bg-blue { background-color: #00aeef !important; -webkit-print-color-adjust: exact; }
@@ -238,22 +236,22 @@
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input" style="flex:1;">
                 <label>Nº OS</label>
-                <input type="text" id="in-os" placeholder="0000">
+                <input type="text" id="in-os" placeholder="Número da OS">
             </div>
             <div class="grupo-input" style="flex:2;">
                 <label>VALOR RESTANTE</label>
-                <input type="text" id="in-pag" placeholder="R$ 0,00">
+                <input type="text" id="in-pag" placeholder="R$ 0,00" value="R$ 0,00" inputmode="numeric">
             </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
             <div class="grupo-input">
                 <label>APROVAÇÃO</label>
-                <input type="text" id="in-data-aprov" placeholder="00/00">
+                <input type="text" id="in-data-aprov" placeholder="00/00/00" inputmode="numeric" maxlength="8">
             </div>
             <div class="grupo-input">
                 <label>DATA LIMITE</label>
-                <input type="text" id="in-data-limite" placeholder="00/00">
+                <input type="text" id="in-data-limite" placeholder="00/00/00" inputmode="numeric" maxlength="8">
             </div>
         </div>
 
@@ -274,10 +272,6 @@
             <label class="check-item"><input type="checkbox" id="chk-ret"> RETIRADA</label>
         </div>
 
-        <div class="grupo-input" style="margin-top: 15px;">
-            <label style="color: #f1c40f;">SUBIR QR CODE (Opcional)</label>
-            <input type="file" accept="image/*" onchange="carregarQRCode(event)">
-        </div>
 
         <!-- BLOCO: INFORMAÇÕES DE SERVIÇO -->
         <div class="titulo-secao">SERVIÇO</div>
@@ -285,7 +279,7 @@
             <label>TÍTULO DO SERVIÇO</label>
             <input type="text" id="in-servico">
         </div>
-        
+
         <div class="grupo-input">
             <label style="color: #f1c40f; font-weight: bold;">ADICIONAR IMAGENS PRINCIPAIS</label>
             <input type="file" accept="image/*" multiple onchange="adicionarImagens(event)">
@@ -307,7 +301,7 @@
         <div class="folha-a4" id="folha-a4">
             <!-- CABEÇALHO DA EMPRESA -->
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
-            
+
             <div class="header-grid">
                 <!-- COLUNA ESQUERDA: CLIENTE / ENDEREÇO / PAGAMENTO / DATAS -->
                 <div class="col-esq">
@@ -325,55 +319,52 @@
                         </div>
                         <div class="box-data">
                             <div class="data-header">Aprovação</div>
-                            <div class="data-valor" style="color: black;" id="out-data-aprov">00/00</div>
+                            <div class="data-valor" style="color: black;" id="out-data-aprov">00/00/00</div>
                         </div>
                         <div class="box-data">
                             <div class="data-header" style="background: var(--red);">ENTREGA</div>
-                            <div class="data-valor" id="out-data-limite">00/00</div>
+                            <div class="data-valor" id="out-data-limite">00/00/00</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- COLUNA DIREITA: NÚMERO DA OS / LOGÍSTICA / QR CODE -->
+                <!-- COLUNA DIREITA: NÚMERO DA OS / LOGÍSTICA -->
                 <div class="col-dir">
                     <div class="box-os">
-                        <span class="os-label">Nº OS</span>
-                        <div class="os-valor-box"><span class="os-valor" id="out-os">0000</span></div>
+                        <span class="os-label">OS</span>
+                        <div class="os-valor-box"><span class="os-valor" id="out-os"></span></div>
                     </div>
-                    
+
                     <div class="logistica-qr-flex">
                         <div class="box-logistica">
                             <div class="log-item"><div class="box-check-log" id="x-inst"></div> INSTALAÇÃO</div>
                             <div class="log-item"><div class="box-check-log" id="x-ent"></div> ENTREGA</div>
                             <div class="log-item"><div class="box-check-log" id="x-ret"></div> RETIRADA</div>
                         </div>
-                        <div class="box-qr">
-                            <img id="img-preview-qr" src="" alt="QR">
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- STATUS RÁPIDO (E/F/P + MÁQUINA DE CARTÃO) -->
+            <!-- STATUS RÁPIDO (ENTRADA/FATURADO/PAGO + MÁQUINA DE CARTÃO) -->
             <div class="area-status">
                 <div class="badges-wrapper">
-                    <div class="badge-box bg-red"><div class="badge-letra">E</div><div class="badge-x" id="x-entrada"></div></div>
-                    <div class="badge-box bg-blue"><div class="badge-letra">F</div><div class="badge-x" id="x-faturado" style="color: var(--blue);"></div></div>
-                    <div class="badge-box bg-green"><div class="badge-letra">P</div><div class="badge-x" id="x-pago" style="color: var(--green);"></div></div>
+                    <div class="badge-box bg-red"><div class="badge-letra">ENTRADA</div><div class="badge-x" id="x-entrada" style="color: var(--red);"></div></div>
+                    <div class="badge-box bg-blue"><div class="badge-letra">FATURADO</div><div class="badge-x" id="x-faturado" style="color: var(--blue);"></div></div>
+                    <div class="badge-box bg-green"><div class="badge-letra">PAGO</div><div class="badge-x" id="x-pago" style="color: var(--green);"></div></div>
                 </div>
                 <div class="maq-cartao">MÁQ. CARTÃO<div class="box-check-maq" id="x-maq"></div></div>
             </div>
-            
+
             <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
-            
+
             <!-- ÁREA DE IMAGENS PRINCIPAIS (ARRASTÁVEIS) -->
             <div class="area-imagens" id="canvas-imagens">
                 <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>
             </div>
-            
+
             <!-- CONTROLE PARA REDIMENSIONAR A CAIXA DE OBSERVAÇÕES -->
             <div class="resizer" id="resizer"></div>
-            
+
             <!-- BLOCO FINAL DE DESCRIÇÃO -->
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
             <div class="box-anotacoes" id="out-desc"></div>
@@ -410,7 +401,7 @@
                 const btn = document.getElementById('btn-salvar');
                 if(btn) {
                     btn.innerText = "ATUALIZAR O.S.";
-                    btn.style.backgroundColor = "#e67e22"; 
+                    btn.style.backgroundColor = "#e67e22";
                 }
                 await carregarDadosEdicao(osId);
             }
@@ -429,7 +420,7 @@
                         const scaleFactor = 800 / Math.max(img.width, img.height);
                         const w = scaleFactor < 1 ? img.width * scaleFactor : img.width;
                         const h = scaleFactor < 1 ? img.height * scaleFactor : img.height;
-                        
+
                         elem.width = w;
                         elem.height = h;
                         const ctx = elem.getContext('2d');
@@ -449,17 +440,11 @@
             try {
                 const imagensParaSalvar = [];
                 const imgsElementos = document.querySelectorAll('.draggable-img');
-                
+
                 for (const img of imgsElementos) {
                     let urlFinal = img.src;
                     if (img.file) { urlFinal = await window.comprimirImagem(img.file); }
                     imagensParaSalvar.push({ url: urlFinal, left: img.style.left, top: img.style.top, width: img.style.width });
-                }
-
-                let qrCodeUrl = null;
-                const imgQrPreview = document.getElementById('img-preview-qr');
-                if (imgQrPreview.src && imgQrPreview.style.display !== 'none') {
-                    qrCodeUrl = imgQrPreview.file ? await window.comprimirImagem(imgQrPreview.file) : imgQrPreview.src;
                 }
 
                 const dados = {
@@ -484,15 +469,14 @@
                         entrega: document.getElementById('chk-ent').checked,
                         retirada: document.getElementById('chk-ret').checked
                     },
-                    imagens_salvas: imagensParaSalvar, 
-                    qr_code_url: qrCodeUrl,
+                    imagens_salvas: imagensParaSalvar,
                     data_atualizacao: new Date()
                 };
 
                 if (!idEdicao) dados.data_criacao = new Date();
 
                 btn.innerText = "Salvando...";
-                
+
                 if (idEdicao) {
                     const docRef = doc(db, "ordens_servico", idEdicao);
                     await updateDoc(docRef, dados);
@@ -523,7 +507,7 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const safeVal = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val || ""; }
-                    
+
                     safeVal('in-empresa', data.empresa);
                     safeVal('in-cliente', data.cliente);
                     safeVal('in-tel', data.telefone);
@@ -534,6 +518,11 @@
                     safeVal('in-data-limite', data.data_limite);
                     safeVal('in-servico', data.servico_titulo);
                     safeVal('in-desc', data.descricao);
+
+                    ['in-tel', 'in-pag', 'in-data-aprov', 'in-data-limite'].forEach(idCampo => {
+                        const campo = document.getElementById(idCampo);
+                        if (campo) campo.dispatchEvent(new Event('input'));
+                    });
 
                     if(data.status) {
                         document.getElementById('chk-entrada').checked = data.status.entrada;
@@ -562,12 +551,7 @@
                          canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
                     }
 
-                    if (data.qr_code_url) {
-                        const imgQr = document.getElementById('img-preview-qr');
-                        imgQr.src = data.qr_code_url;
-                        imgQr.style.display = "block";
-                    }
-                    window.up(); 
+                    window.up();
                 } else {
                     alert("O.S. não encontrada!");
                 }
@@ -585,20 +569,20 @@
 
         // --- 1. ATUALIZAR VISUAL DA O.S. EM TEMPO REAL ---
         window.up = function() {
-            const setTxt = (idOut, idIn, def) => { 
+            const setTxt = (idOut, idIn, def) => {
                 const elIn = document.getElementById(idIn);
                 const elOut = document.getElementById(idOut);
                 if(elIn && elOut) { elOut.innerText = elIn.value || def || ""; }
             };
-            
-            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA'); 
+
+            setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA');
             setTxt('out-cliente', 'in-cliente', '');
-            setTxt('out-tel', 'in-tel', ''); 
-            setTxt('out-os', 'in-os', '0000'); 
+            setTxt('out-tel', 'in-tel', '');
+            setTxt('out-os', 'in-os', '');
             setTxt('out-end', 'in-end', '');
-            setTxt('out-pag', 'in-pag', 'R$ 0,00'); 
-            setTxt('out-data-aprov', 'in-data-aprov', '00/00');
-            setTxt('out-data-limite', 'in-data-limite', '00/00'); 
+            setTxt('out-pag', 'in-pag', 'R$ 0,00');
+            setTxt('out-data-aprov', 'in-data-aprov', '00/00/00');
+            setTxt('out-data-limite', 'in-data-limite', '00/00/00');
             setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
             setTxt('out-desc', 'in-desc', '');
 
@@ -612,13 +596,127 @@
             setX('x-inst', 'chk-inst'); setX('x-ent', 'chk-ent'); setX('x-ret', 'chk-ret'); setX('x-maq', 'chk-maq');
         }
 
+        const formatarMoedaPorDigitos = (digitos) => {
+            const centavos = parseInt(digitos || '0', 10);
+            return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        };
+
+        const normalizarDigitosMoeda = (valor) => (valor || '')
+            .replace(/\D/g, '')
+            .replace(/^0+(?=\d)/, '')
+            .slice(0, 12);
+
+        const formatarDataCurta = (valor) => {
+            const digitos = (valor || '').replace(/\D/g, '').slice(0, 6);
+            const partes = [];
+            if (digitos.length > 0) partes.push(digitos.slice(0, 2));
+            if (digitos.length > 2) partes.push(digitos.slice(2, 4));
+            if (digitos.length > 4) partes.push(digitos.slice(4, 6));
+            return partes.join('/');
+        };
+
+        const formatarTelefone = (valor) => {
+            const digitos = (valor || '').replace(/\D/g, '').slice(0, 11);
+            if (digitos.length <= 2) return digitos ? `(${digitos}` : '';
+
+            const ddd = digitos.slice(0, 2);
+            const numero = digitos.slice(2);
+            if (numero.length <= 4) return `(${ddd}) ${numero}`;
+
+            const corte = numero.length > 8 ? 5 : 4;
+            return `(${ddd}) ${numero.slice(0, corte)}-${numero.slice(corte)}`;
+        };
+
+        const aplicarMascara = (id, formatador) => {
+            const input = document.getElementById(id);
+            if (!input) return;
+            input.value = formatador(input.value);
+            window.up();
+        };
+
+        const inputValorRestante = document.getElementById('in-pag');
+        let valorRestanteDigitos = normalizarDigitosMoeda(inputValorRestante.value);
+
+        const atualizarValorRestante = (digitos) => {
+            valorRestanteDigitos = normalizarDigitosMoeda(digitos);
+            inputValorRestante.value = formatarMoedaPorDigitos(valorRestanteDigitos);
+            inputValorRestante.setSelectionRange(inputValorRestante.value.length, inputValorRestante.value.length);
+            window.up();
+        };
+
+        inputValorRestante.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+            if (/^\d$/.test(event.key)) {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos + event.key);
+                return;
+            }
+
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos.slice(0, -1));
+                return;
+            }
+
+            if (event.key === 'Delete') {
+                event.preventDefault();
+                atualizarValorRestante('');
+            }
+        });
+
+        inputValorRestante.addEventListener('beforeinput', (event) => {
+            if (event.isComposing) return;
+
+            if (event.inputType === 'insertText' && /^\d$/.test(event.data || '')) {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos + event.data);
+                return;
+            }
+
+            if (event.inputType === 'deleteContentBackward') {
+                event.preventDefault();
+                atualizarValorRestante(valorRestanteDigitos.slice(0, -1));
+                return;
+            }
+
+            if (event.inputType === 'deleteContentForward') {
+                event.preventDefault();
+                atualizarValorRestante('');
+            }
+        });
+
+        inputValorRestante.addEventListener('paste', (event) => {
+            event.preventDefault();
+            atualizarValorRestante(event.clipboardData.getData('text'));
+        });
+
+        inputValorRestante.addEventListener('input', () => {
+            atualizarValorRestante(inputValorRestante.value);
+        });
+
+        const moverCursorValorRestanteParaFim = () => {
+            inputValorRestante.setSelectionRange(inputValorRestante.value.length, inputValorRestante.value.length);
+        };
+
+        inputValorRestante.addEventListener('focus', moverCursorValorRestanteParaFim);
+        inputValorRestante.addEventListener('click', () => setTimeout(moverCursorValorRestanteParaFim, 0));
+        ['in-data-aprov', 'in-data-limite'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => aplicarMascara(id, formatarDataCurta));
+            document.getElementById(id).addEventListener('paste', () => setTimeout(() => aplicarMascara(id, formatarDataCurta), 0));
+        });
+        document.getElementById('in-tel').addEventListener('input', () => aplicarMascara('in-tel', formatarTelefone));
+        document.getElementById('in-tel').addEventListener('paste', () => setTimeout(() => aplicarMascara('in-tel', formatarTelefone), 0));
+
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
             if(input.type !== 'file' && input.type !== 'range') {
-                input.addEventListener('input', window.up); 
+                input.addEventListener('input', window.up);
                 input.addEventListener('change', window.up);
             }
         });
+
+        atualizarValorRestante(valorRestanteDigitos);
 
         // --- 2. RESIZER DA ÁREA DE OBSERVAÇÕES ---
         const resizer = document.getElementById('resizer');
@@ -632,7 +730,7 @@
             e.preventDefault();
             startYResizer = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
             startHeightBox = parseInt(document.defaultView.getComputedStyle(boxAnotacoes).height, 10);
-            
+
             document.addEventListener('mousemove', doDragResizer);
             document.addEventListener('touchmove', doDragResizer, {passive: false});
             document.addEventListener('mouseup', stopDragResizer);
@@ -642,13 +740,13 @@
         function doDragResizer(e) {
             e.preventDefault();
             const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-            const dy = startYResizer - clientY; 
-            
+            const dy = startYResizer - clientY;
+
             // Quanto mais arrasta para cima (dy positivo), maior a caixa de texto fica.
             let newHeight = startHeightBox + dy;
-            
+
             // Limites de tamanho (mínimo 40px, máximo 400px)
-            if(newHeight < 40) newHeight = 40; 
+            if(newHeight < 40) newHeight = 40;
             if(newHeight > 400) newHeight = 400;
 
             boxAnotacoes.style.height = newHeight + 'px';
@@ -689,7 +787,7 @@
                     img.classList.add('draggable-img');
                     img.style.left = '50px'; img.style.top = '50px';
                     img.style.width = '150px';
-                    img.file = file; 
+                    img.file = file;
                     window.addEventosImagem(img);
                     canvas.appendChild(img);
                 }
@@ -697,25 +795,11 @@
             });
         }
 
-        window.carregarQRCode = function(event) {
-            const input = event.target;
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e){
-                    const imgQr = document.getElementById('img-preview-qr');
-                    imgQr.src = e.target.result;
-                    imgQr.style.display = "block";
-                    imgQr.file = input.files[0];
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
         function selectImage(e) {
             e.stopPropagation();
             document.querySelectorAll('.draggable-img').forEach(img => img.classList.remove('img-selected'));
             e.target.classList.add('img-selected');
-            
+
             if (window.innerWidth <= 768) {
                 selectedImgForZoom = e.target;
                 const zoomControl = document.getElementById('mobile-zoom-control');
@@ -731,9 +815,9 @@
 
         function resizeImage(e) {
             e.preventDefault();
-            const scaleAmount = 20; 
+            const scaleAmount = 20;
             let currentWidth = this.offsetWidth;
-            if (e.deltaY < 0) { this.style.width = (currentWidth + scaleAmount) + 'px'; } 
+            if (e.deltaY < 0) { this.style.width = (currentWidth + scaleAmount) + 'px'; }
             else { if (currentWidth > 50) this.style.width = (currentWidth - scaleAmount) + 'px'; }
         }
 
@@ -779,7 +863,7 @@
             document.getElementById('btn-abrir-previa').style.display = 'none';
             document.getElementById('btn-fechar-previa').style.display = 'flex';
             document.getElementById('btn-imprimir-mobile').style.display = 'flex';
-            
+
             const folha = document.getElementById('folha-a4');
             const larguraTela = window.innerWidth;
             const escala = (larguraTela - 20) / 794;
