@@ -4,52 +4,315 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medidas/Visitas - Artesynal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark:#333; --panel-bg:#222; --card-bg:#2c3e50; --yellow:#f1c40f; --blue:#00aeef; --green:#00a651; --red:#ed1c24; --text-gray:#bdc3c7; }
-        body { font-family:'Mitra LT','Montserrat',sans-serif; margin:0; padding:20px; background:var(--bg-dark); color:#fff; min-height:100vh; box-sizing:border-box; overflow:hidden; display:flex; flex-direction:column; }
-        .header-visitas { display:flex; justify-content:space-between; align-items:center; gap:14px; border-bottom:2px solid #555; padding-bottom:15px; margin-bottom:20px; flex-shrink:0; }
-        h1 { margin:0; color:var(--yellow); font-size:24px; text-transform:uppercase; }
-        .header-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-        .btn-top { border:none; border-radius:6px; padding:9px 14px; color:#fff; cursor:pointer; font-size:12px; font-weight:900; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
-        .btn-arq { background:var(--blue); } .btn-voltar { background:#555; } .btn-novo { background:var(--yellow); color:#1f2937; }
-        .kanban-board { flex:1; display:flex; gap:20px; overflow-x:auto; padding-bottom:18px; align-items:flex-start; }
-        .kanban-col { background:var(--panel-bg); border:1px solid #444; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,.45); min-width:320px; width:33%; max-height:100%; padding:10px; box-sizing:border-box; display:flex; flex-direction:column; }
-        .kanban-header { text-align:center; padding:12px; border-radius:6px; margin-bottom:15px; text-transform:uppercase; font-weight:900; letter-spacing:1px; box-shadow:0 4px 0 rgba(0,0,0,.2); }
-        .hdr-solicitacoes { background:var(--red); } .hdr-andamento { background:var(--blue); } .hdr-concluido { background:var(--green); }
-        .cards-container { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; min-height:160px; padding-right:5px; }
-        .visit-card { background:var(--card-bg); border-left:5px solid var(--blue); border-radius:8px; padding:14px; box-shadow:0 4px 10px rgba(0,0,0,.3); cursor:pointer; transition:.2s; }
-        .visit-card:hover { transform:translateY(-2px); border-color:var(--yellow); }
-        .card-actions { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:8px; }
-        .card-actions-left, .card-actions-right { display:flex; gap:5px; }
-        .mini-btn { background:transparent; border:1px solid #55606f; color:#fff; border-radius:5px; padding:5px 8px; cursor:pointer; font-size:12px; }
-        .mini-btn:hover:not(:disabled) { background:#4b5563; } .mini-btn:disabled { opacity:.25; cursor:not-allowed; }
-        .btn-del:hover { background:var(--red)!important; border-color:var(--red); }
-        .empresa { color:#fff; font-size:22px; font-weight:900; line-height:1.1; margin-bottom:5px; overflow:hidden; text-overflow:ellipsis; }
-        .servico { color:var(--yellow); font-weight:800; font-size:13px; text-transform:uppercase; margin-bottom:5px; }
-        .cliente { color:#d1d5db; font-size:12px; font-weight:700; }
-        .empty { color:#777; text-align:center; font-size:12px; padding:22px 0; border:1px dashed #444; border-radius:8px; }
-        #sidebar-arquivados { position:fixed; top:0; right:-380px; width:340px; height:100vh; background:#1a1a1a; box-shadow:-5px 0 20px rgba(0,0,0,.8); z-index:20; transition:right .3s; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; }
-        #sidebar-arquivados.open { right:0; }
-        .sidebar-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:12px; margin-bottom:12px; }
-        .sidebar-header h2 { margin:0; color:var(--yellow); font-size:16px; text-transform:uppercase; }
-        .archive-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
-        .archive-item { background:#2c2c2c; border-left:3px solid #555; border-radius:6px; padding:11px; display:flex; justify-content:space-between; gap:10px; align-items:center; }
-        .archive-title { font-size:14px; font-weight:900; color:#fff; } .archive-sub { font-size:11px; color:#aaa; margin-top:3px; }
-        .archive-tools { display:flex; gap:5px; flex-shrink:0; }
-        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:30; align-items:center; justify-content:center; padding:18px; }
-        .modal.open { display:flex; }
-        .modal-box { width:100%; max-width:520px; background:#222; border-top:5px solid var(--yellow); border-radius:14px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.7); box-sizing:border-box; }
-        .modal-box h2 { margin:0 0 16px; color:var(--yellow); text-transform:uppercase; font-size:18px; }
-        label { display:block; font-size:10px; color:var(--yellow); font-weight:900; text-transform:uppercase; margin:12px 0 5px; }
-        input { width:100%; box-sizing:border-box; padding:12px; background:#111; color:#fff; border:1px solid #444; border-radius:7px; font-family:inherit; }
-        .modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
-        @media (max-width:700px) { body{padding:14px; overflow:auto;} .header-visitas{align-items:flex-start; flex-direction:column;} .header-actions{width:100%; justify-content:space-between;} .kanban-board{min-height:65vh;} .kanban-col{min-width:86vw; width:86vw;} #sidebar-arquivados{width:88vw; right:-92vw;} }
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: #131a26;
+            --card-bg: #1e293b;
+            --card-border: rgba(255, 255, 255, 0.05);
+            --yellow: #fbbf24;
+            --yellow-hover: #f59e0b;
+            --blue: #0ea5e9;
+            --green: #10b981;
+            --red: #f43f5e;
+            --text-gray: #94a3b8;
+            --text-white: #f8fafc;
+            --shadow-premium: 0 10px 25px rgba(0, 0, 0, 0.45);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-dark);
+            color: var(--text-white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header-visitas {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        h1 {
+            margin: 0;
+            color: var(--text-white);
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+        }
+        .header-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .btn-top {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .btn-top:active { transform: scale(0.96); }
+        .btn-arq { background: linear-gradient(135deg, var(--blue), #0284c7); }
+        .btn-arq:hover { opacity: 0.9; }
+        .btn-voltar { background: linear-gradient(135deg, #475569, #334155); }
+        .btn-voltar:hover { opacity: 0.9; }
+        .btn-novo { background: linear-gradient(135deg, var(--yellow), var(--yellow-hover)); color: #000; font-weight: 800; }
+        .btn-novo:hover { opacity: 0.95; }
+        
+        .kanban-board {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 18px;
+            align-items: flex-start;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .kanban-board::-webkit-scrollbar { height: 8px; }
+        .kanban-board::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        
+        .kanban-col {
+            background: var(--panel-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-premium);
+            min-width: 320px;
+            width: 33.3%;
+            max-height: 100%;
+            padding: 14px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            scroll-snap-align: center;
+        }
+        .kanban-header {
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            font-weight: 900;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            font-size: 13px;
+        }
+        .hdr-solicitacoes { background: linear-gradient(135deg, var(--red), #e11d48); }
+        .hdr-andamento { background: linear-gradient(135deg, var(--blue), #0284c7); }
+        .hdr-concluido { background: linear-gradient(135deg, var(--green), #059669); }
+        
+        .cards-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 200px;
+            padding-right: 4px;
+        }
+        .cards-container::-webkit-scrollbar { width: 5px; }
+        .cards-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        
+        .visit-card {
+            background: var(--card-bg);
+            border-left: 5px solid var(--blue);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            cursor: pointer;
+            transition: var(--transition);
+            border-top: 1px solid var(--card-border);
+            border-right: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+        .visit-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border-left-color: var(--yellow);
+        }
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding-bottom: 8px;
+        }
+        .card-actions-left, .card-actions-right { display: flex; gap: 6px; align-items: center; }
+        .mini-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-white);
+            border-radius: 6px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: var(--transition);
+        }
+        .mini-btn:hover:not(:disabled) { background: #334155; border-color: #475569; }
+        .mini-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+        .btn-del:hover { background: var(--red)!important; border-color: var(--red); }
+        
+        .card-photo-badge {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--yellow);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+        .empresa {
+            color: var(--text-white);
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 6px;
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .servico {
+            color: var(--yellow);
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.4px;
+        }
+        .cliente { color: var(--text-gray); font-size: 12px; font-weight: 600; }
+        .empty {
+            color: #4b5563;
+            text-align: center;
+            font-size: 13px;
+            padding: 30px 0;
+            border: 2px dashed rgba(255,255,255,0.05);
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        #sidebar-arquivados {
+            position: fixed;
+            top: 0;
+            right: -380px;
+            width: 340px;
+            height: 100vh;
+            background: rgba(19, 26, 38, 0.95);
+            backdrop-filter: blur(14px);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.85);
+            z-index: 20;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,0.06);
+        }
+        #sidebar-arquivados.open { right: 0; }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+        .sidebar-header h2 { margin: 0; color: var(--yellow); font-size: 16px; text-transform: uppercase; font-family: 'Montserrat', sans-serif; font-weight: 900; }
+        .archive-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .archive-item {
+            background: #1e293b;
+            border-left: 3px solid #64748b;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            border-top: 1px solid var(--card-border);
+            border-right: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+        .archive-title { font-size: 14px; font-weight: 800; color: var(--text-white); }
+        .archive-sub { font-size: 11px; color: var(--text-gray); margin-top: 4px; }
+        .archive-tools { display: flex; gap: 5px; flex-shrink: 0; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 9, 17, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.open { display: flex; }
+        .modal-box {
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel-bg);
+            border-top: 5px solid var(--yellow);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            box-sizing: border-box;
+            border-left: 1px solid var(--card-border);
+            border-right: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+        .modal-box h2 { margin: 0 0 18px; color: var(--yellow); text-transform: uppercase; font-size: 18px; font-family: 'Montserrat', sans-serif; font-weight: 900; }
+        label { display: block; font-size: 11px; color: var(--yellow); font-weight: 700; text-transform: uppercase; margin: 16px 0 6px; letter-spacing: 0.5px; }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            background: var(--card-bg);
+            color: #fff;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+        input:focus { outline: none; border-color: var(--yellow); box-shadow: 0 0 0 2px rgba(251,191,36,0.15); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+
+        @media (max-width: 700px) {
+            body { padding: 14px; overflow: auto; }
+            .header-visitas { align-items: flex-start; flex-direction: column; }
+            .header-actions { width: 100%; justify-content: space-between; }
+            .kanban-board { min-height: 70vh; }
+            .kanban-col { min-width: 88vw; width: 88vw; }
+            #sidebar-arquivados { width: 90vw; right: -94vw; }
+        }
     </style>
 </head>
 <body>
     <aside id="sidebar-arquivados">
-        <div class="sidebar-header"><h2>Cards arquivados</h2><button class="mini-btn" onclick="window.toggleSidebar()">✖</button></div>
+        <div class="sidebar-header">
+            <h2>Cards arquivados</h2>
+            <button class="mini-btn" onclick="window.toggleSidebar()">✖</button>
+        </div>
         <div id="archive-list" class="archive-list"></div>
     </aside>
 
@@ -58,93 +321,189 @@
         <div class="header-actions">
             <button class="btn-top btn-novo" onclick="window.abrirModalNovo()">+ NOVO CARD</button>
             <button class="btn-top btn-arq" onclick="window.toggleSidebar()">📁 ARQUIVADOS</button>
-            <a id="link-voltar" class="btn-top btn-voltar" href="index.html">⬅ VOLTAR AO PAINEL</a>
+            <a id="link-voltar" class="btn-top btn-voltar" href="index.html">⬅ PAINEL CENTRAL</a>
         </div>
     </header>
 
     <main id="kanban" class="kanban-board">
-        <section class="kanban-col"><div class="kanban-header hdr-solicitacoes">Solicitações</div><div id="col-solicitacoes" class="cards-container"></div></section>
-        <section class="kanban-col"><div class="kanban-header hdr-andamento">Em andamento</div><div id="col-andamento" class="cards-container"></div></section>
-        <section class="kanban-col"><div class="kanban-header hdr-concluido">Concluído</div><div id="col-concluido" class="cards-container"></div></section>
+        <section class="kanban-col">
+            <div class="kanban-header hdr-solicitacoes">Solicitações</div>
+            <div id="col-solicitacoes" class="cards-container"></div>
+        </section>
+        <section class="kanban-col">
+            <div class="kanban-header hdr-andamento">Em andamento</div>
+            <div id="col-andamento" class="cards-container"></div>
+        </section>
+        <section class="kanban-col">
+            <div class="kanban-header hdr-concluido">Concluído</div>
+            <div id="col-concluido" class="cards-container"></div>
+        </section>
     </main>
 
     <div id="modal-novo" class="modal">
         <form id="form-novo" class="modal-box">
             <h2>Criar Medida/Visita</h2>
-            <label for="novo-empresa">Nome da empresa</label><input id="novo-empresa" required autocomplete="organization">
-            <label for="novo-cliente">Nome do cliente</label><input id="novo-cliente" required autocomplete="name">
-            <label for="novo-servico">Tipo / nome do serviço</label><input id="novo-servico" required>
-            <div class="modal-actions"><button type="button" class="btn-top btn-voltar" onclick="window.fecharModalNovo()">Cancelar</button><button type="submit" class="btn-top btn-novo">Criar e abrir</button></div>
+            <label for="novo-empresa">Nome da empresa</label>
+            <input id="novo-empresa" required autocomplete="organization" placeholder="Empresa contratante">
+            
+            <label for="novo-cliente">Nome do cliente</label>
+            <input id="novo-cliente" required autocomplete="name" placeholder="Contato responsável">
+            
+            <label for="novo-servico">Tipo / nome do serviço</label>
+            <input id="novo-servico" required placeholder="Ex: Fachada ACM, Placa Luminosa">
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-top btn-voltar" onclick="window.fecharModalNovo()">Cancelar</button>
+                <button type="submit" class="btn-top btn-novo">Criar e abrir</button>
+            </div>
         </form>
     </div>
 
     <script type="module">
         import { db, ROTAS } from './config.js';
         import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        
         const STATUS = ['solicitacoes', 'andamento', 'concluido'];
         let visitas = [];
         document.getElementById('link-voltar').href = ROTAS.painel;
+        
         const safe = (v) => String(v ?? '').replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+        
         const normalizeStatus = (s) => {
             const v = String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_');
             if (['andamento','em_andamento','enviado'].includes(v)) return 'andamento';
             if (['concluido','concluida','finalizado','finalizada'].includes(v)) return 'concluido';
             return 'solicitacoes';
         };
+        
         function render() {
             const groups = { solicitacoes:[], andamento:[], concluido:[], arquivados:[] };
             visitas.forEach((v) => (v.arquivado ? groups.arquivados : groups[normalizeStatus(v.status)]).push(v));
+            
             STATUS.forEach((st) => {
                 const col = document.getElementById(`col-${st}`);
-                col.innerHTML = groups[st].length ? groups[st].map(cardHtml).join('') : '<div class="empty">Vazio</div>';
+                col.innerHTML = groups[st].length ? groups[st].map(cardHtml).join('') : '<div class="empty">Nenhuma visita nesta etapa</div>';
             });
             document.getElementById('archive-list').innerHTML = groups.arquivados.length ? groups.arquivados.map(archiveHtml).join('') : '<div class="empty">Nenhum card arquivado</div>';
         }
+        
         function cardHtml(v) {
             const st = normalizeStatus(v.status), idx = STATUS.indexOf(st);
+            const fotosBadge = v.totalImagens && v.totalImagens > 0 ? `<span class="card-photo-badge">📷 ${v.totalImagens}</span>` : '';
             return `<article id="card-${v.id}" class="visit-card" onclick="window.abrirCard('${v.id}', event)">
                 <div class="card-actions" onclick="event.stopPropagation()">
                     <div class="card-actions-left">
-                        <button class="mini-btn" ${idx === 0 ? 'disabled' : ''} onclick="window.moverCard(event, '${v.id}', -1)">⬅</button>
-                        <button class="mini-btn" ${idx === STATUS.length - 1 ? 'disabled' : ''} onclick="window.moverCard(event, '${v.id}', 1)">➡</button>
+                        <button class="mini-btn" ${idx === 0 ? 'disabled' : ''} onclick="window.moverCard(event, '${v.id}', -1)">❮</button>
+                        <button class="mini-btn" ${idx === STATUS.length - 1 ? 'disabled' : ''} onclick="window.moverCard(event, '${v.id}', 1)">❯</button>
                     </div>
-                    <div class="card-actions-right"><button class="mini-btn" onclick="window.arquivarCard(event, '${v.id}', true)">📁</button><button class="mini-btn btn-del" onclick="window.deletarCard(event, '${v.id}')">🗑️</button></div>
+                    <div class="card-actions-right">
+                        ${fotosBadge}
+                        <button class="mini-btn" onclick="window.arquivarCard(event, '${v.id}', true)" title="Arquivar">📁</button>
+                        <button class="mini-btn btn-del" onclick="window.deletarCard(event, '${v.id}')" title="Deletar">🗑️</button>
+                    </div>
                 </div>
                 <div class="empresa" title="${safe(v.empresa)}">${safe(v.empresa || 'Sem empresa')}</div>
                 <div class="servico">${safe(v.servico || v.tipo_servico || 'Sem serviço')}</div>
                 <div class="cliente">Cliente: ${safe(v.cliente || 'Sem cliente')}</div>
             </article>`;
         }
+        
         function archiveHtml(v) {
-            return `<div class="archive-item"><div><div class="archive-title">${safe(v.empresa || 'Sem empresa')}</div><div class="archive-sub">${safe(v.servico || 'Serviço')} • ${safe(v.cliente || 'Cliente')}</div></div><div class="archive-tools"><button class="mini-btn" onclick="window.arquivarCard(event, '${v.id}', false)" title="Desarquivar">⬆️</button><button class="mini-btn" onclick="window.abrirCard('${v.id}', event, true)" title="Abrir">👁️</button><button class="mini-btn btn-del" onclick="window.deletarCard(event, '${v.id}')" title="Deletar">🗑️</button></div></div>`;
+            const fotosBadge = v.totalImagens && v.totalImagens > 0 ? `<span class="card-photo-badge">📷 ${v.totalImagens}</span>` : '';
+            return `<div class="archive-item">
+                <div>
+                    <div class="archive-title">${safe(v.empresa || 'Sem empresa')}</div>
+                    <div class="archive-sub">${safe(v.servico || 'Serviço')} • ${safe(v.cliente || 'Cliente')}</div>
+                </div>
+                <div class="archive-tools">
+                    ${fotosBadge}
+                    <button class="mini-btn" onclick="window.arquivarCard(event, '${v.id}', false)" title="Desarquivar">⬆️</button>
+                    <button class="mini-btn" onclick="window.abrirCard('${v.id}', event, true)" title="Abrir">👁️</button>
+                    <button class="mini-btn btn-del" onclick="window.deletarCard(event, '${v.id}')" title="Deletar">🗑️</button>
+                </div>
+            </div>`;
         }
+        
         async function carregar() {
             const snap = await getDocs(collection(db, 'medidas_visitas'));
             visitas = snap.docs.map((d) => ({ id:d.id, ...d.data(), status:normalizeStatus(d.data().status) }));
             visitas.sort((a,b) => (b.criado_em?.seconds || 0) - (a.criado_em?.seconds || 0));
             render();
         }
+        
         function pararAcaoCard(ev) {
             if (!ev) return;
             ev.preventDefault();
             ev.stopPropagation();
         }
+        
         window.abrirCard = (id, ev, forcar = false) => {
             if (!forcar && ev?.target?.closest?.('button')) return;
             window.location.href = `${ROTAS.detalhesVisita || 'detalhes-visita.html'}?id=${id}`;
         };
-        window.moverCard = async (ev, id, dir) => { pararAcaoCard(ev); const v = visitas.find((x) => x.id === id); if (!v) return; const idx = STATUS.indexOf(normalizeStatus(v.status)); const next = STATUS[idx + dir]; if (!next) return; await updateDoc(doc(db,'medidas_visitas',id), { status:next }); v.status = next; render(); };
-        window.arquivarCard = async (ev, id, flag) => { pararAcaoCard(ev); await updateDoc(doc(db,'medidas_visitas',id), { arquivado:flag }); const v = visitas.find((x) => x.id === id); if (v) v.arquivado = flag; render(); };
-        window.deletarCard = async (ev, id) => { pararAcaoCard(ev); if (!confirm('Tem certeza que deseja deletar permanentemente esta visita?')) return; await deleteDoc(doc(db,'medidas_visitas',id)); visitas = visitas.filter((v) => v.id !== id); render(); };
+        
+        window.moverCard = async (ev, id, dir) => {
+            pararAcaoCard(ev);
+            const v = visitas.find((x) => x.id === id);
+            if (!v) return;
+            const idx = STATUS.indexOf(normalizeStatus(v.status));
+            const next = STATUS[idx + dir];
+            if (!next) return;
+            await updateDoc(doc(db,'medidas_visitas',id), { status:next });
+            v.status = next;
+            render();
+        };
+        
+        window.arquivarCard = async (ev, id, flag) => {
+            pararAcaoCard(ev);
+            await updateDoc(doc(db,'medidas_visitas',id), { arquivado:flag });
+            const v = visitas.find((x) => x.id === id);
+            if (v) v.arquivado = flag;
+            render();
+        };
+        
+        window.deletarCard = async (ev, id) => {
+            pararAcaoCard(ev);
+            if (!confirm('Tem certeza que deseja deletar permanentemente esta visita? Todas as fotos vinculadas serão inacessíveis.')) return;
+            
+            // Nota: a exclusão dos subdocumentos de imagens na subcoleção normalmente deve ser feita aqui,
+            // mas como as imagens agora estão em subcoleções, vamos limpá-las também para não deixar lixo lógico.
+            try {
+                const subSnap = await getDocs(collection(db, 'medidas_visitas', id, 'imagens'));
+                for (const subDoc of subSnap.docs) {
+                    await deleteDoc(doc(db, 'medidas_visitas', id, 'imagens', subDoc.id));
+                }
+            } catch(e) {
+                console.error("Erro ao deletar imagens filhas durante exclusão do card:", e);
+            }
+            
+            await deleteDoc(doc(db,'medidas_visitas',id));
+            visitas = visitas.filter((v) => v.id !== id);
+            render();
+        };
+        
         window.toggleSidebar = () => document.getElementById('sidebar-arquivados').classList.toggle('open');
         window.abrirModalNovo = () => document.getElementById('modal-novo').classList.add('open');
         window.fecharModalNovo = () => document.getElementById('modal-novo').classList.remove('open');
+        
         document.getElementById('form-novo').addEventListener('submit', async (ev) => {
             ev.preventDefault();
-            const novo = { empresa:document.getElementById('novo-empresa').value.trim(), cliente:document.getElementById('novo-cliente').value.trim(), servico:document.getElementById('novo-servico').value.trim(), tipo_servico:document.getElementById('novo-servico').value.trim(), endereco:'', status:'solicitacoes', arquivado:false, imagens:[], criado_em:serverTimestamp(), origem:'medidas_visitas' };
+            const novo = {
+                empresa: document.getElementById('novo-empresa').value.trim(),
+                cliente: document.getElementById('novo-cliente').value.trim(),
+                servico: document.getElementById('novo-servico').value.trim(),
+                tipo_servico: document.getElementById('novo-servico').value.trim(),
+                endereco: '',
+                status: 'solicitacoes',
+                arquivado: false,
+                totalImagens: 0,
+                criado_em: serverTimestamp(),
+                origem: 'medidas_visitas'
+            };
             const ref = await addDoc(collection(db, 'medidas_visitas'), novo);
             window.abrirCard(ref.id);
         });
+        
         carregar();
     </script>
     <script type="module">import { protegerPagina } from './auth.js'; await protegerPagina({ paginaAtual:'medidas-visitas.html' });</script>
