@@ -4,45 +4,464 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Detalhes da Medida/Visita - Artesynal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg:#333; --card:#222; --yellow:#f1c40f; --blue:#00aeef; --green:#00a651; --red:#ed1c24; --text:#eee; --muted:#bdc3c7; --input:#111; }
-        * { box-sizing:border-box; }
-        body { font-family:'Mitra LT','Montserrat',sans-serif; background:var(--bg); color:var(--text); margin:0; padding:18px; padding-bottom:96px; }
-        .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:2px solid #555; padding-bottom:14px; margin-bottom:18px; }
-        h1 { margin:0; color:var(--yellow); text-transform:uppercase; font-size:22px; }
-        .btn { border:none; border-radius:7px; padding:10px 13px; font-family:inherit; font-size:12px; font-weight:900; cursor:pointer; color:#fff; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
-        .btn-back { background:#555; } .btn-save { background:var(--green); } .btn-map { background:#4285F4; } .btn-upload { background:#444; } .btn-camera { background:var(--blue); } .btn-measure { background:var(--yellow); color:#111; } .btn-del { background:var(--red); }
-        .layout { display:grid; grid-template-columns:minmax(290px,420px) 1fr; gap:18px; align-items:start; }
-        .panel { background:var(--card); border-radius:14px; padding:18px; border-top:5px solid var(--yellow); box-shadow:0 8px 24px rgba(0,0,0,.45); }
-        label { display:block; color:var(--yellow); font-size:10px; font-weight:900; text-transform:uppercase; margin:12px 0 5px; }
-        input, textarea { width:100%; background:var(--input); border:1px solid #444; border-radius:7px; color:#fff; padding:12px; font-family:inherit; font-size:14px; }
-        textarea { min-height:90px; resize:vertical; }
-        .address-row { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; }
-        .gallery-controls { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 14px; }
-        .photo-viewer { min-height:360px; background:#070707; border:1px solid #444; border-radius:10px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-        .photo-viewer img { max-width:100%; max-height:70vh; object-fit:contain; }
-        .photo-empty { color:#777; text-align:center; padding:40px 16px; }
-        .photo-tools { position:absolute; left:10px; right:10px; bottom:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
-        .nav-photo { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.55); border:none; color:#fff; font-size:24px; padding:16px 10px; cursor:pointer; }
-        .prev { left:0; border-radius:0 6px 6px 0; } .next { right:0; border-radius:6px 0 0 6px; }
-        .photo-count { text-align:center; color:#aaa; font-size:12px; margin:10px 0; }
-        .mini-gallery { display:flex; gap:9px; overflow-x:auto; padding:8px 0 12px; border-bottom:1px solid #444; min-height:86px; }
-        .thumb { width:74px; min-width:74px; height:74px; border-radius:7px; border:2px solid transparent; overflow:hidden; cursor:pointer; background:#000; position:relative; }
-        .thumb.selected { border-color:var(--yellow); box-shadow:0 0 8px var(--yellow); } .thumb img { width:100%; height:100%; object-fit:cover; }
-        .thumb button { position:absolute; top:3px; right:3px; border:none; border-radius:4px; background:var(--red); color:#fff; cursor:pointer; }
-        #draw-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.97); z-index:50; flex-direction:column; }
-        .tool-header { background:#111; padding:9px; display:flex; justify-content:center; gap:7px; flex-wrap:wrap; border-bottom:1px solid #333; }
-        .tool { padding:9px 11px; border-radius:6px; border:1px solid #555; background:#333; color:#ddd; font-family:inherit; font-weight:900; font-size:11px; cursor:pointer; }
-        .tool.active { background:var(--yellow); color:#111; border-color:var(--yellow); }
-        .color-box { display:none; align-items:center; gap:6px; background:#1f2937; border:1px solid #374151; border-radius:8px; padding:5px 8px; }
-        .color-dot { width:24px; height:24px; border-radius:50%; border:2px solid #fff; cursor:pointer; }
-        #canvas-wrapper { flex:1; overflow:hidden; display:flex; align-items:center; justify-content:center; touch-action:none; padding:10px; }
-        #editor-canvas { max-width:100%; max-height:100%; box-shadow:0 0 22px #000; touch-action:none; cursor:crosshair; transform-origin:center center; }
-        .draw-toolbar { min-height:70px; background:#222; border-top:2px solid var(--yellow); padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-        .zoom-label { color:#ccc; font-size:12px; font-weight:900; min-width:50px; text-align:center; }
-        .floating-save { position:fixed; left:14px; right:14px; bottom:14px; z-index:20; min-height:52px; box-shadow:0 8px 26px rgba(0,0,0,.55); display:none; }
-        @media (max-width:850px) { body{padding:12px; padding-bottom:92px;} .layout{grid-template-columns:1fr;} .topbar{flex-direction:column; align-items:flex-start;} .photo-viewer{min-height:260px;} .tool{font-size:10px; padding:8px;} .draw-toolbar{justify-content:center;} .floating-save{display:flex;} }
+        :root {
+            --bg: #090d16;
+            --panel: #131a26;
+            --panel-border: rgba(255, 255, 255, 0.06);
+            --yellow: #fbbf24;
+            --yellow-hover: #f59e0b;
+            --blue: #0ea5e9;
+            --blue-hover: #0284c7;
+            --green: #10b981;
+            --green-hover: #059669;
+            --red: #f43f5e;
+            --red-hover: #e11d48;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --input: #1e293b;
+            --input-border: #334155;
+            --shadow-premium: 0 10px 30px rgba(0, 0, 0, 0.55);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Montserrat', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 96px;
+            min-height: 100vh;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            margin: 0;
+            color: var(--text);
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 22px;
+            letter-spacing: 0.5px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #fff;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn-back { background: linear-gradient(135deg, #475569, #334155); }
+        .btn-back:hover { opacity: 0.9; }
+        .btn-save { background: linear-gradient(135deg, var(--green), var(--green-hover)); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .btn-save:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); opacity: 0.95; }
+        .btn-map { background: linear-gradient(135deg, var(--blue), var(--blue-hover)); }
+        .btn-map:hover { opacity: 0.9; }
+        .btn-upload { background: linear-gradient(135deg, #334155, #1e293b); border: 1px solid #475569; }
+        .btn-upload:hover { background: #3f4f64; }
+        .btn-camera { background: linear-gradient(135deg, var(--blue), var(--blue-hover)); }
+        .btn-camera:hover { opacity: 0.9; }
+        .btn-measure { background: linear-gradient(135deg, var(--yellow), var(--yellow-hover)); color: #000; font-weight: 800; }
+        .btn-measure:hover { opacity: 0.95; }
+        .btn-del { background: linear-gradient(135deg, var(--red), var(--red-hover)); }
+        .btn-del:hover { opacity: 0.9; }
+
+        .sync-indicator {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .sync-indicator.syncing {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0ea5e9;
+            border-color: rgba(14, 165, 233, 0.2);
+        }
+        .sync-indicator.typing {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.2);
+        }
+        .sync-indicator.error {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            border-color: rgba(244, 63, 94, 0.2);
+            cursor: pointer;
+        }
+        .sync-indicator.loading {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(290px, 420px) 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .panel {
+            background: var(--panel);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--panel-border);
+            box-shadow: var(--shadow-premium);
+        }
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 16px 0 6px;
+            letter-spacing: 0.5px;
+        }
+        label:first-of-type { margin-top: 0; }
+        input, textarea {
+            width: 100%;
+            background: var(--input);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            color: #fff;
+            padding: 12px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
+        }
+        textarea { min-height: 100px; resize: vertical; }
+        .address-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+        .gallery-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0 16px;
+        }
+        .photo-viewer {
+            min-height: 400px;
+            background: #060911;
+            border: 1px solid var(--input-border);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .photo-viewer img {
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+        }
+        .photo-empty {
+            color: var(--muted);
+            text-align: center;
+            padding: 40px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .photo-tools {
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            background: rgba(19, 26, 38, 0.7);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .nav-photo {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 24px;
+            padding: 16px 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 10;
+        }
+        .nav-photo:hover:not(:disabled) {
+            background: rgba(251, 191, 36, 0.8);
+            color: #000;
+        }
+        .prev { left: 0; border-radius: 0 8px 8px 0; }
+        .next { right: 0; border-radius: 8px 0 0 8px; }
+        .photo-count {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            margin: 12px 0 4px;
+            font-weight: 600;
+        }
+        .mini-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 8px 0 16px;
+            border-bottom: 1px solid var(--panel-border);
+            min-height: 92px;
+            scroll-behavior: smooth;
+        }
+        .mini-gallery::-webkit-scrollbar { height: 6px; }
+        .mini-gallery::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .thumb {
+            width: 74px;
+            min-width: 74px;
+            height: 74px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            overflow: hidden;
+            cursor: pointer;
+            background: #060911;
+            position: relative;
+            transition: var(--transition);
+        }
+        .thumb:hover { transform: translateY(-2px); }
+        .thumb.selected {
+            border-color: var(--yellow);
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+        }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb button {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            border: none;
+            border-radius: 6px;
+            background: var(--red);
+            color: #fff;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+        .thumb button:hover { background: var(--red-hover); }
+
+        /* Skeletons para carregamento */
+        .thumb.loading-thumb {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--muted);
+        }
+        .thumb-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: var(--yellow);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .viewer-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--yellow);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #draw-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 9, 17, 0.98);
+            z-index: 50;
+            flex-direction: column;
+        }
+        .tool-header {
+            background: #111827;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #1f2937;
+        }
+        .tool {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            color: #d1d5db;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .tool:hover { background: #374151; color: #fff; }
+        .tool.active {
+            background: var(--yellow);
+            color: #000;
+            border-color: var(--yellow);
+        }
+        .color-box {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            padding: 6px 12px;
+        }
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .color-dot:hover { transform: scale(1.15); }
+        #canvas-wrapper {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            padding: 15px;
+        }
+        #editor-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.85);
+            touch-action: none;
+            cursor: crosshair;
+            transform-origin: center center;
+            background: #000;
+        }
+        .draw-toolbar {
+            min-height: 76px;
+            background: #111827;
+            border-top: 1px solid #1f2937;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .zoom-label {
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+        }
+        .floating-save {
+            position: fixed;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            z-index: 20;
+            min-height: 52px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            display: none;
+        }
+
+        /* Abas no mobile */
+        .tabs-mobile {
+            display: none;
+            width: 100%;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--panel-border);
+            gap: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 14px 10px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .tab-btn.active {
+            color: var(--yellow);
+            border-bottom-color: var(--yellow);
+        }
+
+        @media (max-width: 850px) {
+            body { padding: 14px; padding-bottom: 92px; }
+            .topbar { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .topbar > div { width: 100%; justify-content: space-between; }
+            .layout { display: block; }
+            .layout .panel:first-child { display: block; }
+            .layout .panel:last-child { display: none; }
+            .tabs-mobile { display: flex; }
+            .photo-viewer { min-height: 280px; }
+            .tool { font-size: 11px; padding: 8px 12px; }
+            .draw-toolbar { justify-content: center; gap: 12px; padding: 12px; }
+            .floating-save { display: flex; }
+        }
     </style>
 </head>
 <body>
@@ -59,35 +478,94 @@
         </div>
         <div id="canvas-wrapper"><canvas id="editor-canvas"></canvas></div>
         <div class="draw-toolbar">
-            <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;"><button class="btn btn-back" onclick="window.fecharEditor()">CANCELAR</button><button class="btn" style="background:var(--blue)" onclick="window.desfazerUltimo()">↩ DESFAZER</button></div>
-            <div style="display:flex; gap:7px; align-items:center;"><button class="btn btn-back" onclick="window.zoomEditor(-0.15)">−</button><span id="zoom-label" class="zoom-label">100%</span><button class="btn btn-back" onclick="window.zoomEditor(0.15)">+</button></div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-back" onclick="window.fecharEditor()">CANCELAR</button>
+                <button class="btn" style="background:#475569" onclick="window.desfazerUltimo()">↩ DESFAZER</button>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn btn-back" style="padding:6px 12px;" onclick="window.zoomEditor(-0.15)">−</button>
+                <span id="zoom-label" class="zoom-label">100%</span>
+                <button class="btn btn-back" style="padding:6px 12px;" onclick="window.zoomEditor(0.15)">+</button>
+            </div>
             <button class="btn btn-save" onclick="window.salvarEditor()">💾 SALVAR IMAGEM</button>
         </div>
     </div>
 
-    <header class="topbar"><h1>Medida/Visita</h1><div style="display:flex; gap:8px; flex-wrap:wrap;"><a href="medidas-visitas.html" class="btn btn-back">⬅ VOLTAR AO PAINEL DE CARDS</a><button id="save-btn" class="btn btn-save" onclick="window.salvarVisita()">💾 SALVAR</button></div></header>
+    <header class="topbar">
+        <h1>Medida / Visita</h1>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content: flex-end;">
+            <span id="sync-indicator" class="sync-indicator loading">⏳ Carregando dados...</span>
+            <a href="medidas-visitas.html" class="btn btn-back">⬅ VOLTAR</a>
+            <button id="save-btn" class="btn btn-save" onclick="window.salvarVisita()">💾 SALVAR</button>
+        </div>
+    </header>
+
+    <div class="tabs-mobile">
+        <button id="tab-info" class="tab-btn active" onclick="window.switchTab('info')">📝 Informações</button>
+        <button id="tab-images" class="tab-btn" onclick="window.switchTab('images')">📷 Imagens & Medidas</button>
+    </div>
+
     <main class="layout">
+        <!-- ABA 1: Informações -->
         <section class="panel">
-            <label>Nome da empresa</label><input id="empresa">
-            <label>Cliente</label><input id="cliente">
-            <label>Tipo de serviço</label><input id="servico">
-            <div class="address-row"><div><label>Endereço</label><input id="endereco"></div><button class="btn btn-map" onclick="window.abrirMapa()">🗺️ MAPS</button></div>
-            <label>Observações</label><textarea id="observacoes" placeholder="Informações complementares da visita..."></textarea>
+            <label for="empresa">Nome da empresa</label>
+            <input id="empresa" placeholder="Empresa solicitante">
+
+            <label for="cliente">Cliente</label>
+            <input id="cliente" placeholder="Nome do contato/cliente">
+
+            <label for="servico">Tipo de serviço</label>
+            <input id="servico" placeholder="Ex: Painel ACM, Letra Caixa...">
+
+            <div class="address-row">
+                <div style="flex:1;">
+                    <label for="endereco">Endereço</label>
+                    <input id="endereco" placeholder="Rua, número, cidade...">
+                </div>
+                <button class="btn btn-map" onclick="window.abrirMapa()">🗺️ MAPS</button>
+            </div>
+
+            <label for="observacoes">Observações</label>
+            <textarea id="observacoes" placeholder="Informações complementares para a visita..."></textarea>
         </section>
+
+        <!-- ABA 2: Galeria e Medidas -->
         <section class="panel">
             <label>Imagens e medidas</label>
-            <div class="gallery-controls"><input type="file" id="file-input" accept="image/*" multiple hidden><input type="file" id="camera-input" accept="image/*" capture="environment" hidden><button class="btn btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR IMAGENS</button><button class="btn btn-camera" onclick="document.getElementById('camera-input').click()">📷 ABRIR CÂMERA</button></div>
-            <div class="photo-viewer"><button class="nav-photo prev" onclick="window.mudarFoto(-1)">❮</button><div id="photo-empty" class="photo-empty">Nenhuma imagem anexada</div><img id="main-img" alt="Imagem selecionada" style="display:none"><button class="nav-photo next" onclick="window.mudarFoto(1)">❯</button><div class="photo-tools"><button class="btn btn-measure" onclick="window.abrirEditor()">📏 EDITAR MEDIDAS</button><button class="btn" style="background:#374151" onclick="window.baixarImagem(true)">⬇ COM MEDIDAS</button><button class="btn" style="background:#4b5563" onclick="window.baixarImagem(false)">⬇ SEM MEDIDAS</button></div></div>
+            <div class="gallery-controls">
+                <input type="file" id="file-input" accept="image/*" multiple hidden>
+                <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
+                <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR IMAGENS</button>
+                <button class="btn btn-camera" onclick="document.getElementById('camera-input').click()">📷 ABRIR CÂMERA</button>
+            </div>
+            
+            <div class="photo-viewer">
+                <button class="nav-photo prev" onclick="window.mudarFoto(-1)">❮</button>
+                <div id="photo-empty" class="photo-empty">Nenhuma imagem anexada</div>
+                <img id="main-img" alt="Imagem selecionada" style="display:none">
+                <button class="nav-photo next" onclick="window.mudarFoto(1)">❯</button>
+                
+                <div class="photo-tools">
+                    <button class="btn btn-measure" onclick="window.abrirEditor()">📏 EDITAR MEDIDAS</button>
+                    <button class="btn" style="background:#334155" onclick="window.baixarImagem(true)">⬇ COM MEDIDAS</button>
+                    <button class="btn" style="background:#475569" onclick="window.baixarImagem(false)">⬇ SEM MEDIDAS</button>
+                </div>
+            </div>
+            
             <div id="photo-count" class="photo-count">0 / 0</div>
             <div id="mini-gallery" class="mini-gallery"></div>
-            <label>Nota da imagem selecionada</label><input id="img-obs" placeholder="Nota sobre esta foto" oninput="window.saveLocalObs()">
+            
+            <label for="img-obs">Nota da imagem selecionada</label>
+            <input id="img-obs" placeholder="Nota sobre esta foto" oninput="window.saveLocalObs()">
         </section>
     </main>
+
     <button id="save-btn-mobile" class="btn btn-save floating-save" onclick="window.salvarVisita()">💾 SALVAR ALTERAÇÕES</button>
 
     <script type="module">
         import { db } from './config.js';
-        import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, getDocs, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
         const params = new URLSearchParams(window.location.search);
         let visitaId = params.get('id');
         let imagens = [], indiceAtual = 0;
@@ -95,14 +573,38 @@
         let elementos = [], editorTool = 'measure', currentColorType = 'measure', measureColor = '#00a651', lineColor = '#ef4444', zoom = 1;
         let isDrawing = false, isDragging = false, didDrag = false, startX = 0, startY = 0, currentX = 0, currentY = 0, dragTarget = null, currentEditorImg = null;
         const colors = ['#00a651','#ef4444','#3b82f6','#eab308','#ffffff','#000000'];
+
         const $ = (id) => document.getElementById(id);
         const dist = (x1,y1,x2,y2) => Math.hypot(x2-x1, y2-y1);
-        function dataUrlDownload(url, filename) { const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); }
-        function getCurrentColor() { return editorTool === 'line' ? lineColor : measureColor; }
-function estimarTamanhoImagens() { return JSON.stringify(imagens).length; }
-        function erroDeTamanho(e) {
-            return e?.code === 'invalid-argument' || /size|too large|larger than|bytes/i.test(String(e?.message || ''));
+
+        function dataUrlDownload(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         }
+
+        const MAX_IMAGENS = 35;
+        const MAX_DIMENSAO_IMAGEM = 1200;
+        const QUALIDADE_IMAGEM = 0.70;
+        let saveTimer = null;
+        let saveInFlight = false, saveQueued = false;
+        let obsSaveTimer = null;
+
+        function showStatus(state, msg) {
+            const ind = $('sync-indicator');
+            if (!ind) return;
+            ind.className = 'sync-indicator ' + state;
+            let icon = '☁️';
+            if (state === 'syncing') icon = '🔄';
+            else if (state === 'typing') icon = '✍️';
+            else if (state === 'error') icon = '⚠️';
+            else if (state === 'loading') icon = '⏳';
+            ind.innerHTML = `${icon} ${msg}`;
+        }
+
         async function compactarImagemDataUrl(dataUrl) {
             const img = new Image();
             await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = dataUrl; });
@@ -117,6 +619,7 @@ function estimarTamanhoImagens() { return JSON.stringify(imagens).length; }
             offCtx.drawImage(img, 0, 0, width, height);
             return off.toDataURL('image/jpeg', QUALIDADE_IMAGEM);
         }
+
         async function lerArquivoCompactado(file) {
             const dataUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -126,120 +629,537 @@ function estimarTamanhoImagens() { return JSON.stringify(imagens).length; }
             });
             return compactarImagemDataUrl(dataUrl);
         }
-                async function init() {
+
+        async function init() {
             if (visitaId) {
+                showStatus('loading', 'Carregando dados da visita...');
                 const snap = await getDoc(doc(db, 'medidas_visitas', visitaId));
-                if (snap.exists()) preencher(snap.data()); else alert('Visita não encontrada.');
+                if (snap.exists()) {
+                    const data = snap.data();
+                    preencher(data);
+                    
+                    // LÓGICA DE MIGRAÇÃO DE BANCO DE DADOS
+                    if (data.imagens && data.imagens.length > 0) {
+                        showStatus('syncing', 'Migrando fotos para novo formato...');
+                        const oldImgs = data.imagens;
+                        imagens = [];
+                        for (let i = 0; i < oldImgs.length; i++) {
+                            const img = oldImgs[i];
+                            const cleanImg = {
+                                url: img.url,
+                                originalUrl: img.originalUrl || img.url,
+                                obs: img.obs || '',
+                                elementos: img.elementos || img.arrows || [],
+                                criado_em: new Date(Date.now() + i * 1000)
+                            };
+                            const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), cleanImg);
+                            imagens.push({ id: docRef.id, ...cleanImg });
+                        }
+                        // Remove fotos antigas do documento pai e atualiza totalImagens
+                        await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+                            imagens: [],
+                            totalImagens: oldImgs.length,
+                            imagensMigradas: true
+                        });
+                    } else {
+                        // Carrega as fotos da subcoleção
+                        const q = query(collection(db, 'medidas_visitas', visitaId, 'imagens'), orderBy('criado_em', 'asc'));
+                        const querySnapshot = await getDocs(q);
+                        imagens = querySnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data(),
+                            originalUrl: doc.data().originalUrl || doc.data().url,
+                            elementos: doc.data().elementos || []
+                        }));
+                    }
+                } else {
+                    alert('Visita não encontrada.');
+                    window.location.href = 'medidas-visitas.html';
+                    return;
+                }
+            } else {
+                // Se não tem ID, cria um novo card imediatamente para associar subcoleções
+                showStatus('syncing', 'Iniciando nova visita...');
+                const novo = {
+                    empresa: '', cliente: '', servico: '', tipo_servico: '',
+                    endereco: '', observacoes: '', status: 'solicitacoes',
+                    arquivado: false, totalImagens: 0, criado_em: serverTimestamp(),
+                    origem: 'medidas_visitas'
+                };
+                const ref = await addDoc(collection(db, 'medidas_visitas'), novo);
+                visitaId = ref.id;
+                history.replaceState(null, '', `?id=${visitaId}`);
             }
+
             $('file-input').addEventListener('change', window.addFotos);
             $('camera-input').addEventListener('change', window.addFotos);
+
+            const handleDown = (e) => {
+                const pos = getPos(e);
+                if (['measure', 'line'].includes(editorTool)) {
+                    isDrawing = true;
+                    startX = currentX = pos.x;
+                    startY = currentY = pos.y;
+                } else if (editorTool === 'text') {
+                    const text = prompt('Digite o texto:');
+                    if (text) {
+                        elementos.push({ type: 'text', x: pos.x, y: pos.y, text, color: lineColor });
+                        redrawCanvas();
+                    }
+                } else if (editorTool === 'move') {
+                    dragTarget = findHit(pos);
+                    if (dragTarget) {
+                        isDragging = true;
+                        didDrag = false;
+                        dragTarget.lastX = pos.x;
+                        dragTarget.lastY = pos.y;
+                    }
+                } else if (editorTool === 'del') {
+                    const hit = findHit(pos);
+                    if (hit) {
+                        elementos.splice(hit.i, 1);
+                        redrawCanvas();
+                    }
+                }
+            };
+
+            const handleMove = (e) => {
+                const pos = getPos(e);
+                if (isDrawing) {
+                    currentX = pos.x;
+                    currentY = pos.y;
+                    redrawCanvas();
+                } else if (isDragging && dragTarget) {
+                    didDrag = true;
+                    const el = elementos[dragTarget.i], dx = pos.x - dragTarget.lastX, dy = pos.y - dragTarget.lastY;
+                    if (el.type === 'text' || dragTarget.p === 'center') {
+                        if (el.type === 'text') {
+                            el.x += dx; el.y += dy;
+                        } else {
+                            el.x1 += dx; el.x2 += dx; el.y1 += dy; el.y2 += dy;
+                        }
+                    } else if (dragTarget.p === 'start') {
+                        el.x1 = pos.x; el.y1 = pos.y;
+                    } else if (dragTarget.p === 'end') {
+                        el.x2 = pos.x; el.y2 = pos.y;
+                    }
+                    dragTarget.lastX = pos.x; dragTarget.lastY = pos.y;
+                    redrawCanvas();
+                }
+            };
+
+            const handleUp = () => {
+                if (isDrawing) {
+                    isDrawing = false;
+                    if (dist(startX, startY, currentX, currentY) > 15) {
+                        if (editorTool === 'measure') {
+                            const text = prompt('Digite a medida (ex: 150 cm):');
+                            if (text) elementos.push({ type: 'measure', x1: startX, y1: startY, x2: currentX, y2: currentY, text, color: measureColor });
+                        } else elementos.push({ type: 'line', x1: startX, y1: startY, x2: currentX, y2: currentY, color: lineColor });
+                    }
+                    redrawCanvas();
+                }
+                if (isDragging) {
+                    const el = elementos[dragTarget.i];
+                    if (!didDrag && el) {
+                        const novo = prompt('Editar texto:', el.text || '');
+                        if (novo !== null && (el.type === 'text' || el.type === 'measure')) el.text = novo;
+                    }
+                    isDragging = false;
+                    dragTarget = null;
+                    redrawCanvas();
+                }
+            };
+
             ['mousedown','mousemove','mouseup','mouseleave'].forEach((ev) => canvas.addEventListener(ev, ({mousedown:handleDown,mousemove:handleMove,mouseup:handleUp,mouseleave:handleUp})[ev]));
             canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDown(e); }, { passive:false });
             canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, { passive:false });
             canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, { passive:false });
+            
             ['empresa','cliente','servico','endereco','observacoes'].forEach((id) => {
-                $(id).addEventListener('input', agendarAutoSave);
+                $(id).addEventListener('input', () => {
+                    showStatus('typing', 'Digitando...');
+                    agendarAutoSave();
+                });
             });
-            periodicTimer = setInterval(() => persistirVisita({ silencioso:true }), 15000);
-            window.addEventListener('beforeunload', () => { persistirVisita({ silencioso:true }); });
+
+            $('sync-indicator').addEventListener('click', () => {
+                if ($('sync-indicator').classList.contains('error')) persistirVisita({ silencioso: false });
+            });
+
             renderGallery();
+            showStatus('saved', 'Salvo na nuvem');
         }
-        function preencher(v) { $('empresa').value = v.empresa || ''; $('cliente').value = v.cliente || ''; $('servico').value = v.servico || v.tipo_servico || ''; $('endereco').value = v.endereco || ''; $('observacoes').value = v.observacoes || v.info_adicional || ''; imagens = (v.imagens || []).map((img) => ({ ...img, originalUrl: img.originalUrl || img.url, elementos: img.elementos || img.arrows || [] })); }
-        function visitaPayload() { return { empresa:$('empresa').value.trim(), cliente:$('cliente').value.trim(), servico:$('servico').value.trim(), tipo_servico:$('servico').value.trim(), endereco:$('endereco').value.trim(), observacoes:$('observacoes').value.trim(), imagens, atualizado_em:serverTimestamp() }; }
-        const MAX_IMAGENS = 30;
-        const MAX_DIMENSAO_IMAGEM = 1600;
-        const QUALIDADE_IMAGEM = 0.72;
-        const LIMITE_TAMANHO_CAMPO = 850000;
-        let saveTimer = null, periodicTimer = null;
-        let saveInFlight = false, saveQueued = false;
-        function notifySaveError() {
-            alert('Erro ao salvar visita. Seus dados permanecem na tela e o sistema tentará salvar novamente.');
+
+        function preencher(v) {
+            $('empresa').value = v.empresa || '';
+            $('cliente').value = v.cliente || '';
+            $('servico').value = v.servico || v.tipo_servico || '';
+            $('endereco').value = v.endereco || '';
+            $('observacoes').value = v.observacoes || v.info_adicional || '';
         }
+
+        function visitaPayload() {
+            return {
+                empresa: $('empresa').value.trim(),
+                cliente: $('cliente').value.trim(),
+                servico: $('servico').value.trim(),
+                tipo_servico: $('servico').value.trim(),
+                endereco: $('endereco').value.trim(),
+                observacoes: $('observacoes').value.trim(),
+                atualizado_em: serverTimestamp()
+            };
+        }
+
         async function persistirVisita({ silencioso = true } = {}) {
             if (saveInFlight) { saveQueued = true; return false; }
             saveInFlight = true;
+            showStatus('syncing', 'Salvando dados...');
             try {
-                if (visitaId) await updateDoc(doc(db,'medidas_visitas',visitaId), visitaPayload());
-                else {
-                    const ref = await addDoc(collection(db,'medidas_visitas'), { ...visitaPayload(), status:'solicitacoes', arquivado:false, criado_em:serverTimestamp(), origem:'medidas_visitas' });
-                    visitaId = ref.id;
-                    history.replaceState(null,'',`?id=${visitaId}`);
+                if (visitaId) {
+                    await updateDoc(doc(db, 'medidas_visitas', visitaId), visitaPayload());
                 }
+                showStatus('saved', 'Salvo automaticamente');
                 if (!silencioso) alert('Visita salva com sucesso.');
                 return true;
             } catch(e) {
                 console.error('Erro ao salvar visita:', e);
-                if (!silencioso) {
-                    if (erroDeTamanho(e)) alert('Erro ao salvar: o card está muito pesado (imagens grandes). Reduza a quantidade/tamanho das fotos.');
-                    else notifySaveError();
-                }
+                showStatus('error', 'Erro ao salvar dados. Clique para tentar.');
                 return false;
             } finally {
                 saveInFlight = false;
                 if (saveQueued) {
                     saveQueued = false;
-                    setTimeout(() => persistirVisita({ silencioso:true }), 250);
+                    setTimeout(() => persistirVisita({ silencioso: true }), 250);
                 }
             }
         }
+
         function agendarAutoSave() {
             if (saveTimer) clearTimeout(saveTimer);
-            saveTimer = setTimeout(() => persistirVisita({ silencioso:true }), 1000);
+            saveTimer = setTimeout(() => persistirVisita({ silencioso: true }), 1000);
         }
+
         window.salvarVisita = async ({ silencioso = false } = {}) => {
             await persistirVisita({ silencioso });
         };
-        window.abrirMapa = () => { const end = $('endereco').value.trim(); if (!end) return alert('Preencha o endereço primeiro.'); window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`, '_blank'); };
+
+        window.abrirMapa = () => {
+            const end = $('endereco').value.trim();
+            if (!end) return alert('Preencha o endereço primeiro.');
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`, '_blank');
+        };
+
         window.addFotos = async (ev) => {
             const files = [...(ev.target.files || [])];
             const vagas = MAX_IMAGENS - imagens.length;
             if (vagas <= 0) { alert(`Limite de ${MAX_IMAGENS} imagens por card atingido.`); ev.target.value = ''; return; }
             if (files.length > vagas) alert(`Somente ${vagas} imagem(ns) foram adicionadas. Limite de ${MAX_IMAGENS} imagens por card.`);
+            
             for (const file of files.slice(0, vagas)) {
+                // Cria esqueleto temporário
+                const placeholderId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                imagens.push({ id: placeholderId, url: '', originalUrl: '', obs: '', elementos: [], loading: true });
+                renderGallery();
+
+                showStatus('syncing', 'Compactando e enviando imagem...');
                 try {
                     const dataCompactada = await lerArquivoCompactado(file);
-                    imagens.push({ url:dataCompactada, originalUrl:dataCompactada, obs:'', elementos:[] });
-                    indiceAtual = imagens.length - 1;
-                    if (estimarTamanhoImagens() > LIMITE_TAMANHO_CAMPO) {
-                        imagens.pop();
-                        indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1));
-                        alert('Limite de dados do card atingido. Use menos fotos ou imagens menores.');
-                        break;
+                    
+                    const imgData = {
+                        url: dataCompactada,
+                        originalUrl: dataCompactada,
+                        obs: '',
+                        elementos: [],
+                        criado_em: serverTimestamp()
+                    };
+
+                    const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), imgData);
+                    
+                    const idx = imagens.findIndex(img => img.id === placeholderId);
+                    if (idx !== -1) {
+                        imagens[idx] = { id: docRef.id, ...imgData, criado_em: new Date() };
+                        indiceAtual = idx;
                     }
+                    
+                    // Atualiza contador no card pai
+                    await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+                        totalImagens: imagens.filter(x => !x.loading).length
+                    });
+
+                    showStatus('saved', 'Imagem salva automaticamente');
                     renderGallery();
-                    agendarAutoSave();
                 } catch (e) {
-                    console.error('Erro ao processar imagem:', e);
-                    alert(`Não foi possível processar a imagem "${file.name}".`);
+                    console.error('Erro ao salvar imagem:', e);
+                    imagens = imagens.filter(img => img.id !== placeholderId);
+                    renderGallery();
+                    alert(`Falha ao carregar a imagem "${file.name}".`);
+                    showStatus('error', 'Falha ao salvar imagem');
                 }
             }
             ev.target.value = '';
         };
-        function renderGallery() { const mini = $('mini-gallery'); mini.innerHTML = ''; imagens.forEach((img,i) => { const div = document.createElement('div'); div.className = `thumb ${i === indiceAtual ? 'selected' : ''}`; div.onclick = () => { indiceAtual = i; renderGallery(); }; div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`; mini.appendChild(div); }); if (imagens[indiceAtual]) { $('main-img').src = imagens[indiceAtual].url; $('main-img').style.display = 'block'; $('photo-empty').style.display = 'none'; $('photo-count').textContent = `${indiceAtual + 1} / ${imagens.length}`; $('img-obs').value = imagens[indiceAtual].obs || ''; } else { $('main-img').style.display = 'none'; $('photo-empty').style.display = 'block'; $('photo-count').textContent = '0 / 0'; $('img-obs').value = ''; } }
-        window.mudarFoto = (dir) => { if (!imagens.length) return; indiceAtual = (indiceAtual + dir + imagens.length) % imagens.length; renderGallery(); };
-        window.removerFoto = (i) => { if (!confirm('Remover esta imagem?')) return; imagens.splice(i,1); indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1)); renderGallery(); agendarAutoSave(); };
-        window.saveLocalObs = () => { if (imagens[indiceAtual]) { imagens[indiceAtual].obs = $('img-obs').value; agendarAutoSave(); } };
-        window.abrirEditor = () => { if (!imagens[indiceAtual]) return alert('Anexe uma imagem primeiro.'); $('draw-modal').style.display = 'flex'; elementos = JSON.parse(JSON.stringify(imagens[indiceAtual].elementos || [])); zoom = 1; applyZoom(); window.setTool('measure'); const img = new Image(); img.onload = () => { canvas.width = img.width; canvas.height = img.height; currentEditorImg = img; redrawCanvas(); }; img.src = imagens[indiceAtual].originalUrl || imagens[indiceAtual].url; };
+
+        function renderGallery() {
+            const mini = $('mini-gallery');
+            mini.innerHTML = '';
+            imagens.forEach((img, i) => {
+                const div = document.createElement('div');
+                div.className = `thumb ${i === indiceAtual ? 'selected' : ''} ${img.loading ? 'loading-thumb' : ''}`;
+                
+                if (img.loading) {
+                    div.innerHTML = `<div class="thumb-spinner"></div>`;
+                } else {
+                    div.onclick = () => { indiceAtual = i; renderGallery(); };
+                    div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`;
+                }
+                mini.appendChild(div);
+            });
+
+            if (imagens[indiceAtual] && !imagens[indiceAtual].loading) {
+                $('main-img').src = imagens[indiceAtual].url;
+                $('main-img').style.display = 'block';
+                $('photo-empty').style.display = 'none';
+                $('photo-count').textContent = `${indiceAtual + 1} / ${imagens.length}`;
+                $('img-obs').value = imagens[indiceAtual].obs || '';
+                $('img-obs').disabled = false;
+                document.querySelectorAll('.photo-tools button').forEach(b => b.disabled = false);
+            } else {
+                $('main-img').style.display = 'none';
+                if (imagens[indiceAtual] && imagens[indiceAtual].loading) {
+                    $('photo-empty').style.display = 'block';
+                    $('photo-empty').innerHTML = `<div class="viewer-spinner"></div><div style="margin-top:10px;">Enviando foto...</div>`;
+                } else {
+                    $('photo-empty').style.display = 'block';
+                    $('photo-empty').innerHTML = 'Nenhuma imagem anexada';
+                }
+                $('photo-count').textContent = '0 / 0';
+                $('img-obs').value = '';
+                $('img-obs').disabled = true;
+                document.querySelectorAll('.photo-tools button').forEach(b => b.disabled = true);
+            }
+        }
+
+        window.mudarFoto = (dir) => {
+            if (!imagens.length) return;
+            indiceAtual = (indiceAtual + dir + imagens.length) % imagens.length;
+            renderGallery();
+        };
+
+        window.removerFoto = async (i) => {
+            if (!confirm('Deseja remover esta imagem permanentemente?')) return;
+            const imgRemovida = imagens[i];
+            if (!imgRemovida || imgRemovida.loading) return;
+
+            showStatus('syncing', 'Excluindo imagem do banco...');
+            try {
+                await deleteDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', imgRemovida.id));
+                imagens.splice(i, 1);
+                indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1));
+                
+                await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+                    totalImagens: imagens.length
+                });
+
+                showStatus('saved', 'Imagem removida');
+                renderGallery();
+            } catch(e) {
+                console.error(e);
+                showStatus('error', 'Falha ao deletar imagem');
+                alert('Não foi possível excluir.');
+            }
+        };
+
+        window.saveLocalObs = () => {
+            const activeImg = imagens[indiceAtual];
+            if (activeImg && !activeImg.loading) {
+                activeImg.obs = $('img-obs').value;
+                
+                if (obsSaveTimer) clearTimeout(obsSaveTimer);
+                showStatus('typing', 'Digitando nota...');
+                
+                obsSaveTimer = setTimeout(async () => {
+                    showStatus('syncing', 'Salvando nota da imagem...');
+                    try {
+                        await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
+                            obs: activeImg.obs
+                        });
+                        showStatus('saved', 'Nota sincronizada');
+                    } catch(e) {
+                        console.error(e);
+                        showStatus('error', 'Falha ao salvar nota');
+                    }
+                }, 1000);
+            }
+        };
+
+        window.abrirEditor = () => {
+            if (!imagens[indiceAtual] || imagens[indiceAtual].loading) return alert('Carregue uma imagem primeiro.');
+            $('draw-modal').style.display = 'flex';
+            elementos = JSON.parse(JSON.stringify(imagens[indiceAtual].elementos || []));
+            zoom = 1;
+            applyZoom();
+            window.setTool('measure');
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                currentEditorImg = img;
+                redrawCanvas();
+            };
+            img.src = imagens[indiceAtual].originalUrl || imagens[indiceAtual].url;
+        };
+
         window.fecharEditor = () => { $('draw-modal').style.display = 'none'; };
-        window.setTool = (t) => { editorTool = t; document.querySelectorAll('.tool-header .tool').forEach((b) => b.classList.remove('active')); const btn = $(`btn-tool-${t}`); if (btn) btn.classList.add('active'); };
-        window.toggleColorPicker = (type) => { currentColorType = type; const picker = $('color-picker'); picker.innerHTML = colors.map((c) => `<button type="button" class="color-dot" style="background:${c}; border-color:${c === '#000000' ? '#fff' : '#555'}" onclick="window.setEditorColor('${c}')"></button>`).join(''); picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex'; };
-        window.setEditorColor = (c) => { if (currentColorType === 'line') lineColor = c; else measureColor = c; $(currentColorType === 'line' ? 'btn-color-line' : 'btn-color-measure').style.background = c; $('color-picker').style.display = 'none'; redrawCanvas(); };
+
+        window.setTool = (t) => {
+            editorTool = t;
+            document.querySelectorAll('.tool-header .tool').forEach((b) => b.classList.remove('active'));
+            const btn = $(`btn-tool-${t}`);
+            if (btn) btn.classList.add('active');
+        };
+
+        window.toggleColorPicker = (type) => {
+            currentColorType = type;
+            const picker = $('color-picker');
+            picker.innerHTML = colors.map((c) => `<button type="button" class="color-dot" style="background:${c}; border-color:${c === '#000000' ? '#fff' : '#555'}" onclick="window.setEditorColor('${c}')"></button>`).join('');
+            picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        window.setEditorColor = (c) => {
+            if (currentColorType === 'line') lineColor = c; else measureColor = c;
+            $(`btn-color-${currentColorType}`).style.background = c;
+            $('color-picker').style.display = 'none';
+            redrawCanvas();
+        };
+
         window.desfazerUltimo = () => { elementos.pop(); redrawCanvas(); };
         window.zoomEditor = (delta) => { zoom = Math.min(3, Math.max(0.35, zoom + delta)); applyZoom(); };
         function applyZoom() { canvas.style.transform = `scale(${zoom})`; $('zoom-label').textContent = `${Math.round(zoom*100)}%`; }
-        function getPos(e) { const rect = canvas.getBoundingClientRect(); let cx = e.clientX, cy = e.clientY; if (e.touches?.length) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else if (e.changedTouches?.length) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; } return { x:(cx - rect.left) * (canvas.width / rect.width), y:(cy - rect.top) * (canvas.height / rect.height) }; }
-        function findHit(pos) { let best = null, min = 70; elementos.forEach((el,i) => { const pts = el.type === 'text' ? [{p:'center',x:el.x,y:el.y}] : [{p:'start',x:el.x1,y:el.y1},{p:'end',x:el.x2,y:el.y2},{p:'center',x:(el.x1+el.x2)/2,y:(el.y1+el.y2)/2}]; pts.forEach((pt) => { const d = dist(pos.x,pos.y,pt.x,pt.y); if (d < min) { min = d; best = { i, p:pt.p }; } }); }); return best; }
-        function handleDown(e) { const pos = getPos(e); if (['measure','line'].includes(editorTool)) { isDrawing = true; startX = currentX = pos.x; startY = currentY = pos.y; } else if (editorTool === 'text') { const text = prompt('Digite o texto:'); if (text) { elementos.push({ type:'text', x:pos.x, y:pos.y, text, color:lineColor }); redrawCanvas(); } } else if (editorTool === 'move') { dragTarget = findHit(pos); if (dragTarget) { isDragging = true; didDrag = false; dragTarget.lastX = pos.x; dragTarget.lastY = pos.y; } } else if (editorTool === 'del') { const hit = findHit(pos); if (hit) { elementos.splice(hit.i,1); redrawCanvas(); } } }
-        function handleMove(e) { const pos = getPos(e); if (isDrawing) { currentX = pos.x; currentY = pos.y; redrawCanvas(); } else if (isDragging && dragTarget) { didDrag = true; const el = elementos[dragTarget.i], dx = pos.x - dragTarget.lastX, dy = pos.y - dragTarget.lastY; if (el.type === 'text' || dragTarget.p === 'center') { if (el.type === 'text') { el.x += dx; el.y += dy; } else { el.x1 += dx; el.x2 += dx; el.y1 += dy; el.y2 += dy; } } else if (dragTarget.p === 'start') { el.x1 = pos.x; el.y1 = pos.y; } else if (dragTarget.p === 'end') { el.x2 = pos.x; el.y2 = pos.y; } dragTarget.lastX = pos.x; dragTarget.lastY = pos.y; redrawCanvas(); } }
-        function handleUp() { if (isDrawing) { isDrawing = false; if (dist(startX,startY,currentX,currentY) > 18) { if (editorTool === 'measure') { const text = prompt('Digite a medida (ex: 150 cm):'); if (text) elementos.push({ type:'measure', x1:startX, y1:startY, x2:currentX, y2:currentY, text, color:measureColor }); } else elementos.push({ type:'line', x1:startX, y1:startY, x2:currentX, y2:currentY, color:lineColor }); } redrawCanvas(); } if (isDragging) { const el = elementos[dragTarget.i]; if (!didDrag && el) { const novo = prompt('Editar texto:', el.text || ''); if (novo !== null && (el.type === 'text' || el.type === 'measure')) el.text = novo; } isDragging = false; dragTarget = null; redrawCanvas(); } }
-        function redrawCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); if (currentEditorImg) ctx.drawImage(currentEditorImg,0,0); elementos.forEach(drawElement); if (isDrawing) drawElement({ type:editorTool, x1:startX, y1:startY, x2:currentX, y2:currentY, text:'...', color:getCurrentColor() }); }
-        function drawElement(el) { if (el.type === 'text') return drawText(el.x, el.y, el.text, el.color || lineColor); if (el.type === 'measure') drawMeasure(el.x1,el.y1,el.x2,el.y2,el.text,el.color || measureColor); else drawLine(el.x1,el.y1,el.x2,el.y2,el.color || lineColor); }
-        function drawLine(x1,y1,x2,y2,color) { ctx.strokeStyle = color; ctx.lineWidth = Math.max(4, canvas.width / 220); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
-        function drawMeasure(x1,y1,x2,y2,text,color) { drawLine(x1,y1,x2,y2,color); const head = Math.max(18, canvas.width/70), ang = Math.atan2(y2-y1,x2-x1); ctx.fillStyle = color; [[x2,y2,Math.PI],[x1,y1,0]].forEach(([x,y,off]) => { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x - head*Math.cos(ang - Math.PI/6 + off), y - head*Math.sin(ang - Math.PI/6 + off)); ctx.lineTo(x - head*Math.cos(ang + Math.PI/6 + off), y - head*Math.sin(ang + Math.PI/6 + off)); ctx.fill(); }); if (text && text !== '...') drawText((x1+x2)/2, (y1+y2)/2, text, '#fff'); }
-        function drawText(x,y,text,color) { ctx.save(); ctx.font = `bold ${Math.max(28, canvas.width/35)}px Montserrat, sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; const m = ctx.measureText(text), pad = 12; ctx.fillStyle='rgba(0,0,0,.72)'; ctx.fillRect(x - m.width/2 - pad, y - 18 - pad, m.width + pad*2, 36 + pad*2); ctx.fillStyle = color; ctx.fillText(text, x, y); ctx.restore(); }
-        window.salvarEditor = () => { imagens[indiceAtual].elementos = JSON.parse(JSON.stringify(elementos)); imagens[indiceAtual].url = canvas.toDataURL('image/jpeg', QUALIDADE_IMAGEM); if (estimarTamanhoImagens() > LIMITE_TAMANHO_CAMPO) { alert('Não foi possível salvar a edição da imagem: limite de dados do card atingido.'); return; } renderGallery(); window.fecharEditor(); agendarAutoSave(); };
-        window.baixarImagem = (withMeasures) => { if (!imagens[indiceAtual]) return; dataUrlDownload(withMeasures ? imagens[indiceAtual].url : (imagens[indiceAtual].originalUrl || imagens[indiceAtual].url), `visita-${visitaId || 'imagem'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'sem-medidas'}.jpg`); };
-        init().catch((e) => { console.error('Erro ao iniciar página de visita:', e); alert('Erro ao carregar os dados da visita. Recarregue a página.'); });
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let cx = e.clientX, cy = e.clientY;
+            if (e.touches?.length) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+            else if (e.changedTouches?.length) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+            return { x: (cx - rect.left) * (canvas.width / rect.width), y: (cy - rect.top) * (canvas.height / rect.height) };
+        }
+        function findHit(pos) {
+            let best = null, min = 70;
+            elementos.forEach((el, i) => {
+                const pts = el.type === 'text' ? [{p:'center',x:el.x,y:el.y}] : [{p:'start',x:el.x1,y:el.y1},{p:'end',x:el.x2,y:el.y2},{p:'center',x:(el.x1+el.x2)/2,y:(el.y1+el.y2)/2}];
+                pts.forEach((pt) => {
+                    const d = dist(pos.x, pos.y, pt.x, pt.y);
+                    if (d < min) { min = d; best = { i, p: pt.p }; }
+                });
+            });
+            return best;
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            if (currentEditorImg) ctx.drawImage(currentEditorImg, 0, 0);
+            elementos.forEach(drawElement);
+            if (isDrawing) drawElement({ type: editorTool, x1: startX, y1: startY, x2: currentX, y2: currentY, text: '...', color: getCurrentColor() });
+        }
+
+        function getCurrentColor() { return editorTool === 'line' ? lineColor : measureColor; }
+
+        function drawElement(el) {
+            if (el.type === 'text') return drawText(el.x, el.y, el.text, el.color || lineColor);
+            if (el.type === 'measure') drawMeasure(el.x1, el.y1, el.x2, el.y2, el.text, el.color || measureColor);
+            else drawLine(el.x1, el.y1, el.x2, el.y2, el.color || lineColor);
+        }
+
+        function drawLine(x1, y1, x2, y2, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(4, canvas.width / 220);
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        function drawMeasure(x1, y1, x2, y2, text, color) {
+            drawLine(x1, y1, x2, y2, color);
+            const head = Math.max(18, canvas.width / 70), ang = Math.atan2(y2 - y1, x2 - x1);
+            ctx.fillStyle = color;
+            [[x2, y2, Math.PI], [x1, y1, 0]].forEach(([x, y, off]) => {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - head * Math.cos(ang - Math.PI / 6 + off), y - head * Math.sin(ang - Math.PI / 6 + off));
+                ctx.lineTo(x - head * Math.cos(ang + Math.PI / 6 + off), y - head * Math.sin(ang + Math.PI / 6 + off));
+                ctx.fill();
+            });
+            if (text && text !== '...') drawText((x1 + x2) / 2, (y1 + y2) / 2, text, '#fff');
+        }
+
+        function drawText(x, y, text, color) {
+            ctx.save();
+            ctx.font = `bold ${Math.max(28, canvas.width / 35)}px Montserrat, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const m = ctx.measureText(text), pad = 12;
+            ctx.fillStyle = 'rgba(0,0,0,.72)';
+            ctx.fillRect(x - m.width / 2 - pad, y - 18 - pad, m.width + pad * 2, 36 + pad * 2);
+            ctx.fillStyle = color;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        window.salvarEditor = async () => {
+            const activeImg = imagens[indiceAtual];
+            if (!activeImg || activeImg.loading) return;
+
+            showStatus('syncing', 'Gravando imagem editada...');
+            try {
+                const finalDataUrl = canvas.toDataURL('image/jpeg', QUALIDADE_IMAGEM);
+                
+                await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
+                    url: finalDataUrl,
+                    elementos: elementos
+                });
+
+                activeImg.url = finalDataUrl;
+                activeImg.elementos = JSON.parse(JSON.stringify(elementos));
+
+                renderGallery();
+                window.fecharEditor();
+                showStatus('saved', 'Edição salva');
+            } catch (e) {
+                console.error(e);
+                showStatus('error', 'Falha ao salvar edição');
+                alert('Erro ao gravar no banco.');
+            }
+        };
+
+        window.baixarImagem = (withMeasures) => {
+            if (!imagens[indiceAtual] || imagens[indiceAtual].loading) return;
+            dataUrlDownload(withMeasures ? imagens[indiceAtual].url : (imagens[indiceAtual].originalUrl || imagens[indiceAtual].url), `visita-${visitaId || 'imagem'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'sem-medidas'}.jpg`);
+        };
+
+        window.switchTab = (tabName) => {
+            const panels = document.querySelectorAll('.layout .panel');
+            const tabInfo = $('tab-info');
+            const tabImages = $('tab-images');
+            
+            if (tabName === 'info') {
+                panels[0].style.display = 'block';
+                panels[1].style.display = 'none';
+                tabInfo.classList.add('active');
+                tabImages.classList.remove('active');
+            } else {
+                panels[0].style.display = 'none';
+                panels[1].style.display = 'block';
+                tabInfo.classList.remove('active');
+                tabImages.classList.add('active');
+            }
+        };
+
+        init().catch((e) => {
+            console.error('Erro ao iniciar página:', e);
+            showStatus('error', 'Erro catastrófico');
+            alert('Falha crítica ao iniciar. Tente recarregar.');
+        });
     </script>
     <script type="module">import { protegerPagina } from './auth.js'; await protegerPagina({ paginaAtual:'detalhes-visita.html' });</script>
     <script src="./task-shortcut.js"></script>
