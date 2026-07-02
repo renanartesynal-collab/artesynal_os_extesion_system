@@ -86,6 +86,8 @@
         .btn-measure:hover { opacity: 0.95; }
         .btn-del { background: linear-gradient(135deg, var(--red), var(--red-hover)); }
         .btn-del:hover { opacity: 0.9; }
+        .btn-pdf { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+        .btn-pdf:hover { opacity: 0.95; }
 
         .sync-indicator {
             font-size: 12px;
@@ -186,7 +188,7 @@
             overflow: hidden;
             box-shadow: inset 0 4px 12px rgba(0,0,0,0.5);
         }
-        .photo-viewer img {
+        .photo-viewer img, .photo-viewer video {
             max-width: 100%;
             max-height: 65vh;
             object-fit: contain;
@@ -496,6 +498,7 @@
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content: flex-end;">
             <span id="sync-indicator" class="sync-indicator loading">⏳ Carregando dados...</span>
             <a href="medidas-visitas.html" class="btn btn-back">⬅ VOLTAR</a>
+            <button id="pdf-btn" class="btn btn-pdf" onclick="window.gerarPdfPrevio()">📄 PDF PRÉVIO</button>
             <button id="save-btn" class="btn btn-save" onclick="window.salvarVisita()">💾 SALVAR</button>
         </div>
     </header>
@@ -533,9 +536,9 @@
         <section class="panel">
             <label>Imagens e medidas</label>
             <div class="gallery-controls">
-                <input type="file" id="file-input" accept="image/*" multiple hidden>
+                <input type="file" id="file-input" accept="image/*,video/*" multiple hidden>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
-                <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR IMAGENS</button>
+                <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR IMAGENS/VÍDEOS</button>
                 <button class="btn btn-camera" onclick="document.getElementById('camera-input').click()">📷 ABRIR CÂMERA</button>
             </div>
             
@@ -543,6 +546,7 @@
                 <button class="nav-photo prev" onclick="window.mudarFoto(-1)">❮</button>
                 <div id="photo-empty" class="photo-empty">Nenhuma imagem anexada</div>
                 <img id="main-img" alt="Imagem selecionada" style="display:none">
+                <video id="main-video" controls playsinline style="display:none"></video>
                 <button class="nav-photo next" onclick="window.mudarFoto(1)">❯</button>
                 
                 <div class="photo-tools">
@@ -592,6 +596,42 @@
         let saveTimer = null;
         let saveInFlight = false, saveQueued = false;
         let obsSaveTimer = null;
+        const OFFLINE_KEY_PREFIX = 'medidas_visitas_offline_';
+        const OFFLINE_PENDING_KEY = 'medidas_visitas_offline_pending_ids';
+        const VIDEO_MAX_BYTES = 700 * 1024;
+
+        function isOnline() { return navigator.onLine !== false; }
+        function offlineKey(id = visitaId) { return `${OFFLINE_KEY_PREFIX}${id || 'nova'}`; }
+        function pendingIds() { try { return JSON.parse(localStorage.getItem(OFFLINE_PENDING_KEY) || '[]'); } catch { return []; } }
+        function marcarPendente(id = visitaId) {
+            if (!id) return;
+            const ids = pendingIds();
+            if (!ids.includes(id)) localStorage.setItem(OFFLINE_PENDING_KEY, JSON.stringify([...ids, id]));
+        }
+        function desmarcarPendente(id = visitaId) {
+            localStorage.setItem(OFFLINE_PENDING_KEY, JSON.stringify(pendingIds().filter(x => x !== id)));
+        }
+        function salvarRascunhoOffline() {
+            if (!visitaId) visitaId = `local-${Date.now()}`;
+            const draft = {
+                visitaId,
+                payload: visitaPayload(false),
+                imagens: imagens.filter(x => !x.loading),
+                atualizadoLocalEm: new Date().toISOString()
+            };
+            localStorage.setItem(offlineKey(), JSON.stringify(draft));
+            marcarPendente();
+        }
+        function carregarRascunhoOffline(id) {
+            try { return JSON.parse(localStorage.getItem(offlineKey(id)) || 'null'); } catch { return null; }
+        }
+        function atualizarStatusConexao() {
+            const draft = carregarRascunhoOffline();
+            if (!isOnline()) showStatus('typing', 'Modo offline: alterações salvas localmente');
+            else if (draft) showStatus('typing', 'Há dados locais pendentes. Clique em salvar para enviar.');
+        }
+        window.addEventListener('online', atualizarStatusConexao);
+        window.addEventListener('offline', atualizarStatusConexao);
 
         function showStatus(state, msg) {
             const ind = $('sync-indicator');
@@ -599,6 +639,7 @@
             ind.className = 'sync-indicator ' + state;
             let icon = '☁️';
             if (state === 'syncing') icon = '🔄';
+            else if (msg.toLowerCase().includes('offline')) icon = '📴';
             else if (state === 'typing') icon = '✍️';
             else if (state === 'error') icon = '⚠️';
             else if (state === 'loading') icon = '⏳';
@@ -631,7 +672,10 @@
         }
 
         async function init() {
-            if (visitaId) {
+            if (visitaId && visitaId.startsWith('local-')) {
+                const draft = carregarRascunhoOffline(visitaId);
+                if (draft) { preencher(draft.payload || {}); imagens = draft.imagens || []; showStatus('typing', 'Modo offline: rascunho carregado'); }
+            } else if (visitaId) {
                 showStatus('loading', 'Carregando dados da visita...');
                 const snap = await getDoc(doc(db, 'medidas_visitas', visitaId));
                 if (snap.exists()) {
@@ -679,6 +723,12 @@
                 }
             } else {
                 // Se não tem ID, cria um novo card imediatamente para associar subcoleções
+                if (!isOnline()) {
+                    visitaId = `local-${Date.now()}`;
+                    history.replaceState(null, '', `?id=${visitaId}`);
+                    salvarRascunhoOffline();
+                    showStatus('typing', 'Modo offline: visita salva localmente');
+                } else {
                 showStatus('syncing', 'Iniciando nova visita...');
                 const novo = {
                     empresa: '', cliente: '', servico: '', tipo_servico: '',
@@ -689,6 +739,7 @@
                 const ref = await addDoc(collection(db, 'medidas_visitas'), novo);
                 visitaId = ref.id;
                 history.replaceState(null, '', `?id=${visitaId}`);
+                }
             }
 
             $('file-input').addEventListener('change', window.addFotos);
@@ -778,7 +829,8 @@
             
             ['empresa','cliente','servico','endereco','observacoes'].forEach((id) => {
                 $(id).addEventListener('input', () => {
-                    showStatus('typing', 'Digitando...');
+                    showStatus(isOnline() ? 'typing' : 'typing', isOnline() ? 'Digitando...' : 'Modo offline: salvando localmente...');
+                    salvarRascunhoOffline();
                     agendarAutoSave();
                 });
             });
@@ -788,7 +840,8 @@
             });
 
             renderGallery();
-            showStatus('saved', 'Salvo na nuvem');
+            atualizarStatusConexao();
+            if (isOnline() && !carregarRascunhoOffline()) showStatus('saved', 'Salvo na nuvem');
         }
 
         function preencher(v) {
@@ -799,7 +852,7 @@
             $('observacoes').value = v.observacoes || v.info_adicional || '';
         }
 
-        function visitaPayload() {
+        function visitaPayload(useServerTime = true) {
             return {
                 empresa: $('empresa').value.trim(),
                 cliente: $('cliente').value.trim(),
@@ -807,24 +860,45 @@
                 tipo_servico: $('servico').value.trim(),
                 endereco: $('endereco').value.trim(),
                 observacoes: $('observacoes').value.trim(),
-                atualizado_em: serverTimestamp()
+                atualizado_em: useServerTime ? serverTimestamp() : new Date().toISOString()
             };
         }
 
         async function persistirVisita({ silencioso = true } = {}) {
             if (saveInFlight) { saveQueued = true; return false; }
             saveInFlight = true;
+            if (!isOnline()) {
+                salvarRascunhoOffline();
+                showStatus('typing', 'Modo offline: backup salvo localmente');
+                if (!silencioso) alert('Sem internet: informações salvas localmente. Quando reconectar, clique em SALVAR para enviar tudo.');
+                saveInFlight = false;
+                return false;
+            }
             showStatus('syncing', 'Salvando dados...');
             try {
+                const draft = carregarRascunhoOffline();
+                if (visitaId && visitaId.startsWith('local-')) {
+                    const novo = { ...(draft?.payload || visitaPayload(false)), status: 'solicitacoes', arquivado: false, totalImagens: 0, criado_em: serverTimestamp(), origem: 'medidas_visitas' };
+                    const ref = await addDoc(collection(db, 'medidas_visitas'), novo);
+                    const oldId = visitaId;
+                    visitaId = ref.id;
+                    history.replaceState(null, '', `?id=${visitaId}`);
+                    localStorage.removeItem(offlineKey(oldId));
+                    desmarcarPendente(oldId);
+                }
                 if (visitaId) {
                     await updateDoc(doc(db, 'medidas_visitas', visitaId), visitaPayload());
                 }
+                await sincronizarAnexosLocais();
+                localStorage.removeItem(offlineKey());
+                desmarcarPendente();
                 showStatus('saved', 'Salvo automaticamente');
                 if (!silencioso) alert('Visita salva com sucesso.');
                 return true;
             } catch(e) {
                 console.error('Erro ao salvar visita:', e);
-                showStatus('error', 'Erro ao salvar dados. Clique para tentar.');
+                salvarRascunhoOffline();
+                showStatus('error', 'Erro ao salvar dados. Backup local feito (modo offline). Clique para tentar.');
                 return false;
             } finally {
                 saveInFlight = false;
@@ -850,6 +924,31 @@
             window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`, '_blank');
         };
 
+        async function lerArquivoDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        async function sincronizarAnexosLocais() {
+            for (const item of imagens.filter(x => (x.localOnly || x.localDirty) && !x.loading)) {
+                const data = { url: item.url, originalUrl: item.originalUrl || item.url, obs: item.obs || '', elementos: item.elementos || [], tipo: item.tipo || 'image', nome: item.nome || '', criado_em: item.criado_em || serverTimestamp() };
+                if (item.localOnly || String(item.id || '').startsWith('local-')) {
+                    data.criado_em = serverTimestamp();
+                    const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), data);
+                    item.id = docRef.id;
+                } else {
+                    await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', item.id), {
+                        url: data.url, originalUrl: data.originalUrl, obs: data.obs, elementos: data.elementos, tipo: data.tipo, nome: data.nome
+                    });
+                }
+                item.localOnly = false; item.localDirty = false; item.criado_em = new Date();
+            }
+            await updateDoc(doc(db, 'medidas_visitas', visitaId), { totalImagens: imagens.filter(x => !x.loading).length });
+        }
+
         window.addFotos = async (ev) => {
             const files = [...(ev.target.files || [])];
             const vagas = MAX_IMAGENS - imagens.length;
@@ -864,17 +963,28 @@
 
                 showStatus('syncing', 'Compactando e enviando imagem...');
                 try {
-                    const dataCompactada = await lerArquivoCompactado(file);
+                    const isVideo = file.type.startsWith('video/');
+                    if (isVideo && file.size > VIDEO_MAX_BYTES) throw new Error('Vídeo maior que 700 KB.');
+                    const dataCompactada = isVideo ? await lerArquivoDataUrl(file) : await lerArquivoCompactado(file);
                     
                     const imgData = {
                         url: dataCompactada,
                         originalUrl: dataCompactada,
                         obs: '',
                         elementos: [],
+                        tipo: isVideo ? 'video' : 'image',
+                        nome: file.name,
                         criado_em: serverTimestamp()
                     };
 
-                    const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), imgData);
+                    let docRef = null;
+                    if (!isOnline() || visitaId?.startsWith('local-')) {
+                        docRef = { id: placeholderId.replace('temp-', 'local-') };
+                        imgData.criado_em = new Date();
+                        imgData.localOnly = true;
+                    } else {
+                        docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), imgData);
+                    }
                     
                     const idx = imagens.findIndex(img => img.id === placeholderId);
                     if (idx !== -1) {
@@ -883,17 +993,19 @@
                     }
                     
                     // Atualiza contador no card pai
-                    await updateDoc(doc(db, 'medidas_visitas', visitaId), {
-                        totalImagens: imagens.filter(x => !x.loading).length
-                    });
+                    if (isOnline() && !visitaId?.startsWith('local-')) {
+                        await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+                            totalImagens: imagens.filter(x => !x.loading).length
+                        });
+                    } else salvarRascunhoOffline();
 
-                    showStatus('saved', 'Imagem salva automaticamente');
+                    showStatus(isOnline() ? 'saved' : 'typing', isOnline() ? 'Imagem salva automaticamente' : 'Modo offline: anexo salvo localmente');
                     renderGallery();
                 } catch (e) {
                     console.error('Erro ao salvar imagem:', e);
                     imagens = imagens.filter(img => img.id !== placeholderId);
                     renderGallery();
-                    alert(`Falha ao carregar a imagem "${file.name}".`);
+                    alert(`Falha ao carregar o anexo "${file.name}". Vídeos estão em suporte inicial e precisam ter até 700 KB.`);
                     showStatus('error', 'Falha ao salvar imagem');
                 }
             }
@@ -911,14 +1023,22 @@
                     div.innerHTML = `<div class="thumb-spinner"></div>`;
                 } else {
                     div.onclick = () => { indiceAtual = i; renderGallery(); };
-                    div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`;
+                    div.innerHTML = img.tipo === 'video' ? `<video src="${img.url}" muted></video><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>` : `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`;
                 }
                 mini.appendChild(div);
             });
 
             if (imagens[indiceAtual] && !imagens[indiceAtual].loading) {
-                $('main-img').src = imagens[indiceAtual].url;
-                $('main-img').style.display = 'block';
+                const atual = imagens[indiceAtual];
+                if (atual.tipo === 'video') {
+                    $('main-video').src = atual.url;
+                    $('main-video').style.display = 'block';
+                    $('main-img').style.display = 'none';
+                } else {
+                    $('main-img').src = atual.url;
+                    $('main-img').style.display = 'block';
+                    $('main-video').style.display = 'none';
+                }
                 $('photo-empty').style.display = 'none';
                 $('photo-count').textContent = `${indiceAtual + 1} / ${imagens.length}`;
                 $('img-obs').value = imagens[indiceAtual].obs || '';
@@ -926,6 +1046,7 @@
                 document.querySelectorAll('.photo-tools button').forEach(b => b.disabled = false);
             } else {
                 $('main-img').style.display = 'none';
+                $('main-video').style.display = 'none';
                 if (imagens[indiceAtual] && imagens[indiceAtual].loading) {
                     $('photo-empty').style.display = 'block';
                     $('photo-empty').innerHTML = `<div class="viewer-spinner"></div><div style="margin-top:10px;">Enviando foto...</div>`;
@@ -953,13 +1074,15 @@
 
             showStatus('syncing', 'Excluindo imagem do banco...');
             try {
-                await deleteDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', imgRemovida.id));
+                if (isOnline() && !imgRemovida.localOnly && !visitaId?.startsWith('local-')) await deleteDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', imgRemovida.id));
                 imagens.splice(i, 1);
                 indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1));
                 
-                await updateDoc(doc(db, 'medidas_visitas', visitaId), {
-                    totalImagens: imagens.length
-                });
+                if (isOnline() && !visitaId?.startsWith('local-')) {
+                    await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+                        totalImagens: imagens.length
+                    });
+                } else salvarRascunhoOffline();
 
                 showStatus('saved', 'Imagem removida');
                 renderGallery();
@@ -981,10 +1104,16 @@
                 obsSaveTimer = setTimeout(async () => {
                     showStatus('syncing', 'Salvando nota da imagem...');
                     try {
-                        await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
-                            obs: activeImg.obs
-                        });
-                        showStatus('saved', 'Nota sincronizada');
+                        if (isOnline() && !activeImg.localOnly && !visitaId?.startsWith('local-')) {
+                            await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
+                                obs: activeImg.obs
+                            });
+                            showStatus('saved', 'Nota sincronizada');
+                        } else {
+                            activeImg.localDirty = !activeImg.localOnly;
+                            salvarRascunhoOffline();
+                            showStatus('typing', 'Modo offline: nota salva localmente');
+                        }
                     } catch(e) {
                         console.error(e);
                         showStatus('error', 'Falha ao salvar nota');
@@ -994,7 +1123,7 @@
         };
 
         window.abrirEditor = () => {
-            if (!imagens[indiceAtual] || imagens[indiceAtual].loading) return alert('Carregue uma imagem primeiro.');
+            if (!imagens[indiceAtual] || imagens[indiceAtual].loading || imagens[indiceAtual].tipo === 'video') return alert('Carregue uma imagem primeiro. Vídeos não podem ser editados com medidas.');
             $('draw-modal').style.display = 'flex';
             elementos = JSON.parse(JSON.stringify(imagens[indiceAtual].elementos || []));
             zoom = 1;
@@ -1114,17 +1243,23 @@
             try {
                 const finalDataUrl = canvas.toDataURL('image/jpeg', QUALIDADE_IMAGEM);
                 
-                await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
-                    url: finalDataUrl,
-                    elementos: elementos
-                });
+                if (isOnline() && !activeImg.localOnly && !visitaId?.startsWith('local-')) {
+                    await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
+                        url: finalDataUrl,
+                        elementos: elementos
+                    });
+                }
 
                 activeImg.url = finalDataUrl;
                 activeImg.elementos = JSON.parse(JSON.stringify(elementos));
+                if (!isOnline() || activeImg.localOnly || visitaId?.startsWith('local-')) {
+                    if (!activeImg.localOnly) activeImg.localDirty = true;
+                    salvarRascunhoOffline();
+                }
 
                 renderGallery();
                 window.fecharEditor();
-                showStatus('saved', 'Edição salva');
+                showStatus(isOnline() ? 'saved' : 'typing', isOnline() ? 'Edição salva' : 'Modo offline: edição salva localmente');
             } catch (e) {
                 console.error(e);
                 showStatus('error', 'Falha ao salvar edição');
@@ -1135,6 +1270,20 @@
         window.baixarImagem = (withMeasures) => {
             if (!imagens[indiceAtual] || imagens[indiceAtual].loading) return;
             dataUrlDownload(withMeasures ? imagens[indiceAtual].url : (imagens[indiceAtual].originalUrl || imagens[indiceAtual].url), `visita-${visitaId || 'imagem'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'sem-medidas'}.jpg`);
+        };
+
+        window.gerarPdfPrevio = () => {
+            const esc = (v) => String(v || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+            const info = visitaPayload(false);
+            const anexos = imagens.filter(x => !x.loading);
+            const html = `<!doctype html><html><head><meta charset="utf-8"><title>Prévia PDF - Medida/Visita</title><style>
+                body{font-family:Arial,sans-serif;color:#111;margin:28px}.page{page-break-after:always}h1{margin:0 0 16px}.field{margin:8px 0}.label{font-weight:bold}img{max-width:100%;max-height:88vh;display:block;margin:auto}.video-box{border:2px dashed #777;padding:40px;text-align:center;margin-top:80px}@media print{button{display:none}.page{min-height:95vh}}
+            </style></head><body><button onclick="window.print()">Salvar/Imprimir PDF</button><section class="page"><h1>Medida / Visita</h1>
+            <div class="field"><span class="label">Empresa:</span> ${esc(info.empresa)}</div><div class="field"><span class="label">Cliente:</span> ${esc(info.cliente)}</div><div class="field"><span class="label">Serviço:</span> ${esc(info.servico)}</div><div class="field"><span class="label">Endereço:</span> ${esc(info.endereco)}</div><div class="field"><span class="label">Observações:</span><br>${esc(info.observacoes).replace(/\n/g,'<br>')}</div></section>
+            ${anexos.map((a,i)=>`<section class="page"><h2>Anexo ${i+1}${a.tipo==='video'?' - Vídeo':' - Imagem'}</h2>${a.tipo==='video'?`<div class="video-box">Vídeo anexado: ${esc(a.nome || 'sem nome')}<br>Vídeos não são incorporados no PDF prévio.</div>`:`<img src="${a.url}">`}<p>${esc(a.obs || '')}</p></section>`).join('')}</body></html>`;
+            const win = window.open('', '_blank');
+            if (!win) return alert('Permita pop-ups para gerar a prévia do PDF.');
+            win.document.write(html); win.document.close(); setTimeout(() => win.print(), 500);
         };
 
         window.switchTab = (tabName) => {
