@@ -3,7 +3,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 // 1. CONFIGURAÇÃO CENTRAL DO FIREBASE
 const firebaseConfig = {
@@ -18,7 +17,6 @@ const firebaseConfig = {
 // Inicializa o Firebase apenas uma vez aqui
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
 
 // 2. NOMES DAS PÁGINAS (ROTAS)
 // Se precisar mudar o nome de alguma página no futuro, mude apenas aqui!

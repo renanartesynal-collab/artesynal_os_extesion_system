@@ -186,7 +186,7 @@
             overflow: hidden;
             box-shadow: inset 0 4px 12px rgba(0,0,0,0.5);
         }
-        .photo-viewer img, .photo-viewer video {
+        .photo-viewer img {
             max-width: 100%;
             max-height: 65vh;
             object-fit: contain;
@@ -289,17 +289,6 @@
             transition: var(--transition);
         }
         .thumb button:hover { background: var(--red-hover); }
-
-        .video-thumb-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #1e293b;
-            color: var(--yellow);
-            font-size: 24px;
-        }
 
         /* Skeletons para carregamento */
         .thumb.loading-thumb {
@@ -506,7 +495,6 @@
         <h1>Medida / Visita</h1>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content: flex-end;">
             <span id="sync-indicator" class="sync-indicator loading">⏳ Carregando dados...</span>
-            <button class="btn" style="background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);" onclick="window.gerarPdfRelatorio()">📄 GERAR PDF</button>
             <a href="medidas-visitas.html" class="btn btn-back">⬅ VOLTAR</a>
             <button id="save-btn" class="btn btn-save" onclick="window.salvarVisita()">💾 SALVAR</button>
         </div>
@@ -527,7 +515,7 @@
             <input id="cliente" placeholder="Nome do contato/cliente">
 
             <label for="servico">Tipo de serviço</label>
-            <input id="servico" placeholder="Ex: Fachada ACM, Letra Caixa...">
+            <input id="servico" placeholder="Ex: Painel ACM, Letra Caixa...">
 
             <div class="address-row">
                 <div style="flex:1;">
@@ -543,48 +531,40 @@
 
         <!-- ABA 2: Galeria e Medidas -->
         <section class="panel">
-            <label>Imagens, Vídeos e Medidas</label>
+            <label>Imagens e medidas</label>
             <div class="gallery-controls">
                 <input type="file" id="file-input" accept="image/*" multiple hidden>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
-                <input type="file" id="video-input" accept="video/*" multiple hidden>
-                <input type="file" id="camera-video-input" accept="video/*" capture="environment" hidden>
-                
                 <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">📁 ANEXAR IMAGENS</button>
                 <button class="btn btn-camera" onclick="document.getElementById('camera-input').click()">📷 ABRIR CÂMERA</button>
-                <button class="btn btn-upload" style="background:#334155" onclick="document.getElementById('video-input').click()">🎥 ANEXAR VÍDEOS</button>
-                <button class="btn btn-camera" style="background:#0ea5e9" onclick="document.getElementById('camera-video-input').click()">🎬 GRAVAR VÍDEO</button>
             </div>
             
             <div class="photo-viewer">
                 <button class="nav-photo prev" onclick="window.mudarFoto(-1)">❮</button>
-                <div id="photo-empty" class="photo-empty">Nenhuma imagem ou vídeo anexado</div>
+                <div id="photo-empty" class="photo-empty">Nenhuma imagem anexada</div>
                 <img id="main-img" alt="Imagem selecionada" style="display:none">
-                <video id="main-video" controls style="display:none; max-width: 100%; max-height: 65vh; object-fit: contain;"></video>
                 <button class="nav-photo next" onclick="window.mudarFoto(1)">❯</button>
                 
                 <div class="photo-tools">
-                    <button id="btn-edit-measures" class="btn btn-measure" onclick="window.abrirEditor()">📏 EDITAR MEDIDAS</button>
-                    <button id="btn-download-with-measures" class="btn" style="background:#334155" onclick="window.baixarImagem(true)">⬇ COM MEDIDAS</button>
-                    <button id="btn-download-no-measures" class="btn" style="background:#475569" onclick="window.baixarImagem(false)">⬇ SEM MEDIDAS</button>
-                    <button id="btn-download-video" class="btn" style="background:#0ea5e9; display:none;" onclick="window.baixarVideo()">⬇ BAIXAR VÍDEO</button>
+                    <button class="btn btn-measure" onclick="window.abrirEditor()">📏 EDITAR MEDIDAS</button>
+                    <button class="btn" style="background:#334155" onclick="window.baixarImagem(true)">⬇ COM MEDIDAS</button>
+                    <button class="btn" style="background:#475569" onclick="window.baixarImagem(false)">⬇ SEM MEDIDAS</button>
                 </div>
             </div>
             
             <div id="photo-count" class="photo-count">0 / 0</div>
             <div id="mini-gallery" class="mini-gallery"></div>
             
-            <label for="img-obs">Nota da mídia selecionada</label>
-            <input id="img-obs" placeholder="Nota sobre esta foto ou vídeo" oninput="window.saveLocalObs()">
+            <label for="img-obs">Nota da imagem selecionada</label>
+            <input id="img-obs" placeholder="Nota sobre esta foto" oninput="window.saveLocalObs()">
         </section>
     </main>
 
     <button id="save-btn-mobile" class="btn btn-save floating-save" onclick="window.salvarVisita()">💾 SALVAR ALTERAÇÕES</button>
 
     <script type="module">
-        import { db, storage } from './config.js';
+        import { db } from './config.js';
         import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, getDocs, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-        import { ref as sRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 
         const params = new URLSearchParams(window.location.search);
         let visitaId = params.get('id');
@@ -682,7 +662,7 @@
                             imagensMigradas: true
                         });
                     } else {
-                        // Carrega as fotos e vídeos da subcoleção
+                        // Carrega as fotos da subcoleção
                         const q = query(collection(db, 'medidas_visitas', visitaId, 'imagens'), orderBy('criado_em', 'asc'));
                         const querySnapshot = await getDocs(q);
                         imagens = querySnapshot.docs.map(doc => ({
@@ -713,8 +693,6 @@
 
             $('file-input').addEventListener('change', window.addFotos);
             $('camera-input').addEventListener('change', window.addFotos);
-            $('video-input').addEventListener('change', window.addVideos);
-            $('camera-video-input').addEventListener('change', window.addVideos);
 
             const handleDown = (e) => {
                 const pos = getPos(e);
@@ -784,7 +762,7 @@
                 if (isDragging) {
                     const el = elementos[dragTarget.i];
                     if (!didDrag && el) {
-                        const novo = prompt('Editar text:', el.text || '');
+                        const novo = prompt('Editar texto:', el.text || '');
                         if (novo !== null && (el.type === 'text' || el.type === 'measure')) el.text = novo;
                     }
                     isDragging = false;
@@ -922,60 +900,6 @@
             ev.target.value = '';
         };
 
-        window.addVideos = async (ev) => {
-            const files = [...(ev.target.files || [])];
-            const vagas = MAX_IMAGENS - imagens.length;
-            if (vagas <= 0) { alert(`Limite de ${MAX_IMAGENS} itens atingido.`); ev.target.value = ''; return; }
-            if (files.length > vagas) alert(`Somente ${vagas} vídeo(s) serão adicionados.`);
-            
-            for (const file of files.slice(0, vagas)) {
-                const placeholderId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                imagens.push({ id: placeholderId, url: '', originalUrl: '', obs: '', type: 'video', name: file.name, loading: true });
-                renderGallery();
-                
-                showStatus('syncing', 'Enviando vídeo para o servidor...');
-                try {
-                    // Upload to Firebase Storage
-                    const path = `medidas_visitas/${visitaId}/videos/${Date.now()}-${file.name}`;
-                    const videoRef = sRef(storage, path);
-                    const snapshot = await uploadBytes(videoRef, file);
-                    const downloadUrl = await getDownloadURL(snapshot.ref);
-                    
-                    const imgData = {
-                        url: downloadUrl,
-                        originalUrl: downloadUrl,
-                        obs: '',
-                        type: 'video',
-                        name: file.name,
-                        elementos: [],
-                        criado_em: serverTimestamp()
-                    };
-                    
-                    const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), imgData);
-                    
-                    const idx = imagens.findIndex(img => img.id === placeholderId);
-                    if (idx !== -1) {
-                        imagens[idx] = { id: docRef.id, ...imgData, criado_em: new Date() };
-                        indiceAtual = idx;
-                    }
-                    
-                    await updateDoc(doc(db, 'medidas_visitas', visitaId), {
-                        totalImagens: imagens.filter(x => !x.loading).length
-                    });
-                    
-                    showStatus('saved', 'Vídeo enviado com sucesso');
-                    renderGallery();
-                } catch(e) {
-                    console.error('Erro ao enviar vídeo:', e);
-                    imagens = imagens.filter(img => img.id !== placeholderId);
-                    renderGallery();
-                    alert(`Falha ao carregar o vídeo "${file.name}". Certifique-se de que o Firebase Storage está ativo com regras de gravação públicas.`);
-                    showStatus('error', 'Falha ao salvar vídeo');
-                }
-            }
-            ev.target.value = '';
-        };
-
         function renderGallery() {
             const mini = $('mini-gallery');
             mini.innerHTML = '';
@@ -987,63 +911,32 @@
                     div.innerHTML = `<div class="thumb-spinner"></div>`;
                 } else {
                     div.onclick = () => { indiceAtual = i; renderGallery(); };
-                    if (img.type === 'video') {
-                        div.innerHTML = `<div class="video-thumb-placeholder">🎥</div><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`;
-                    } else {
-                        div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`;
-                    }
+                    div.innerHTML = `<img src="${img.url}"><button onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>`;
                 }
                 mini.appendChild(div);
             });
 
-            const activeImg = imagens[indiceAtual];
-            if (activeImg && !activeImg.loading) {
-                if (activeImg.type === 'video') {
-                    $('main-img').style.display = 'none';
-                    $('main-video').src = activeImg.url;
-                    $('main-video').style.display = 'block';
-                    
-                    $('btn-edit-measures').style.display = 'none';
-                    $('btn-download-with-measures').style.display = 'none';
-                    $('btn-download-no-measures').style.display = 'none';
-                    $('btn-download-video').style.display = 'inline-flex';
-                } else {
-                    $('main-video').style.display = 'none';
-                    $('main-video').src = '';
-                    $('main-img').src = activeImg.url;
-                    $('main-img').style.display = 'block';
-                    
-                    $('btn-edit-measures').style.display = 'inline-flex';
-                    $('btn-download-with-measures').style.display = 'inline-flex';
-                    $('btn-download-no-measures').style.display = 'inline-flex';
-                    $('btn-download-video').style.display = 'none';
-                }
-                
+            if (imagens[indiceAtual] && !imagens[indiceAtual].loading) {
+                $('main-img').src = imagens[indiceAtual].url;
+                $('main-img').style.display = 'block';
                 $('photo-empty').style.display = 'none';
                 $('photo-count').textContent = `${indiceAtual + 1} / ${imagens.length}`;
-                $('img-obs').value = activeImg.obs || '';
+                $('img-obs').value = imagens[indiceAtual].obs || '';
                 $('img-obs').disabled = false;
+                document.querySelectorAll('.photo-tools button').forEach(b => b.disabled = false);
             } else {
                 $('main-img').style.display = 'none';
-                $('main-video').style.display = 'none';
-                $('main-video').src = '';
-                
                 if (imagens[indiceAtual] && imagens[indiceAtual].loading) {
                     $('photo-empty').style.display = 'block';
-                    $('photo-empty').innerHTML = `<div class="viewer-spinner"></div><div style="margin-top:10px;">Carregando mídia...</div>`;
+                    $('photo-empty').innerHTML = `<div class="viewer-spinner"></div><div style="margin-top:10px;">Enviando foto...</div>`;
                 } else {
                     $('photo-empty').style.display = 'block';
-                    $('photo-empty').innerHTML = 'Nenhuma imagem ou vídeo anexado';
+                    $('photo-empty').innerHTML = 'Nenhuma imagem anexada';
                 }
-                
                 $('photo-count').textContent = '0 / 0';
                 $('img-obs').value = '';
                 $('img-obs').disabled = true;
-                
-                $('btn-edit-measures').style.display = 'none';
-                $('btn-download-with-measures').style.display = 'none';
-                $('btn-download-no-measures').style.display = 'none';
-                $('btn-download-video').style.display = 'none';
+                document.querySelectorAll('.photo-tools button').forEach(b => b.disabled = true);
             }
         }
 
@@ -1054,21 +947,12 @@
         };
 
         window.removerFoto = async (i) => {
-            if (!confirm('Deseja remover este item permanentemente?')) return;
+            if (!confirm('Deseja remover esta imagem permanentemente?')) return;
             const imgRemovida = imagens[i];
             if (!imgRemovida || imgRemovida.loading) return;
 
-            showStatus('syncing', 'Excluindo item...');
+            showStatus('syncing', 'Excluindo imagem do banco...');
             try {
-                if (imgRemovida.type === 'video') {
-                    try {
-                        const videoRef = sRef(storage, imgRemovida.url);
-                        await deleteObject(videoRef);
-                    } catch(storageErr) {
-                        console.warn("Aviso ao deletar do Storage (pode ser ignorado):", storageErr);
-                    }
-                }
-                
                 await deleteDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', imgRemovida.id));
                 imagens.splice(i, 1);
                 indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1));
@@ -1077,11 +961,11 @@
                     totalImagens: imagens.length
                 });
 
-                showStatus('saved', 'Item removido');
+                showStatus('saved', 'Imagem removida');
                 renderGallery();
             } catch(e) {
                 console.error(e);
-                showStatus('error', 'Falha ao deletar item');
+                showStatus('error', 'Falha ao deletar imagem');
                 alert('Não foi possível excluir.');
             }
         };
@@ -1253,18 +1137,6 @@
             dataUrlDownload(withMeasures ? imagens[indiceAtual].url : (imagens[indiceAtual].originalUrl || imagens[indiceAtual].url), `visita-${visitaId || 'imagem'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'sem-medidas'}.jpg`);
         };
 
-        window.baixarVideo = () => {
-            const activeImg = imagens[indiceAtual];
-            if (!activeImg || activeImg.type !== 'video' || activeImg.loading) return;
-            const a = document.createElement('a');
-            a.href = activeImg.url;
-            a.target = '_blank';
-            a.download = activeImg.name || 'video.mp4';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        };
-
         window.switchTab = (tabName) => {
             const panels = document.querySelectorAll('.layout .panel');
             const tabInfo = $('tab-info');
@@ -1281,272 +1153,6 @@
                 tabInfo.classList.remove('active');
                 tabImages.classList.add('active');
             }
-        };
-
-        window.gerarPdfRelatorio = () => {
-            const empresa = $('empresa').value.trim() || 'Não informada';
-            const cliente = $('cliente').value.trim() || 'Não informado';
-            const servico = $('servico').value.trim() || 'Não informado';
-            const endereco = $('endereco').value.trim() || 'Não informado';
-            const observacoes = $('observacoes').value.trim() || 'Sem observações adicionais.';
-            
-            const imagensValidas = imagens.filter(img => img.type !== 'video' && !img.loading);
-            
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) {
-                alert('Por favor, permita pop-ups para gerar o relatório PDF.');
-                return;
-            }
-            
-            let htmlContent = `
-            <!DOCTYPE html>
-            <html lang="pt-br">
-            <head>
-                <meta charset="UTF-8">
-                <title>Relatório Técnico - Artesynal</title>
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap');
-                    body {
-                        font-family: 'Montserrat', sans-serif;
-                        margin: 0;
-                        padding: 0;
-                        color: #1e293b;
-                        background-color: #ffffff;
-                    }
-                    .page-container {
-                        page-break-after: always;
-                        padding: 1.5cm;
-                        box-sizing: border-box;
-                        min-height: 29.5cm;
-                        display: flex;
-                        flex-direction: column;
-                    }
-                    .page-container:last-child {
-                        page-break-after: avoid;
-                    }
-                    .logo-area {
-                        text-align: center;
-                        border-bottom: 3px solid #fbbf24;
-                        padding-bottom: 12px;
-                        margin-bottom: 25px;
-                    }
-                    .logo-area h2 {
-                        margin: 0;
-                        font-size: 22px;
-                        font-weight: 900;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-                        color: #0f172a;
-                    }
-                    .logo-area p {
-                        margin: 4px 0 0;
-                        font-size: 11px;
-                        color: #64748b;
-                        font-weight: 700;
-                        text-transform: uppercase;
-                    }
-                    .header-table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 20px;
-                    }
-                    .header-table th, .header-table td {
-                        border: 1px solid #e2e8f0;
-                        padding: 10px 14px;
-                        text-align: left;
-                        font-size: 13px;
-                        line-height: 1.4;
-                    }
-                    .header-table th {
-                        background-color: #f8fafc;
-                        color: #334155;
-                        font-weight: 700;
-                        width: 25%;
-                    }
-                    .section-title {
-                        font-size: 12px;
-                        font-weight: 700;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
-                        color: #64748b;
-                        margin-bottom: 8px;
-                    }
-                    .obs-box {
-                        font-size: 13px;
-                        line-height: 1.5;
-                        background-color: #f8fafc;
-                        padding: 14px;
-                        border-radius: 8px;
-                        border-left: 4px solid #fbbf24;
-                        margin-bottom: 25px;
-                        white-space: pre-wrap;
-                        color: #334155;
-                    }
-                    .images-container {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 24px;
-                        flex: 1;
-                        justify-content: flex-start;
-                    }
-                    .image-frame {
-                        border: 2px solid #e2e8f0;
-                        border-radius: 10px;
-                        padding: 12px;
-                        background-color: #f8fafc;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        page-break-inside: avoid;
-                    }
-                    .image-frame img {
-                        max-width: 100%;
-                        max-height: 9cm;
-                        object-fit: contain;
-                        border-radius: 6px;
-                        border: 1px solid #cbd5e1;
-                    }
-                    .image-caption {
-                        margin-top: 10px;
-                        font-size: 12px;
-                        color: #334155;
-                        font-weight: 700;
-                        text-align: center;
-                        width: 100%;
-                        word-wrap: break-word;
-                    }
-                    @media print {
-                        body {
-                            -webkit-print-color-adjust: exact;
-                            print-color-adjust: exact;
-                        }
-                        .page-container {
-                            padding: 1cm;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-            `;
-            
-            // Página 1
-            htmlContent += `
-                <div class="page-container">
-                    <div class="logo-area">
-                        <h2>ARTESYNAL</h2>
-                        <p>Planejamento e Controle de Produção • Relatório Técnico</p>
-                    </div>
-                    
-                    <div class="section-title">Informações Gerais</div>
-                    <table class="header-table">
-                        <tr>
-                            <th>Empresa</th>
-                            <td>${empresa}</td>
-                        </tr>
-                        <tr>
-                            <th>Cliente</th>
-                            <td>${cliente}</td>
-                        </tr>
-                        <tr>
-                            <th>Serviço</th>
-                            <td>${servico}</td>
-                        </tr>
-                        <tr>
-                            <th>Endereço</th>
-                            <td>${endereco}</td>
-                        </tr>
-                        <tr>
-                            <th>Data da Visita</th>
-                            <td>${new Date().toLocaleDateString('pt-BR')}</td>
-                        </tr>
-                    </table>
-                    
-                    <div class="section-title">Observações Técnicas</div>
-                    <div class="obs-box">${observacoes}</div>
-            `;
-            
-            if (imagensValidas.length > 0) {
-                const firstImg = imagensValidas[0];
-                htmlContent += `
-                    <div class="section-title">Imagens e Medições</div>
-                    <div class="images-container">
-                        <div class="image-frame">
-                            <img src="${firstImg.url}">
-                            ${firstImg.obs ? `<div class="image-caption">${firstImg.obs}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            htmlContent += `</div>`; // Fecha Página 1
-            
-            // Páginas subsequentes (imagens em pares)
-            for (let i = 1; i < imagensValidas.length; i += 2) {
-                const imgA = imagensValidas[i];
-                const imgB = imagensValidas[i+1];
-                
-                htmlContent += `
-                    <div class="page-container">
-                        <div class="images-container" style="justify-content: center;">
-                            <div class="image-frame">
-                                <img src="${imgA.url}">
-                                ${imgA.obs ? `<div class="image-caption">${imgA.obs}</div>` : ''}
-                            </div>
-                `;
-                
-                if (imgB) {
-                    htmlContent += `
-                            <div class="image-frame" style="margin-top: 15px;">
-                                <img src="${imgB.url}">
-                                ${imgB.obs ? `<div class="image-caption">${imgB.obs}</div>` : ''}
-                            </div>
-                    `;
-                }
-                
-                htmlContent += `
-                        </div>
-                    </div>
-                `;
-            }
-            
-            htmlContent += `
-                <script>
-                    window.addEventListener('load', () => {
-                        const images = document.querySelectorAll('img');
-                        let loadedCount = 0;
-                        const total = images.length;
-                        
-                        if (total === 0) {
-                            window.print();
-                            setTimeout(() => window.close(), 500);
-                        } else {
-                            images.forEach(img => {
-                                if (img.complete) {
-                                    checkLoaded();
-                                } else {
-                                    img.addEventListener('load', checkLoaded);
-                                    img.addEventListener('error', checkLoaded);
-                                }
-                            });
-                        }
-                        
-                        function checkLoaded() {
-                            loadedCount++;
-                            if (loadedCount >= total) {
-                                setTimeout(() => {
-                                    window.print();
-                                    window.close();
-                                }, 500);
-                            }
-                        }
-                    });
-                </script>
-            </body>
-            </html>
-            `;
-            
-            printWindow.document.write(htmlContent);
-            printWindow.document.close();
         };
 
         init().catch((e) => {
