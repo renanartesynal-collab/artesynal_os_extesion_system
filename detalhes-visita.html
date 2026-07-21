@@ -202,17 +202,14 @@
             gap: 10px;
         }
         .photo-tools {
-            position: absolute;
-            left: 14px;
-            right: 14px;
-            bottom: 14px;
+            margin-top: 14px;
+            margin-bottom: 14px;
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
-            backdrop-filter: blur(10px);
             background: rgba(19, 26, 38, 0.7);
-            padding: 10px;
+            padding: 12px;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.05);
         }
@@ -547,12 +544,12 @@
                 <img id="main-img" alt="Imagem selecionada" style="display:none">
                 <video id="main-video" controls style="display:none; max-width: 100%; max-height: 65vh;"></video>
                 <button class="nav-photo next" onclick="window.mudarFoto(1)">❯</button>
-                
-                <div class="photo-tools">
-                    <button class="btn btn-measure" onclick="window.abrirEditor()">📏 EDITAR MEDIDAS</button>
-                    <button class="btn" style="background:#334155" onclick="window.baixarImagem(true)">⬇ COM MEDIDAS</button>
-                    <button class="btn" style="background:#475569" onclick="window.baixarImagem(false)">⬇ SEM MEDIDAS</button>
-                </div>
+            </div>
+
+            <div class="photo-tools">
+                <button class="btn btn-measure" onclick="window.abrirEditor()">📏 EDITAR MEDIDAS</button>
+                <button class="btn" style="background:#334155" onclick="window.baixarImagem(true)">⬇ COM MEDIDAS</button>
+                <button class="btn" style="background:#475569" onclick="window.baixarImagem(false)">⬇ SEM MEDIDAS</button>
             </div>
             
             <div id="photo-count" class="photo-count">0 / 0</div>
@@ -861,19 +858,54 @@
             if (files.length > vagas) alert(`Somente ${vagas} item(ns) foram adicionados. Limite de ${MAX_IMAGENS} itens por card.`);
             
             for (const file of files.slice(0, vagas)) {
+                const isVideo = file.type.startsWith('video/');
+                const mbSize = (file.size / (1024 * 1024)).toFixed(1);
+                
+                if (isVideo && file.size > 100 * 1024 * 1024) {
+                    alert(`O vídeo "${file.name}" é muito grande (${mbSize} MB). O limite sugerido é de 100 MB.`);
+                    continue;
+                }
+
                 // Cria esqueleto temporário
                 const placeholderId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                const isVideo = file.type.startsWith('video/');
                 imagens.push({ id: placeholderId, url: '', originalUrl: '', obs: '', elementos: [], type: isVideo ? 'video' : 'image', loading: true });
                 renderGallery();
 
-                showStatus('syncing', isVideo ? 'Enviando vídeo...' : 'Compactando e enviando imagem...');
+                showStatus('syncing', isVideo ? `Enviando vídeo (${mbSize} MB)...` : 'Compactando e enviando imagem...');
                 try {
                     let mediaUrl = '';
                     if (isVideo) {
-                        const fileRef = ref(storage, `medidas_visitas/${visitaId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
-                        await uploadBytesResumable(fileRef, file);
-                        mediaUrl = await getDownloadURL(fileRef);
+                        await new Promise((resolve, reject) => {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('upload_preset', 'artesynal_videos');
+
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', 'https://api.cloudinary.com/v1_1/afsnn9df/video/upload', true);
+
+                            xhr.upload.onprogress = (e) => {
+                                if (e.lengthComputable) {
+                                    const progressPercent = (e.loaded / e.total) * 100;
+                                    showStatus('syncing', `Enviando vídeo... ${Math.round(progressPercent)}%`);
+                                }
+                            };
+
+                            xhr.onload = () => {
+                                if (xhr.status === 200) {
+                                    const response = JSON.parse(xhr.responseText);
+                                    mediaUrl = response.secure_url;
+                                    resolve();
+                                } else {
+                                    reject(new Error(`Erro Cloudinary: ${xhr.status} - ${xhr.responseText}`));
+                                }
+                            };
+
+                            xhr.onerror = () => {
+                                reject(new Error('Erro de rede ao conectar com Cloudinary.'));
+                            };
+
+                            xhr.send(formData);
+                        });
                     } else {
                         mediaUrl = await lerArquivoCompactado(file);
                     }
@@ -906,7 +938,14 @@
                     console.error('Erro ao salvar mídia:', e);
                     imagens = imagens.filter(img => img.id !== placeholderId);
                     renderGallery();
-                    alert(`Falha ao carregar o arquivo "${file.name}".`);
+                    
+                    if (e.message && e.message.includes('Timeout')) {
+                        alert(e.message + "\n\nPara corrigir: Acesse seu painel do Firebase > Storage > Regras (Rules) e mude para:\n\nallow read, write: if true;");
+                    } else if (e.code && e.code.includes('unauthorized')) {
+                        alert(`Acesso negado ao Storage. As regras do Firebase Storage estão bloqueando envios sem autenticação oficial.`);
+                    } else {
+                        alert(`Falha ao carregar o arquivo "${file.name}". Detalhe: ${e.message || e.code || 'Desconhecido'}`);
+                    }
                     showStatus('error', 'Falha ao salvar');
                 }
             }
@@ -988,12 +1027,16 @@
 
             showStatus('syncing', 'Excluindo item...');
             try {
-                if (imgRemovida.type === 'video') {
-                    try {
-                        const fileRef = ref(storage, imgRemovida.url);
-                        await deleteObject(fileRef);
-                    } catch(err) {
-                        console.warn("Aviso: Falha ao deletar vídeo do storage.", err);
+                if (imgRemovida.type === 'video' && imgRemovida.originalUrl) {
+                    if (imgRemovida.originalUrl.includes('firebasestorage')) {
+                        try {
+                            const urlObj = new URL(imgRemovida.originalUrl);
+                            const path = decodeURIComponent(urlObj.pathname.split('/o/')[1].split('?')[0]);
+                            const fileRef = ref(storage, path);
+                            await deleteObject(fileRef);
+                        } catch (e) {
+                            console.error("Erro ao deletar vídeo do storage:", e);
+                        }
                     }
                 }
                 await deleteDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', imgRemovida.id));
