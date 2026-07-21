@@ -18,6 +18,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+export const storage = getStorage(app);
+
 // 2. NOMES DAS PÁGINAS (ROTAS)
 // Se precisar mudar o nome de alguma página no futuro, mude apenas aqui!
 export const ROTAS = {
