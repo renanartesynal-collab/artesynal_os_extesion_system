@@ -12,6 +12,37 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const SESSAO_KEY = "artesynal_session";
+const AUTH_CACHE_KEY = "artesynal_auth_cache_v1";
+const AUTH_CACHE_TTL_MS = 1000 * 60 * 15; // 15 min com revalidação silenciosa em segundo plano
+
+function lerAuthCache(email) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(AUTH_CACHE_KEY) || "null");
+    if (!raw || raw.email !== String(email || "").toLowerCase()) return null;
+    if (Date.now() - Number(raw.ts || 0) > AUTH_CACHE_TTL_MS) return null;
+    if (!raw.acesso || !raw.categoriasConfig) return null;
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+function salvarAuthCache(email, acesso, categoriasConfig) {
+  try {
+    localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({
+      email: String(email || "").toLowerCase(),
+      acesso,
+      categoriasConfig,
+      ts: Date.now()
+    }));
+  } catch {}
+}
+
+function limparAuthCache() {
+  try {
+    localStorage.removeItem(AUTH_CACHE_KEY);
+  } catch {}
+}
 
 const ADMIN_PADRAO = {
   email: "wartesynal@gmail.com",
@@ -171,6 +202,7 @@ export async function salvarConfiguracaoCategorias(categorias) {
   const ref = doc(db, "system_config", "menu_categorias");
   const normalizada = normalizarConfiguracaoCategorias(categorias);
   await setDoc(ref, { categorias: normalizada, updated_at: serverTimestamp() }, { merge: true });
+  limparAuthCache();
   return normalizada;
 }
 
@@ -275,6 +307,7 @@ export async function realizarLogin(email, senha) {
 
 export function logout() {
   localStorage.removeItem(SESSAO_KEY);
+  limparAuthCache();
   window.location.replace(ROTAS.login);
 }
 
@@ -369,33 +402,69 @@ export async function protegerPagina({ paginaAtual, exigirAdmin = false } = {}) 
     return null;
   }
 
-  const acesso = await obterAcessoPorEmail(sessao.email);
+  const validarEAplicar = ({ acesso, categoriasConfig }) => {
+    if (!acesso || acesso.status !== "approved" || acesso.blocked) {
+      logout();
+      return null;
+    }
 
-  if (!acesso || acesso.status !== "approved" || acesso.blocked) {
-    logout();
-    return null;
-  }
+    const perfil = normalizarPerfilCategoria(acesso.categoria) || acesso.categoria;
+    const admin = perfil === "administracao";
+    const permitido = paginaPermitidaParaPerfil({ perfil, paginaAtual, categoriasConfig });
 
-  const perfil = normalizarPerfilCategoria(acesso.categoria) || acesso.categoria;
-  const admin = perfil === "administracao";
-  const categoriasConfig = await obterConfiguracaoCategorias();
-  const permitido = paginaPermitidaParaPerfil({ perfil, paginaAtual, categoriasConfig });
+    if (exigirAdmin && !admin) {
+      window.location.replace(ROTAS.painel);
+      return null;
+    }
 
-  if (exigirAdmin && !admin) {
-    window.location.replace(ROTAS.painel);
-    return null;
-  }
+    if (paginaAtual && !permitido && !admin) {
+      window.location.replace(ROTAS.painel);
+      return null;
+    }
 
-  if (paginaAtual && !permitido && !admin) {
-    window.location.replace(ROTAS.painel);
-    return null;
-  }
+    renderizarIlhaMobile({ perfil, categoriasConfig, paginaAtual });
 
-  renderizarIlhaMobile({ perfil, categoriasConfig, paginaAtual });
-
-  return {
-    user: { email: acesso.email, displayName: acesso.nome },
-    acesso: { ...acesso, categoria: perfil },
-    categoriasConfig
+    return {
+      user: { email: acesso.email, displayName: acesso.nome },
+      acesso: { ...acesso, categoria: perfil },
+      categoriasConfig
+    };
   };
+
+  // Caminho rápido: libera a interface instantaneamente pelo cache local e revalida no servidor em segundo plano
+  const cache = lerAuthCache(sessao.email);
+  if (cache) {
+    const resultadoRapido = validarEAplicar(cache);
+    if (!resultadoRapido) return null;
+
+    Promise.all([obterAcessoPorEmail(sessao.email), obterConfiguracaoCategorias()])
+      .then(([acessoVivo, configViva]) => {
+        if (!acessoVivo || acessoVivo.status !== "approved" || acessoVivo.blocked) {
+          logout();
+          return;
+        }
+        salvarAuthCache(sessao.email, acessoVivo, configViva);
+        const perfilVivo = normalizarPerfilCategoria(acessoVivo.categoria) || acessoVivo.categoria;
+        const adminVivo = perfilVivo === "administracao";
+        const permViva = paginaPermitidaParaPerfil({ perfil: perfilVivo, paginaAtual, categoriasConfig: configViva });
+        if ((exigirAdmin && !adminVivo) || (paginaAtual && !permViva && !adminVivo)) {
+          window.location.replace(ROTAS.painel);
+        }
+      })
+      .catch(() => {});
+
+    return resultadoRapido;
+  }
+
+  // Primeiro acesso sem cache: busca acesso e permissões em paralelo
+  const [acesso, categoriasConfig] = await Promise.all([
+    obterAcessoPorEmail(sessao.email),
+    obterConfiguracaoCategorias()
+  ]);
+
+  if (acesso && acesso.status === "approved" && !acesso.blocked) {
+    salvarAuthCache(sessao.email, acesso, categoriasConfig);
+  }
+
+  return validarEAplicar({ acesso, categoriasConfig });
 }

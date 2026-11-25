@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Ficha de Medida / Visita — ArteSynal</title>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
   <link rel="stylesheet" href="../../assets/css/theme.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     .sync-pill {
       display: inline-flex;
@@ -25,19 +27,27 @@
 
     .visita-grid {
       display: grid;
-      grid-template-columns: minmax(320px, 430px) 1fr;
+      grid-template-columns: minmax(300px, 430px) minmax(0, 1fr);
       gap: 20px;
       align-items: start;
+      width: 100%;
+    }
+
+    .visita-grid > section {
+      min-width: 0;
+      max-width: 100%;
     }
 
     .address-inline {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
       align-items: end;
     }
 
     .viewer-stage {
+      width: 100%;
+      max-width: 100%;
       min-height: 420px;
       background: #050810;
       border: 1px solid var(--border-default);
@@ -53,7 +63,10 @@
     .viewer-stage video {
       max-width: 100%;
       max-height: 64vh;
+      width: auto;
+      height: auto;
       object-fit: contain;
+      display: block;
     }
 
     .viewer-nav {
@@ -80,8 +93,11 @@
     .thumbs-strip {
       display: flex;
       gap: 10px;
+      width: 100%;
+      max-width: 100%;
       overflow-x: auto;
-      padding: 12px 0;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 2px;
       min-height: 92px;
     }
 
@@ -247,19 +263,26 @@
     .mobile-tabs .ui-tab { flex: 1; justify-content: center; }
 
     @media (max-width: 880px) {
-      .visita-grid { grid-template-columns: 1fr; }
+      .visita-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
       #panel-midias { display: none; }
-      .mobile-tabs { display: flex; }
-      .viewer-stage { min-height: 270px; }
+      .mobile-tabs { display: flex; margin-bottom: 12px; }
+      .viewer-stage { min-height: 240px; max-height: 46dvh; }
+      .viewer-stage img,
+      .viewer-stage video { max-height: 44dvh; }
+      .viewer-nav { width: 34px; height: 44px; font-size: 17px; }
+      .thumb-item { width: 66px; min-width: 66px; height: 66px; }
       .hide-sm { display: none; }
       .draw-top { padding: 8px 10px; gap: 6px; }
       .draw-tool-btn { padding: 6px 10px; font-size: 11px; }
       .draw-bottom { padding: 10px 12px calc(14px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 520px) {
       .address-inline {
         grid-template-columns: 1fr;
+      }
+      #btn-edit-measures {
+        width: 100%;
       }
     }
   </style>
@@ -693,7 +716,7 @@
             `;
           } else {
             div.innerHTML = `
-              <img src="${img.url}" alt="Miniatura ${i + 1}" />
+              <img src="${img.url}" alt="Miniatura ${i + 1}" loading="lazy" decoding="async" />
               <button type="button" class="thumb-del" onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>
             `;
           }

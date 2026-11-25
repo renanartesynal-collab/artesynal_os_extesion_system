@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ordens de Serviço — ArteSynal</title>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
   <link rel="stylesheet" href="../../assets/css/theme.css" />
   <style>
     /* ==========================================================================
@@ -1282,6 +1284,7 @@
       orderBy,
       query,
       where,
+      limit,
       serverTimestamp
     } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
@@ -1297,6 +1300,10 @@
     const EMPRESA_PADRAO_KEY = 'artesynal_os_empresa_padrao';
     let idEdicao = null;
     let todasOS = [];
+    let osRecentesCache = [];
+    let osAbertasCache = [];
+    let carregouHistoricoCompleto = false;
+    let unsubOSPrincipal = null;
     let midiasImpressaoEstoque = [];
     let filtroListaAtual = 'todos';
     let filtroAbertosAtual = 'todos';
@@ -2055,7 +2062,7 @@
         const grupo = grupos[chave];
         const aberto = Boolean(termo) || todosExpandidos || mesesAbertos.has(chave);
 
-        const cardsHtml = grupo.itens.map((os) => {
+        const cardsHtml = aberto ? grupo.itens.map((os) => {
           const d = extrairDataOS(os);
           const dataFmt = d ? d.toLocaleDateString('pt-BR') : '--/--/----';
           const isPago = !!os.status?.pago;
@@ -2105,7 +2112,7 @@
               </div>
             </article>
           `;
-        }).join('');
+        }).join('') : '';
 
         return `
           <div class="mes-accordion">
@@ -2116,12 +2123,12 @@
               </div>
               <span style="font-weight:800; color:var(--text-muted);">${aberto ? '▼' : '▶'}</span>
             </div>
-            <div class="os-cards-grid" style="display:${aberto ? 'grid' : 'none'};">
-              ${cardsHtml}
-            </div>
+            ${aberto ? `<div class="os-cards-grid">${cardsHtml}</div>` : ''}
           </div>
         `;
-      }).join('');
+      }).join('') + (!carregouHistoricoCompleto
+        ? `<div style="text-align:center; margin-top:16px;"><button type="button" class="ui-btn" onclick="window.carregarHistoricoCompletoOS()">📂 Carregar O.S. mais antigas (histórico completo)</button></div>`
+        : '');
     }
 
     window.toggleMesOS = (chave) => {
@@ -2132,6 +2139,7 @@
     };
 
     window.alternarTodosMeses = () => {
+      if (!carregouHistoricoCompleto) window.carregarHistoricoCompletoOS();
       todosExpandidos = !todosExpandidos;
       document.getElementById('btn-toggle-all-months').textContent = todosExpandidos ? 'Recolher Tudo' : 'Expandir Tudo';
       if (!todosExpandidos) mesesAbertos.clear();
@@ -2158,7 +2166,12 @@
       });
     });
 
-    document.getElementById('busca-os').addEventListener('input', renderizarListaOS);
+    document.getElementById('busca-os').addEventListener('input', (e) => {
+      if (e.target.value.trim().length >= 2 && !carregouHistoricoCompleto) {
+        window.carregarHistoricoCompletoOS();
+      }
+      renderizarListaOS();
+    });
 
     // =========================================================================
     // PAINEL SERVIÇOS EM ABERTO + CONSUMO DE MÍDIAS + MUBI + ARQUIVADOS
@@ -2716,24 +2729,55 @@
     });
 
     // =========================================================================
-    // ASSINATURAS EM TEMPO REAL (O.S. + SERVIÇOS EM ABERTO + MÍDIAS IMPRESSÃO)
+    // ASSINATURAS EM TEMPO REAL (CARREGAMENTO PROGRESSIVO ULTRARRÁPIDO)
     // =========================================================================
-    const qOS = query(collection(db, 'ordens_servico'), orderBy('data_criacao', 'desc'));
-    onSnapshot(qOS, (snap) => {
-      todasOS = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    function mesclarERenderizarOS() {
+      const mapa = new Map();
+      osRecentesCache.forEach((o) => mapa.set(o.id, o));
+      osAbertasCache.forEach((o) => mapa.set(o.id, o));
+      todasOS = [...mapa.values()].sort((a, b) => (extrairDataOS(b)?.getTime() || 0) - (extrairDataOS(a)?.getTime() || 0));
       renderizarListaOS();
       renderizarServicosAbertos();
       renderizarServicosArquivados();
-    }, (err) => {
-      console.warn('Fallback sem orderBy em ordens_servico:', err);
-      onSnapshot(collection(db, 'ordens_servico'), (snap) => {
-        todasOS = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        todasOS.sort((a, b) => (extrairDataOS(b)?.getTime() || 0) - (extrairDataOS(a)?.getTime() || 0));
-        renderizarListaOS();
-        renderizarServicosAbertos();
-        renderizarServicosArquivados();
+    }
+
+    function iniciarAssinaturaOS(completo = false) {
+      if (unsubOSPrincipal) {
+        unsubOSPrincipal();
+        unsubOSPrincipal = null;
+      }
+      carregouHistoricoCompleto = completo;
+      const qBase = completo
+        ? query(collection(db, 'ordens_servico'), orderBy('data_criacao', 'desc'))
+        : query(collection(db, 'ordens_servico'), orderBy('data_criacao', 'desc'), limit(45));
+
+      unsubOSPrincipal = onSnapshot(qBase, (snap) => {
+        osRecentesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        if (!completo && snap.size < 45) carregouHistoricoCompleto = true;
+        mesclarERenderizarOS();
+      }, (err) => {
+        console.warn('Fallback sem orderBy em ordens_servico:', err);
+        carregouHistoricoCompleto = true;
+        unsubOSPrincipal = onSnapshot(collection(db, 'ordens_servico'), (snap) => {
+          osRecentesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          mesclarERenderizarOS();
+        });
       });
+    }
+
+    window.carregarHistoricoCompletoOS = () => {
+      if (carregouHistoricoCompleto) return;
+      showToast('Carregando histórico completo de O.S...', 'info', 2000);
+      iniciarAssinaturaOS(true);
+    };
+
+    // Garante que todos os Serviços em Aberto (mesmo de O.S. antigas) carreguem imediatamente
+    onSnapshot(query(collection(db, 'ordens_servico'), where('servico_aberto.ativo', '==', true)), (snap) => {
+      osAbertasCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      mesclarERenderizarOS();
     });
+
+    iniciarAssinaturaOS(false);
 
     onSnapshot(query(collection(db, 'estoque'), where('setor', '==', 'impressao')), (snap) => {
       midiasImpressaoEstoque = [];

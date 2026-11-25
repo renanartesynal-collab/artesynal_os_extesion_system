@@ -1,4 +1,4 @@
-const CACHE_NAME = 'artesynal-pcp-v2.3';
+const CACHE_NAME = 'artesynal-pcp-v2.5';
 const ASSETS = [
   './',
   './index.html',
@@ -44,18 +44,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Stale-While-Revalidate: entrega imediatamente do cache (0ms) e atualiza em segundo plano
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(event.request, { ignoreSearch: true });
+      const networkFetch = fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            cache.put(event.request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => null);
+
+      return cached || (await networkFetch) || Response.error();
+    })
   );
 });

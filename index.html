@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Central — Artesynal PCP</title>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#f59e0b" />
   <link rel="apple-touch-icon" href="assets/img/icon-192.png" />
@@ -326,7 +328,7 @@
     import './js/core/theme.js';
     import { db, ROTAS } from './js/core/config.js';
     import { PERFIS, protegerPagina, logout } from './js/core/auth.js';
-    import { collection, query, where, onSnapshot, getDocs } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { collection, query, where, onSnapshot, getCountFromServer } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
     const sessao = await protegerPagina({ paginaAtual: 'index.html' });
     if (!sessao) throw new Error('Sem sessão');
@@ -347,27 +349,27 @@
 
     const can = (page) => perfil === 'administracao' || conf?.[perfil]?.[page] === true;
 
+    // Contagem agregada no servidor (baixa ~100 bytes em vez de dezenas de MB de imagens Base64)
     if (can('os.html') || can('lista.html')) {
       document.getElementById('card-os').classList.add('visible');
       document.getElementById('kpi-os-box').style.display = 'flex';
-      getDocs(collection(db, 'ordens_servico')).then((snap) => {
-        let pend = 0;
-        snap.forEach((d) => { if (!d.data()?.status?.pago) pend++; });
-        document.getElementById('kpi-os').textContent = String(pend);
-      }).catch(() => {});
+      getCountFromServer(query(collection(db, 'ordens_servico'), where('status.pago', '==', false)))
+        .then((snap) => {
+          document.getElementById('kpi-os').textContent = String(snap.data().count || 0);
+        })
+        .catch(() => {});
     }
 
     if (can('medidas-visitas.html')) {
       document.getElementById('card-medidas').classList.add('visible');
-      getDocs(collection(db, 'medidas_visitas')).then((snap) => {
-        let abertas = 0;
-        snap.forEach((d) => {
-          const dt = d.data() || {};
-          const st = String(dt.status || '').toLowerCase();
-          if (!dt.arquivado && !st.includes('conclu') && !st.includes('finaliz')) abertas++;
-        });
-        document.getElementById('kpi-visitas').textContent = String(abertas);
-      }).catch(() => {});
+      Promise.all([
+        getCountFromServer(query(collection(db, 'medidas_visitas'), where('arquivado', '==', false), where('status', '==', 'solicitacoes'))),
+        getCountFromServer(query(collection(db, 'medidas_visitas'), where('arquivado', '==', false), where('status', '==', 'andamento')))
+      ])
+        .then(([s1, s2]) => {
+          document.getElementById('kpi-visitas').textContent = String((s1.data().count || 0) + (s2.data().count || 0));
+        })
+        .catch(() => {});
     }
 
     const canImp = can('estimpressao.html');

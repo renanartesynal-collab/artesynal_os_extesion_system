@@ -1,8 +1,13 @@
 // --- js/core/config.js ---
-// Conexão central com o Firebase, servidor de vídeos Cloudinary e resolvedor de rotas
+// Conexão central com o Firebase (com cache local persistente IndexedDB), Cloudinary e rotas
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 // 1. CONFIGURAÇÃO DO FIREBASE (100% compatível com os dados existentes)
@@ -16,7 +21,20 @@ export const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+// Cache persistente em IndexedDB: carregamentos subsequentes abrem instantaneamente
+// e sincronizam apenas documentos novos/alterados com o servidor.
+let firestoreInstance;
+try {
+  firestoreInstance = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  });
+} catch {
+  firestoreInstance = getFirestore(app);
+}
+export const db = firestoreInstance;
 export const storage = getStorage(app);
 
 // 2. SERVIDOR EXTERNO DE VÍDEOS (Cloudinary)
