@@ -395,6 +395,8 @@ html, body {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: 20px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ui-badge {
