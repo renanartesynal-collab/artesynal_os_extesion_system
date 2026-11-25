@@ -1133,7 +1133,7 @@
               <button type="button" class="ui-pill" data-abertos-filter="impresso">Impressos</button>
               <button type="button" class="ui-pill" data-abertos-filter="mubi_pendente">MUBI Pendente</button>
             </div>
-            <span style="font-size:12px; color:var(--text-muted);">Ao gerar o PDF de uma O.S., ela entra automaticamente nesta fila.</span>
+            <span style="font-size:12px; color:var(--text-muted);">Ao salvar ou gerar o PDF de uma nova O.S., ela entra automaticamente nesta fila.</span>
           </div>
         </div>
 
@@ -1297,7 +1297,6 @@
     const EMPRESA_PADRAO_KEY = 'artesynal_os_empresa_padrao';
     let idEdicao = null;
     let todasOS = [];
-    let todosServicos = [];
     let midiasImpressaoEstoque = [];
     let filtroListaAtual = 'todos';
     let filtroAbertosAtual = 'todos';
@@ -1705,48 +1704,32 @@
       }
     }
 
-    async function garantirServicoEmAbertoPorOS(osId, dadosOS) {
-      if (!osId) return;
-      const existente = todosServicos.find((s) => s.os_id === osId);
-      const baseCampos = {
-        os_id: osId,
-        empresa: dadosOS.empresa || '',
-        cliente: dadosOS.cliente || '',
-        os_numero: dadosOS.os_numero || '',
-        servico_titulo: dadosOS.servico_titulo || '',
-        data_aprovacao: dadosOS.data_aprovacao || '',
-        data_limite: dadosOS.data_limite || '',
-        valor_restante: dadosOS.valor_restante || 'R$ 0,00',
-        pago: !!dadosOS.status?.pago,
-        data_atualizacao: serverTimestamp()
+    function criarEstadoServicoAbertoInicial() {
+      return {
+        ativo: true,
+        arquivado: false,
+        impressao_status: 'nao_iniciado',
+        impresso: false,
+        midias_consumidas: [],
+        mubi_pendente: false,
+        mubi_concluido: false,
+        criado_em: new Date(),
+        finalizado_em: null
       };
-
-      if (!existente) {
-        await addDoc(collection(db, 'servicos_abertos'), {
-          ...baseCampos,
-          impressao_status: 'nao_iniciado',
-          impresso: false,
-          midias_consumidas: [],
-          mubi_pendente: false,
-          mubi_concluido: false,
-          arquivado: false,
-          finalizado_em: null,
-          data_criacao: serverTimestamp()
-        });
-        showToast('Serviço adicionado automaticamente em Serviços em Aberto!', 'success');
-      } else if (!existente.arquivado) {
-        await updateDoc(doc(db, 'servicos_abertos', existente.id), baseCampos);
-      }
     }
 
-    async function sincronizarServicoAbertoExistente(osId, camposParciais) {
-      const vinculados = todosServicos.filter((s) => s.os_id === osId);
-      await Promise.all(vinculados.map((s) =>
-        updateDoc(doc(db, 'servicos_abertos', s.id), { ...camposParciais, data_atualizacao: serverTimestamp() })
-      ));
+    async function garantirServicoEmAbertoPorOS(osId) {
+      if (!osId) return;
+      const existente = todasOS.find((x) => x.id === osId);
+      if (existente?.servico_aberto?.ativo) return;
+      await updateDoc(doc(db, 'ordens_servico', osId), {
+        servico_aberto: criarEstadoServicoAbertoInicial(),
+        data_atualizacao: new Date()
+      });
+      showToast('O.S. adicionada em Serviços em Aberto!', 'success');
     }
 
-    async function salvarDadosOSNoBanco({ silencioso = false } = {}) {
+    async function salvarDadosOSNoBanco({ silencioso = false, garantirAberto = true } = {}) {
       const btn = document.getElementById('btn-salvar');
       btn.disabled = true;
       if (!silencioso) btn.textContent = 'Salvando...';
@@ -1796,23 +1779,18 @@
         };
 
         if (idEdicao) {
+          const osAtual = todasOS.find((x) => x.id === idEdicao);
+          if (garantirAberto && !osAtual?.servico_aberto?.ativo) {
+            dados.servico_aberto = criarEstadoServicoAbertoInicial();
+          }
           await updateDoc(doc(db, 'ordens_servico', idEdicao), dados);
-          await sincronizarServicoAbertoExistente(idEdicao, {
-            empresa: dados.empresa,
-            cliente: dados.cliente,
-            os_numero: dados.os_numero,
-            servico_titulo: dados.servico_titulo,
-            data_aprovacao: dados.data_aprovacao,
-            data_limite: dados.data_limite,
-            valor_restante: dados.valor_restante,
-            pago: !!dados.status.pago
-          });
           if (!silencioso) showToast('Ordem de Serviço atualizada com sucesso!', 'success');
         } else {
           dados.data_criacao = new Date();
+          dados.servico_aberto = criarEstadoServicoAbertoInicial();
           const docRef = await addDoc(collection(db, 'ordens_servico'), dados);
           idEdicao = docRef.id;
-          if (!silencioso) showToast('Nova Ordem de Serviço salva no sistema!', 'success');
+          if (!silencioso) showToast('O.S. salva e adicionada em Serviços em Aberto!', 'success');
         }
 
         imgsElementos.forEach((img) => { delete img.file; });
@@ -1828,22 +1806,20 @@
       }
     }
 
-    document.getElementById('btn-salvar').addEventListener('click', () => salvarDadosOSNoBanco({ silencioso: false }));
+    document.getElementById('btn-salvar').addEventListener('click', () => salvarDadosOSNoBanco({ silencioso: false, garantirAberto: true }));
 
-    // Ao gerar o PDF da O.S., salva/atualiza a O.S. e cria automaticamente o item em SERVIÇOS EM ABERTO
+    // Ao gerar o PDF da O.S., salva/atualiza a O.S. e garante o item em SERVIÇOS EM ABERTO
     window.imprimirFolhaOS = async () => {
       window.mudarAbaOS('editor');
       const temConteudo =
         document.getElementById('in-cliente').value.trim() ||
         document.getElementById('in-servico').value.trim() ||
         document.getElementById('in-os').value.trim() ||
+        document.getElementById('in-empresa').value.trim() ||
         idEdicao;
 
       if (temConteudo) {
-        const res = await salvarDadosOSNoBanco({ silencioso: true });
-        if (res?.osId) {
-          await garantirServicoEmAbertoPorOS(res.osId, res.dados);
-        }
+        await salvarDadosOSNoBanco({ silencioso: true, garantirAberto: true });
       }
       setTimeout(() => window.print(), 140);
     };
@@ -1944,7 +1920,7 @@
         window.mudarAbaOS('editor');
 
         if (registrarAberto && !duplicar) {
-          await garantirServicoEmAbertoPorOS(id, data);
+          await garantirServicoEmAbertoPorOS(id);
         }
         if (imprimir) {
           setTimeout(() => window.print(), 250);
@@ -1969,7 +1945,6 @@
           'status.pago': !!pago,
           data_atualizacao: new Date()
         });
-        await sincronizarServicoAbertoExistente(id, { pago: !!pago });
         if (idEdicao === id) {
           document.getElementById('chk-pago').checked = !!pago;
           window.up();
@@ -1979,6 +1954,10 @@
         console.error(e);
         showToast('Erro ao atualizar status de pagamento.', 'error');
       }
+    };
+
+    window.enviarOSParaAbertos = async (id) => {
+      await garantirServicoEmAbertoPorOS(id);
     };
 
     // =========================================================================
@@ -2119,6 +2098,7 @@
               </div>
               <div class="os-card-actions">
                 <button type="button" class="ui-btn ui-btn-sm ui-btn-blue" style="flex:1;" onclick="window.abrirOS('${os.id}')">✏️ Editar</button>
+                ${!os.servico_aberto?.ativo ? `<button type="button" class="ui-btn ui-btn-sm" onclick="window.enviarOSParaAbertos('${os.id}')" title="Enviar para Serviços em Aberto">⚡</button>` : ''}
                 <button type="button" class="ui-btn ui-btn-sm" onclick="window.imprimirOSDaLista('${os.id}')" title="Imprimir PDF A4 e enviar para Serviços em Aberto">🖨️</button>
                 <button type="button" class="ui-btn ui-btn-sm" onclick="window.duplicarOS('${os.id}')" title="Duplicar O.S.">📋</button>
                 <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" onclick="window.deletarOS('${os.id}', '${esc(os.os_numero || os.cliente || '')}')" title="Apagar O.S.">🗑️</button>
@@ -2182,7 +2162,37 @@
 
     // =========================================================================
     // PAINEL SERVIÇOS EM ABERTO + CONSUMO DE MÍDIAS + MUBI + ARQUIVADOS
+    // (Armazenado diretamente em ordens_servico.servico_aberto — 100% compatível)
     // =========================================================================
+    function obterListaServicos() {
+      return todasOS
+        .filter((os) => os.servico_aberto?.ativo === true)
+        .map((os) => {
+          const sa = os.servico_aberto || {};
+          return {
+            id: os.id,
+            os_id: os.id,
+            empresa: os.empresa || '',
+            cliente: os.cliente || '',
+            os_numero: os.os_numero || '',
+            servico_titulo: os.servico_titulo || '',
+            data_aprovacao: os.data_aprovacao || '',
+            data_limite: os.data_limite || '',
+            valor_restante: os.valor_restante || 'R$ 0,00',
+            pago: !!os.status?.pago,
+            impressao_status: sa.impressao_status || 'nao_iniciado',
+            impresso: !!sa.impresso,
+            midias_consumidas: Array.isArray(sa.midias_consumidas) ? sa.midias_consumidas : [],
+            mubi_pendente: !!sa.mubi_pendente,
+            mubi_concluido: !!sa.mubi_concluido,
+            arquivado: !!sa.arquivado,
+            data_criacao: sa.criado_em || os.data_criacao,
+            data_atualizacao: os.data_atualizacao
+          };
+        })
+        .sort((a, b) => extrairDataServico(b) - extrairDataServico(a));
+    }
+
     function extrairDataServico(s) {
       const raw = s.data_criacao || s.data_atualizacao;
       if (!raw) return 0;
@@ -2206,6 +2216,7 @@
       const container = document.getElementById('servicos-abertos-container');
       const termo = (document.getElementById('busca-servicos-abertos')?.value || '').trim().toLowerCase();
 
+      const todosServicos = obterListaServicos();
       const ativos = todosServicos.filter((s) => !s.arquivado);
       const arquivados = todosServicos.filter((s) => !!s.arquivado);
 
@@ -2242,7 +2253,7 @@
       });
 
       if (!filtrados.length) {
-        container.innerHTML = '<div class="ui-card" style="text-align:center; color:var(--text-muted); padding:36px;">Nenhum serviço em aberto encontrado neste filtro. Ao clicar em "Imprimir / PDF" no gerador de O.S., o serviço aparecerá aqui automaticamente.</div>';
+        container.innerHTML = '<div class="ui-card" style="text-align:center; color:var(--text-muted); padding:36px;">Nenhum serviço em aberto encontrado neste filtro. Ao salvar ou gerar o PDF de uma nova O.S., ela aparecerá aqui automaticamente.</div>';
         return;
       }
 
@@ -2344,22 +2355,14 @@
           inp.value = formatarDataCurta(inp.value);
         });
         inp.addEventListener('change', async () => {
-          const srvId = inp.dataset.prazoSrv;
-          const srv = todosServicos.find((x) => x.id === srvId);
-          if (!srv) return;
+          const osId = inp.dataset.prazoSrv;
           const novoPrazo = formatarDataCurta(inp.value);
           inp.value = novoPrazo;
           try {
-            await updateDoc(doc(db, 'servicos_abertos', srvId), {
+            await updateDoc(doc(db, 'ordens_servico', osId), {
               data_limite: novoPrazo,
-              data_atualizacao: serverTimestamp()
+              data_atualizacao: new Date()
             });
-            if (srv.os_id) {
-              await updateDoc(doc(db, 'ordens_servico', srv.os_id), {
-                data_limite: novoPrazo,
-                data_atualizacao: new Date()
-              }).catch(() => {});
-            }
             showToast('Prazo de entrega atualizado!', 'success');
           } catch {
             showToast('Erro ao atualizar prazo de entrega.', 'error');
@@ -2372,7 +2375,7 @@
       const listEl = document.getElementById('lista-servicos-arquivados');
       if (!listEl) return;
       const termo = (document.getElementById('busca-servicos-arquivados')?.value || '').trim().toLowerCase();
-      const arquivados = todosServicos
+      const arquivados = obterListaServicos()
         .filter((s) => !!s.arquivado)
         .filter((s) => {
           if (!termo) return true;
@@ -2492,7 +2495,7 @@
     }
 
     window.abrirPainelMidiasServico = (srvId) => {
-      const srv = todosServicos.find((x) => x.id === srvId);
+      const srv = obterListaServicos().find((x) => x.id === srvId);
       if (!srv) return;
       servicoAtivoMidiaId = srvId;
       selecaoMidiasModal = new Map();
@@ -2563,7 +2566,7 @@
     document.getElementById('busca-midia-servico').addEventListener('input', renderListaMidiasNoModal);
 
     document.getElementById('btn-confirmar-midias-os').addEventListener('click', async () => {
-      const srv = todosServicos.find((x) => x.id === servicoAtivoMidiaId);
+      const srv = obterListaServicos().find((x) => x.id === servicoAtivoMidiaId);
       if (!srv) return;
 
       const marcarImpressoTotal = document.getElementById('chk-marcar-impresso-total').checked;
@@ -2622,18 +2625,18 @@
         const novoStatusImp = marcarImpressoTotal ? 'impresso' : 'pendente';
 
         const updatePayload = {
-          midias_consumidas: historicoMidias,
-          impresso: marcarImpressoTotal,
-          impressao_status: novoStatusImp,
-          data_atualizacao: serverTimestamp()
+          'servico_aberto.midias_consumidas': historicoMidias,
+          'servico_aberto.impresso': marcarImpressoTotal,
+          'servico_aberto.impressao_status': novoStatusImp,
+          data_atualizacao: new Date()
         };
 
         // Se algo foi impresso e o MUBI ainda não foi marcado como concluído, ativa MUBI PENDENTE automaticamente
         if (algoImpresso && !srv.mubi_concluido) {
-          updatePayload.mubi_pendente = true;
+          updatePayload['servico_aberto.mubi_pendente'] = true;
         }
 
-        await updateDoc(doc(db, 'servicos_abertos', srv.id), updatePayload);
+        await updateDoc(doc(db, 'ordens_servico', srv.id), updatePayload);
         window.fecharPainelMidiasServico();
         showToast(
           marcarImpressoTotal
@@ -2651,13 +2654,13 @@
     });
 
     window.alternarMubiServico = async (srvId, concluido) => {
-      const srv = todosServicos.find((x) => x.id === srvId);
+      const srv = obterListaServicos().find((x) => x.id === srvId);
       if (!srv) return;
       try {
-        await updateDoc(doc(db, 'servicos_abertos', srvId), {
-          mubi_concluido: !!concluido,
-          mubi_pendente: !concluido,
-          data_atualizacao: serverTimestamp()
+        await updateDoc(doc(db, 'ordens_servico', srvId), {
+          'servico_aberto.mubi_concluido': !!concluido,
+          'servico_aberto.mubi_pendente': !concluido,
+          data_atualizacao: new Date()
         });
         showToast(concluido ? 'MUBI marcado como concluído!' : 'Marcado como MUBI PENDENTE.', concluido ? 'success' : 'info');
       } catch {
@@ -2666,29 +2669,32 @@
     };
 
     window.finalizarServicoAberto = async (srvId) => {
-      const srv = todosServicos.find((x) => x.id === srvId);
+      const srv = obterListaServicos().find((x) => x.id === srvId);
       if (!srv) return;
       if (!confirm(`Finalizar e arquivar o serviço da OS #${srv.os_numero || 'S/N'} (${srv.cliente || srv.empresa || ''})?`)) return;
-      await updateDoc(doc(db, 'servicos_abertos', srvId), {
-        arquivado: true,
-        finalizado_em: serverTimestamp(),
-        data_atualizacao: serverTimestamp()
+      await updateDoc(doc(db, 'ordens_servico', srvId), {
+        'servico_aberto.arquivado': true,
+        'servico_aberto.finalizado_em': new Date(),
+        data_atualizacao: new Date()
       });
       showToast('Serviço finalizado e enviado aos Arquivados!', 'success');
     };
 
     window.reativarServicoArquivado = async (srvId) => {
-      await updateDoc(doc(db, 'servicos_abertos', srvId), {
-        arquivado: false,
-        finalizado_em: null,
-        data_atualizacao: serverTimestamp()
+      await updateDoc(doc(db, 'ordens_servico', srvId), {
+        'servico_aberto.arquivado': false,
+        'servico_aberto.finalizado_em': null,
+        data_atualizacao: new Date()
       });
       showToast('Serviço reativado em Serviços em Aberto!', 'success');
     };
 
     window.excluirServicoArquivado = async (srvId) => {
-      if (!confirm('Excluir permanentemente este registro dos serviços arquivados? (A O.S. original continuará salva na Lista de O.S.)')) return;
-      await deleteDoc(doc(db, 'servicos_abertos', srvId));
+      if (!confirm('Remover este registro dos serviços arquivados? (A O.S. original continuará salva na Lista de O.S.)')) return;
+      await updateDoc(doc(db, 'ordens_servico', srvId), {
+        'servico_aberto.ativo': false,
+        data_atualizacao: new Date()
+      });
       showToast('Registro removido dos arquivados.', 'info');
     };
 
@@ -2716,20 +2722,17 @@
     onSnapshot(qOS, (snap) => {
       todasOS = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderizarListaOS();
+      renderizarServicosAbertos();
+      renderizarServicosArquivados();
     }, (err) => {
       console.warn('Fallback sem orderBy em ordens_servico:', err);
       onSnapshot(collection(db, 'ordens_servico'), (snap) => {
         todasOS = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         todasOS.sort((a, b) => (extrairDataOS(b)?.getTime() || 0) - (extrairDataOS(a)?.getTime() || 0));
         renderizarListaOS();
+        renderizarServicosAbertos();
+        renderizarServicosArquivados();
       });
-    });
-
-    onSnapshot(collection(db, 'servicos_abertos'), (snap) => {
-      todosServicos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      todosServicos.sort((a, b) => extrairDataServico(b) - extrairDataServico(a));
-      renderizarServicosAbertos();
-      renderizarServicosArquivados();
     });
 
     onSnapshot(query(collection(db, 'estoque'), where('setor', '==', 'impressao')), (snap) => {
