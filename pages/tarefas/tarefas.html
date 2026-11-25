@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Tarefas — ArteSynal</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .tasks-subbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 24px 8px;
+      flex-wrap: wrap;
+      max-width: 1520px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .board-scroll {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 10px 24px 22px;
+      max-width: 1520px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .board {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      height: 100%;
+    }
+
+    .list-column {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 330px;
+      min-width: 330px;
+      max-height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition);
+    }
+
+    .list-column.following {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.3);
+    }
+
+    .list-column.list-drop-target {
+      border-color: var(--brand);
+    }
+
+    .list-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .list-drag-handle {
+      flex: 1;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .list-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .list-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .list-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 80px;
+      padding-right: 2px;
+    }
+
+    .list-body.drop-target {
+      border: 1.5px dashed var(--brand);
+      border-radius: var(--radius-md);
+      background: var(--brand-soft);
+      padding: 8px;
+    }
+
+    .task-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--brand);
+      border-radius: var(--radius-md);
+      padding: 13px;
+      cursor: grab;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .task-card.done {
+      border-left-color: var(--green);
+      opacity: 0.78;
+    }
+
+    .task-card.dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+    }
+
+    .task-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .task-card-indicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border-strong);
+      background: #64748b;
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .task-card-indicator.is-green { background: #22c55e; border-color: #22c55e; }
+    .task-card-indicator.is-yellow { background: #eab308; border-color: #eab308; }
+    .task-card-indicator.is-red { background: #ef4444; border-color: #ef4444; }
+
+    .task-title {
+      font-weight: 800;
+      font-size: 14px;
+      margin: 8px 0 4px;
+      color: var(--text-primary);
+    }
+
+    .task-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      line-height: 1.4;
+    }
+
+    .task-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .add-list-btn-col {
+      min-width: 260px;
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      border: 1.5px dashed var(--border-strong);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition);
+    }
+    .add-list-btn-col:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    .action-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-primary);
+      text-align: left;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .action-item:hover { border-color: var(--brand); }
+    .action-item small { display: block; color: var(--text-muted); font-weight: 500; font-size: 11.5px; margin-top: 2px; }
+
+    .task-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 760px) {
+      body { height: auto; min-height: 100dvh; overflow-y: auto; }
+      .tasks-subbar { padding: 12px; }
+      .tasks-subbar > div { width: 100%; }
+      .tasks-subbar .ui-input { max-width: none !important; flex: 1; }
+      .board-scroll { padding: 8px 12px 24px; }
+      .list-column { min-width: 86vw; max-height: 70dvh; }
+      .task-form-grid { grid-template-columns: 1fr; }
+      .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-topbar">
+    <a href="../../index.html" class="app-brand">
+      <img src="../../assets/img/logo-artesynal.png" alt="ArteSynal" class="app-brand-logo" />
+      <span class="app-brand-divider"></span>
+      <div class="app-brand-text">
+        <span class="app-brand-title">PAINEL DE TAREFAS</span>
+        <span class="app-brand-sub" id="who">Carregando sessão...</span>
+      </div>
+    </a>
+
+    <div class="app-topbar-actions">
+      <button type="button" class="ui-btn ui-btn-primary" id="btn-new-task">➕ Nova Tarefa</button>
+      <button type="button" class="ui-btn ui-btn-sm" id="btn-compras" style="display:none;">🛒 Compras</button>
+      <button type="button" class="ui-btn ui-btn-sm" id="btn-side">📋 Solicitações Enviadas</button>
+      <button type="button" class="ui-btn ui-btn-sm" id="btn-notify" title="Ativar alerta sonoro/navegador">🔔</button>
+      <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" id="btn-delete-done" title="Limpar tarefas concluídas">🗑 Concluídas</button>
+      <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+      <a href="../../index.html" class="ui-btn ui-btn-sm">⬅ Painel</a>
+    </div>
+  </header>
+
+  <div class="tasks-subbar">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <span id="status-msg" style="font-size:13px; font-weight:700; color:var(--text-secondary);">Carregando quadro...</span>
+      <span id="compras-filter-badge" class="ui-badge ui-badge-brand" style="display:none; cursor:pointer;">🛒 Exibindo apenas Alertas de Compras (clique p/ ver todas) ✖</span>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input id="busca-tarefas" type="search" class="ui-input" style="max-width:280px; padding:7px 12px;" placeholder="Filtrar cartões..." />
+      <button type="button" class="ui-btn ui-btn-sm" id="btn-add-list">➕ Nova Lista</button>
+    </div>
+  </div>
+
+  <main class="board-scroll">
+    <div id="task-list" class="board"></div>
+  </main>
+
+  <!-- DRAWER MINHAS SOLICITAÇÕES ENVIADAS -->
+  <aside class="ui-drawer" id="sidebar">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--border-subtle);">
+      <h3 style="margin:0; font-family:var(--font-display); font-size:16px;">📋 Tarefas que Solicitei</h3>
+      <button type="button" class="ui-btn ui-btn-sm" id="btn-close-side">✖</button>
+    </div>
+    <div id="req-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-top:14px;"></div>
+  </aside>
+
+  <!-- MODAL CRIAR / EDITAR TAREFA -->
+  <div class="ui-modal-backdrop" id="modal-bg">
+    <div class="ui-modal" style="max-width:640px;">
+      <div class="ui-modal-header">
+        <h3 class="ui-modal-title" id="task-modal-title">Nova Tarefa</h3>
+        <button type="button" class="ui-btn ui-btn-sm" id="btn-cancel-top">✖</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="task-form-grid">
+          <div class="ui-field">
+            <label class="ui-label">Setor</label>
+            <select id="f-setor" class="ui-select">
+              <option value="impressao">Impressão</option>
+              <option value="serralheria">Serralheria</option>
+              <option value="estoque">Estoque Geral</option>
+              <option value="pintura">Pintura</option>
+              <option value="os">Ordens de Serviço</option>
+            </select>
+          </div>
+          <div class="ui-field">
+            <label class="ui-label">Tipo de Demanda</label>
+            <select id="f-tipo" class="ui-select"></select>
+          </div>
+        </div>
+
+        <div class="task-form-grid">
+          <div class="ui-field">
+            <label class="ui-label">Destinatário</label>
+            <select id="f-user" class="ui-select"></select>
+          </div>
+          <div class="ui-field">
+            <label class="ui-label">Lista de Destino</label>
+            <select id="f-lista" class="ui-select"></select>
+          </div>
+        </div>
+
+        <div class="task-form-grid">
+          <div class="ui-field">
+            <label class="ui-label">Título / Resumo</label>
+            <input id="f-resumo" class="ui-input" placeholder="Ex: Repor lona 440g / Cortar chapa ACM" />
+          </div>
+          <div class="ui-field">
+            <label class="ui-label">Vincular Card do Setor (Opcional)</label>
+            <select id="f-card" class="ui-select">
+              <option value="">Sem vínculo com card</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="opts" style="padding:12px; background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:10px; display:flex; flex-direction:column; gap:8px; font-size:13px;"></div>
+
+        <div class="ui-field">
+          <label class="ui-label">Descrição Detalhada</label>
+          <textarea id="f-desc" class="ui-textarea" placeholder="Descreva o que precisa ser executado..."></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
+        <button type="button" class="ui-btn" id="btn-cancel">Cancelar</button>
+        <button type="button" class="ui-btn ui-btn-primary" id="btn-save">Criar Tarefa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURAÇÕES E AUTOMAÇÃO DA LISTA -->
+  <div class="ui-modal-backdrop" id="modal-list-bg">
+    <div class="ui-modal" style="max-width:520px;">
+      <div class="ui-modal-header">
+        <div>
+          <h3 class="ui-modal-title" id="list-modal-title" style="cursor:pointer;" title="Clique para renomear">Lista</h3>
+          <div id="list-modal-sub" style="margin-top:4px;"></div>
+        </div>
+        <button type="button" class="ui-btn ui-btn-sm" id="btn-close-list-modal">✖</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+        <button type="button" class="action-item" id="act-add-card"><span>Adicionar cartão nesta lista<small>Abre nova tarefa apontando para cá.</small></span><span>➕</span></button>
+        <button type="button" class="action-item" id="act-rename-list"><span>Renomear lista<small>Alterar título desta coluna.</small></span><span>✏️</span></button>
+        <button type="button" class="action-item" id="act-copy-list"><span>Duplicar lista<small>Cria nova coluna com as mesmas regras.</small></span><span>📋</span></button>
+        <button type="button" class="action-item" id="act-move-cards"><span>Mover todos os cartões<small>Transfere os cartões para outra coluna.</small></span><span>📦</span></button>
+        <button type="button" class="action-item" id="act-follow-list"><span>Destacar / Seguir lista<small>Realça visualmente esta coluna.</small></span><span>⭐</span></button>
+      </div>
+
+      <div class="ui-label" style="margin-bottom:8px; color:var(--brand);">Ordenação e Automação</div>
+      <div class="task-form-grid" style="margin-bottom:12px;">
+        <div class="ui-field">
+          <label class="ui-label">Ao adicionar cartão</label>
+          <select id="auto-on-add" class="ui-select">
+            <option value="">Padrão</option>
+            <option value="recentes">Mais recentes primeiro</option>
+            <option value="antigos">Mais antigos primeiro</option>
+            <option value="titulo">Título (A-Z)</option>
+            <option value="setor">Agrupar por setor</option>
+          </select>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label">Ordenação diária</label>
+          <select id="auto-daily-sort" class="ui-select">
+            <option value="">Desativado</option>
+            <option value="recentes">Mais recentes</option>
+            <option value="antigos">Mais antigos</option>
+            <option value="titulo">Título (A-Z)</option>
+            <option value="setor">Setor</option>
+          </select>
+        </div>
+      </div>
+      <input type="hidden" id="auto-weekly-sort" value="" />
+
+      <div style="padding:12px; background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:10px; margin-bottom:14px;">
+        <div class="ui-label" style="margin-bottom:8px;">Regra ao concluir cartão</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+          <select id="auto-rule-trigger" class="ui-select">
+            <option value="">Sem regra</option>
+            <option value="ao_concluir">Ao concluir cartão</option>
+          </select>
+          <select id="auto-rule-action" class="ui-select">
+            <option value="">Nenhuma ação</option>
+            <option value="mover_lista">Mover p/ outra lista</option>
+            <option value="manter">Manter na lista</option>
+          </select>
+        </div>
+        <select id="auto-rule-target" class="ui-select"></select>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; gap:8px;">
+        <button type="button" class="ui-btn ui-btn-danger ui-btn-sm" id="act-archive-list">🗄️ Arquivar Lista</button>
+        <button type="button" class="ui-btn ui-btn-primary ui-btn-sm" id="btn-save-list-automation">Salvar Automações</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import '../../js/core/theme.js';
+    import { showToast } from '../../js/core/theme.js';
+    import { db, ROTAS } from '../../js/core/config.js';
+    import { protegerPagina } from '../../js/core/auth.js';
+    import { createCardsTarefasModule } from '../../js/tarefas/cards.js';
+    import {
+      collection,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      doc,
+      query,
+      where,
+      onSnapshot,
+      serverTimestamp,
+      getDocs
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const sessao = await protegerPagina({ paginaAtual: 'tarefas.html' });
+    if (!sessao) throw new Error('Sessão inválida');
+
+    const me = {
+      nome: sessao.user.displayName || sessao.acesso.nome,
+      email: (sessao.user.email || '').toLowerCase()
+    };
+    document.getElementById('who').textContent = `${me.nome} (${me.email})`;
+
+    const MAPA_TIPOS = {
+      impressao: ['Mídia', 'Insumo', 'Ajuste de Impressão', 'Compras'],
+      serralheria: ['Material', 'Corte', 'Montagem', 'Compras'],
+      estoque: ['Reposição', 'Inventário', 'Compras'],
+      pintura: ['Preparação', 'Pintura', 'Insumo', 'Compras'],
+      os: ['Produção', 'Instalação', 'Entrega', 'Revisão']
+    };
+
+    const refs = {
+      modal: document.getElementById('modal-bg'),
+      listModal: document.getElementById('modal-list-bg'),
+      modalTitle: document.getElementById('task-modal-title'),
+      setor: document.getElementById('f-setor'),
+      tipo: document.getElementById('f-tipo'),
+      user: document.getElementById('f-user'),
+      card: document.getElementById('f-card'),
+      lista: document.getElementById('f-lista'),
+      resumo: document.getElementById('f-resumo'),
+      desc: document.getElementById('f-desc'),
+      opts: document.getElementById('opts'),
+      saveTask: document.getElementById('btn-save'),
+      taskList: document.getElementById('task-list'),
+      reqList: document.getElementById('req-list'),
+      status: document.getElementById('status-msg'),
+      listModalTitle: document.getElementById('list-modal-title'),
+      listModalSub: document.getElementById('list-modal-sub'),
+      autoOnAdd: document.getElementById('auto-on-add'),
+      autoDailySort: document.getElementById('auto-daily-sort'),
+      autoWeeklySort: document.getElementById('auto-weekly-sort'),
+      autoRuleTrigger: document.getElementById('auto-rule-trigger'),
+      autoRuleAction: document.getElementById('auto-rule-action'),
+      autoRuleTarget: document.getElementById('auto-rule-target')
+    };
+
+    let usuarios = [];
+    let cardsSetor = [];
+    let pendingCount = 0;
+    let listasPainel = [];
+    let tarefasRecebidas = [];
+    let listaModalAtual = null;
+    let tarefaArrastandoId = '';
+    let listaArrastandoId = '';
+    let tarefaEmEdicaoId = null;
+    let criandoListaInicial = false;
+    let filtrarApenasCompras = false;
+
+    const CICLO_SINALIZACAO = ['', 'green', 'yellow', 'red'];
+    const escapeHtml = (v = '') => String(v).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+    const labelSetor = (s) =>
+      s === 'impressao' ? 'Impressão' :
+      s === 'serralheria' ? 'Serralheria' :
+      s === 'estoque' ? 'Estoque Geral' :
+      s === 'pintura' ? 'Pintura' :
+      s === 'os' ? 'Ordens de Serviço' :
+      s === 'orcamento' ? 'Geral' : (s || 'Geral');
+
+    function isTarefaDeCompra(t) {
+      return String(t.origem || '').startsWith('estoque') || t.tipo === 'Compras' || !!t.extras?.comprarMidia;
+    }
+
+    function atualizarBotaoCompras() {
+      const btn = document.getElementById('btn-compras');
+      const badgeFiltro = document.getElementById('compras-filter-badge');
+      const qtd = tarefasRecebidas.filter((t) => t.status === 'pendente' && isTarefaDeCompra(t)).length;
+      if (qtd > 0 || filtrarApenasCompras) {
+        btn.style.display = 'inline-flex';
+        btn.textContent = `🛒 Compras (${qtd})`;
+        btn.classList.toggle('ui-btn-primary', filtrarApenasCompras);
+      } else {
+        btn.style.display = 'none';
+      }
+      badgeFiltro.style.display = filtrarApenasCompras ? 'inline-flex' : 'none';
+    }
+
+    function obterListasAtivas() {
+      return [...listasPainel]
+        .filter((l, i, arr) => !l.arquivada && arr.findIndex((x) => x.id === l.id) === i)
+        .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+    }
+
+    function getTaskListId(tarefa = {}) {
+      const ativas = obterListasAtivas();
+      const lid = String(tarefa.listaId || '').trim();
+      if (lid && ativas.some((l) => l.id === lid)) return lid;
+      return ativas[0]?.id || '';
+    }
+
+    function montarLinkCard(setor, cardId) {
+      if (!setor || !cardId) return '';
+      if (setor === 'impressao') return `${ROTAS.materiais}?setor=impressao#item-${encodeURIComponent(cardId)}`;
+      if (setor === 'serralheria') return `${ROTAS.materiais}?setor=serralheria#item-${encodeURIComponent(cardId)}`;
+      if (setor === 'estoque') return `${ROTAS.materiais}?setor=estoque#item-${encodeURIComponent(cardId)}`;
+      if (setor === 'os') return `${ROTAS.os}?id=${encodeURIComponent(cardId)}`;
+      return '';
+    }
+
+    function resolverLinkTarefa(t = {}) {
+      if (t?.cardAlvo?.setor && t?.cardAlvo?.id) {
+        return montarLinkCard(t.cardAlvo.setor, t.cardAlvo.id);
+      }
+      if (t?.origem === 'estoque' && t?.itemId) {
+        return `${ROTAS.materiais}?setor=estoque#item-${encodeURIComponent(t.itemId)}`;
+      }
+      if (t?.origem === 'estoque-impressao' && t?.itemId) {
+        return `${ROTAS.materiais}?setor=impressao#item-${encodeURIComponent(t.itemId)}`;
+      }
+      const raw = String(t?.cardAlvo?.link || '');
+      if (!raw || raw.includes('solicitacao.html') || raw.includes('orcamento')) return '';
+      if (raw.includes('estimpressao.html')) {
+        const hash = raw.includes('#') ? raw.slice(raw.indexOf('#')) : '';
+        return `${ROTAS.materiais}?setor=impressao${hash}`;
+      }
+      if (raw.includes('estserralheria.html')) {
+        const hash = raw.includes('#') ? raw.slice(raw.indexOf('#')) : '';
+        return `${ROTAS.materiais}?setor=serralheria${hash}`;
+      }
+      if (raw.includes('estoque.html')) {
+        const hash = raw.includes('#') ? raw.slice(raw.indexOf('#')) : '';
+        return `${ROTAS.materiais}?setor=estoque${hash}`;
+      }
+      if (raw.startsWith('materiais.html')) {
+        return raw.replace(/^materiais\.html/, ROTAS.materiais);
+      }
+      return raw;
+    }
+
+    function preencherSelectListas(valor = '') {
+      const listas = obterListasAtivas();
+      refs.lista.innerHTML = listas.map((l) => `<option value="${l.id}">${escapeHtml(l.nome)}</option>`).join('');
+      refs.autoRuleTarget.innerHTML = `<option value="">Selecione a lista...</option>` +
+        listas.filter((l) => l.id !== listaModalAtual?.id).map((l) => `<option value="${l.id}">${escapeHtml(l.nome)}</option>`).join('');
+      refs.lista.value = (valor && listas.some((l) => l.id === valor)) ? valor : (listas[0]?.id || '');
+    }
+
+    function ordenarTarefasDaLista(lista = {}, tarefas = []) {
+      const auto = lista.automacoes || {};
+      const modo = auto.diaria || auto.aoAdicionar || '';
+      const arr = [...tarefas];
+      if (modo === 'titulo') arr.sort((a, b) => String(a.resumo || '').localeCompare(String(b.resumo || ''), 'pt-BR'));
+      else if (modo === 'setor') arr.sort((a, b) => labelSetor(a.setor).localeCompare(labelSetor(b.setor), 'pt-BR'));
+      else if (modo === 'antigos') arr.sort((a, b) => (a?.created_at?.toMillis?.() || 0) - (b?.created_at?.toMillis?.() || 0));
+      else arr.sort((a, b) => (b?.created_at?.toMillis?.() || 0) - (a?.created_at?.toMillis?.() || 0));
+      return arr;
+    }
+
+    async function garantirListaInicial() {
+      if (criandoListaInicial || obterListasAtivas().length) return;
+      criandoListaInicial = true;
+      try {
+        await addDoc(collection(db, 'painel_tarefas_listas'), {
+          ownerEmail: me.email,
+          nome: 'Minha lista',
+          slug: `minha-lista-${Date.now().toString(36)}`,
+          ordem: 0,
+          seguindo: false,
+          arquivada: false,
+          automacoes: {},
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp()
+        });
+      } finally {
+        criandoListaInicial = false;
+      }
+    }
+
+    async function criarLista() {
+      const nome = prompt('Nome da nova lista/coluna:');
+      if (!nome?.trim()) return;
+      await addDoc(collection(db, 'painel_tarefas_listas'), {
+        ownerEmail: me.email,
+        nome: nome.trim(),
+        slug: `lista-${Date.now().toString(36)}`,
+        ordem: obterListasAtivas().length,
+        seguindo: false,
+        arquivada: false,
+        automacoes: {},
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      showToast('Lista criada!', 'success');
+    }
+
+    async function carregarUsuarios() {
+      const snap = await getDocs(query(collection(db, 'access_requests'), where('status', '==', 'approved')));
+      usuarios = [];
+      snap.forEach((d) => {
+        const it = d.data();
+        if (!it?.blocked && it?.email) usuarios.push({ nome: it.nome || it.email, email: it.email.toLowerCase() });
+      });
+      usuarios.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      refs.user.innerHTML = usuarios.map((u) => `<option value="${u.email}">${escapeHtml(u.nome)} (${escapeHtml(u.email)})</option>`).join('');
+    }
+
+    async function carregarCardsSetor(setor) {
+      cardsSetor = [];
+      try {
+        if (setor === 'impressao' || setor === 'serralheria') {
+          const snap = await getDocs(query(collection(db, 'estoque'), where('setor', '==', setor)));
+          snap.forEach((d) => {
+            if (d.id === 'TINTAS_SISTEMA' || d.data()?.arquivado) return;
+            const it = d.data() || {};
+            cardsSetor.push({ id: d.id, setor, label: `${it.nome || it.categoria || 'Material'} (${d.id.slice(0, 6)})` });
+          });
+        } else if (setor === 'estoque') {
+          const snap = await getDocs(collection(db, 'estoque_app'));
+          snap.forEach((d) => {
+            const it = d.data() || {};
+            cardsSetor.push({ id: d.id, setor: 'estoque', label: `${it.nome || 'Item'} (${it.categoria || 'Geral'})` });
+          });
+        } else if (setor === 'os') {
+          const snap = await getDocs(collection(db, 'ordens_servico'));
+          snap.forEach((d) => {
+            const it = d.data() || {};
+            cardsSetor.push({ id: d.id, setor: 'os', label: `O.S. #${it.os_numero || 'S/N'} • ${it.cliente || 'Cliente'}` });
+          });
+        }
+      } catch {}
+    }
+
+    function renderOpcoes() {
+      const setor = refs.setor.value;
+      const blocos = [];
+      if (setor === 'impressao') {
+        blocos.push(`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="opt-comprar-midia" /> Solicitar compra de mídia</label>`);
+        blocos.push(`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="opt-urgente" /> Urgente</label>`);
+      } else if (setor === 'serralheria') {
+        blocos.push(`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="opt-corte" /> Necessita corte</label>`);
+        blocos.push(`<input id="opt-medida" class="ui-input" placeholder="Medidas: ex 120x80 cm" />`);
+        blocos.push(`<div style="display:flex;gap:14px;"><label><input type="radio" name="destino-corte" value="local" checked /> Corte local</label><label><input type="radio" name="destino-corte" value="externo" /> Corte externo</label></div>`);
+        blocos.push(`<input id="opt-local-externo" class="ui-input" placeholder="Fornecedor externo (se aplicável)" />`);
+      } else {
+        blocos.push(`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="opt-urgente-geral" /> Prioridade Urgente</label>`);
+      }
+      refs.opts.innerHTML = blocos.join('');
+    }
+
+    async function preencherTipos(cardId = '') {
+      const tipos = MAPA_TIPOS[refs.setor.value] || ['Geral', 'Compras'];
+      refs.tipo.innerHTML = tipos.map((t) => `<option value="${t}">${t}</option>`).join('');
+      await carregarCardsSetor(refs.setor.value);
+      refs.card.innerHTML = `<option value="">Sem vínculo com card</option>` +
+        cardsSetor.map((c) => `<option value="${c.id}">${escapeHtml(c.label)}</option>`).join('');
+      if (cardId && cardsSetor.some((c) => c.id === cardId)) refs.card.value = cardId;
+      renderOpcoes();
+    }
+
+    const cardsTarefas = createCardsTarefasModule({
+      refs,
+      escapeHtml,
+      labelSetor,
+      resolverLinkTarefa,
+      getTaskById: (id) => tarefasRecebidas.find((t) => t.id === id) || null,
+      onEditTask: (t) => abrirModal({
+        id: t.id,
+        setor: ['impressao', 'serralheria', 'estoque', 'pintura', 'os'].includes(t.setor) ? t.setor : 'impressao',
+        tipo: t.tipo,
+        destinatarioEmail: t.destinatarioEmail,
+        resumo: t.resumo,
+        desc: t.descricao,
+        cardId: t?.cardAlvo?.id || '',
+        listaId: getTaskListId(t),
+        extras: t.extras || {}
+      }),
+      onToggleIndicator: async (id) => {
+        const t = tarefasRecebidas.find((x) => x.id === id);
+        if (!t) return;
+        const prox = CICLO_SINALIZACAO[(Math.max(CICLO_SINALIZACAO.indexOf(t.sinalizacao || ''), 0) + 1) % CICLO_SINALIZACAO.length];
+        await updateDoc(doc(db, 'tarefas', id), { sinalizacao: prox, updated_at: serverTimestamp() });
+      },
+      onConcluirTask: async (id) => {
+        const t = tarefasRecebidas.find((x) => x.id === id);
+        if (!t || t.status === 'concluida') return;
+        const lista = obterListasAtivas().find((l) => l.id === getTaskListId(t));
+        const regra = lista?.automacoes?.regra || {};
+        const payload = { status: 'concluida', concluida_em: serverTimestamp(), concluida_por: me.email, updated_at: serverTimestamp() };
+        if (regra.gatilho === 'ao_concluir' && regra.acao === 'mover_lista' && regra.listaDestinoId) {
+          payload.listaId = regra.listaDestinoId;
+        }
+        await updateDoc(doc(db, 'tarefas', id), payload);
+        showToast('Tarefa concluída!', 'success');
+      },
+      onResetTask: async (id) => {
+        await updateDoc(doc(db, 'tarefas', id), { status: 'pendente', concluida_em: null, concluida_por: null, updated_at: serverTimestamp() });
+      }
+    });
+
+    async function abrirModal(pre = {}) {
+      tarefaEmEdicaoId = pre.id || null;
+      const labels = cardsTarefas.getTaskModalLabels(!!tarefaEmEdicaoId);
+      refs.modalTitle.textContent = labels.title;
+      refs.saveTask.textContent = labels.saveLabel;
+      if (!obterListasAtivas().length) await garantirListaInicial();
+      const setorAlvo = ['impressao', 'serralheria', 'estoque', 'pintura', 'os'].includes(pre.setor) ? pre.setor : 'impressao';
+      refs.setor.value = setorAlvo;
+      await preencherTipos(pre.cardId || '');
+      if (pre.tipo && [...refs.tipo.options].some((o) => o.value === pre.tipo)) refs.tipo.value = pre.tipo;
+      refs.resumo.value = pre.resumo || '';
+      refs.desc.value = pre.desc || '';
+      refs.user.value = (pre.destinatarioEmail || me.email).toLowerCase();
+      preencherSelectListas(pre.listaId || '');
+      cardsTarefas.preencherExtrasFormulario(pre.extras || {});
+      refs.modal.classList.add('open');
+    }
+
+    function fecharModal() {
+      refs.modal.classList.remove('open');
+      tarefaEmEdicaoId = null;
+    }
+
+    async function salvarTarefa() {
+      const destino = usuarios.find((u) => u.email === refs.user.value);
+      const cardObj = cardsSetor.find((c) => c.id === refs.card.value);
+      const atual = tarefaEmEdicaoId ? tarefasRecebidas.find((t) => t.id === tarefaEmEdicaoId) : null;
+      if (!destino) return showToast('Selecione o destinatário.', 'error');
+      if (!refs.resumo.value.trim()) return showToast('Informe o título/resumo da tarefa.', 'error');
+
+      const payload = {
+        setor: refs.setor.value,
+        tipo: refs.tipo.value,
+        resumo: refs.resumo.value.trim(),
+        descricao: refs.desc.value.trim(),
+        extras: cardsTarefas.coletarExtras(),
+        listaId: refs.lista.value,
+        status: atual?.status || 'pendente',
+        destinatarioEmail: destino.email,
+        destinatarioNome: destino.nome,
+        solicitanteEmail: atual?.solicitanteEmail || me.email,
+        solicitanteNome: atual?.solicitanteNome || me.nome,
+        cardAlvo: cardObj ? {
+          id: cardObj.id,
+          setor: cardObj.setor,
+          label: cardObj.label,
+          link: montarLinkCard(cardObj.setor, cardObj.id)
+        } : (atual?.cardAlvo && !refs.card.value ? null : (atual?.cardAlvo || null)),
+        updated_at: serverTimestamp()
+      };
+
+      if (tarefaEmEdicaoId) {
+        await updateDoc(doc(db, 'tarefas', tarefaEmEdicaoId), payload);
+        showToast('Tarefa atualizada!', 'success');
+      } else {
+        await addDoc(collection(db, 'tarefas'), { ...payload, created_at: serverTimestamp(), concluida_em: null, concluida_por: null });
+        showToast('Tarefa enviada!', 'success');
+      }
+      fecharModal();
+    }
+
+    function renderTarefas() {
+      const termo = document.getElementById('busca-tarefas').value.trim().toLowerCase();
+      let visiveis = tarefasRecebidas.filter((t) => t.status !== 'arquivada');
+      if (filtrarApenasCompras) visiveis = visiveis.filter(isTarefaDeCompra);
+      if (termo) {
+        visiveis = visiveis.filter((t) =>
+          [t.resumo, t.descricao, t.tipo, t.solicitanteNome].some((x) => String(x || '').toLowerCase().includes(termo))
+        );
+      }
+
+      const pendentesTotal = tarefasRecebidas.filter((t) => t.status === 'pendente').length;
+      refs.status.textContent = `${pendentesTotal} tarefa(s) pendente(s) atribuída(s) a você.`;
+      atualizarBotaoCompras();
+
+      const listas = obterListasAtivas();
+      if (!listas.length) {
+        refs.taskList.innerHTML = `<button type="button" class="add-list-btn-col" id="btn-add-list-inline">➕ Criar minha primeira lista</button>`;
+        document.getElementById('btn-add-list-inline')?.addEventListener('click', criarLista);
+        return;
+      }
+
+      refs.taskList.innerHTML = [
+        ...listas.map((lista) => {
+          const tLista = ordenarTarefasDaLista(lista, visiveis.filter((t) => getTaskListId(t) === lista.id));
+          return `
+            <section class="list-column ${lista.seguindo ? 'following' : ''}" data-lista="${lista.id}">
+              <div class="list-header">
+                <div class="list-drag-handle" data-list-drag-handle="${lista.id}" draggable="true">
+                  <div class="list-title">${escapeHtml(lista.nome)}</div>
+                  <div class="list-sub">${tLista.length} cartão(ões) ${lista.seguindo ? '• ⭐ Seguindo' : ''}</div>
+                </div>
+                <button type="button" class="ui-btn ui-btn-sm ui-btn-ghost" data-list-actions="${lista.id}" style="padding:4px 8px;">⋯</button>
+              </div>
+              <div class="list-body" data-list-dropzone="${lista.id}">
+                ${tLista.length ? tLista.map(cardsTarefas.renderCardTarefa).join('') : '<div style="padding:18px;text-align:center;font-size:12px;color:var(--text-muted);border:1px dashed var(--border-subtle);border-radius:8px;">Sem cartões</div>'}
+              </div>
+              <button type="button" class="ui-btn ui-btn-sm" style="width:100%; margin-top:10px;" data-add-card-list="${lista.id}">➕ Adicionar Cartão</button>
+            </section>
+          `;
+        }),
+        `<button type="button" class="add-list-btn-col" id="btn-add-list-inline">➕ Adicionar outra lista</button>`
+      ].join('');
+
+      document.getElementById('btn-add-list-inline')?.addEventListener('click', criarLista);
+      refs.taskList.querySelectorAll('[data-add-card-list]').forEach((b) => b.addEventListener('click', () => abrirModal({ listaId: b.dataset.addCardList })));
+      refs.taskList.querySelectorAll('[data-list-actions]').forEach((b) => b.addEventListener('click', () => abrirModalLista(b.dataset.listActions)));
+
+      cardsTarefas.bindCardInteractions(refs.taskList);
+
+      refs.taskList.querySelectorAll('[data-task-id]').forEach((card) => {
+        card.addEventListener('dragstart', (ev) => {
+          tarefaArrastandoId = card.dataset.taskId;
+          card.classList.add('dragging');
+          ev.dataTransfer?.setData('text/plain', tarefaArrastandoId);
+        });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          tarefaArrastandoId = '';
+          refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((z) => z.classList.remove('drop-target'));
+        });
+      });
+
+      refs.taskList.querySelectorAll('[data-list-dropzone]').forEach((zone) => {
+        zone.addEventListener('dragover', (ev) => {
+          if (!tarefaArrastandoId || listaArrastandoId) return;
+          ev.preventDefault();
+          zone.classList.add('drop-target');
+        });
+        zone.addEventListener('dragleave', (ev) => {
+          if (!zone.contains(ev.relatedTarget)) zone.classList.remove('drop-target');
+        });
+        zone.addEventListener('drop', async (ev) => {
+          ev.preventDefault();
+          zone.classList.remove('drop-target');
+          const id = ev.dataTransfer?.getData('text/plain') || tarefaArrastandoId;
+          const dest = zone.dataset.listDropzone;
+          if (!id || !dest) return;
+          await updateDoc(doc(db, 'tarefas', id), { listaId: dest, updated_at: serverTimestamp() });
+        });
+      });
+
+      refs.taskList.querySelectorAll('[data-list-drag-handle]').forEach((h) => {
+        const lid = h.dataset.listDragHandle;
+        h.addEventListener('dragstart', (ev) => {
+          listaArrastandoId = lid;
+          ev.dataTransfer?.setData('text/plain', lid);
+        });
+        h.addEventListener('dragend', () => {
+          listaArrastandoId = '';
+          refs.taskList.querySelectorAll('[data-lista]').forEach((c) => c.classList.remove('list-drop-target'));
+        });
+      });
+
+      refs.taskList.querySelectorAll('[data-lista]').forEach((col) => {
+        col.addEventListener('dragover', (ev) => {
+          if (!listaArrastandoId) return;
+          ev.preventDefault();
+          if (col.dataset.lista !== listaArrastandoId) col.classList.add('list-drop-target');
+        });
+        col.addEventListener('dragleave', (ev) => {
+          if (!col.contains(ev.relatedTarget)) col.classList.remove('list-drop-target');
+        });
+        col.addEventListener('drop', async (ev) => {
+          if (!listaArrastandoId) return;
+          ev.preventDefault();
+          col.classList.remove('list-drop-target');
+          const destId = col.dataset.lista;
+          if (!destId || destId === listaArrastandoId) return;
+          const ativas = obterListasAtivas();
+          const oi = ativas.findIndex((x) => x.id === listaArrastandoId);
+          const di = ativas.findIndex((x) => x.id === destId);
+          if (oi < 0 || di < 0) return;
+          const [movida] = ativas.splice(oi, 1);
+          ativas.splice(di, 0, movida);
+          await Promise.all(ativas.map((it, idx) => updateDoc(doc(db, 'painel_tarefas_listas', it.id), { ordem: idx, updated_at: serverTimestamp() })));
+        });
+      });
+    }
+
+    function renderSolicitacoes(list) {
+      if (!list.length) {
+        refs.reqList.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:24px;">Nenhuma solicitação enviada por você.</div>';
+        return;
+      }
+      refs.reqList.innerHTML = list.map((t) => {
+        const link = resolverLinkTarefa(t);
+        return `
+          <div style="padding:12px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="ui-badge ${t.status === 'concluida' ? 'ui-badge-green' : 'ui-badge-brand'}">${t.status === 'concluida' ? 'Concluída' : 'Pendente'}</span>
+              <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" style="padding:2px 7px;" data-del-req="${t.id}">✖</button>
+            </div>
+            <div style="font-weight:800; font-size:13.5px;">${escapeHtml(t.resumo || 'Sem resumo')}</div>
+            <div style="font-size:12px; color:var(--text-muted);">Para: ${escapeHtml(t.destinatarioNome || t.destinatarioEmail || '-')}</div>
+            ${link ? `<a class="ui-btn ui-btn-sm" href="${link}" style="align-self:flex-start;">📍 Abrir Card</a>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      refs.reqList.querySelectorAll('[data-del-req]').forEach((b) => {
+        b.addEventListener('click', async () => {
+          if (!confirm('Excluir esta solicitação enviada?')) return;
+          await deleteDoc(doc(db, 'tarefas', b.dataset.delReq));
+          showToast('Solicitação excluída.', 'info');
+        });
+      });
+    }
+
+    function abrirModalLista(listaId) {
+      const l = listasPainel.find((x) => x.id === listaId);
+      if (!l) return;
+      listaModalAtual = l;
+      refs.listModalTitle.textContent = l.nome;
+      const auto = l.automacoes || {};
+      refs.autoOnAdd.value = auto.aoAdicionar || '';
+      refs.autoDailySort.value = auto.diaria || '';
+      refs.autoRuleTrigger.value = auto.regra?.gatilho || '';
+      refs.autoRuleAction.value = auto.regra?.acao || '';
+      preencherSelectListas();
+      refs.autoRuleTarget.value = auto.regra?.listaDestinoId || '';
+      refs.listModal.classList.add('open');
+    }
+
+    function fecharModalLista() {
+      refs.listModal.classList.remove('open');
+      listaModalAtual = null;
+    }
+
+    document.getElementById('btn-new-task').addEventListener('click', () => abrirModal());
+    document.getElementById('btn-add-list').addEventListener('click', criarLista);
+    document.getElementById('btn-cancel').addEventListener('click', fecharModal);
+    document.getElementById('btn-cancel-top').addEventListener('click', fecharModal);
+    document.getElementById('btn-save').addEventListener('click', salvarTarefa);
+    document.getElementById('busca-tarefas').addEventListener('input', renderTarefas);
+    refs.setor.addEventListener('change', () => preencherTipos());
+
+    document.getElementById('btn-compras').addEventListener('click', () => {
+      filtrarApenasCompras = !filtrarApenasCompras;
+      renderTarefas();
+    });
+    document.getElementById('compras-filter-badge').addEventListener('click', () => {
+      filtrarApenasCompras = false;
+      renderTarefas();
+    });
+
+    document.getElementById('btn-delete-done').addEventListener('click', async () => {
+      if (!confirm('Excluir todas as tarefas já marcadas como concluídas?')) return;
+      const snap = await getDocs(query(collection(db, 'tarefas'), where('destinatarioEmail', '==', me.email), where('status', '==', 'concluida')));
+      if (snap.empty) return showToast('Nenhuma tarefa concluída para limpar.', 'info');
+      await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, 'tarefas', d.id))));
+      showToast(`${snap.size} tarefa(s) concluída(s) removida(s)!`, 'success');
+    });
+
+    document.getElementById('btn-side').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+    document.getElementById('btn-close-side').addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
+    document.getElementById('btn-close-list-modal').addEventListener('click', fecharModalLista);
+
+    document.getElementById('act-add-card').addEventListener('click', () => {
+      const lid = listaModalAtual?.id;
+      fecharModalLista();
+      abrirModal({ listaId: lid });
+    });
+    document.getElementById('act-rename-list').addEventListener('click', async () => {
+      if (!listaModalAtual) return;
+      const nv = prompt('Novo nome da lista:', listaModalAtual.nome);
+      if (nv?.trim()) await updateDoc(doc(db, 'painel_tarefas_listas', listaModalAtual.id), { nome: nv.trim(), updated_at: serverTimestamp() });
+      fecharModalLista();
+    });
+    document.getElementById('act-copy-list').addEventListener('click', async () => {
+      if (!listaModalAtual) return;
+      const nv = prompt('Nome da cópia:', `${listaModalAtual.nome} (cópia)`);
+      if (!nv?.trim()) return;
+      await addDoc(collection(db, 'painel_tarefas_listas'), {
+        ownerEmail: me.email,
+        nome: nv.trim(),
+        slug: `lista-${Date.now().toString(36)}`,
+        ordem: obterListasAtivas().length,
+        seguindo: false,
+        arquivada: false,
+        automacoes: { ...(listaModalAtual.automacoes || {}) },
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      fecharModalLista();
+    });
+    document.getElementById('act-move-cards').addEventListener('click', async () => {
+      if (!listaModalAtual) return;
+      const opcoes = obterListasAtivas().filter((x) => x.id !== listaModalAtual.id);
+      if (!opcoes.length) return showToast('Crie outra lista primeiro.', 'error');
+      const resp = prompt(`Mover todos os cartões para qual lista?\n` + opcoes.map((o, i) => `${i + 1}. ${o.nome}`).join('\n'), '1');
+      const alvo = opcoes[(Number(resp) || 1) - 1];
+      if (!alvo) return;
+      const cards = tarefasRecebidas.filter((t) => getTaskListId(t) === listaModalAtual.id);
+      await Promise.all(cards.map((t) => updateDoc(doc(db, 'tarefas', t.id), { listaId: alvo.id, updated_at: serverTimestamp() })));
+      fecharModalLista();
+    });
+    document.getElementById('act-follow-list').addEventListener('click', async () => {
+      if (!listaModalAtual) return;
+      await updateDoc(doc(db, 'painel_tarefas_listas', listaModalAtual.id), { seguindo: !listaModalAtual.seguindo, updated_at: serverTimestamp() });
+      fecharModalLista();
+    });
+    document.getElementById('btn-save-list-automation').addEventListener('click', async () => {
+      if (!listaModalAtual) return;
+      await updateDoc(doc(db, 'painel_tarefas_listas', listaModalAtual.id), {
+        automacoes: {
+          aoAdicionar: refs.autoOnAdd.value,
+          diaria: refs.autoDailySort.value,
+          regra: {
+            gatilho: refs.autoRuleTrigger.value,
+            acao: refs.autoRuleAction.value,
+            listaDestinoId: refs.autoRuleTarget.value
+          }
+        },
+        updated_at: serverTimestamp()
+      });
+      fecharModalLista();
+      showToast('Automações salvas!', 'success');
+    });
+    document.getElementById('act-archive-list').addEventListener('click', async () => {
+      if (!listaModalAtual) return;
+      const dest = obterListasAtivas().find((x) => x.id !== listaModalAtual.id);
+      if (!dest) return showToast('Crie outra lista antes de arquivar esta.', 'error');
+      if (!confirm(`Arquivar "${listaModalAtual.nome}" e mover cartões para "${dest.nome}"?`)) return;
+      const cards = tarefasRecebidas.filter((t) => getTaskListId(t) === listaModalAtual.id);
+      await Promise.all([
+        ...cards.map((t) => updateDoc(doc(db, 'tarefas', t.id), { listaId: dest.id, updated_at: serverTimestamp() })),
+        updateDoc(doc(db, 'painel_tarefas_listas', listaModalAtual.id), { arquivada: true, updated_at: serverTimestamp() })
+      ]);
+      fecharModalLista();
+    });
+
+    document.getElementById('btn-notify').addEventListener('click', async () => {
+      if (!('Notification' in window)) return showToast('Navegador sem suporte a notificações.', 'error');
+      const p = await Notification.requestPermission();
+      showToast(p === 'granted' ? 'Notificações ativadas!' : 'Permissão negada.', p === 'granted' ? 'success' : 'info');
+    });
+
+    await carregarUsuarios();
+    await preencherTipos();
+
+    onSnapshot(query(collection(db, 'painel_tarefas_listas'), where('ownerEmail', '==', me.email)), (snap) => {
+      listasPainel = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      if (!listasPainel.length) garantirListaInicial();
+      preencherSelectListas();
+      renderTarefas();
+    });
+
+    onSnapshot(query(collection(db, 'tarefas'), where('destinatarioEmail', '==', me.email)), (snap) => {
+      tarefasRecebidas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      tarefasRecebidas.sort((a, b) => (b?.created_at?.toMillis?.() || 0) - (a?.created_at?.toMillis?.() || 0));
+      const novoPend = tarefasRecebidas.filter((t) => t.status === 'pendente').length;
+      if (pendingCount && novoPend > pendingCount && Notification.permission === 'granted') {
+        new Notification('Nova tarefa ArteSynal', { body: `Você recebeu ${novoPend - pendingCount} nova(s) tarefa(s).` });
+      }
+      pendingCount = novoPend;
+      renderTarefas();
+    });
+
+    onSnapshot(query(collection(db, 'tarefas'), where('solicitanteEmail', '==', me.email)), (snap) => {
+      const lista = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      lista.sort((a, b) => (b?.created_at?.toMillis?.() || 0) - (a?.created_at?.toMillis?.() || 0));
+      renderSolicitacoes(lista);
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'nova') {
+      await abrirModal({
+        setor: params.get('setor') || 'impressao',
+        cardId: params.get('cardId') || '',
+        resumo: params.get('resumo') || '',
+        desc: params.get('desc') || ''
+      });
+    }
+  </script>
+</body>
+</html>

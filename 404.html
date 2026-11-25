@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecionando — Artesynal PCP</title>
+  <script>
+    // Redirecionador automático para GitHub Pages: mantém etiquetas QR Code antigas e favoritos funcionando
+    // sem poluir a pasta raiz do repositório!
+    (function () {
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      const file = (pathParts[pathParts.length - 1] || '').toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      const hash = window.location.hash || '';
+
+      const baseDir = window.location.pathname.replace(/[^/]*$/, '');
+      const map = {
+        'login.html': 'pages/auth/login.html',
+        'admin-acessos.html': 'pages/auth/admin-acessos.html',
+        'os.html': 'pages/os/os.html',
+        'lista.html': 'pages/os/os.html',
+        'medidas-visitas.html': 'pages/visitas/medidas-visitas.html',
+        'detalhes-visita.html': 'pages/visitas/detalhes-visita.html',
+        'materiais.html': 'pages/materiais/materiais.html',
+        'estimpressao.html': 'pages/materiais/materiais.html',
+        'estserralheria.html': 'pages/materiais/materiais.html',
+        'estoque.html': 'pages/materiais/materiais.html',
+        'estpintura.html': 'pages/pintura/pintura.html',
+        'pintura.html': 'pages/pintura/pintura.html',
+        'tarefas.html': 'pages/tarefas/tarefas.html'
+      };
+
+      if (file === 'lista.html' && !params.has('view') && !params.has('id')) {
+        params.set('view', 'lista');
+      } else if (file === 'estimpressao.html') {
+        params.set('setor', 'impressao');
+      } else if (file === 'estserralheria.html') {
+        params.set('setor', 'serralheria');
+      } else if (file === 'estoque.html') {
+        params.set('setor', 'estoque');
+      }
+
+      const dest = map[file] || 'index.html';
+      const qs = params.toString();
+      window.location.replace(baseDir + dest + (qs ? '?' + qs : '') + hash);
+    })();
+  </script>
+</head>
+<body></body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciamento de Acessos — ArteSynal</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <style>
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      max-width: 380px;
+    }
+
+    .switch-toggle {
+      appearance: none;
+      width: 44px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      position: relative;
+      cursor: pointer;
+      transition: all var(--transition);
+      vertical-align: middle;
+    }
+
+    .switch-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: all var(--transition);
+    }
+
+    .switch-toggle:checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .switch-toggle:checked::after {
+      left: 22px;
+      background: #fff;
+    }
+
+    .row-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-grid .full {
+      grid-column: 1 / -1;
+    }
+
+    .section-card {
+      margin-bottom: 24px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 680px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .search-box { min-width: 0; max-width: none; width: 100%; }
+      .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-topbar">
+    <a href="../../index.html" class="app-brand">
+      <img src="../../assets/img/logo-artesynal.png" alt="ArteSynal" class="app-brand-logo" />
+      <span class="app-brand-divider"></span>
+      <div class="app-brand-text">
+        <span class="app-brand-title">GERENCIAMENTO DE ACESSOS</span>
+        <span class="app-brand-sub">Usuários, Perfis e Permissões</span>
+      </div>
+    </a>
+
+    <div class="app-topbar-actions">
+      <button type="button" class="ui-btn ui-btn-primary" id="btn-categorias">
+        ⚙️ Permissões por Perfil
+      </button>
+      <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+      <a href="../../index.html" class="ui-btn ui-btn-sm">⬅ Painel Central</a>
+    </div>
+  </header>
+
+  <main class="ui-container">
+    <section class="ui-kpi-grid">
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Total de Cadastros</span>
+        <span class="ui-kpi-value" id="kpi-total">0</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Pendentes de Aprovação</span>
+        <span class="ui-kpi-value" id="kpi-pendentes" style="color:var(--brand);">0</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Usuários Ativos</span>
+        <span class="ui-kpi-value" id="kpi-aprovados" style="color:var(--green);">0</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Bloqueados / Reprovados</span>
+        <span class="ui-kpi-value" id="kpi-bloqueados" style="color:var(--red);">0</span>
+      </div>
+    </section>
+
+    <section class="ui-card section-card">
+      <div class="toolbar-row">
+        <div class="ui-pills" id="status-pills">
+          <button type="button" class="ui-pill active" data-filter="todos">Todos</button>
+          <button type="button" class="ui-pill" data-filter="pending">Pendentes</button>
+          <button type="button" class="ui-pill" data-filter="approved">Aprovados</button>
+          <button type="button" class="ui-pill" data-filter="blocked">Bloqueados</button>
+        </div>
+        <input id="busca-usuario" class="ui-input search-box" type="search" placeholder="Buscar por nome, e-mail ou WhatsApp..." />
+      </div>
+
+      <div class="ui-table-wrap">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Colaborador</th>
+              <th>WhatsApp</th>
+              <th>Perfil de Acesso</th>
+              <th>Situação</th>
+              <th>Ativo</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="lista-tbody">
+            <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Carregando usuários...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ui-card section-card">
+      <div class="section-head">
+        <h2>Histórico Recente de Tentativas de Login (Últimas 50)</h2>
+      </div>
+      <div class="ui-table-wrap">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Data e Hora</th>
+              <th>E-mail</th>
+              <th>Nome</th>
+              <th>Perfil</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody id="tentativas-tbody">
+            <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Carregando auditoria...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="ui-modal-backdrop" id="edit-modal-bg">
+    <div class="ui-modal">
+      <div class="ui-modal-header">
+        <h3 class="ui-modal-title">Editar Colaborador</h3>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.fecharEdicao()">✖</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="ui-field">
+          <label class="ui-label" for="edit-nome">Nome</label>
+          <input id="edit-nome" class="ui-input" type="text" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="edit-email">E-mail</label>
+          <input id="edit-email" class="ui-input" type="email" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="edit-whatsapp">WhatsApp</label>
+          <input id="edit-whatsapp" class="ui-input" type="text" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="edit-categoria">Perfil</label>
+          <select id="edit-categoria" class="ui-select">
+            <option value="producao">Produção</option>
+            <option value="instalacao">Instalação</option>
+            <option value="administracao">Administração</option>
+          </select>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="edit-status">Status de Aprovação</label>
+          <select id="edit-status" class="ui-select">
+            <option value="pending">Pendente</option>
+            <option value="approved">Aprovado</option>
+            <option value="rejected">Reprovado</option>
+          </select>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="edit-blocked">Bloqueio</label>
+          <select id="edit-blocked" class="ui-select">
+            <option value="false">Liberado</option>
+            <option value="true">Bloqueado</option>
+          </select>
+        </div>
+        <div class="ui-field full">
+          <label class="ui-label" for="edit-password">Redefinir Senha (Opcional)</label>
+          <input id="edit-password" class="ui-input" type="password" placeholder="Deixe em branco para manter a senha atual" />
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button type="button" class="ui-btn" onclick="window.fecharEdicao()">Cancelar</button>
+        <button type="button" class="ui-btn ui-btn-primary" onclick="window.salvarEdicao()">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ui-modal-backdrop" id="categorias-modal-bg">
+    <div class="ui-modal" style="width:min(780px, 100%);">
+      <div class="ui-modal-header">
+        <h3 class="ui-modal-title">Permissões de Módulos por Perfil</h3>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.fecharCategorias()">✖</button>
+      </div>
+      <p style="margin:0 0 14px; font-size:13px; color:var(--text-muted);">
+        Ative ou desative o acesso de cada perfil aos módulos e abas internas do sistema.
+      </p>
+      <div class="ui-table-wrap" id="categorias-wrapper"></div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button type="button" class="ui-btn" onclick="window.fecharCategorias()">Cancelar</button>
+        <button type="button" class="ui-btn ui-btn-primary" onclick="window.salvarCategorias()">Salvar Permissões</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import '../../js/core/theme.js';
+    import { showToast } from '../../js/core/theme.js';
+    import { db } from '../../js/core/config.js';
+    import { MODULOS_MENU, obterConfiguracaoCategorias, protegerPagina, salvarConfiguracaoCategorias, emailParaId, hashSenha } from '../../js/core/auth.js';
+    import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc, limit } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    await protegerPagina({ paginaAtual: 'admin-acessos.html', exigirAdmin: true });
+
+    const modalBg = document.getElementById('edit-modal-bg');
+    const categoriasModalBg = document.getElementById('categorias-modal-bg');
+    const categoriasWrapper = document.getElementById('categorias-wrapper');
+    let editandoId = null;
+    let categoriasConfig = await obterConfiguracaoCategorias();
+    let todosUsuarios = [];
+    let filtroStatus = 'todos';
+    const acessosMap = new Map();
+
+    const esc = (v) => String(v || '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+
+    function badgeSituacao(r) {
+      if (r.blocked) return '<span class="ui-badge ui-badge-red">Bloqueado</span>';
+      if (r.status === 'approved') return '<span class="ui-badge ui-badge-green">Aprovado</span>';
+      if (r.status === 'rejected') return '<span class="ui-badge ui-badge-red">Reprovado</span>';
+      return '<span class="ui-badge ui-badge-brand">Pendente</span>';
+    }
+
+    function renderUsuarios() {
+      const termo = document.getElementById('busca-usuario').value.trim().toLowerCase();
+      const filtrados = todosUsuarios.filter((r) => {
+        if (filtroStatus === 'pending' && (r.blocked || r.status !== 'pending')) return false;
+        if (filtroStatus === 'approved' && (r.blocked || r.status !== 'approved')) return false;
+        if (filtroStatus === 'blocked' && (!r.blocked && r.status !== 'rejected')) return false;
+        if (!termo) return true;
+        return [r.nome, r.email, r.whatsapp].some((x) => String(x || '').toLowerCase().includes(termo));
+      });
+
+      const tbody = document.getElementById('lista-tbody');
+      if (!filtrados.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Nenhum usuário encontrado neste filtro.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map((r) => {
+        const ativo = !r.blocked && r.status === 'approved';
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;">${esc(r.nome || 'Sem nome')}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${esc(r.email)}</div>
+            </td>
+            <td>${esc(r.whatsapp || '—')}</td>
+            <td>
+              <select class="ui-select" style="max-width:165px; padding:6px 10px;" onchange="window.mudarCategoria('${r.id}', this.value)">
+                <option value="producao" ${r.categoria === 'producao' ? 'selected' : ''}>Produção</option>
+                <option value="instalacao" ${r.categoria === 'instalacao' ? 'selected' : ''}>Instalação</option>
+                <option value="administracao" ${r.categoria === 'administracao' ? 'selected' : ''}>Administração</option>
+              </select>
+            </td>
+            <td>${badgeSituacao(r)}</td>
+            <td>
+              <input type="checkbox" class="switch-toggle" ${ativo ? 'checked' : ''} onchange="window.alternarStatus('${r.id}', ${ativo ? 'true' : 'false'})" title="Aprovar ou bloquear acesso" />
+            </td>
+            <td>
+              <div class="row-actions">
+                <button type="button" class="ui-btn ui-btn-sm" title="Chamar no WhatsApp" onclick="window.abrirWhatsapp('${esc(r.whatsapp || '')}','${esc(r.nome || '')}')">💬</button>
+                <button type="button" class="ui-btn ui-btn-sm" title="Editar dados e senha" onclick="window.abrirEdicao('${r.id}')">✏️</button>
+                <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" title="Excluir usuário" onclick="window.excluirUsuario('${r.id}','${esc(r.nome || '')}')">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function carregar() {
+      const snap = await getDocs(query(collection(db, 'access_requests'), orderBy('created_at', 'desc')));
+      todosUsuarios = [];
+      acessosMap.clear();
+
+      let pendentes = 0, aprovados = 0, bloqueados = 0;
+      snap.forEach((d) => {
+        const row = { id: d.id, ...d.data() };
+        todosUsuarios.push(row);
+        acessosMap.set(d.id, row);
+        if (row.blocked || row.status === 'rejected') bloqueados++;
+        else if (row.status === 'approved') aprovados++;
+        else pendentes++;
+      });
+
+      document.getElementById('kpi-total').textContent = String(todosUsuarios.length);
+      document.getElementById('kpi-pendentes').textContent = String(pendentes);
+      document.getElementById('kpi-aprovados').textContent = String(aprovados);
+      document.getElementById('kpi-bloqueados').textContent = String(bloqueados);
+
+      renderUsuarios();
+
+      const tentSnap = await getDocs(query(collection(db, 'access_attempts'), orderBy('created_at', 'desc'), limit(50)));
+      const tentRows = [];
+      tentSnap.forEach((d) => {
+        const t = d.data();
+        const dt = t.created_at?.seconds ? new Date(t.created_at.seconds * 1000).toLocaleString('pt-BR') : '—';
+        tentRows.push(`
+          <tr>
+            <td style="font-size:12px; color:var(--text-muted);">${dt}</td>
+            <td>${esc(t.email)}</td>
+            <td>${esc(t.nome || '—')}</td>
+            <td>${esc(t.categoria || '—')}</td>
+            <td><span class="ui-badge ui-badge-red">${esc(t.motivo)}</span></td>
+          </tr>
+        `);
+      });
+      document.getElementById('tentativas-tbody').innerHTML = tentRows.length
+        ? tentRows.join('')
+        : '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Nenhuma falha recente registrada.</td></tr>';
+    }
+
+    document.querySelectorAll('#status-pills .ui-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#status-pills .ui-pill').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroStatus = btn.dataset.filter;
+        renderUsuarios();
+      });
+    });
+
+    document.getElementById('busca-usuario').addEventListener('input', renderUsuarios);
+
+    window.alternarStatus = async (id, ativoAgora) => {
+      const status = ativoAgora ? 'rejected' : 'approved';
+      const blocked = !!ativoAgora;
+      await updateDoc(doc(db, 'access_requests', id), { status, blocked, updated_at: serverTimestamp() });
+      showToast(blocked ? 'Usuário bloqueado.' : 'Acesso aprovado!', blocked ? 'info' : 'success');
+      await carregar();
+    };
+
+    window.mudarCategoria = async (id, categoria) => {
+      await updateDoc(doc(db, 'access_requests', id), { categoria, updated_at: serverTimestamp() });
+      const u = acessosMap.get(id);
+      if (u) u.categoria = categoria;
+      showToast('Perfil atualizado com sucesso.', 'success');
+    };
+
+    window.abrirWhatsapp = (whatsapp, nome) => {
+      const numero = (whatsapp || '').replace(/\D/g, '');
+      if (!numero) return showToast('Colaborador sem WhatsApp cadastrado.', 'error');
+      const msg = encodeURIComponent(`Olá ${nome || ''}, seu acesso no Sistema ArteSynal foi atualizado.`);
+      window.open(`https://wa.me/55${numero}?text=${msg}`, '_blank');
+    };
+
+    window.abrirEdicao = (id) => {
+      const user = acessosMap.get(id);
+      if (!user) return;
+      editandoId = id;
+      document.getElementById('edit-nome').value = user.nome || '';
+      document.getElementById('edit-email').value = user.email || '';
+      document.getElementById('edit-whatsapp').value = user.whatsapp || '';
+      document.getElementById('edit-categoria').value = user.categoria || 'producao';
+      document.getElementById('edit-status').value = user.status || 'pending';
+      document.getElementById('edit-blocked').value = String(!!user.blocked);
+      document.getElementById('edit-password').value = '';
+      modalBg.classList.add('open');
+    };
+
+    window.fecharEdicao = () => {
+      editandoId = null;
+      modalBg.classList.remove('open');
+    };
+
+    window.salvarEdicao = async () => {
+      if (!editandoId) return;
+      const atual = acessosMap.get(editandoId);
+      if (!atual) return;
+
+      const nome = document.getElementById('edit-nome').value.trim();
+      const email = document.getElementById('edit-email').value.trim().toLowerCase();
+      const whatsapp = document.getElementById('edit-whatsapp').value.trim().replace(/\D/g, '');
+      const categoria = document.getElementById('edit-categoria').value;
+      const status = document.getElementById('edit-status').value;
+      const blocked = document.getElementById('edit-blocked').value === 'true';
+      const novaSenha = document.getElementById('edit-password').value;
+
+      if (!nome || !email) return showToast('Nome e e-mail são obrigatórios.', 'error');
+
+      const payload = { nome, email, whatsapp, categoria, status, blocked, updated_at: serverTimestamp() };
+      if (novaSenha) payload.senha_hash = await hashSenha(novaSenha);
+
+      const novoId = emailParaId(email);
+      if (novoId !== editandoId) {
+        const novoRef = doc(db, 'access_requests', novoId);
+        const jaExiste = await getDoc(novoRef);
+        if (jaExiste.exists()) return showToast('Já existe um usuário com esse e-mail.', 'error');
+        await setDoc(novoRef, { ...atual, ...payload, created_at: atual.created_at || serverTimestamp() }, { merge: true });
+        await deleteDoc(doc(db, 'access_requests', editandoId));
+      } else {
+        await updateDoc(doc(db, 'access_requests', editandoId), payload);
+      }
+
+      window.fecharEdicao();
+      showToast('Dados do colaborador salvos!', 'success');
+      await carregar();
+    };
+
+    function renderTabelaCategorias() {
+      if (!categoriasConfig) return;
+      const linhas = MODULOS_MENU.map((modulo) => `
+        <tr>
+          <td style="font-weight:600;">${esc(modulo.label)}</td>
+          <td style="text-align:center;"><input class="switch-toggle switch-cat" type="checkbox" data-categoria="producao" data-pagina="${modulo.pagina}" ${categoriasConfig.producao?.[modulo.pagina] ? 'checked' : ''} /></td>
+          <td style="text-align:center;"><input class="switch-toggle switch-cat" type="checkbox" data-categoria="instalacao" data-pagina="${modulo.pagina}" ${categoriasConfig.instalacao?.[modulo.pagina] ? 'checked' : ''} /></td>
+          <td style="text-align:center;"><input class="switch-toggle switch-cat" type="checkbox" data-categoria="administracao" data-pagina="${modulo.pagina}" ${categoriasConfig.administracao?.[modulo.pagina] ? 'checked' : ''} /></td>
+        </tr>
+      `).join('');
+
+      categoriasWrapper.innerHTML = `
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Módulo / Aba</th>
+              <th style="text-align:center;">Produção</th>
+              <th style="text-align:center;">Instalação</th>
+              <th style="text-align:center;">Administração</th>
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      `;
+    }
+
+    window.abrirCategorias = () => {
+      renderTabelaCategorias();
+      categoriasModalBg.classList.add('open');
+    };
+
+    window.fecharCategorias = () => {
+      categoriasModalBg.classList.remove('open');
+    };
+
+    window.salvarCategorias = async () => {
+      if (!categoriasConfig) return;
+      document.querySelectorAll('.switch-cat').forEach((el) => {
+        const cat = el.dataset.categoria;
+        const pag = el.dataset.pagina;
+        categoriasConfig[cat][pag] = el.checked;
+        if (pag === 'os.html') categoriasConfig[cat]['lista.html'] = el.checked;
+        if (pag === 'medidas-visitas.html') categoriasConfig[cat]['detalhes-visita.html'] = el.checked;
+      });
+      categoriasConfig = await salvarConfiguracaoCategorias(categoriasConfig);
+      window.fecharCategorias();
+      showToast('Permissões atualizadas para todos os perfis!', 'success');
+    };
+
+    window.excluirUsuario = async (id, nome) => {
+      if (!confirm(`Excluir permanentemente o cadastro de "${nome || id}"?`)) return;
+      await deleteDoc(doc(db, 'access_requests', id));
+      showToast('Cadastro removido.', 'info');
+      await carregar();
+    };
+
+    document.getElementById('btn-categorias').addEventListener('click', window.abrirCategorias);
+    carregar();
+  </script>
+</body>
+</html>
