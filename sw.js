@@ -1,66 +1,61 @@
-const CACHE_NAME = 'artesynal-os-v1';
+const CACHE_NAME = 'artesynal-pcp-v2.3';
 const ASSETS = [
   './',
   './index.html',
-  './login.html',
+  './404.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './config.js',
-  './auth.js',
-  './task-shortcut.js'
+  './assets/css/theme.css',
+  './assets/img/logo-artesynal.png',
+  './assets/img/icon-192.png',
+  './assets/img/icon-512.png',
+  './js/core/config.js',
+  './js/core/auth.js',
+  './js/core/theme.js',
+  './js/core/task-shortcut.js',
+  './js/materiais/impressao.js',
+  './js/materiais/serralheria.js',
+  './js/materiais/estoque.js',
+  './js/tarefas/cards.js',
+  './pages/auth/login.html',
+  './pages/auth/admin-acessos.html',
+  './pages/os/os.html',
+  './pages/visitas/medidas-visitas.html',
+  './pages/visitas/detalhes-visita.html',
+  './pages/materiais/materiais.html',
+  './pages/pintura/pintura.html',
+  './pages/tarefas/tarefas.html'
 ];
 
-// Instala o Service Worker e cacheia a casca do app
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS).catch((err) => {
-        console.warn('Aviso: Alguns arquivos estáticos não foram cacheados no install (sem problemas):', err);
-      });
-    })
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(ASSETS).catch((err) => console.warn('Aviso no cache inicial:', err))
+    )
   );
   self.skipWaiting();
 });
 
-// Limpa caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
+    )
   );
   self.clients.claim();
 });
 
-// Estratégia Network-First com Fallback do Cache (ideal para app integrado ao Firebase)
 self.addEventListener('fetch', (event) => {
-  // Ignora requisições de APIs externas (como Firestore, Analytics) para evitar problemas no cache local
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-  
+  if (!event.request.url.startsWith(self.location.origin)) return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Se a resposta for válida, clona e atualiza no cache
         if (response && response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => {
-        // Se estiver offline ou falhar na rede, tenta o cache local
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });

@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ficha de Medida / Visita — ArteSynal</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .sync-pill.syncing { background: var(--blue-soft); color: var(--blue); border-color: rgba(14, 165, 233, 0.25); }
+    .sync-pill.typing { background: var(--brand-soft); color: var(--brand); border-color: var(--brand-border); }
+    .sync-pill.error { background: var(--red-soft); color: var(--red); border-color: rgba(239, 68, 68, 0.3); cursor: pointer; }
+
+    .visita-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .address-inline {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .viewer-stage {
+      min-height: 420px;
+      background: #050810;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .viewer-stage img,
+    .viewer-stage video {
+      max-width: 100%;
+      max-height: 64vh;
+      object-fit: contain;
+    }
+
+    .viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 54px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(9, 13, 22, 0.72);
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .viewer-nav:hover { background: var(--brand); color: #090d16; }
+    .viewer-nav.prev { left: 0; border-radius: 0 8px 8px 0; }
+    .viewer-nav.next { right: 0; border-radius: 8px 0 0 8px; }
+
+    .thumbs-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 12px 0;
+      min-height: 92px;
+    }
+
+    .thumb-item {
+      width: 74px;
+      min-width: 74px;
+      height: 74px;
+      border-radius: 10px;
+      border: 2px solid var(--border-subtle);
+      background: #050810;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .thumb-item.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-soft);
+    }
+
+    .thumb-item img,
+    .thumb-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumb-del {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 5px;
+      background: var(--red);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thumb-video-tag {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* EDITOR DE MEDIDAS EM TELA CHEIA */
+    #draw-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #060911;
+      z-index: 2000;
+      flex-direction: column;
+    }
+
+    .draw-top {
+      background: #111827;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .draw-tool-btn {
+      padding: 8px 13px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .draw-tool-btn.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #090d16;
+    }
+
+    .color-palette {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+
+    .color-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      cursor: pointer;
+    }
+
+    #canvas-wrapper {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      touch-action: none;
+    }
+
+    #editor-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      background: #000;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85);
+      cursor: crosshair;
+      touch-action: none;
+      transform-origin: center center;
+    }
+
+    .draw-bottom {
+      background: #111827;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mobile-tabs {
+      display: none;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+    .mobile-tabs .ui-tab { flex: 1; justify-content: center; }
+
+    @media (max-width: 880px) {
+      .visita-grid { grid-template-columns: 1fr; }
+      #panel-midias { display: none; }
+      .mobile-tabs { display: flex; }
+      .viewer-stage { min-height: 270px; }
+      .hide-sm { display: none; }
+      .draw-top { padding: 8px 10px; gap: 6px; }
+      .draw-tool-btn { padding: 6px 10px; font-size: 11px; }
+      .draw-bottom { padding: 10px 12px calc(14px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+    }
+
+    @media (max-width: 480px) {
+      .address-inline {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- MODAL EDITOR DE MEDIDAS -->
+  <div id="draw-modal">
+    <div class="draw-top">
+      <button type="button" class="draw-tool-btn active" id="btn-tool-measure" onclick="window.setTool('measure')">📏 Medida</button>
+      <button type="button" class="draw-tool-btn" id="btn-tool-line" onclick="window.setTool('line')">─ Linha</button>
+      <button type="button" class="draw-tool-btn" id="btn-tool-text" onclick="window.setTool('text')">🔤 Texto</button>
+      <button type="button" class="draw-tool-btn" id="btn-tool-move" onclick="window.setTool('move')">✋ Mover / Editar</button>
+      <button type="button" class="draw-tool-btn" id="btn-tool-del" onclick="window.setTool('del')">🗑️ Apagar</button>
+      <button type="button" class="draw-tool-btn" id="btn-color-measure" onclick="window.toggleColorPicker('measure')">🎨 Cor Medida</button>
+      <button type="button" class="draw-tool-btn" id="btn-color-line" onclick="window.toggleColorPicker('line')">🎨 Cor Linha</button>
+      <div id="color-picker" class="color-palette"></div>
+    </div>
+
+    <div id="canvas-wrapper">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+
+    <div class="draw-bottom">
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="ui-btn" onclick="window.fecharEditor()">Cancelar</button>
+        <button type="button" class="ui-btn" onclick="window.desfazerUltimo()">↩ Desfazer</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; color:#e2e8f0;">
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.zoomEditor(-0.15)">−</button>
+        <span id="zoom-label" style="min-width:52px; text-align:center; font-weight:700;">100%</span>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.zoomEditor(0.15)">+</button>
+      </div>
+      <button type="button" class="ui-btn ui-btn-green" onclick="window.salvarEditor()">💾 Salvar Medidas na Foto</button>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <header class="app-topbar">
+    <a href="./medidas-visitas.html" class="app-brand">
+      <img src="../../assets/img/logo-artesynal.png" alt="ArteSynal" class="app-brand-logo" />
+      <span class="app-brand-divider"></span>
+      <div class="app-brand-text">
+        <span class="app-brand-title">FICHA DE MEDIDA / VISITA</span>
+        <span class="app-brand-sub">Levantamento Técnico e Mídias</span>
+      </div>
+    </a>
+
+    <div class="app-topbar-actions">
+      <span id="sync-indicator" class="sync-pill">☁️ Carregando...</span>
+      <button type="button" class="ui-btn ui-btn-sm" onclick="window.gerarPDF()">📄 Gerar PDF</button>
+      <button type="button" class="ui-btn ui-btn-sm ui-btn-green" onclick="window.salvarVisita({ silencioso: false })">💾 Salvar</button>
+      <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+      <a href="./medidas-visitas.html" class="ui-btn ui-btn-sm">⬅ Quadro</a>
+      <a href="../../index.html" class="ui-btn ui-btn-sm"><span class="hide-sm">Painel</span> 🏠</a>
+    </div>
+  </header>
+
+  <main class="ui-container">
+    <div class="ui-tabs mobile-tabs">
+      <button type="button" class="ui-tab active" id="tab-info" onclick="window.switchTab('info')">📝 Dados da Visita</button>
+      <button type="button" class="ui-tab" id="tab-images" onclick="window.switchTab('images')">📷 Mídias & Medidas</button>
+    </div>
+
+    <div class="visita-grid">
+      <!-- COLUNA 1: INFORMAÇÕES -->
+      <section class="ui-card" id="panel-dados" style="display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Dados do Levantamento</h2>
+          <select id="status-visita" class="ui-select" style="width:auto; padding:6px 10px; font-weight:700;">
+            <option value="solicitacoes">🔴 Solicitações</option>
+            <option value="andamento">🔵 Em Andamento</option>
+            <option value="concluido">🟢 Concluído</option>
+          </select>
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="empresa">Nome da Empresa</label>
+          <input id="empresa" class="ui-input" placeholder="Empresa solicitante" />
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="cliente">Cliente / Contato</label>
+          <input id="cliente" class="ui-input" placeholder="Nome do contato responsável" />
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="servico">Tipo de Serviço</label>
+          <input id="servico" class="ui-input" placeholder="Ex: Fachada ACM, Letra Caixa, Painel..." />
+        </div>
+
+        <div class="address-inline">
+          <div class="ui-field">
+            <label class="ui-label" for="endereco">Endereço Completo</label>
+            <input id="endereco" class="ui-input" placeholder="Rua, número, bairro, cidade..." />
+          </div>
+          <button type="button" class="ui-btn ui-btn-blue" onclick="window.abrirMapa()">🗺️ Maps</button>
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="observacoes">Observações Técnicas</label>
+          <textarea id="observacoes" class="ui-textarea" style="min-height:130px;" placeholder="Altura de instalação, ponto elétrico, estrutura existente, restrições de horário..."></textarea>
+        </div>
+      </section>
+
+      <!-- COLUNA 2: GALERIA DE FOTOS, VÍDEOS CLOUDINARY E MEDIDAS -->
+      <section class="ui-card" id="panel-midias">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+          <div>
+            <h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Galeria de Fotos, Vídeos e Cotas</h2>
+            <span id="photo-count" style="font-size:12px; color:var(--text-muted); font-weight:600;">0 mídias anexadas</span>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="file" id="file-input" accept="image/*,video/*" multiple hidden />
+            <input type="file" id="camera-input" accept="image/*" capture="environment" hidden />
+            <button type="button" class="ui-btn ui-btn-sm" onclick="document.getElementById('file-input').click()">📁 Anexar Foto/Vídeo</button>
+            <button type="button" class="ui-btn ui-btn-sm ui-btn-blue" onclick="document.getElementById('camera-input').click()">📷 Abrir Câmera</button>
+          </div>
+        </div>
+
+        <div class="viewer-stage">
+          <button type="button" class="viewer-nav prev" onclick="window.mudarFoto(-1)">❮</button>
+          <div id="photo-empty" style="color:#94a3b8; text-align:center; padding:32px;">Nenhuma foto ou vídeo anexado nesta visita.</div>
+          <img id="main-img" alt="Mídia selecionada" style="display:none;" />
+          <video id="main-video" controls style="display:none;"></video>
+          <button type="button" class="viewer-nav next" onclick="window.mudarFoto(1)">❯</button>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:12px;">
+          <button type="button" id="btn-edit-measures" class="ui-btn ui-btn-primary" onclick="window.abrirEditor()">📏 Desenhar / Editar Medidas</button>
+          <button type="button" id="btn-dl-with" class="ui-btn ui-btn-sm" onclick="window.baixarImagem(true)">⬇ Baixar com Medidas</button>
+          <button type="button" id="btn-dl-raw" class="ui-btn ui-btn-sm" onclick="window.baixarImagem(false)">⬇ Baixar Original</button>
+        </div>
+
+        <div id="mini-gallery" class="thumbs-strip"></div>
+
+        <div class="ui-field" style="margin-top:6px;">
+          <label class="ui-label" for="img-obs">Legenda / Nota desta Mídia</label>
+          <input id="img-obs" class="ui-input" placeholder="Ex: Vista frontal da fachada - Parede de alvenaria" oninput="window.saveLocalObs()" />
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import '../../js/core/theme.js';
+    import { showToast } from '../../js/core/theme.js';
+    import { db, storage, CLOUDINARY_VIDEO_UPLOAD_URL, CLOUDINARY_VIDEO_PRESET } from '../../js/core/config.js';
+    import { protegerPagina } from '../../js/core/auth.js';
+    import {
+      doc,
+      getDoc,
+      updateDoc,
+      addDoc,
+      collection,
+      serverTimestamp,
+      getDocs,
+      deleteDoc,
+      query,
+      orderBy
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { ref, deleteObject } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
+
+    await protegerPagina({ paginaAtual: 'detalhes-visita.html' });
+
+    const params = new URLSearchParams(window.location.search);
+    let visitaId = params.get('id');
+    let imagens = [];
+    let indiceAtual = 0;
+
+    const canvas = document.getElementById('editor-canvas');
+    const ctx = canvas.getContext('2d');
+    let elementos = [];
+    let editorTool = 'measure';
+    let currentColorType = 'measure';
+    let measureColor = '#10b981';
+    let lineColor = '#ef4444';
+    let zoom = 1;
+    let isDrawing = false, isDragging = false, didDrag = false;
+    let startX = 0, startY = 0, currentX = 0, currentY = 0;
+    let dragTarget = null, currentEditorImg = null;
+    const colors = ['#10b981', '#ef4444', '#3b82f6', '#eab308', '#ffffff', '#000000'];
+
+    const $ = (id) => document.getElementById(id);
+    const dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
+
+    const MAX_IMAGENS = 35;
+    const MAX_DIMENSAO_IMAGEM = 1200;
+    const QUALIDADE_IMAGEM = 0.72;
+    let saveTimer = null;
+    let saveInFlight = false, saveQueued = false;
+    let obsSaveTimer = null;
+
+    function normalizeStatus(s) {
+      const v = String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '_');
+      if (['andamento', 'em_andamento', 'enviado'].includes(v)) return 'andamento';
+      if (['concluido', 'concluida', 'finalizado', 'finalizada'].includes(v)) return 'concluido';
+      return 'solicitacoes';
+    }
+
+    function showStatus(state, msg) {
+      const ind = $('sync-indicator');
+      if (!ind) return;
+      ind.className = `sync-pill ${state === 'saved' ? '' : state}`;
+      const icon = state === 'syncing' ? '🔄' : state === 'typing' ? '✍️' : state === 'error' ? '⚠️' : '☁️';
+      ind.innerHTML = `${icon} ${msg}`;
+    }
+
+    async function garantirDocumentoVisita() {
+      if (visitaId) return visitaId;
+      const servicoVal = $('servico').value.trim();
+      const novo = {
+        empresa: $('empresa').value.trim(),
+        cliente: $('cliente').value.trim(),
+        servico: servicoVal,
+        tipo_servico: servicoVal,
+        endereco: $('endereco').value.trim(),
+        observacoes: $('observacoes').value.trim(),
+        status: $('status-visita').value || 'solicitacoes',
+        arquivado: false,
+        totalImagens: 0,
+        criado_em: serverTimestamp(),
+        origem: 'medidas_visitas'
+      };
+      const docRef = await addDoc(collection(db, 'medidas_visitas'), novo);
+      visitaId = docRef.id;
+      history.replaceState(null, '', `?id=${visitaId}`);
+      return visitaId;
+    }
+
+    async function compactarImagemDataUrl(dataUrl) {
+      const img = new Image();
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = dataUrl; });
+      const scale = Math.min(1, MAX_DIMENSAO_IMAGEM / Math.max(img.width, img.height));
+      const width = Math.round(img.width * scale);
+      const height = Math.round(img.height * scale);
+      const off = document.createElement('canvas');
+      off.width = width;
+      off.height = height;
+      off.getContext('2d').drawImage(img, 0, 0, width, height);
+      return off.toDataURL('image/jpeg', QUALIDADE_IMAGEM);
+    }
+
+    async function lerArquivoCompactado(file) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      return compactarImagemDataUrl(dataUrl);
+    }
+
+    function preencher(v) {
+      $('empresa').value = v.empresa || '';
+      $('cliente').value = v.cliente || '';
+      $('servico').value = v.servico || v.tipo_servico || '';
+      $('endereco').value = v.endereco || '';
+      $('observacoes').value = v.observacoes || v.info_adicional || '';
+      $('status-visita').value = normalizeStatus(v.status);
+    }
+
+    function visitaPayload() {
+      const servicoVal = $('servico').value.trim();
+      return {
+        empresa: $('empresa').value.trim(),
+        cliente: $('cliente').value.trim(),
+        servico: servicoVal,
+        tipo_servico: servicoVal,
+        endereco: $('endereco').value.trim(),
+        observacoes: $('observacoes').value.trim(),
+        status: $('status-visita').value,
+        atualizado_em: serverTimestamp()
+      };
+    }
+
+    async function persistirVisita({ silencioso = true } = {}) {
+      if (saveInFlight) { saveQueued = true; return false; }
+      saveInFlight = true;
+      showStatus('syncing', 'Salvando...');
+      try {
+        await garantirDocumentoVisita();
+        await updateDoc(doc(db, 'medidas_visitas', visitaId), visitaPayload());
+        showStatus('saved', 'Salvo na nuvem');
+        if (!silencioso) showToast('Dados da visita salvos com sucesso!', 'success');
+        return true;
+      } catch (e) {
+        console.error('Erro ao salvar visita:', e);
+        showStatus('error', 'Falha ao salvar (clique p/ tentar)');
+        return false;
+      } finally {
+        saveInFlight = false;
+        if (saveQueued) {
+          saveQueued = false;
+          setTimeout(() => persistirVisita({ silencioso: true }), 250);
+        }
+      }
+    }
+
+    function agendarAutoSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => persistirVisita({ silencioso: true }), 900);
+    }
+
+    window.salvarVisita = async ({ silencioso = false } = {}) => {
+      await persistirVisita({ silencioso });
+    };
+
+    window.abrirMapa = () => {
+      const end = $('endereco').value.trim();
+      if (!end) return showToast('Preencha o endereço antes de abrir o mapa.', 'error');
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end)}`, '_blank');
+    };
+
+    // =========================================================================
+    // UPLOAD DE FOTOS E VÍDEOS (SERVIDOR CLOUDINARY PRESERVADO)
+    // =========================================================================
+    window.addFotos = async (ev) => {
+      const files = [...(ev.target.files || [])];
+      if (!files.length) return;
+
+      const vagas = MAX_IMAGENS - imagens.length;
+      if (vagas <= 0) {
+        showToast(`Limite máximo de ${MAX_IMAGENS} mídias por visita atingido.`, 'error');
+        ev.target.value = '';
+        return;
+      }
+
+      await garantirDocumentoVisita();
+
+      for (const file of files.slice(0, vagas)) {
+        const isVideo = file.type.startsWith('video/');
+        const mbSize = (file.size / (1024 * 1024)).toFixed(1);
+        if (isVideo && file.size > 100 * 1024 * 1024) {
+          showToast(`Vídeo "${file.name}" (${mbSize} MB) excede 100 MB.`, 'error');
+          continue;
+        }
+
+        const placeholderId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        imagens.push({ id: placeholderId, url: '', originalUrl: '', obs: '', elementos: [], type: isVideo ? 'video' : 'image', loading: true });
+        indiceAtual = imagens.length - 1;
+        renderGallery();
+
+        showStatus('syncing', isVideo ? `Enviando vídeo (${mbSize} MB)...` : 'Otimizando imagem...');
+
+        try {
+          let mediaUrl = '';
+          if (isVideo) {
+            await new Promise((resolve, reject) => {
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('upload_preset', CLOUDINARY_VIDEO_PRESET);
+
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', CLOUDINARY_VIDEO_UPLOAD_URL, true);
+              xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                  const pct = Math.round((e.loaded / e.total) * 100);
+                  showStatus('syncing', `Enviando vídeo... ${pct}%`);
+                }
+              };
+              xhr.onload = () => {
+                if (xhr.status === 200) {
+                  const response = JSON.parse(xhr.responseText);
+                  mediaUrl = response.secure_url;
+                  resolve();
+                } else {
+                  reject(new Error(`Cloudinary HTTP ${xhr.status}`));
+                }
+              };
+              xhr.onerror = () => reject(new Error('Falha de rede no servidor de vídeo.'));
+              xhr.send(formData);
+            });
+          } else {
+            mediaUrl = await lerArquivoCompactado(file);
+          }
+
+          const imgData = {
+            url: mediaUrl,
+            originalUrl: mediaUrl,
+            type: isVideo ? 'video' : 'image',
+            obs: '',
+            elementos: [],
+            criado_em: serverTimestamp()
+          };
+
+          const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), imgData);
+          const idx = imagens.findIndex((x) => x.id === placeholderId);
+          if (idx !== -1) {
+            imagens[idx] = { id: docRef.id, ...imgData, criado_em: new Date() };
+            indiceAtual = idx;
+          }
+
+          await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+            totalImagens: imagens.filter((x) => !x.loading).length
+          });
+
+          showStatus('saved', isVideo ? 'Vídeo salvo' : 'Foto salva');
+          renderGallery();
+        } catch (e) {
+          console.error('Erro no envio de mídia:', e);
+          imagens = imagens.filter((x) => x.id !== placeholderId);
+          indiceAtual = Math.max(0, imagens.length - 1);
+          renderGallery();
+          showStatus('error', 'Erro no envio');
+          showToast(`Falha ao anexar "${file.name}": ${e.message}`, 'error');
+        }
+      }
+      ev.target.value = '';
+    };
+
+    function renderGallery() {
+      const mini = $('mini-gallery');
+      mini.innerHTML = '';
+
+      imagens.forEach((img, i) => {
+        const div = document.createElement('div');
+        div.className = `thumb-item ${i === indiceAtual ? 'selected' : ''}`;
+        if (img.loading) {
+          div.style.display = 'flex';
+          div.style.alignItems = 'center';
+          div.style.justifyContent = 'center';
+          div.innerHTML = '<div class="spinner" style="width:18px;height:18px;"></div>';
+        } else {
+          div.onclick = () => { indiceAtual = i; renderGallery(); };
+          if (img.type === 'video') {
+            div.innerHTML = `
+              <video src="${img.url}#t=0.1" preload="metadata"></video>
+              <span class="thumb-video-tag">🎬</span>
+              <button type="button" class="thumb-del" onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>
+            `;
+          } else {
+            div.innerHTML = `
+              <img src="${img.url}" alt="Miniatura ${i + 1}" />
+              <button type="button" class="thumb-del" onclick="event.stopPropagation(); window.removerFoto(${i})">×</button>
+            `;
+          }
+        }
+        mini.appendChild(div);
+      });
+
+      const atual = imagens[indiceAtual];
+      if (atual && !atual.loading) {
+        const isVideo = atual.type === 'video';
+        $('photo-empty').style.display = 'none';
+        if (isVideo) {
+          $('main-img').style.display = 'none';
+          $('main-video').src = atual.url;
+          $('main-video').style.display = 'block';
+          $('btn-edit-measures').style.display = 'none';
+          $('btn-dl-with').style.display = 'none';
+          $('btn-dl-raw').style.display = 'none';
+        } else {
+          $('main-video').style.display = 'none';
+          $('main-video').src = '';
+          $('main-img').src = atual.url;
+          $('main-img').style.display = 'block';
+          $('btn-edit-measures').style.display = 'inline-flex';
+          $('btn-dl-with').style.display = 'inline-flex';
+          $('btn-dl-raw').style.display = 'inline-flex';
+          $('btn-edit-measures').disabled = false;
+          $('btn-dl-with').disabled = false;
+          $('btn-dl-raw').disabled = false;
+        }
+        $('photo-count').textContent = `Item ${indiceAtual + 1} de ${imagens.length}`;
+        $('img-obs').value = atual.obs || '';
+        $('img-obs').disabled = false;
+      } else {
+        $('main-img').style.display = 'none';
+        $('main-video').style.display = 'none';
+        $('main-video').src = '';
+        $('photo-empty').style.display = 'flex';
+        $('photo-empty').style.flexDirection = 'column';
+        $('photo-empty').style.alignItems = 'center';
+        $('photo-empty').innerHTML = atual?.loading
+          ? '<div class="spinner"></div><div style="margin-top:10px;">Enviando arquivo para a nuvem...</div>'
+          : 'Nenhuma foto ou vídeo anexado nesta visita.';
+        $('photo-count').textContent = `${imagens.length} mídias anexadas`;
+        $('img-obs').value = '';
+        $('img-obs').disabled = true;
+        $('btn-edit-measures').disabled = true;
+        $('btn-dl-with').disabled = true;
+        $('btn-dl-raw').disabled = true;
+      }
+    }
+
+    window.mudarFoto = (dir) => {
+      if (!imagens.length) return;
+      indiceAtual = (indiceAtual + dir + imagens.length) % imagens.length;
+      renderGallery();
+    };
+
+    window.removerFoto = async (i) => {
+      if (!confirm('Remover esta mídia permanentemente?')) return;
+      const alvo = imagens[i];
+      if (!alvo || alvo.loading) return;
+
+      showStatus('syncing', 'Excluindo mídia...');
+      try {
+        if (alvo.type === 'video' && alvo.originalUrl?.includes('firebasestorage')) {
+          try {
+            const urlObj = new URL(alvo.originalUrl);
+            const path = decodeURIComponent(urlObj.pathname.split('/o/')[1].split('?')[0]);
+            await deleteObject(ref(storage, path));
+          } catch {}
+        }
+        await deleteDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', alvo.id));
+        imagens.splice(i, 1);
+        indiceAtual = Math.min(indiceAtual, Math.max(0, imagens.length - 1));
+        await updateDoc(doc(db, 'medidas_visitas', visitaId), { totalImagens: imagens.length });
+        showStatus('saved', 'Mídia removida');
+        renderGallery();
+      } catch (e) {
+        showStatus('error', 'Erro ao remover');
+        showToast('Não foi possível excluir a mídia.', 'error');
+      }
+    };
+
+    window.saveLocalObs = () => {
+      const activeImg = imagens[indiceAtual];
+      if (!activeImg || activeImg.loading) return;
+      activeImg.obs = $('img-obs').value;
+      if (obsSaveTimer) clearTimeout(obsSaveTimer);
+      showStatus('typing', 'Editando legenda...');
+      obsSaveTimer = setTimeout(async () => {
+        try {
+          await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), { obs: activeImg.obs });
+          showStatus('saved', 'Legenda salva');
+        } catch {
+          showStatus('error', 'Erro ao salvar legenda');
+        }
+      }, 900);
+    };
+
+    // =========================================================================
+    // EDITOR DE COTAS E MEDIDAS EM CANVAS
+    // =========================================================================
+    window.abrirEditor = () => {
+      const atual = imagens[indiceAtual];
+      if (!atual || atual.loading || atual.type === 'video') return;
+      $('draw-modal').style.display = 'flex';
+      elementos = JSON.parse(JSON.stringify(atual.elementos || []));
+      zoom = 1;
+      applyZoom();
+      window.setTool('measure');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        currentEditorImg = img;
+        redrawCanvas();
+      };
+      img.src = atual.originalUrl || atual.url;
+    };
+
+    window.fecharEditor = () => { $('draw-modal').style.display = 'none'; };
+
+    window.setTool = (t) => {
+      editorTool = t;
+      document.querySelectorAll('.draw-top .draw-tool-btn').forEach((b) => b.classList.remove('active'));
+      const btn = $(`btn-tool-${t}`);
+      if (btn) btn.classList.add('active');
+    };
+
+    window.toggleColorPicker = (type) => {
+      currentColorType = type;
+      const picker = $('color-picker');
+      picker.innerHTML = colors.map((c) => `<button type="button" class="color-dot" style="background:${c};" onclick="window.setEditorColor('${c}')"></button>`).join('');
+      picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+    };
+
+    window.setEditorColor = (c) => {
+      if (currentColorType === 'line') lineColor = c;
+      else measureColor = c;
+      $('color-picker').style.display = 'none';
+      redrawCanvas();
+    };
+
+    window.desfazerUltimo = () => { elementos.pop(); redrawCanvas(); };
+    window.zoomEditor = (delta) => { zoom = Math.min(3, Math.max(0.35, zoom + delta)); applyZoom(); };
+    function applyZoom() { canvas.style.transform = `scale(${zoom})`; $('zoom-label').textContent = `${Math.round(zoom * 100)}%`; }
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      let cx = e.clientX, cy = e.clientY;
+      if (e.touches?.length) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+      else if (e.changedTouches?.length) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+      return {
+        x: (cx - rect.left) * (canvas.width / rect.width),
+        y: (cy - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function findHit(pos) {
+      let best = null, min = 70;
+      elementos.forEach((el, i) => {
+        const pts = el.type === 'text'
+          ? [{ p: 'center', x: el.x, y: el.y }]
+          : [{ p: 'start', x: el.x1, y: el.y1 }, { p: 'end', x: el.x2, y: el.y2 }, { p: 'center', x: (el.x1 + el.x2) / 2, y: (el.y1 + el.y2) / 2 }];
+        pts.forEach((pt) => {
+          const d = dist(pos.x, pos.y, pt.x, pt.y);
+          if (d < min) { min = d; best = { i, p: pt.p }; }
+        });
+      });
+      return best;
+    }
+
+    function drawLine(x1, y1, x2, y2, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(4, canvas.width / 220);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    function drawText(x, y, text, color) {
+      ctx.save();
+      ctx.font = `bold ${Math.max(26, canvas.width / 35)}px Montserrat, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const m = ctx.measureText(text), pad = 12;
+      ctx.fillStyle = 'rgba(0,0,0,0.78)';
+      ctx.fillRect(x - m.width / 2 - pad, y - 18 - pad, m.width + pad * 2, 36 + pad * 2);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function drawMeasure(x1, y1, x2, y2, text, color) {
+      drawLine(x1, y1, x2, y2, color);
+      const head = Math.max(18, canvas.width / 70);
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      ctx.fillStyle = color;
+      [[x2, y2, Math.PI], [x1, y1, 0]].forEach(([x, y, off]) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - head * Math.cos(ang - Math.PI / 6 + off), y - head * Math.sin(ang - Math.PI / 6 + off));
+        ctx.lineTo(x - head * Math.cos(ang + Math.PI / 6 + off), y - head * Math.sin(ang + Math.PI / 6 + off));
+        ctx.fill();
+      });
+      if (text && text !== '...') drawText((x1 + x2) / 2, (y1 + y2) / 2, text, '#ffffff');
+    }
+
+    function drawElement(el) {
+      if (el.type === 'text') return drawText(el.x, el.y, el.text, el.color || lineColor);
+      if (el.type === 'measure') return drawMeasure(el.x1, el.y1, el.x2, el.y2, el.text, el.color || measureColor);
+      drawLine(el.x1, el.y1, el.x2, el.y2, el.color || lineColor);
+    }
+
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (currentEditorImg) ctx.drawImage(currentEditorImg, 0, 0);
+      elementos.forEach(drawElement);
+      if (isDrawing) {
+        drawElement({
+          type: editorTool,
+          x1: startX,
+          y1: startY,
+          x2: currentX,
+          y2: currentY,
+          text: '...',
+          color: editorTool === 'line' ? lineColor : measureColor
+        });
+      }
+    }
+
+    const handleDown = (e) => {
+      const pos = getPos(e);
+      if (['measure', 'line'].includes(editorTool)) {
+        isDrawing = true;
+        startX = currentX = pos.x;
+        startY = currentY = pos.y;
+      } else if (editorTool === 'text') {
+        const text = prompt('Texto da anotação:');
+        if (text) { elementos.push({ type: 'text', x: pos.x, y: pos.y, text, color: lineColor }); redrawCanvas(); }
+      } else if (editorTool === 'move') {
+        dragTarget = findHit(pos);
+        if (dragTarget) { isDragging = true; didDrag = false; dragTarget.lastX = pos.x; dragTarget.lastY = pos.y; }
+      } else if (editorTool === 'del') {
+        const hit = findHit(pos);
+        if (hit) { elementos.splice(hit.i, 1); redrawCanvas(); }
+      }
+    };
+
+    const handleMove = (e) => {
+      const pos = getPos(e);
+      if (isDrawing) {
+        currentX = pos.x; currentY = pos.y; redrawCanvas();
+      } else if (isDragging && dragTarget) {
+        didDrag = true;
+        const el = elementos[dragTarget.i];
+        const dx = pos.x - dragTarget.lastX, dy = pos.y - dragTarget.lastY;
+        if (el.type === 'text' || dragTarget.p === 'center') {
+          if (el.type === 'text') { el.x += dx; el.y += dy; }
+          else { el.x1 += dx; el.x2 += dx; el.y1 += dy; el.y2 += dy; }
+        } else if (dragTarget.p === 'start') {
+          el.x1 = pos.x; el.y1 = pos.y;
+        } else if (dragTarget.p === 'end') {
+          el.x2 = pos.x; el.y2 = pos.y;
+        }
+        dragTarget.lastX = pos.x; dragTarget.lastY = pos.y;
+        redrawCanvas();
+      }
+    };
+
+    const handleUp = () => {
+      if (isDrawing) {
+        isDrawing = false;
+        if (dist(startX, startY, currentX, currentY) > 15) {
+          if (editorTool === 'measure') {
+            const text = prompt('Informe a medida (ex: 3,20 m ou 150 cm):');
+            if (text) elementos.push({ type: 'measure', x1: startX, y1: startY, x2: currentX, y2: currentY, text, color: measureColor });
+          } else {
+            elementos.push({ type: 'line', x1: startX, y1: startY, x2: currentX, y2: currentY, color: lineColor });
+          }
+        }
+        redrawCanvas();
+      }
+      if (isDragging) {
+        const el = elementos[dragTarget.i];
+        if (!didDrag && el && (el.type === 'text' || el.type === 'measure')) {
+          const novo = prompt('Editar medida/texto:', el.text || '');
+          if (novo !== null) el.text = novo;
+        }
+        isDragging = false;
+        dragTarget = null;
+        redrawCanvas();
+      }
+    };
+
+    canvas.addEventListener('mousedown', handleDown);
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('mouseup', handleUp);
+    canvas.addEventListener('mouseleave', handleUp);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDown(e); }, { passive: false });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, { passive: false });
+    canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, { passive: false });
+
+    window.salvarEditor = async () => {
+      const activeImg = imagens[indiceAtual];
+      if (!activeImg || activeImg.loading) return;
+      showStatus('syncing', 'Gravando medidas...');
+      try {
+        const finalDataUrl = canvas.toDataURL('image/jpeg', QUALIDADE_IMAGEM);
+        await updateDoc(doc(db, 'medidas_visitas', visitaId, 'imagens', activeImg.id), {
+          url: finalDataUrl,
+          elementos
+        });
+        activeImg.url = finalDataUrl;
+        activeImg.elementos = JSON.parse(JSON.stringify(elementos));
+        renderGallery();
+        window.fecharEditor();
+        showStatus('saved', 'Medidas salvas');
+        showToast('Medidas aplicadas na foto!', 'success');
+      } catch (e) {
+        showStatus('error', 'Erro ao salvar medidas');
+        showToast('Erro ao salvar imagem editada.', 'error');
+      }
+    };
+
+    window.baixarImagem = (withMeasures) => {
+      const atual = imagens[indiceAtual];
+      if (!atual || atual.loading) return;
+      const a = document.createElement('a');
+      a.href = withMeasures ? atual.url : (atual.originalUrl || atual.url);
+      a.download = `visita-${visitaId || 'foto'}-${indiceAtual + 1}-${withMeasures ? 'com-medidas' : 'original'}.jpg`;
+      a.click();
+    };
+
+    window.switchTab = (tab) => {
+      const isInfo = tab === 'info';
+      $('panel-dados').style.display = isInfo ? 'flex' : 'none';
+      $('panel-midias').style.display = isInfo ? 'none' : 'block';
+      $('tab-info').classList.toggle('active', isInfo);
+      $('tab-images').classList.toggle('active', !isInfo);
+    };
+
+    // =========================================================================
+    // RELATÓRIO TÉCNICO EM PDF (A4)
+    // =========================================================================
+    const getImageDimensions = (src) => new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.width, height: img.height });
+      img.onerror = reject;
+      img.src = src;
+    });
+
+    window.gerarPDF = async () => {
+      const imgsToPrint = imagens.filter((img) => !img.loading && img.type !== 'video');
+      if (imgsToPrint.length === 0 && !confirm('Nenhuma foto anexada. Gerar PDF somente com as informações?')) return;
+
+      showStatus('syncing', 'Gerando PDF...');
+      try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        let y = 14;
+
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('RELATÓRIO TÉCNICO DE MEDIDAS / VISITA', pageWidth / 2, y, { align: 'center' });
+        y += 10;
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'normal');
+        const empresa = $('empresa').value.trim() || 'N/A';
+        const cliente = $('cliente').value.trim() || 'N/A';
+        const servico = $('servico').value.trim() || 'N/A';
+        const endereco = $('endereco').value.trim() || 'N/A';
+        const obs = $('observacoes').value.trim() || 'N/A';
+
+        pdf.text(`Empresa: ${empresa}`, 12, y); y += 6;
+        pdf.text(`Cliente: ${cliente}`, 12, y); y += 6;
+        pdf.text(`Serviço: ${servico}`, 12, y); y += 6;
+        pdf.text(`Endereço: ${endereco}`, 12, y); y += 6;
+
+        const splitObs = pdf.splitTextToSize(`Observações: ${obs}`, pageWidth - 24);
+        pdf.text(splitObs, 12, y);
+        y += (splitObs.length * 5.5) + 4;
+
+        pdf.setLineWidth(0.4);
+        pdf.line(12, y, pageWidth - 12, y);
+        y += 8;
+
+        for (let i = 0; i < imgsToPrint.length; i++) {
+          if (y + 108 > pageHeight - 12) {
+            pdf.addPage();
+            y = 15;
+          }
+          const img = imgsToPrint[i];
+          const hasMeasures = Array.isArray(img.elementos) && img.elementos.length > 0;
+
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          const title = pdf.splitTextToSize(`Foto ${i + 1}${img.obs ? ' — ' + img.obs : ''}`, pageWidth - 24);
+          pdf.text(title, 12, y);
+          y += title.length * 5;
+
+          const maxImgHeight = 88;
+          const availW = pageWidth - 24;
+
+          try {
+            const dims = await getImageDimensions(img.originalUrl || img.url);
+            const ratio = dims.width / dims.height;
+
+            if (hasMeasures) {
+              const maxW = (availW - 6) / 2;
+              let w = maxW, h = w / ratio;
+              if (h > maxImgHeight) { h = maxImgHeight; w = h * ratio; }
+              const sx = 12 + (availW - (w * 2 + 6)) / 2;
+              pdf.addImage(img.originalUrl, 'JPEG', sx, y, w, h, undefined, 'FAST');
+              pdf.addImage(img.url, 'JPEG', sx + w + 6, y, w, h, undefined, 'FAST');
+              pdf.setFontSize(9);
+              pdf.setFont('helvetica', 'italic');
+              pdf.text('Original', sx + w / 2, y + h + 4, { align: 'center' });
+              pdf.text('Com Medidas', sx + w + 6 + w / 2, y + h + 4, { align: 'center' });
+            } else {
+              let w = availW, h = w / ratio;
+              if (h > maxImgHeight) { h = maxImgHeight; w = h * ratio; }
+              const sx = 12 + (availW - w) / 2;
+              pdf.addImage(img.originalUrl || img.url, 'JPEG', sx, y, w, h, undefined, 'FAST');
+            }
+          } catch {
+            pdf.text('(Imagem indisponível para renderização)', 12, y + 10);
+          }
+          y += maxImgHeight + 10;
+        }
+
+        pdf.save(`Visita_${(empresa !== 'N/A' ? empresa : 'Relatorio').replace(/[^a-z0-9]/gi, '_')}.pdf`);
+        showStatus('saved', 'PDF gerado');
+        showToast('Relatório PDF baixado com sucesso!', 'success');
+      } catch (err) {
+        console.error(err);
+        showStatus('error', 'Erro no PDF');
+        showToast('Erro ao gerar o PDF da visita.', 'error');
+      }
+    };
+
+    // =========================================================================
+    // INICIALIZAÇÃO E MIGRAÇÃO AUTOMÁTICA DE DADOS ANTIGOS
+    // =========================================================================
+    async function init() {
+      if (visitaId) {
+        showStatus('syncing', 'Carregando ficha...');
+        const snap = await getDoc(doc(db, 'medidas_visitas', visitaId));
+        if (!snap.exists()) {
+          showToast('Visita não encontrada.', 'error');
+          setTimeout(() => { window.location.href = './medidas-visitas.html'; }, 800);
+          return;
+        }
+        const data = snap.data();
+        preencher(data);
+
+        if (Array.isArray(data.imagens) && data.imagens.length > 0) {
+          showStatus('syncing', 'Adaptando fotos antigas...');
+          imagens = [];
+          for (let i = 0; i < data.imagens.length; i++) {
+            const old = data.imagens[i];
+            const cleanImg = {
+              url: old.url,
+              originalUrl: old.originalUrl || old.url,
+              type: old.type || 'image',
+              obs: old.obs || '',
+              elementos: old.elementos || old.arrows || [],
+              criado_em: new Date(Date.now() + i * 1000)
+            };
+            const docRef = await addDoc(collection(db, 'medidas_visitas', visitaId, 'imagens'), cleanImg);
+            imagens.push({ id: docRef.id, ...cleanImg });
+          }
+          await updateDoc(doc(db, 'medidas_visitas', visitaId), {
+            imagens: [],
+            totalImagens: data.imagens.length,
+            imagensMigradas: true
+          });
+        } else {
+          const qImgs = query(collection(db, 'medidas_visitas', visitaId, 'imagens'), orderBy('criado_em', 'asc'));
+          const querySnapshot = await getDocs(qImgs);
+          imagens = querySnapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+            originalUrl: d.data().originalUrl || d.data().url,
+            elementos: d.data().elementos || d.data().arrows || []
+          }));
+        }
+      }
+
+      $('file-input').addEventListener('change', window.addFotos);
+      $('camera-input').addEventListener('change', window.addFotos);
+
+      ['empresa', 'cliente', 'servico', 'endereco', 'observacoes'].forEach((id) => {
+        $(id).addEventListener('input', () => {
+          showStatus('typing', 'Digitando...');
+          agendarAutoSave();
+        });
+      });
+
+      $('status-visita').addEventListener('change', () => persistirVisita({ silencioso: true }));
+      $('sync-indicator').addEventListener('click', () => {
+        if ($('sync-indicator').classList.contains('error')) persistirVisita({ silencioso: false });
+      });
+
+      renderGallery();
+      showStatus('saved', visitaId ? 'Salvo na nuvem' : 'Nova ficha pronta');
+    }
+
+    init();
+  </script>
+</body>
+</html>

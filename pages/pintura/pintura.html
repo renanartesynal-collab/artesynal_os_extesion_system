@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setor de Pintura — ArteSynal</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+      gap: 16px;
+    }
+
+    .paint-slot {
+      background: var(--bg-surface);
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--radius-lg);
+      min-height: 195px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+      transition: all var(--transition);
+    }
+
+    .paint-slot.filled {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--red);
+      align-items: stretch;
+      justify-content: space-between;
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .paint-slot.filled:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-strong);
+    }
+
+    .paint-code {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .paint-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 8px 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin: 6px 0;
+    }
+
+    .paint-metric-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .paint-metric-item small {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .paint-metric-item strong {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .modal-split {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .tare-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .tare-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-default);
+      background: var(--bg-input);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all var(--transition);
+      text-align: center;
+    }
+    .tare-chip input { display: none; }
+    .tare-chip small { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+    .tare-chip:has(input:checked) {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--text-primary);
+    }
+
+    /* ETIQUETA TÉCNICA PRETA E BRANCA 55mm × 30mm (IMPRESSORA 58mm) */
+    .etiqueta {
+      width: 55mm;
+      height: 30mm;
+      max-width: 100%;
+      margin: 0 auto;
+      background: #ffffff;
+      color: #111111;
+      border: 2px solid #111111;
+      border-radius: 10px;
+      padding: 5px;
+      display: grid;
+      grid-template-columns: 1.58cm 1fr;
+      gap: 4px;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+      box-sizing: border-box;
+    }
+    .etq-qr-panel {
+      border: 1px solid #b5b5b5;
+      border-radius: 7px;
+      background: #efefef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
+      height: 100%;
+    }
+    .qr-box {
+      width: 1.34cm;
+      height: 1.34cm;
+      border: 1px solid #111;
+      border-radius: 2px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-box img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+    .etq-right {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 3px;
+      min-width: 0;
+      min-height: 0;
+    }
+    .etq-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.72fr;
+      gap: 3px;
+      min-width: 0;
+    }
+    .etq-label {
+      font-size: 5.4px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      margin: 0 0 1px 1px;
+      line-height: 1;
+      color: #111;
+    }
+    .etq-box {
+      border: 1px solid #b5b5b5;
+      border-radius: 6px;
+      background: #efefef;
+      padding: 2px 4px;
+      min-width: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .etq-value {
+      font-size: 8px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.05;
+      color: #111;
+    }
+    .etq-notes .etq-box { align-items: flex-start; height: calc(100% - 7px); }
+    .etq-notes .etq-value {
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      .print-target, .print-target * { visibility: visible !important; }
+      .print-target {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0 !important;
+      }
+    }
+
+    .pint-grid-top { display: grid; grid-template-columns: 1.4fr 0.8fr; gap: 10px; }
+    .pint-grid-mid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; }
+    .pint-grid-calc { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: end; }
+
+    @media (max-width: 880px) {
+      .modal-split { grid-template-columns: 1fr; }
+      .hide-sm { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .pint-grid-top,
+      .pint-grid-mid,
+      .pint-grid-calc {
+        grid-template-columns: 1fr;
+      }
+      .slots-grid {
+        grid-template-columns: 1fr;
+      }
+      .tare-group {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-topbar">
+    <a href="../../index.html" class="app-brand">
+      <img src="../../assets/img/logo-artesynal.png" alt="ArteSynal" class="app-brand-logo" />
+      <span class="app-brand-divider"></span>
+      <div class="app-brand-text">
+        <span class="app-brand-title">SETOR DE PINTURA</span>
+        <span class="app-brand-sub">Controle de Tintas, Peso/Tara e Etiquetas 55mm</span>
+      </div>
+    </a>
+
+    <div class="app-topbar-actions">
+      <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+      <a href="../../index.html" class="ui-btn ui-btn-sm">⬅ Painel</a>
+    </div>
+  </header>
+
+  <main class="ui-container">
+    <section class="ui-kpi-grid">
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Latas / Slots Preenchidos</span>
+        <span class="ui-kpi-value" id="kpi-pint-latas">0</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Volume Total Disponível</span>
+        <span class="ui-kpi-value" id="kpi-pint-litros" style="color:var(--blue);">0,0 L</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Rendimento Total Estimado</span>
+        <span class="ui-kpi-value" id="kpi-pint-m2" style="color:var(--green);">0,0 m²</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Categorias Cadastradas</span>
+        <span class="ui-kpi-value" id="kpi-pint-cats">1</span>
+      </div>
+    </section>
+
+    <section class="ui-card" style="margin-bottom: 20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+        <div id="categorias" class="ui-pills"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="ui-btn ui-btn-sm" id="btn-nova-categoria">➕ Nova Categoria</button>
+          <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" id="btn-excluir-categoria" style="display:none;">🗑️ Excluir Categoria</button>
+          <button type="button" class="ui-btn ui-btn-sm ui-btn-primary" id="btn-adicionar-slot">➕ Adicionar Slot</button>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <input id="busca-pintura" type="search" class="ui-input" style="max-width:420px;" placeholder="Buscar por código/cor, tipo (PU, Epóxi...), O.S. ou anotação..." />
+        <span id="contador-slots" style="font-size:12.5px; color:var(--text-muted); font-weight:600;"></span>
+      </div>
+    </section>
+
+    <div id="slots-grid" class="slots-grid"></div>
+  </main>
+
+  <!-- MODAL DE CADASTRO / EDIÇÃO DE TINTA + ETIQUETA -->
+  <div class="ui-modal-backdrop" id="modal-tinta-bg">
+    <div class="ui-modal" style="width:min(980px, 100%);">
+      <div class="ui-modal-header">
+        <h3 class="ui-modal-title" id="modal-tinta-titulo">Cadastro de Tinta / Insumo</h3>
+        <button type="button" class="ui-btn ui-btn-sm" id="btn-cancelar-topo">✖</button>
+      </div>
+
+      <div class="modal-split">
+        <!-- FORMULÁRIO -->
+        <div style="display:flex; flex-direction:column; gap:13px;">
+          <div class="pint-grid-top">
+            <div class="ui-field">
+              <label class="ui-label" for="tinta-codigo">Código do Catálogo e Cor</label>
+              <input id="tinta-codigo" class="ui-input" type="text" placeholder="Ex: RAL 9003 Branco Puro" />
+            </div>
+            <div class="ui-field">
+              <label class="ui-label" for="tinta-os">Nº O.S. (Opcional / até 5 díg.)</label>
+              <input id="tinta-os" class="ui-input" type="text" inputmode="numeric" maxlength="5" placeholder="Ex: 01042" />
+            </div>
+          </div>
+
+          <div class="pint-grid-mid">
+            <div class="ui-field">
+              <label class="ui-label" for="tinta-validade">Validade (MM/AAAA)</label>
+              <input id="tinta-validade" class="ui-input" type="text" maxlength="7" placeholder="MM/AAAA" />
+            </div>
+            <div class="ui-field">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="ui-label" for="tinta-tipo">Base / Tipo</label>
+                <div style="display:flex; gap:4px;">
+                  <button type="button" class="ui-btn ui-btn-sm" style="padding:1px 7px;" id="btn-add-tipo" title="Novo tipo">+</button>
+                  <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" style="padding:1px 7px;" id="btn-del-tipo" title="Remover tipo selecionado">−</button>
+                </div>
+              </div>
+              <select id="tinta-tipo" class="ui-select"></select>
+            </div>
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label" for="tinta-descricao">Anotações Técnicas</label>
+            <input id="tinta-descricao" class="ui-input" type="text" maxlength="90" placeholder="Diluição, catalisador, cliente ou observação..." />
+          </div>
+
+          <div style="background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px; display:flex; flex-direction:column; gap:12px;">
+            <div class="ui-label" style="color:var(--brand);">Cálculo Automático por Peso e Tara</div>
+            <div class="tare-group">
+              <label class="tare-chip">
+                <input type="radio" name="tinta-lata" value="900" />
+                <span>Lata 900 ml</span>
+                <small>Tara: 130 g</small>
+              </label>
+              <label class="tare-chip">
+                <input type="radio" name="tinta-lata" value="3600" />
+                <span>Galão 3,6 L</span>
+                <small>Tara: 260 g</small>
+              </label>
+              <label class="tare-chip">
+                <input type="radio" name="tinta-lata" value="18000" />
+                <span>Lata 18 L</span>
+                <small>Tara: 950 g</small>
+              </label>
+            </div>
+
+            <div class="pint-grid-calc">
+              <div class="ui-field">
+                <label class="ui-label" for="tinta-peso-total">Peso Bruto na Balança (g)</label>
+                <input id="tinta-peso-total" class="ui-input" type="number" min="0" step="0.1" placeholder="Ex: 980" />
+              </div>
+              <div class="ui-kpi" style="padding:9px 12px;">
+                <span class="ui-kpi-label" style="font-size:10px;">Volume Líquido</span>
+                <span class="ui-kpi-value" id="calc-ml" style="font-size:17px;">0 ml</span>
+              </div>
+              <div class="ui-kpi" style="padding:9px 12px;">
+                <span class="ui-kpi-label" style="font-size:10px;">Rendimento Est.</span>
+                <span class="ui-kpi-value" id="rendimento-valor" style="font-size:17px; color:var(--green);">0.0 m²</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button type="button" class="ui-btn" id="btn-cancelar-tinta">Cancelar</button>
+            <button type="button" class="ui-btn ui-btn-primary" id="btn-salvar-tinta">💾 Salvar no Slot</button>
+          </div>
+        </div>
+
+        <!-- PRÉVIA DA ETIQUETA 55mm × 30mm -->
+        <div style="background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="ui-label">Etiqueta Térmica (55 × 30 mm)</span>
+            <span class="ui-badge">Impressora 58mm</span>
+          </div>
+
+          <div style="padding:16px 8px; background:var(--bg-app); border-radius:10px; display:flex; justify-content:center;">
+            <div class="etiqueta print-target" id="etiqueta-preview">
+              <div class="etq-qr-panel">
+                <div class="qr-box"><img id="lbl-qr" crossorigin="anonymous" alt="QR Code da etiqueta" /></div>
+              </div>
+
+              <div class="etq-right">
+                <div class="etq-field">
+                  <div class="etq-label">Cód. do catálogo e cor</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-codigo-cor">_____</div></div>
+                </div>
+
+                <div class="etq-row-3">
+                  <div class="etq-field">
+                    <div class="etq-label">Quantidade</div>
+                    <div class="etq-box"><div class="etq-value" id="lbl-quantidade">0 ml</div></div>
+                  </div>
+                  <div class="etq-field">
+                    <div class="etq-label">Val.</div>
+                    <div class="etq-box"><div class="etq-value" id="lbl-validade">MM/AAAA</div></div>
+                  </div>
+                  <div class="etq-field">
+                    <div class="etq-label">OS.</div>
+                    <div class="etq-box"><div class="etq-value" id="lbl-os">_____</div></div>
+                  </div>
+                </div>
+
+                <div class="etq-field etq-notes">
+                  <div class="etq-label">Anotações</div>
+                  <div class="etq-box"><div class="etq-value" id="lbl-anotacoes">________________________</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="ui-btn ui-btn-sm" id="btn-imprimir-etiqueta">🖨️ Imprimir</button>
+            <button type="button" class="ui-btn ui-btn-sm ui-btn-blue" id="btn-png-etiqueta">🖼️ PNG</button>
+            <button type="button" class="ui-btn ui-btn-sm ui-btn-primary" id="btn-pdf-etiqueta">📄 PDF (55×30mm)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import '../../js/core/theme.js';
+    import { showToast } from '../../js/core/theme.js';
+    import { protegerPagina } from '../../js/core/auth.js';
+    import { db } from '../../js/core/config.js';
+    import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const previewMode = new URLSearchParams(window.location.search).get('preview') === '1';
+    if (!previewMode) await protegerPagina({ paginaAtual: 'pintura.html' });
+
+    const STORAGE_KEY = 'artesynal_pintura_v4';
+    const estadoRef = doc(db, 'system_config', 'pintura_estado_v2');
+    const paramsRef = doc(db, 'system_config', 'pintura_parametros');
+
+    let PARAMETROS_PINTURA = {
+      tara_por_lata_g: { '900': 130, '3600': 260, '18000': 950 },
+      gramas_por_100ml: 108,
+      rendimento_m2_por_100ml: 1
+    };
+
+    const estadoPadrao = {
+      categorias: { tinta: { label: 'Tinta', slots: Array(8).fill(null) } },
+      categoriaAtual: 'tinta',
+      tiposTinta: ['PU', 'Esmalte', 'Epóxi', 'Acrílica']
+    };
+
+    const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+    const slugify = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const normalizarOS = (v) => String(v || '').replace(/\D/g, '').slice(0, 5);
+    const normalizarValidade = (v) => {
+      const d = String(v || '').replace(/\D/g, '').slice(0, 6);
+      return d.length <= 2 ? d : `${d.slice(0, 2)}/${d.slice(2)}`;
+    };
+
+    function sanitizarEstado(bruto) {
+      if (!bruto?.categorias || typeof bruto.categorias !== 'object') return structuredClone(estadoPadrao);
+      const clone = structuredClone(bruto);
+      if (!clone.categorias.tinta) clone.categorias.tinta = structuredClone(estadoPadrao.categorias.tinta);
+      if (!clone.categoriaAtual || !clone.categorias[clone.categoriaAtual]) clone.categoriaAtual = 'tinta';
+      for (const k of Object.keys(clone.categorias)) {
+        if (!Array.isArray(clone.categorias[k].slots)) clone.categorias[k].slots = Array(6).fill(null);
+      }
+      if (!Array.isArray(clone.tiposTinta) || !clone.tiposTinta.length) {
+        clone.tiposTinta = [...estadoPadrao.tiposTinta];
+      }
+      return clone;
+    }
+
+    function carregarLocal() {
+      try {
+        return sanitizarEstado(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
+      } catch {
+        return structuredClone(estadoPadrao);
+      }
+    }
+
+    let estado = carregarLocal();
+    let slotAtual = null;
+
+    async function persistirEstado() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+      if (previewMode) return;
+      try {
+        await setDoc(estadoRef, { estado, updated_at: serverTimestamp() }, { merge: true });
+      } catch (e) {
+        console.warn('Aviso ao sincronizar pintura na nuvem:', e);
+      }
+    }
+
+    function calcularKPIs() {
+      let latas = 0, totalMl = 0;
+      const keys = Object.keys(estado.categorias || {});
+      keys.forEach((k) => {
+        (estado.categorias[k]?.slots || []).forEach((s) => {
+          if (!s) return;
+          latas++;
+          totalMl += Number(s.quantidadeMl || 0);
+        });
+      });
+      const litros = totalMl / 1000;
+      const m2 = (totalMl / 100) * (PARAMETROS_PINTURA.rendimento_m2_por_100ml || 1);
+      document.getElementById('kpi-pint-latas').textContent = String(latas);
+      document.getElementById('kpi-pint-litros').textContent = `${litros.toFixed(1).replace('.', ',')} L`;
+      document.getElementById('kpi-pint-m2').textContent = `${m2.toFixed(1).replace('.', ',')} m²`;
+      document.getElementById('kpi-pint-cats').textContent = String(keys.length);
+    }
+
+    function renderCategorias() {
+      const wrap = document.getElementById('categorias');
+      const keys = Object.keys(estado.categorias);
+      wrap.innerHTML = keys.map((key) => {
+        const c = estado.categorias[key];
+        const count = (c.slots || []).filter(Boolean).length;
+        return `<button type="button" class="ui-pill ${key === estado.categoriaAtual ? 'active' : ''}" data-cat="${esc(key)}">${esc(c.label)} (${count}/${c.slots.length})</button>`;
+      }).join('');
+
+      wrap.querySelectorAll('[data-cat]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          estado.categoriaAtual = btn.dataset.cat;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+          renderTudo();
+        });
+      });
+
+      const btnDelCat = document.getElementById('btn-excluir-categoria');
+      btnDelCat.style.display = estado.categoriaAtual !== 'tinta' ? 'inline-flex' : 'none';
+    }
+
+    function renderSlots() {
+      const termo = document.getElementById('busca-pintura').value.trim().toLowerCase();
+      const cat = estado.categorias[estado.categoriaAtual] || estado.categorias.tinta;
+      const slots = cat.slots || [];
+      const preenchidos = slots.filter(Boolean).length;
+      document.getElementById('contador-slots').textContent = `${preenchidos} de ${slots.length} slots ocupados em ${cat.label}`;
+
+      const grid = document.getElementById('slots-grid');
+      grid.innerHTML = slots.map((item, idx) => {
+        if (!item) {
+          if (termo) return '';
+          return `
+            <article class="paint-slot">
+              <div style="font-size:12px; font-weight:700; color:var(--text-muted);">Slot #${idx + 1} Disponível</div>
+              <button type="button" class="ui-btn ui-btn-sm ui-btn-primary" data-action="add" data-slot="${idx}">➕ Cadastrar Lata</button>
+            </article>
+          `;
+        }
+
+        if (termo) {
+          const match = [item.codigo, item.tipo, item.ordemServico, item.validade, item.descricao].some((x) =>
+            String(x || '').toLowerCase().includes(termo)
+          );
+          if (!match) return '';
+        }
+
+        const ml = Number(item.quantidadeMl || 0);
+        const m2 = ((ml / 100) * (PARAMETROS_PINTURA.rendimento_m2_por_100ml || 1)).toFixed(1);
+
+        return `
+          <article class="paint-slot filled">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px;">
+                <span class="ui-badge ui-badge-red">${esc(item.tipo || 'Tinta')}</span>
+                <span style="font-size:11px; color:var(--text-muted); font-weight:700;">Slot #${idx + 1} ${item.ordemServico ? '• OS ' + esc(item.ordemServico) : ''}</span>
+              </div>
+              <div class="paint-code">${esc(item.codigo || 'Sem código')}</div>
+              ${item.descricao ? `<div style="font-size:12px; color:var(--text-muted); margin-top:3px;">${esc(item.descricao)}</div>` : ''}
+            </div>
+
+            <div class="paint-metrics">
+              <div class="paint-metric-item"><small>Líquido</small><strong>${esc(item.pesoLiquidoG || '0')} g</strong></div>
+              <div class="paint-metric-item"><small>Volume</small><strong>${ml} ml</strong></div>
+              <div class="paint-metric-item"><small>Rendim.</small><strong style="color:var(--green);">${m2} m²</strong></div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; padding-top:6px; border-top:1px solid var(--border-subtle);">
+              <span style="font-size:11.5px; color:var(--text-muted);">Val: <strong>${esc(item.validade || '—')}</strong></span>
+              <div style="display:flex; gap:5px;">
+                <button type="button" class="ui-btn ui-btn-sm" data-action="edit" data-slot="${idx}" title="Editar e Gerar Etiqueta">🏷️ / ✏️</button>
+                <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" data-action="delete" data-slot="${idx}" title="Esvaziar slot">🗑️</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('button[data-action]').forEach((btn) => {
+        const idx = Number(btn.dataset.slot);
+        const action = btn.dataset.action;
+        btn.addEventListener('click', async () => {
+          if (action === 'add') abrirModalTinta(idx, null);
+          if (action === 'edit') abrirModalTinta(idx, estado.categorias[estado.categoriaAtual].slots[idx]);
+          if (action === 'delete') {
+            if (!confirm('Remover a lata registrada neste slot?')) return;
+            estado.categorias[estado.categoriaAtual].slots[idx] = null;
+            await persistirEstado();
+            renderTudo();
+            showToast('Slot esvaziado.', 'info');
+          }
+        });
+      });
+    }
+
+    function renderTiposSelect(selecionado = '') {
+      const sel = document.getElementById('tinta-tipo');
+      const tipos = estado.tiposTinta || estadoPadrao.tiposTinta;
+      sel.innerHTML = tipos.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+      if (selecionado && tipos.includes(selecionado)) sel.value = selecionado;
+    }
+
+    function renderTudo() {
+      calcularKPIs();
+      renderCategorias();
+      renderSlots();
+    }
+
+    function obterLataSelecionada() {
+      return document.querySelector('input[name="tinta-lata"]:checked')?.value || '';
+    }
+
+    function calcularPesoEQuantidade() {
+      const lata = obterLataSelecionada();
+      const tara = Number(PARAMETROS_PINTURA.tara_por_lata_g?.[lata] || 0);
+      const total = Number(document.getElementById('tinta-peso-total').value || 0);
+      const liquido = Math.max(total - tara, 0);
+      const quantidadeMl = Math.round((liquido * 100) / (PARAMETROS_PINTURA.gramas_por_100ml || 108));
+      const rendimentoM2 = (quantidadeMl / 100) * (PARAMETROS_PINTURA.rendimento_m2_por_100ml || 1);
+      return { tara, liquido, quantidadeMl, rendimentoM2 };
+    }
+
+    function atualizarPreviewEtiqueta() {
+      const codigo = document.getElementById('tinta-codigo').value.trim();
+      const os = normalizarOS(document.getElementById('tinta-os').value);
+      const validade = normalizarValidade(document.getElementById('tinta-validade').value);
+      const descricao = document.getElementById('tinta-descricao').value.trim();
+      const calc = calcularPesoEQuantidade();
+
+      document.getElementById('calc-ml').textContent = `${calc.quantidadeMl} ml`;
+      document.getElementById('rendimento-valor').textContent = `${calc.rendimentoM2.toFixed(1)} m²`;
+
+      document.getElementById('lbl-codigo-cor').textContent = codigo || '_____';
+      document.getElementById('lbl-os').textContent = os || '_____';
+      document.getElementById('lbl-quantidade').textContent = `${calc.quantidadeMl} ml`;
+      document.getElementById('lbl-validade').textContent = validade || 'MM/AAAA';
+      document.getElementById('lbl-anotacoes').textContent = descricao || '________________________';
+
+      const payloadQr = JSON.stringify({
+        codigo,
+        os,
+        descricao,
+        pesoLiquidoG: calc.liquido.toFixed(1),
+        quantidadeMl: String(calc.quantidadeMl),
+        validade
+      });
+      document.getElementById('lbl-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=${encodeURIComponent(payloadQr)}`;
+    }
+
+    function abrirModalTinta(slot, dados = null) {
+      slotAtual = slot;
+      document.getElementById('modal-tinta-titulo').textContent = dados ? `Editar Slot #${slot + 1}` : `Cadastrar Lata — Slot #${slot + 1}`;
+      document.getElementById('tinta-codigo').value = dados?.codigo || '';
+      document.getElementById('tinta-os').value = dados?.ordemServico || '';
+      document.getElementById('tinta-validade').value = dados?.validade || '';
+      document.getElementById('tinta-descricao').value = dados?.descricao || '';
+      renderTiposSelect(dados?.tipo || '');
+      document.getElementById('tinta-peso-total').value = dados?.pesoTotalG || '';
+      document.querySelectorAll('input[name="tinta-lata"]').forEach((el) => {
+        el.checked = el.value === (dados?.lataTipo || '900');
+      });
+      document.getElementById('modal-tinta-bg').classList.add('open');
+      atualizarPreviewEtiqueta();
+    }
+
+    function fecharModalTinta() {
+      slotAtual = null;
+      document.getElementById('modal-tinta-bg').classList.remove('open');
+    }
+
+    ['tinta-codigo', 'tinta-os', 'tinta-validade', 'tinta-descricao', 'tinta-peso-total'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', (ev) => {
+        if (id === 'tinta-os') ev.target.value = normalizarOS(ev.target.value);
+        if (id === 'tinta-validade') ev.target.value = normalizarValidade(ev.target.value);
+        atualizarPreviewEtiqueta();
+      });
+    });
+
+    document.querySelectorAll('input[name="tinta-lata"]').forEach((el) => el.addEventListener('change', atualizarPreviewEtiqueta));
+    document.getElementById('tinta-tipo').addEventListener('change', atualizarPreviewEtiqueta);
+    document.getElementById('busca-pintura').addEventListener('input', renderSlots);
+
+    document.getElementById('btn-add-tipo').addEventListener('click', async () => {
+      const nome = prompt('Novo tipo/base de tinta (ex: Poliéster, Laca Nitro):');
+      if (!nome?.trim()) return;
+      const t = nome.trim();
+      if (!estado.tiposTinta.includes(t)) estado.tiposTinta.push(t);
+      await persistirEstado();
+      renderTiposSelect(t);
+      showToast(`Tipo "${t}" adicionado.`, 'success');
+    });
+
+    document.getElementById('btn-del-tipo').addEventListener('click', async () => {
+      const atual = document.getElementById('tinta-tipo').value;
+      if (estado.tiposTinta.length <= 1) return showToast('Mantenha ao menos um tipo de tinta.', 'error');
+      if (!confirm(`Remover o tipo "${atual}" da lista?`)) return;
+      estado.tiposTinta = estado.tiposTinta.filter((x) => x !== atual);
+      await persistirEstado();
+      renderTiposSelect();
+    });
+
+    document.getElementById('btn-cancelar-tinta').addEventListener('click', fecharModalTinta);
+    document.getElementById('btn-cancelar-topo').addEventListener('click', fecharModalTinta);
+
+    document.getElementById('btn-salvar-tinta').addEventListener('click', async () => {
+      if (slotAtual === null) return;
+      const codigo = document.getElementById('tinta-codigo').value.trim();
+      const ordemServico = normalizarOS(document.getElementById('tinta-os').value);
+      const validade = normalizarValidade(document.getElementById('tinta-validade').value);
+      const tipo = document.getElementById('tinta-tipo').value;
+      const descricao = document.getElementById('tinta-descricao').value.trim();
+      const lataTipo = obterLataSelecionada();
+      const pesoTotalG = document.getElementById('tinta-peso-total').value.trim();
+
+      if (!codigo) return showToast('Informe o código e cor da tinta.', 'error');
+      if (!lataTipo) return showToast('Selecione o tamanho da lata para descontar a tara.', 'error');
+      if (validade && !/^\d{2}\/\d{4}$/.test(validade)) return showToast('A validade deve usar o formato MM/AAAA.', 'error');
+
+      const calc = calcularPesoEQuantidade();
+      estado.categorias[estado.categoriaAtual].slots[slotAtual] = {
+        codigo,
+        ordemServico,
+        validade,
+        tipo,
+        descricao,
+        lataTipo,
+        pesoTotalG,
+        taraG: calc.tara.toFixed(1),
+        pesoLiquidoG: calc.liquido.toFixed(1),
+        quantidadeMl: String(calc.quantidadeMl)
+      };
+
+      await persistirEstado();
+      renderTudo();
+      fecharModalTinta();
+      showToast('Tinta salva e sincronizada!', 'success');
+    });
+
+    document.getElementById('btn-imprimir-etiqueta').addEventListener('click', () => window.print());
+
+    async function exportarEtiquetaPintura(tipo) {
+      const alvo = document.getElementById('etiqueta-preview');
+      if (!alvo || !window.html2canvas) return window.print();
+      const clone = alvo.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      document.body.appendChild(clone);
+      try {
+        const cv = await window.html2canvas(clone, { backgroundColor: '#ffffff', scale: 3, useCORS: true });
+        if (tipo === 'png') {
+          const a = document.createElement('a');
+          a.href = cv.toDataURL('image/png');
+          a.download = `etiqueta-tinta-${Date.now()}.png`;
+          a.click();
+        } else if (window.jspdf) {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [55, 30] });
+          pdf.addImage(cv.toDataURL('image/png'), 'PNG', 0, 0, 55, 30, undefined, 'FAST');
+          pdf.save(`etiqueta-tinta-${Date.now()}.pdf`);
+        }
+        showToast('Etiqueta exportada!', 'success');
+      } finally {
+        clone.remove();
+      }
+    }
+
+    document.getElementById('btn-png-etiqueta').addEventListener('click', () => exportarEtiquetaPintura('png'));
+    document.getElementById('btn-pdf-etiqueta').addEventListener('click', () => exportarEtiquetaPintura('pdf'));
+
+    document.getElementById('btn-adicionar-slot').addEventListener('click', async () => {
+      estado.categorias[estado.categoriaAtual].slots.push(null);
+      await persistirEstado();
+      renderTudo();
+    });
+
+    document.getElementById('btn-nova-categoria').addEventListener('click', async () => {
+      const nome = prompt('Nome da nova categoria (ex.: Verniz, Primer, Catalisador):');
+      if (!nome?.trim()) return;
+      const id = slugify(nome);
+      if (!id || estado.categorias[id]) return showToast('Categoria inválida ou já existente.', 'error');
+      estado.categorias[id] = { label: nome.trim(), slots: Array(6).fill(null) };
+      estado.categoriaAtual = id;
+      await persistirEstado();
+      renderTudo();
+      showToast(`Categoria "${nome.trim()}" criada!`, 'success');
+    });
+
+    document.getElementById('btn-excluir-categoria').addEventListener('click', async () => {
+      if (estado.categoriaAtual === 'tinta') return;
+      const cat = estado.categorias[estado.categoriaAtual];
+      if (cat.slots.some(Boolean) && !confirm(`A categoria "${cat.label}" possui slots preenchidos. Excluir mesmo assim?`)) return;
+      delete estado.categorias[estado.categoriaAtual];
+      estado.categoriaAtual = 'tinta';
+      await persistirEstado();
+      renderTudo();
+      showToast('Categoria removida.', 'info');
+    });
+
+    renderTiposSelect();
+    renderTudo();
+
+    if (!previewMode) {
+      getDoc(paramsRef).then((snap) => {
+        if (snap.exists() && snap.data()?.parametros) {
+          PARAMETROS_PINTURA = { ...PARAMETROS_PINTURA, ...snap.data().parametros };
+          renderTudo();
+        } else {
+          setDoc(paramsRef, { parametros: PARAMETROS_PINTURA, updated_at: serverTimestamp() }, { merge: true }).catch(() => {});
+        }
+      }).catch(() => {});
+
+      const snapEstado = await getDoc(estadoRef).catch(() => null);
+      if (snapEstado && !snapEstado.exists()) {
+        await persistirEstado();
+      }
+
+      onSnapshot(estadoRef, (snap) => {
+        if (!snap.exists() || !snap.data()?.estado) return;
+        const catSel = estado.categoriaAtual;
+        estado = sanitizarEstado(snap.data().estado);
+        if (catSel && estado.categorias[catSel]) estado.categoriaAtual = catSel;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+        renderTudo();
+      });
+    }
+  </script>
+</body>
+</html>

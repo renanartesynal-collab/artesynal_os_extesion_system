@@ -1,287 +1,424 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Central - Artesynal</title>
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#fbbf24" />
-    <link rel="apple-touch-icon" href="icon-192.png" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-dark: #333;
-            --card-bg: #2c3e50;
-            --yellow: #f1c40f;
-            --blue: #00aeef;
-            --green: #00a651;
-            --red: #ed1c24;
-            --purple: #9b59b6; 
-            --orange: #ff6b00;
-            --text-gray: #bdc3c7;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Central — Artesynal PCP</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f59e0b" />
+  <link rel="apple-touch-icon" href="assets/img/icon-192.png" />
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <style>
+    .hero-bar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
 
-        body {
-            font-family: 'Mitra LT', 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: white;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh;
-        }
+    .hero-greeting h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+    }
 
-        /* CABEÇALHO */
-        header {
-            width: 100%;
-            background: #231f20;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 4px solid var(--yellow);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            box-sizing: border-box;
-        }
-        .header-top { display:flex; align-items:center; justify-content:center; gap:14px; }
-        .clock-btn {
-            border:1px solid #444; background:#111; color:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:800;
-        }
-        .notify-btn {
-            border:1px solid #444; background:#111; color:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; font-weight:800;
-            position: relative;
-        }
-        .notify-count {
-            position:absolute; top:-8px; right:-8px; min-width:20px; height:20px; border-radius:999px;
-            background:#ef4444; color:#fff; font-size:11px; display:none; align-items:center; justify-content:center; padding:0 6px;
-        }
+    .hero-greeting p {
+      margin: 5px 0 0;
+      color: var(--text-muted);
+      font-size: 13.5px;
+    }
 
-        h1 { margin: 0; font-weight: 900; letter-spacing: 1px; color: white; text-transform: uppercase; font-size: 24px; }
-        .subtitle { color: var(--yellow); font-size: 12px; margin-top: 5px; font-weight: 600; }
+    .notify-bell {
+      position: relative;
+    }
 
-        /* MUDANÇA AQUI: De Grid para Flexbox centralizado */
-        .dashboard-container {
-            width: 100%; max-width: 1200px;
-            padding: 18px 16px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center; /* Centraliza os itens */
-            gap: 14px;
-            box-sizing: border-box;
-        }
+    .notify-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.45);
+    }
 
-        /* ESTILO DO CARTÃO */
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 18px 14px;
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            text-decoration: none; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            flex: 1 1 220px; /* Permite crescer e encolher, tamanho base menor */
-            max-width: 280px; /* Não deixa o cartão ficar largo demais */
-            min-height: 178px;
-            border: 1px solid #34495e;
-            position: relative; overflow: hidden;
-            box-sizing: border-box;
-        }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
 
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-            border-color: var(--yellow);
-        }
+    .mod-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      text-decoration: none;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
 
-        .icon-box {
-            font-size: 34px;
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.1);
-            width: 62px; height: 62px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
+    .mod-card.visible {
+      display: flex;
+    }
 
-        .card-title { color: white; font-weight: 800; font-size: 14px; margin-bottom: 4px; text-transform: uppercase; }
-        .card-desc { color: var(--text-gray); font-size: 10px; margin-bottom: 0; line-height: 1.35; padding: 0 4px; }
+    .mod-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--brand-border);
+      box-shadow: var(--shadow-md);
+    }
 
-        /* CORES ESPECÍFICAS POR MÓDULO */
-        .mod-os .icon-box { color: var(--green); border: 2px solid var(--green); }
-        
-        .mod-lista .icon-box { color: var(--blue); border: 2px solid var(--blue); }
+    .mod-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
 
-        .mod-orc .icon-box { color: var(--yellow); border: 2px solid var(--yellow); }
+    .mod-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+    }
 
-        .mod-medidas .icon-box { color: var(--blue); border: 2px solid var(--blue); }
+    .mod-icon.green { background: var(--green-soft); border-color: rgba(16, 185, 129, 0.28); }
+    .mod-icon.blue { background: var(--blue-soft); border-color: rgba(14, 165, 233, 0.28); }
+    .mod-icon.purple { background: var(--purple-soft); border-color: rgba(139, 92, 246, 0.28); }
+    .mod-icon.red { background: var(--red-soft); border-color: rgba(239, 68, 68, 0.28); }
+    .mod-icon.orange { background: var(--orange-soft); border-color: rgba(249, 115, 22, 0.28); }
 
-        .mod-imp .icon-box { color: var(--purple); border: 2px solid var(--purple); }
+    .mod-info {
+      flex: 1;
+      min-width: 0;
+    }
 
-        .mod-serr .icon-box { color: var(--orange); border: 2px solid var(--orange); }
+    .mod-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      margin: 0 0 5px;
+      color: var(--text-primary);
+    }
 
-        .mod-pint .icon-box { color: var(--red); border: 2px solid var(--red); }
+    .mod-desc {
+      margin: 0;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
 
-        .mod-estq .icon-box { color: var(--green); border: 2px solid var(--green); }
+    .mod-sublinks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
 
-        /* RESPONSIVIDADE PARA CELULAR */
-        @media (max-width: 600px) {
-            .dashboard-container { padding: 20px; flex-direction: column; align-items: center; }
-            .card { flex-direction: row; min-height: auto; text-align: left; align-items: center; padding: 14px; max-width: 100%; width: 100%; }
-            .icon-box { font-size: 30px; width: 60px; height: 60px; margin-bottom: 0; margin-right: 15px; }
-            .card-content { flex: 1; }
-            .card-desc { margin-bottom: 5px; padding: 0; }
-        }
-    </style>
+    .mod-chip {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all var(--transition);
+    }
+
+    .mod-chip:hover {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #090d16;
+    }
+
+    .app-footer {
+      margin-top: 48px;
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 600px) {
+      .hide-sm { display: none; }
+      .modules-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
+  <header class="app-topbar">
+    <a href="index.html" class="app-brand">
+      <img src="assets/img/logo-artesynal.png" alt="ArteSynal" class="app-brand-logo" />
+      <span class="app-brand-divider"></span>
+      <div class="app-brand-text">
+        <span class="app-brand-title">PAINEL CENTRAL</span>
+        <span class="app-brand-sub">Sistema Integrado PCP</span>
+      </div>
+    </a>
 
-    <header>
-        <div class="header-top">
-            <button id="btn-registro-header" class="clock-btn" title="Registrar ponto">🕒</button>
-            <h1>Painel Central</h1>
-            <button id="btn-notify-tasks" class="notify-btn" title="Abrir tarefas">
-                🔔
-                <span id="notify-count" class="notify-count">0</span>
-            </button>
+    <div class="app-topbar-actions">
+      <span id="user-pill" class="ui-badge ui-badge-brand">Carregando...</span>
+      <button type="button" id="btn-notify-tasks" class="ui-btn ui-btn-sm notify-bell" title="Abrir Painel de Tarefas">
+        🔔 <span class="hide-sm">Tarefas</span>
+        <span id="notify-count" class="notify-badge">0</span>
+      </button>
+      <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+      <button type="button" id="btn-logout" class="ui-btn ui-btn-sm ui-btn-danger" title="Sair da conta">
+        Sair
+      </button>
+    </div>
+  </header>
+
+  <main class="ui-container">
+    <section class="hero-bar">
+      <div class="hero-greeting">
+        <h1 id="hero-welcome">Painel Central</h1>
+        <p>Selecione um módulo abaixo para gerenciar ordens de serviço, visitas técnicas, materiais e produção.</p>
+      </div>
+    </section>
+
+    <section class="ui-kpi-grid" id="kpi-strip">
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Minhas Tarefas Pendentes</span>
+        <span class="ui-kpi-value" id="kpi-tarefas">—</span>
+      </div>
+      <div class="ui-kpi">
+        <span class="ui-kpi-label">Visitas em Aberto</span>
+        <span class="ui-kpi-value" id="kpi-visitas">—</span>
+      </div>
+      <div class="ui-kpi" id="kpi-os-box" style="display:none;">
+        <span class="ui-kpi-label">O.S. Pendentes</span>
+        <span class="ui-kpi-value" id="kpi-os">—</span>
+      </div>
+    </section>
+
+    <section class="modules-grid">
+      <!-- 1. ORDENS DE SERVIÇO UNIFICADAS -->
+      <div class="mod-card" id="card-os">
+        <a href="pages/os/os.html" style="text-decoration:none; color:inherit;">
+          <div class="mod-card-top">
+            <div class="mod-icon green">📝</div>
+            <div class="mod-info">
+              <h2 class="mod-title">Ordens de Serviço</h2>
+              <p class="mod-desc">Painel unificado para gerar novas O.S., consultar histórico mensal, filtrar status financeiro e imprimir folha A4.</p>
+            </div>
+          </div>
+        </a>
+        <div class="mod-sublinks">
+          <a class="mod-chip" href="pages/os/os.html?view=editor">➕ Gerar Nova O.S.</a>
+          <a class="mod-chip" href="pages/os/os.html?view=abertos">⚡ Serviços em Aberto</a>
+          <a class="mod-chip" href="pages/os/os.html?view=lista">📂 Lista de O.S.</a>
         </div>
-        <div class="subtitle">SISTEMA ARTESYNAL</div>
-            <div id="user-bar" style="margin-top:10px;font-size:12px;color:#bdc3c7;"></div>
-    </header>
+      </div>
 
-    <div class="dashboard-container">
-
-        <a href="os.html" class="card mod-os" data-pages="producao administracao">
-            <div class="icon-box">📝</div>
-            <div class="card-content">
-                <div class="card-title">Gerar O.S.</div>
-                <div class="card-desc">Criar nova ordem de serviço, imprimir e salvar.</div>
+      <!-- 2. MEDIDAS E VISITAS -->
+      <div class="mod-card" id="card-medidas">
+        <a href="pages/visitas/medidas-visitas.html" style="text-decoration:none; color:inherit;">
+          <div class="mod-card-top">
+            <div class="mod-icon blue">📏</div>
+            <div class="mod-info">
+              <h2 class="mod-title">Medidas e Visitas</h2>
+              <p class="mod-desc">Quadro Kanban de visitas técnicas, fotos e vídeos na nuvem, rotas no Maps, editor de cotas e relatório em PDF.</p>
             </div>
+          </div>
         </a>
+        <div class="mod-sublinks">
+          <a class="mod-chip" href="pages/visitas/medidas-visitas.html">📋 Abrir Quadro</a>
+          <a class="mod-chip" href="pages/visitas/medidas-visitas.html?novo=1">➕ Nova Visita</a>
+        </div>
+      </div>
 
-        <a href="lista.html" class="card mod-lista" data-pages="producao administracao">
-            <div class="icon-box">📂</div>
-            <div class="card-content">
-                <div class="card-title">Lista de O.S.</div>
-                <div class="card-desc">Visualizar, filtrar e editar serviços salvos.</div>
+      <!-- 3. GERENCIAMENTO DE MATERIAIS (IMPRESSÃO + SERRALHERIA + ESTOQUE) -->
+      <div class="mod-card" id="card-materiais">
+        <a href="pages/materiais/materiais.html" id="link-materiais-main" style="text-decoration:none; color:inherit;">
+          <div class="mod-card-top">
+            <div class="mod-icon purple">📦</div>
+            <div class="mod-info">
+              <h2 class="mod-title">Gerenciamento de Materiais</h2>
+              <p class="mod-desc">Central integrada para controle de Impressão (lonas, adesivos e tintas), Serralheria (chapas e cortes 2D) e Estoque Geral.</p>
             </div>
+          </div>
         </a>
+        <div class="mod-sublinks" id="chips-materiais"></div>
+      </div>
 
-        <a href="orcamentos.html" class="card mod-orc" data-pages="producao administracao">
-            <div class="icon-box">💰</div>
-            <div class="card-content">
-                <div class="card-title">Orçamentos</div>
-                <div class="card-desc">Solicitações, materiais e galeria de fotos.</div>
+      <!-- 4. SETOR DE PINTURA -->
+      <div class="mod-card" id="card-pintura">
+        <a href="pages/pintura/pintura.html" style="text-decoration:none; color:inherit;">
+          <div class="mod-card-top">
+            <div class="mod-icon red">🎨</div>
+            <div class="mod-info">
+              <h2 class="mod-title">Setor de Pintura</h2>
+              <p class="mod-desc">Gestão de tintas, primers e vernizes, cálculo automático por peso e tara, rendimento em m² e etiqueta térmica 55mm.</p>
             </div>
+          </div>
         </a>
+        <div class="mod-sublinks">
+          <a class="mod-chip" href="pages/pintura/pintura.html">🎨 Abrir Bancada de Tintas</a>
+        </div>
+      </div>
 
-        <a href="medidas-visitas.html" class="card mod-medidas" data-pages="producao instalacao administracao">
-            <div class="icon-box">📏</div>
-            <div class="card-content">
-                <div class="card-title">Medidas/Visitas</div>
-                <div class="card-desc">Agenda de visitas, fotos, mapas e edição de medidas.</div>
+      <!-- 5. PAINEL DE TAREFAS -->
+      <div class="mod-card" id="card-tarefas">
+        <a href="pages/tarefas/tarefas.html" style="text-decoration:none; color:inherit;">
+          <div class="mod-card-top">
+            <div class="mod-icon orange">✅</div>
+            <div class="mod-info">
+              <h2 class="mod-title">Tarefas & Compras</h2>
+              <p class="mod-desc">Quadros e listas de demandas entre setores, sinalização de prioridades e alertas automáticos de reposição.</p>
             </div>
+          </div>
         </a>
+        <div class="mod-sublinks">
+          <a class="mod-chip" href="pages/tarefas/tarefas.html">📌 Minhas Listas</a>
+          <a class="mod-chip" href="pages/tarefas/tarefas.html?action=nova">➕ Criar Tarefa</a>
+        </div>
+      </div>
 
-        <a href="estimpressao.html" class="card mod-imp" data-pages="instalacao administracao">
-            <div class="icon-box">🖨️</div>
-            <div class="card-content">
-                <div class="card-title">Impressão</div>
-                <div class="card-desc">Controle de lonas, adesivos, recortes e tintas.</div>
+      <!-- 6. GERENCIAMENTO DE ACESSOS -->
+      <div class="mod-card" id="card-admin">
+        <a href="pages/auth/admin-acessos.html" style="text-decoration:none; color:inherit;">
+          <div class="mod-card-top">
+            <div class="mod-icon blue">🔐</div>
+            <div class="mod-info">
+              <h2 class="mod-title">Gerenciamento de Acessos</h2>
+              <p class="mod-desc">Aprovação de novos colaboradores, configuração de permissões por perfil, contato WhatsApp e auditoria.</p>
             </div>
+          </div>
         </a>
+        <div class="mod-sublinks">
+          <a class="mod-chip" href="pages/auth/admin-acessos.html">👥 Usuários e Permissões</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-        <a href="estserralheria.html" class="card mod-serr" data-pages="instalacao administracao">
-            <div class="icon-box">🛠️</div>
-            <div class="card-content">
-                <div class="card-title">Serralheria</div>
-                <div class="card-desc">Controle de chapas, retalhos de corte e MDF.</div>
-            </div>
-        </a>
+  <footer class="app-footer">
+    Sistema ArteSynal PCP v2.1
+  </footer>
 
-        <a href="estpintura.html" class="card mod-pint" data-pages="instalacao administracao">
-            <div class="icon-box">🎨</div>
-            <div class="card-content">
-                <div class="card-title">Pintura</div>
-                <div class="card-desc">Acompanhamento de insumos, etapas e demandas do setor.</div>
-            </div>
-        </a>
+  <script type="module">
+    import './js/core/theme.js';
+    import { db, ROTAS } from './js/core/config.js';
+    import { PERFIS, protegerPagina, logout } from './js/core/auth.js';
+    import { collection, query, where, onSnapshot, getDocs } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
+    const sessao = await protegerPagina({ paginaAtual: 'index.html' });
+    if (!sessao) throw new Error('Sem sessão');
 
-        <a href="estoque.html" class="card mod-estq" data-pages="producao instalacao administracao">
-            <div class="icon-box">📦</div>
-            <div class="card-content">
-                <div class="card-title">Estoque</div>
-                <div class="card-desc">Cadastro de itens, movimentações com responsável e QR Code por item.</div>
-            </div>
-        </a>
+    const perfil = sessao.acesso.categoria;
+    const labelPerfil = PERFIS?.[perfil]?.label || perfil;
+    const nome = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
+    const meEmail = (sessao.user.email || sessao.acesso.email || '').toLowerCase();
+    const conf = sessao.categoriasConfig || {};
 
-        <a href="admin-acessos.html" class="card mod-lista" data-pages="administracao" id="card-admin" style="display:none;">
-            <div class="icon-box">🔐</div>
-            <div class="card-content">
-                <div class="card-title">Gerenciamento de Acessos</div>
-                <div class="card-desc">Visualizar solicitantes, aprovar, reprovar e iniciar contato no WhatsApp.</div>
-            </div>
-        </a>
+    document.getElementById('hero-welcome').textContent = `Olá, ${nome.split(' ')[0]}`;
+    document.getElementById('user-pill').textContent = `${nome} • ${labelPerfil}`;
 
-    </div>
+    document.getElementById('btn-logout').addEventListener('click', () => logout());
+    document.getElementById('btn-notify-tasks').addEventListener('click', () => {
+      window.location.href = ROTAS.tarefas;
+    });
 
-    <div style="margin-top: auto; padding: 20px; font-size: 10px; color: #555;">
-        Sistema v1.4 - Desenvolvido para Artesynal
-    </div>
+    const can = (page) => perfil === 'administracao' || conf?.[perfil]?.[page] === true;
 
+    if (can('os.html') || can('lista.html')) {
+      document.getElementById('card-os').classList.add('visible');
+      document.getElementById('kpi-os-box').style.display = 'flex';
+      getDocs(collection(db, 'ordens_servico')).then((snap) => {
+        let pend = 0;
+        snap.forEach((d) => { if (!d.data()?.status?.pago) pend++; });
+        document.getElementById('kpi-os').textContent = String(pend);
+      }).catch(() => {});
+    }
 
-    <script type="module">
-        import { db } from './config.js';
-        import { obterConfiguracaoCategorias, protegerPagina, logout } from './auth.js';
-        import { collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-        const sessao = await protegerPagina({ paginaAtual: 'index.html' });
-        if (!sessao) throw new Error('Sem sessão');
-
-        const perfil = sessao.acesso.categoria;
-        const nome = sessao.user.displayName || sessao.acesso.nome || sessao.user.email;
-        const meEmail = (sessao.user.email || sessao.acesso.email || '').toLowerCase();
-
-        const categoriasConfig = await obterConfiguracaoCategorias();
-
-        document.querySelectorAll('.card[data-pages]').forEach((card) => {
-            const pagina = card.getAttribute('href');
-            const allowedCategoria = categoriasConfig?.[perfil]?.[pagina] === true;
-            card.style.display = allowedCategoria ? 'flex' : 'none';
+    if (can('medidas-visitas.html')) {
+      document.getElementById('card-medidas').classList.add('visible');
+      getDocs(collection(db, 'medidas_visitas')).then((snap) => {
+        let abertas = 0;
+        snap.forEach((d) => {
+          const dt = d.data() || {};
+          const st = String(dt.status || '').toLowerCase();
+          if (!dt.arquivado && !st.includes('conclu') && !st.includes('finaliz')) abertas++;
         });
+        document.getElementById('kpi-visitas').textContent = String(abertas);
+      }).catch(() => {});
+    }
 
-        const userBar = document.getElementById('user-bar');
-        userBar.innerHTML = `Usuário: <strong>${nome}</strong> | Perfil: <strong>${perfil}</strong> | <a href="#" id="logout-link" style="color:#f1c40f;">Sair</a>`;
-        document.getElementById('logout-link').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await logout();
-        });
+    const canImp = can('estimpressao.html');
+    const canSerr = can('estserralheria.html');
+    const canEst = can('estoque.html');
+    if (canImp || canSerr || canEst) {
+      document.getElementById('card-materiais').classList.add('visible');
+      const chips = [];
+      const firstSetor = canImp ? 'impressao' : canSerr ? 'serralheria' : 'estoque';
+      document.getElementById('link-materiais-main').href = `pages/materiais/materiais.html?setor=${firstSetor}`;
+      if (canImp) chips.push(`<a class="mod-chip" href="pages/materiais/materiais.html?setor=impressao">🖨️ Impressão</a>`);
+      if (canSerr) chips.push(`<a class="mod-chip" href="pages/materiais/materiais.html?setor=serralheria">🛠️ Serralheria</a>`);
+      if (canEst) chips.push(`<a class="mod-chip" href="pages/materiais/materiais.html?setor=estoque">📦 Estoque Geral</a>`);
+      document.getElementById('chips-materiais').innerHTML = chips.join('');
+    }
 
-        const btnNotify = document.getElementById('btn-notify-tasks');
-        const countBadge = document.getElementById('notify-count');
-        btnNotify.addEventListener('click', () => {
-            window.location.href = 'tarefas.html';
-        });
-        document.getElementById('btn-registro-header').addEventListener('click', () => {
-            window.location.href = 'registrarponto.html';
-        });
+    if (can('estpintura.html')) {
+      document.getElementById('card-pintura').classList.add('visible');
+    }
 
-        const qTarefas = query(collection(db, 'tarefas'), where('destinatarioEmail', '==', meEmail), where('status', '==', 'pendente'));
-        onSnapshot(qTarefas, (snap) => {
-            const total = snap.size || 0;
-            if (total > 0) {
-                countBadge.style.display = 'flex';
-                countBadge.textContent = String(total);
-            } else {
-                countBadge.style.display = 'none';
-            }
-        });
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => console.log('Service Worker registrado:', reg.scope))
-                    .catch((err) => console.warn('Erro ao registrar Service Worker:', err));
-            });
-        }
-    </script>
+    if (can('tarefas.html')) {
+      document.getElementById('card-tarefas').classList.add('visible');
+    }
+
+    if (can('admin-acessos.html')) {
+      document.getElementById('card-admin').classList.add('visible');
+    }
+
+    const countBadge = document.getElementById('notify-count');
+    const qTarefas = query(
+      collection(db, 'tarefas'),
+      where('destinatarioEmail', '==', meEmail),
+      where('status', '==', 'pendente')
+    );
+    onSnapshot(qTarefas, (snap) => {
+      const total = snap.size || 0;
+      document.getElementById('kpi-tarefas').textContent = String(total);
+      if (total > 0) {
+        countBadge.style.display = 'inline-flex';
+        countBadge.textContent = String(total);
+      } else {
+        countBadge.style.display = 'none';
+      }
+    });
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

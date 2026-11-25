@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acesso ao Sistema — ArteSynal</title>
+  <link rel="manifest" href="../../manifest.json" />
+  <meta name="theme-color" content="#f59e0b" />
+  <link rel="apple-touch-icon" href="../../assets/img/icon-192.png" />
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.1), transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(14, 165, 233, 0.08), transparent 42%),
+        var(--bg-app);
+    }
+
+    .auth-header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 18px 24px;
+    }
+
+    .auth-shell {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 20px 40px;
+    }
+
+    .auth-card {
+      width: min(460px, 100%);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 34px 28px;
+    }
+
+    .auth-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .auth-logo img {
+      height: 54px;
+      max-width: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3));
+    }
+
+    .auth-logo p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .auth-tabs {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 22px;
+    }
+
+    .auth-tabs .ui-tab {
+      justify-content: center;
+    }
+
+    .auth-panel {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .auth-panel.active {
+      display: flex;
+    }
+
+    .pw-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .pw-wrap .ui-input {
+      padding-right: 44px;
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 6px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pw-toggle:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .auth-status {
+      font-size: 13px;
+      font-weight: 600;
+      min-height: 20px;
+      border-radius: var(--radius-sm);
+    }
+
+    .auth-status.err {
+      color: var(--red);
+      background: var(--red-soft);
+      padding: 10px 12px;
+      border: 1px solid rgba(239, 68, 68, 0.28);
+    }
+
+    .auth-status.ok {
+      color: var(--green);
+      background: var(--green-soft);
+      padding: 10px 12px;
+      border: 1px solid rgba(16, 185, 129, 0.28);
+    }
+
+    .auth-helper {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .reg-row-2 {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .auth-card { padding: 24px 18px; }
+      .auth-logo img { height: 44px; }
+      .reg-row-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="auth-header">
+    <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+  </header>
+
+  <main class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="../../assets/img/logo-artesynal.png" alt="ArteSynal" />
+        <p>Planejamento e Controle de Produção</p>
+      </div>
+
+      <div class="ui-tabs auth-tabs" role="tablist">
+        <button type="button" class="ui-tab active" id="tab-btn-login">Entrar</button>
+        <button type="button" class="ui-tab" id="tab-btn-register">Primeiro Acesso</button>
+      </div>
+
+      <!-- PAINEL DE LOGIN -->
+      <form id="panel-login" class="auth-panel active" autocomplete="on">
+        <div class="ui-field">
+          <label class="ui-label" for="login-email">E-mail corporativo</label>
+          <input id="login-email" class="ui-input" type="email" placeholder="seu@email.com" required autocomplete="username" />
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="login-password">Senha</label>
+          <div class="pw-wrap">
+            <input id="login-password" class="ui-input" type="password" placeholder="Digite sua senha" required autocomplete="current-password" />
+            <button type="button" class="pw-toggle" data-target="login-password" aria-label="Mostrar ou ocultar senha">👁</button>
+          </div>
+        </div>
+
+        <div id="login-status" class="auth-status" style="display:none;"></div>
+
+        <button type="submit" class="ui-btn ui-btn-primary ui-btn-lg" id="btn-login" style="width:100%; margin-top:4px;">
+          Acessar Painel
+        </button>
+
+        <div class="auth-helper">Acesso exclusivo para colaboradores aprovados.</div>
+      </form>
+
+      <!-- PAINEL DE CADASTRO -->
+      <form id="panel-register" class="auth-panel" autocomplete="on">
+        <div class="ui-field">
+          <label class="ui-label" for="reg-name">Nome completo</label>
+          <input id="reg-name" class="ui-input" type="text" placeholder="Ex: João Silva" required />
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="reg-email">E-mail</label>
+          <input id="reg-email" class="ui-input" type="email" placeholder="seu@email.com" required />
+        </div>
+
+        <div class="reg-row-2">
+          <div class="ui-field">
+            <label class="ui-label" for="reg-whatsapp">WhatsApp</label>
+            <input id="reg-whatsapp" class="ui-input" type="tel" placeholder="(00) 00000-0000" />
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="reg-role">Setor / Perfil</label>
+            <select id="reg-role" class="ui-select">
+              <option value="producao">Produção</option>
+              <option value="instalacao">Instalação</option>
+              <option value="administracao">Administração</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="reg-password">Criar senha</label>
+          <div class="pw-wrap">
+            <input id="reg-password" class="ui-input" type="password" placeholder="Defina uma senha" required autocomplete="new-password" />
+            <button type="button" class="pw-toggle" data-target="reg-password" aria-label="Mostrar ou ocultar senha">👁</button>
+          </div>
+        </div>
+
+        <div id="reg-status" class="auth-status" style="display:none;"></div>
+
+        <button type="submit" class="ui-btn ui-btn-blue ui-btn-lg" id="btn-register" style="width:100%; margin-top:4px;">
+          Enviar Solicitação de Acesso
+        </button>
+
+        <div class="auth-helper">Após o envio, a administração aprovará seu perfil.</div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module">
+    import '../../js/core/theme.js';
+    import { showToast } from '../../js/core/theme.js';
+    import { db, ROTAS } from '../../js/core/config.js';
+    import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { emailParaId, garantirAdministradorPadrao, hashSenha, realizarLogin, lerSessaoLocal } from '../../js/core/auth.js';
+
+    if (lerSessaoLocal()?.email) {
+      window.location.replace(ROTAS.painel);
+    }
+
+    const tabLogin = document.getElementById('tab-btn-login');
+    const tabRegister = document.getElementById('tab-btn-register');
+    const panelLogin = document.getElementById('panel-login');
+    const panelRegister = document.getElementById('panel-register');
+    const loginStatus = document.getElementById('login-status');
+    const regStatus = document.getElementById('reg-status');
+
+    function switchAuthTab(mode) {
+      const isLogin = mode === 'login';
+      tabLogin.classList.toggle('active', isLogin);
+      tabRegister.classList.toggle('active', !isLogin);
+      panelLogin.classList.toggle('active', isLogin);
+      panelRegister.classList.toggle('active', !isLogin);
+    }
+
+    tabLogin.addEventListener('click', () => switchAuthTab('login'));
+    tabRegister.addEventListener('click', () => switchAuthTab('register'));
+
+    function setStatus(el, msg, type = 'err') {
+      if (!msg) {
+        el.style.display = 'none';
+        el.textContent = '';
+        return;
+      }
+      el.className = `auth-status ${type}`;
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    const whatsInput = document.getElementById('reg-whatsapp');
+    whatsInput.addEventListener('input', () => {
+      const d = whatsInput.value.replace(/\D/g, '').slice(0, 11);
+      if (d.length <= 2) whatsInput.value = d ? `(${d}` : '';
+      else if (d.length <= 6) whatsInput.value = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+      else {
+        const cut = d.length > 10 ? 7 : 6;
+        whatsInput.value = `(${d.slice(0, 2)}) ${d.slice(2, cut)}-${d.slice(cut)}`;
+      }
+    });
+
+    document.querySelectorAll('.pw-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        const isText = input.type === 'text';
+        input.type = isText ? 'password' : 'text';
+        btn.textContent = isText ? '👁' : '🙈';
+      });
+    });
+
+    garantirAdministradorPadrao().catch(() => {});
+
+    panelLogin.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.textContent = 'Validando acesso...';
+      setStatus(loginStatus, '');
+
+      try {
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const senha = document.getElementById('login-password').value;
+        const res = await realizarLogin(email, senha);
+        if (!res.ok) {
+          setStatus(loginStatus, res.mensagem, 'err');
+          return;
+        }
+        window.location.href = ROTAS.painel;
+      } catch (e) {
+        setStatus(loginStatus, `Falha na conexão: ${e.message}`, 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Acessar Painel';
+      }
+    });
+
+    panelRegister.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const btn = document.getElementById('btn-register');
+      btn.disabled = true;
+      btn.textContent = 'Enviando solicitação...';
+      setStatus(regStatus, '');
+
+      try {
+        const nome = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const whatsapp = whatsInput.value.replace(/\D/g, '');
+        const senha = document.getElementById('reg-password').value;
+        const categoria = document.getElementById('reg-role').value;
+
+        if (!nome || !email || !senha) {
+          setStatus(regStatus, 'Preencha nome, e-mail e senha.', 'err');
+          return;
+        }
+
+        const id = emailParaId(email);
+        const ref = doc(db, 'access_requests', id);
+        const snap = await getDoc(ref);
+
+        if (snap.exists() && snap.data().status === 'approved') {
+          setStatus(regStatus, 'Este e-mail já está aprovado. Faça login na aba Entrar.', 'err');
+          return;
+        }
+
+        await setDoc(ref, {
+          nome,
+          email,
+          categoria,
+          whatsapp,
+          senha_hash: await hashSenha(senha),
+          status: 'pending',
+          blocked: false,
+          created_at: snap.exists() ? snap.data().created_at : serverTimestamp(),
+          updated_at: serverTimestamp()
+        }, { merge: true });
+
+        panelRegister.reset();
+        switchAuthTab('login');
+        document.getElementById('login-email').value = email;
+        setStatus(loginStatus, 'Solicitação registrada! Aguarde a aprovação de um administrador.', 'ok');
+        showToast('Solicitação enviada para aprovação!', 'success');
+      } catch (e) {
+        setStatus(regStatus, `Erro ao cadastrar: ${e.message}`, 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Solicitação de Acesso';
+      }
+    });
+  </script>
+</body>
+</html>

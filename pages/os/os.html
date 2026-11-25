@@ -1,0 +1,2764 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ordens de Serviço — ArteSynal</title>
+  <link rel="stylesheet" href="../../assets/css/theme.css" />
+  <style>
+    /* ==========================================================================
+       LAYOUT UNIFICADO DE GESTÃO DE O.S. (EDITOR + SERVIÇOS EM ABERTO + LISTA)
+       ========================================================================== */
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .os-view {
+      display: none;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .os-view.active {
+      display: flex;
+    }
+
+    /* --- VIEW 1: EDITOR DE O.S. --- */
+    .editor-workspace {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      min-height: 0;
+    }
+
+    #painel-controle {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .editor-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .editor-mode-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+    }
+
+    .editor-mode-banner.editing {
+      background: var(--brand-soft);
+      border-color: var(--brand-border);
+    }
+
+    .form-section {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .form-section-title {
+      font-family: var(--font-display);
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--brand);
+      margin: 0 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .row-os-val {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 10px;
+    }
+
+    .check-chips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .check-chips-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .check-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 11px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-default);
+      background: var(--bg-input);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      user-select: none;
+      transition: all var(--transition);
+    }
+
+    .check-chip:hover {
+      border-color: var(--border-strong);
+    }
+
+    .check-chip input {
+      accent-color: var(--brand);
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    .check-chip:has(input:checked) {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--text-primary);
+    }
+
+    .upload-dropzone {
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      text-align: center;
+      background: var(--bg-input);
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all var(--transition);
+    }
+
+    .upload-dropzone:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+
+    .img-manager-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .img-manager-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+
+    .img-manager-item img {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 5px;
+      background: #fff;
+    }
+
+    .img-manager-item input[type="range"] {
+      flex: 1;
+      accent-color: var(--brand);
+    }
+
+    .editor-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* PALCO DA PRÉVIA A4 */
+    .preview-stage-wrap {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      background: var(--bg-app);
+    }
+
+    .preview-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 18px;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-muted);
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mobile-back-form-btn {
+      display: none;
+    }
+
+    #area-impressao {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 28px 20px 60px;
+    }
+
+    /* ==========================================================================
+       ESTRUTURA EXATA E INTOCADA DO PDF DA FOLHA A4 (#folha-a4)
+       ========================================================================== */
+    .folha-a4 {
+      --black: #231f20;
+      --os-red: #ed1c24;
+      --os-blue: #00aeef;
+      --os-green: #00a651;
+      --border-radius: 6px;
+
+      font-family: 'Mitra LT', 'Montserrat', sans-serif;
+      width: 210mm;
+      min-width: 210mm;
+      min-height: 296mm;
+      background: white;
+      position: relative;
+      padding: 10mm;
+      box-sizing: border-box;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      transform-origin: top center;
+      color: #231f20;
+      user-select: none;
+    }
+
+    .folha-a4 .header-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px; }
+    .folha-a4 .col-esq { display: flex; flex-direction: column; gap: 4px; }
+    .folha-a4 .col-dir { display: flex; flex-direction: column; border: 2px solid #231f20; border-radius: 6px; overflow: hidden; }
+
+    .folha-a4 .header-top { background: #231f20; color: white; padding: 8px 12px; font-weight: 900; font-size: 22px; text-transform: uppercase; border-radius: 6px; margin-bottom: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .folha-a4 .linha-dados { display: flex; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; height: 32px; }
+    .folha-a4 .col { padding: 0 10px; border-right: 1px solid #ddd; font-size: 12px; display: flex; align-items: center; height: 100%; color: #231f20; }
+    .folha-a4 .col:last-child { border-right: none; }
+    .folha-a4 .label-simple { font-weight: 900; margin-right: 5px; color: #555; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+
+    .folha-a4 .box-os { background: #231f20; display: flex; flex-direction: row; align-items: center; justify-content: space-between; border-bottom: 2px solid #231f20; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 5px 8px; height: 35px; }
+    .folha-a4 .os-label { font-size: 14px; font-weight: 900; color: white; margin-right: 8px; margin-bottom: 0; text-transform: uppercase; }
+    .folha-a4 .os-valor-box { background: white; flex: 1; text-align: center; border-radius: 4px; padding: 2px 0; min-height: 22px; }
+    .folha-a4 .os-valor { font-size: 20px; font-weight: 900; color: #231f20; line-height: 1; }
+
+    .folha-a4 .logistica-qr-flex { display: flex; flex: 1; background: white; }
+    .folha-a4 .box-logistica { padding: 8px 10px; flex: 1; display: flex; flex-direction: column; justify-content: center; background: white; }
+    .folha-a4 .log-item { display: flex; align-items: center; margin-bottom: 4px; font-size: 13px; font-weight: 900; color: #231f20; }
+    .folha-a4 .box-check-log { width: 14px; height: 14px; border: 1px solid #231f20; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #ed1c24; line-height: 14px; border-radius: 50%; }
+
+    .folha-a4 .grid-datas-pag { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 4px; height: 45px; }
+    .folha-a4 .box-pagamento { display: flex; flex-direction: column; justify-content: center; padding-left: 10px; background: #eee; border-radius: 6px; border: 1px solid #ddd; font-size: 10px; font-weight: 900; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #231f20; }
+    .folha-a4 .pag-valor { font-size: 16px; color: #ed1c24; }
+    .folha-a4 .box-data { border: 1px solid #ddd; border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; }
+    .folha-a4 .data-header { background: #666; color: white; font-size: 9px; text-align: center; padding: 3px; font-weight: bold; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .folha-a4 .data-valor { text-align: center; font-weight: 900; color: #ed1c24; font-size: 14px; display: flex; align-items: center; justify-content: center; height: 100%; background: #fff; }
+
+    .folha-a4 .area-status { display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 5px 0; border-bottom: 2px dotted #ccc; }
+    .folha-a4 .badges-wrapper { display: flex; gap: 6px; align-items: center; }
+    .folha-a4 .badge-box { display: flex; align-items: center; height: 26px; border: 1px solid #ccc; border-radius: 13px; overflow: hidden; box-shadow: 1px 1px 0px rgba(0,0,0,0.1); -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .folha-a4 .bg-red { background-color: #ed1c24 !important; border-color: #ed1c24 !important; }
+    .folha-a4 .bg-blue { background-color: #00aeef !important; border-color: #00aeef !important; }
+    .folha-a4 .bg-green { background-color: #00a651 !important; border-color: #00a651 !important; }
+    .folha-a4 .badge-letra { min-width: 62px; padding: 0 8px; display: flex; align-items: center; justify-content: center; color: white !important; font-weight: 900; font-size: 10px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .folha-a4 .badge-x { width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; background: white; }
+    .folha-a4 .maq-cartao { margin-left: auto; background: #ed1c24 !important; color: white !important; font-weight: 900; font-size: 10px; padding: 4px 8px; display: flex; align-items: center; gap: 6px; height: 26px; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .folha-a4 .box-check-maq { width: 14px; height: 14px; background: white; border-radius: 2px; color: black; text-align: center; line-height: 14px; font-size: 12px; font-weight: 900; }
+
+    .folha-a4 .titulo-servico { text-align: center; color: #231f20; font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
+
+    .folha-a4 .area-imagens { flex-grow: 1; border: 2px dashed #ccc; border-radius: 6px; position: relative; overflow: hidden; background-color: #fcfcfc; touch-action: none; min-height: 180px; }
+    .folha-a4 .draggable-img { position: absolute; cursor: move; width: 150px; touch-action: none; }
+    .folha-a4 .img-selected { border: 2px solid #00aeef; box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
+    .folha-a4 .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
+    .folha-a4 .resizer { height: 12px; background: #e0e0e0; cursor: ns-resize; border-radius: 4px; margin: 5px 0; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; }
+    .folha-a4 .resizer::before { content: "••••"; color: #888; font-size: 10px; letter-spacing: 2px; line-height: 10px; }
+
+    .folha-a4 .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase; }
+    .folha-a4 .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: 6px; padding: 8px; font-size: 11px; font-family: 'Mitra LT', 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; color: #231f20; overflow: hidden; box-sizing: border-box; }
+
+    /* --- VIEW 2 & VIEW 3: WORKSPACES DE LISTAGEM --- */
+    .lista-workspace,
+    .abertos-workspace {
+      flex: 1;
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    .search-hero-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input-wrap .search-icon {
+      position: absolute;
+      left: 13px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+
+    .search-input-wrap .ui-input {
+      padding-left: 38px;
+    }
+
+    .lista-filters-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mes-accordion {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .mes-accordion-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      background: var(--bg-subtle);
+      transition: background var(--transition);
+      user-select: none;
+    }
+
+    .mes-accordion-header:hover {
+      background: var(--bg-hover);
+    }
+
+    .mes-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 14px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .os-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .os-item-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-top: 4px solid var(--blue);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .os-item-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .os-item-card.is-pago { border-top-color: var(--green); }
+    .os-item-card.is-pendente { border-top-color: var(--red); }
+    .os-item-card.is-faturado { border-top-color: var(--blue); }
+
+    .os-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .os-number-tag {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 13px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: var(--bg-app);
+      color: var(--brand);
+      border: 1px solid var(--border-default);
+    }
+
+    .os-card-client {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .os-card-service {
+      font-size: 13px;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .os-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    /* Check rápido de PAGO direto na Lista de O.S. */
+    .os-paid-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all var(--transition);
+    }
+
+    .os-paid-toggle input {
+      accent-color: var(--green);
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .os-paid-toggle.is-checked {
+      background: var(--green-soft);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--green);
+    }
+
+    .os-card-price {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--brand);
+    }
+
+    .os-card-actions {
+      display: flex;
+      gap: 6px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+
+    /* --- VIEW 3: SERVIÇOS EM ABERTO --- */
+    .abertos-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .aberto-row-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--brand);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1.5fr 1.1fr 1.25fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .aberto-row-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-md);
+    }
+
+    .aberto-row-card.st-impresso {
+      border-left-color: var(--green);
+    }
+
+    .aberto-row-card.st-pendente {
+      border-left-color: var(--orange);
+    }
+
+    .aberto-main-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .aberto-empresa {
+      font-family: var(--font-display);
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .aberto-servico {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .aberto-dates-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+    }
+
+    .prazo-inline-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .prazo-inline-input {
+      width: 104px;
+      padding: 5px 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      text-align: center;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-input);
+      color: var(--brand);
+    }
+
+    .aberto-checks-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .srv-check-btn {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-default);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition);
+    }
+
+    .srv-check-btn:hover {
+      border-color: var(--brand);
+    }
+
+    .srv-check-btn.is-impresso {
+      background: var(--green-soft);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--green);
+    }
+
+    .srv-check-btn.is-pendente {
+      background: var(--orange-soft);
+      border-color: rgba(249, 115, 22, 0.45);
+      color: var(--orange);
+    }
+
+    .mubi-check-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-default);
+      background: var(--bg-subtle);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .mubi-check-box.is-mubi-pendente {
+      background: var(--red-soft);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: var(--red);
+    }
+
+    .mubi-check-box.is-mubi-ok {
+      background: var(--green-soft);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--green);
+    }
+
+    .mubi-check-box input {
+      accent-color: var(--green);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .aberto-actions-col {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 152px;
+    }
+
+    /* Mini painel de seleção múltipla de mídias */
+    .midia-pick-row {
+      display: grid;
+      grid-template-columns: 1fr 145px;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-subtle);
+      transition: all var(--transition);
+    }
+
+    .midia-pick-row.selected {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    /* Botão Mobile de alternar Formulário <-> Folha A4 */
+    .mobile-preview-fab {
+      display: none;
+      position: fixed;
+      bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+      right: 16px;
+      z-index: 950;
+    }
+
+    @media (max-width: 1080px) {
+      .aberto-row-card {
+        grid-template-columns: 1fr 1fr;
+      }
+      .aberto-actions-col {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .aberto-actions-col .ui-btn {
+        flex: 1;
+      }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        height: auto;
+        min-height: 100dvh;
+        overflow-y: auto;
+      }
+      .os-view.active {
+        display: block;
+      }
+      .editor-workspace {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      #painel-controle {
+        height: auto;
+        border-right: none;
+      }
+      .editor-scroll {
+        overflow: visible;
+        padding: 14px 12px 18px;
+      }
+      .editor-footer {
+        padding: 12px 12px 24px;
+      }
+      .preview-stage-wrap {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        background: var(--bg-app);
+      }
+      .preview-stage-wrap.mobile-open {
+        display: flex;
+      }
+      .mobile-back-form-btn {
+        display: inline-flex;
+      }
+      .mobile-preview-fab {
+        display: inline-flex;
+      }
+      .lista-workspace,
+      .abertos-workspace {
+        overflow: visible;
+      }
+      .hide-sm { display: none; }
+    }
+
+    @media (max-width: 680px) {
+      .aberto-row-card {
+        grid-template-columns: 1fr;
+        padding: 14px;
+        gap: 12px;
+      }
+      .row-2,
+      .row-os-val {
+        grid-template-columns: 1fr;
+      }
+      .check-chips-3 {
+        grid-template-columns: 1fr;
+      }
+      .midia-pick-row {
+        grid-template-columns: 1fr;
+      }
+      .os-cards-grid {
+        padding: 12px;
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==========================================================================
+       REGRAS DE IMPRESSÃO (@media print) — MANTÉM 100% O PDF A4 ORIGINAL
+       ========================================================================== */
+    @page { size: A4; margin: 0; }
+    @media print {
+      html, body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+        color: black !important;
+      }
+      .app-topbar,
+      #view-lista,
+      #view-abertos,
+      #painel-controle,
+      .preview-toolbar,
+      .mobile-preview-fab,
+      .mobile-pill-dock,
+      .ui-modal-backdrop,
+      #artesynal-toast-root,
+      .folha-a4 .resizer {
+        display: none !important;
+      }
+      #view-editor,
+      .editor-workspace,
+      .preview-stage-wrap,
+      #area-impressao {
+        display: block !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white !important;
+        overflow: visible !important;
+      }
+      .folha-a4 {
+        box-shadow: none !important;
+        padding: 10mm !important;
+        margin: 0 auto !important;
+        width: 210mm !important;
+        min-height: 296mm !important;
+        transform: none !important;
+        color: black !important;
+      }
+      .folha-a4 .area-imagens { border: 1px dashed #ccc !important; }
+      .folha-a4 .placeholder-text { display: none !important; }
+      .folha-a4 .img-selected { border: none !important; box-shadow: none !important; }
+      .folha-a4 .bg-red { background-color: #ed1c24 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .folha-a4 .bg-blue { background-color: #00aeef !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .folha-a4 .bg-green { background-color: #00a651 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .folha-a4 .badge-letra { color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .folha-a4 .maq-cartao { background-color: #ed1c24 !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOPBAR UNIFICADA -->
+  <header class="app-topbar">
+    <a href="../../index.html" class="app-brand">
+      <img src="../../assets/img/logo-artesynal.png" alt="ArteSynal" class="app-brand-logo" />
+      <span class="app-brand-divider"></span>
+      <div class="app-brand-text">
+        <span class="app-brand-title">ORDENS DE SERVIÇO</span>
+        <span class="app-brand-sub">Gerador A4 • Serviços em Aberto • Lista</span>
+      </div>
+    </a>
+
+    <div class="ui-tabs" role="tablist">
+      <button type="button" class="ui-tab active" id="tab-editor" onclick="window.mudarAbaOS('editor')">
+        ✏️ Gerar / Editar O.S.
+      </button>
+      <button type="button" class="ui-tab" id="tab-abertos" onclick="window.mudarAbaOS('abertos')">
+        ⚡ Serviços em Aberto <span id="badge-total-abertos" class="ui-badge ui-badge-brand" style="padding:1px 7px;">0</span>
+      </button>
+      <button type="button" class="ui-tab" id="tab-lista" onclick="window.mudarAbaOS('lista')">
+        📂 Lista de O.S. <span id="badge-total-os" class="ui-badge" style="padding:1px 7px;">0</span>
+      </button>
+    </div>
+
+    <div class="app-topbar-actions">
+      <button type="button" class="ui-btn ui-btn-sm ui-btn-primary" onclick="window.novaOSLimpa()">
+        ➕ Nova O.S.
+      </button>
+      <button type="button" class="ui-btn ui-btn-sm" data-theme-toggle>☀️ Claro</button>
+      <a href="../../index.html" class="ui-btn ui-btn-sm">⬅ <span class="hide-sm">Painel</span></a>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       VIEW 1: EDITOR DE O.S. + PRÉVIA A4 EM TEMPO REAL
+       ====================================================================== -->
+  <section id="view-editor" class="os-view active">
+    <div class="editor-workspace">
+      <!-- PAINEL LATERAL DE ENTRADA DE DADOS -->
+      <aside id="painel-controle">
+        <div class="editor-scroll">
+          <div class="editor-mode-banner" id="banner-modo-edicao">
+            <div>
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Modo Atual</div>
+              <div id="txt-modo-os" style="font-weight:800; font-size:14px;">Criando Nova Ordem de Serviço</div>
+            </div>
+            <button type="button" class="ui-btn ui-btn-sm" onclick="window.novaOSLimpa()" title="Limpar formulário para nova O.S.">Limpar</button>
+          </div>
+
+          <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
+          <div class="form-section">
+            <div class="form-section-title">1. Identificação e Cliente</div>
+
+            <div class="ui-field">
+              <label class="ui-label" for="in-empresa">Nome da Empresa (Cabeçalho da O.S.)</label>
+              <input type="text" id="in-empresa" class="ui-input" placeholder="Ex: ARTESYNAL COMUNICAÇÃO VISUAL" value="ARTESYNAL" />
+            </div>
+
+            <div class="row-2">
+              <div class="ui-field">
+                <label class="ui-label" for="in-cliente">Nome do Cliente</label>
+                <input type="text" id="in-cliente" class="ui-input" placeholder="Cliente / Contato" />
+              </div>
+              <div class="ui-field">
+                <label class="ui-label" for="in-tel">Telefone / WhatsApp</label>
+                <input type="text" id="in-tel" class="ui-input" placeholder="(00) 00000-0000" />
+              </div>
+            </div>
+
+            <div class="ui-field">
+              <label class="ui-label" for="in-end">Endereço</label>
+              <input type="text" id="in-end" class="ui-input" placeholder="Rua, número, bairro, cidade" />
+            </div>
+          </div>
+
+          <!-- SEÇÃO 2: FINANCEIRO E PRAZOS -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <span>2. Numeração, Prazos e Financeiro</span>
+              <button type="button" class="ui-btn ui-btn-sm" style="padding:3px 8px; font-size:11px;" onclick="window.sugerirProximoNumeroOS()">Sugerir Nº</button>
+            </div>
+
+            <div class="row-os-val">
+              <div class="ui-field">
+                <label class="ui-label" for="in-os">Nº da O.S.</label>
+                <input type="text" id="in-os" class="ui-input" placeholder="Ex: 1045" />
+              </div>
+              <div class="ui-field">
+                <label class="ui-label" for="in-pag">Valor Restante</label>
+                <input type="text" id="in-pag" class="ui-input" value="R$ 0,00" inputmode="numeric" />
+              </div>
+            </div>
+
+            <div class="row-2">
+              <div class="ui-field">
+                <label class="ui-label" for="in-data-aprov">Data Aprovação</label>
+                <input type="text" id="in-data-aprov" class="ui-input" placeholder="DD/MM/AA" inputmode="numeric" maxlength="8" />
+              </div>
+              <div class="ui-field">
+                <label class="ui-label" for="in-data-limite">Data Entrega / Limite</label>
+                <input type="text" id="in-data-limite" class="ui-input" placeholder="DD/MM/AA" inputmode="numeric" maxlength="8" />
+              </div>
+            </div>
+
+            <div class="check-chips">
+              <label class="check-chip"><input type="checkbox" id="chk-entrada" /> Entrada (E)</label>
+              <label class="check-chip"><input type="checkbox" id="chk-faturado" /> Faturado (F)</label>
+              <label class="check-chip"><input type="checkbox" id="chk-pago" /> Pago (P)</label>
+              <label class="check-chip"><input type="checkbox" id="chk-maq" /> Máq. Cartão</label>
+            </div>
+          </div>
+
+          <!-- SEÇÃO 3: LOGÍSTICA -->
+          <div class="form-section">
+            <div class="form-section-title">3. Modalidade Logística</div>
+            <div class="check-chips-3">
+              <label class="check-chip"><input type="checkbox" id="chk-inst" /> Instalação</label>
+              <label class="check-chip"><input type="checkbox" id="chk-ent" /> Entrega</label>
+              <label class="check-chip"><input type="checkbox" id="chk-ret" /> Retirada</label>
+            </div>
+          </div>
+
+          <!-- SEÇÃO 4: SERVIÇO, IMAGENS E OBSERVAÇÕES -->
+          <div class="form-section">
+            <div class="form-section-title">4. Escopo do Serviço e Artes</div>
+
+            <div class="ui-field">
+              <label class="ui-label" for="in-servico">Título do Serviço</label>
+              <input type="text" id="in-servico" class="ui-input" placeholder="Ex: Fachada em ACM + Letra Caixa" />
+            </div>
+
+            <div class="ui-field">
+              <label class="ui-label">Imagens na Folha A4 (Arraste na prévia ao lado)</label>
+              <input type="file" id="file-imagens-os" accept="image/*" multiple hidden onchange="window.adicionarImagens(event)" />
+              <div class="upload-dropzone" onclick="document.getElementById('file-imagens-os').click()">
+                🖼️ Clique para anexar imagens do projeto
+              </div>
+              <div id="img-manager-list" class="img-manager-list"></div>
+            </div>
+
+            <div class="ui-field">
+              <label class="ui-label" for="in-desc">Descrição Técnica / Observações</label>
+              <textarea id="in-desc" class="ui-textarea" placeholder="Medidas detalhadas, acabamento, materiais, instruções de instalação..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-footer">
+          <button type="button" id="btn-salvar" class="ui-btn ui-btn-blue ui-btn-lg">
+            💾 Salvar O.S.
+          </button>
+          <button type="button" id="btn-imprimir-pdf" class="ui-btn ui-btn-green ui-btn-lg" onclick="window.imprimirFolhaOS()">
+            🖨️ Imprimir / PDF
+          </button>
+        </div>
+      </aside>
+
+      <!-- PALCO DIREITO: PRÉVIA REAL DA FOLHA A4 -->
+      <div class="preview-stage-wrap" id="preview-stage-wrap">
+        <div class="preview-toolbar">
+          <button type="button" class="ui-btn ui-btn-sm ui-btn-primary mobile-back-form-btn" onclick="window.togglePreviaMobile()">⬅ Voltar ao Formulário</button>
+          <span class="hide-sm">Pré-visualização fiel da impressão A4 (arraste imagens ou use a roda do mouse para redimensionar)</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" class="ui-btn ui-btn-sm" onclick="window.ajustarZoomPrevia(-0.1)">−</button>
+            <span id="lbl-zoom-previa" style="min-width:46px; text-align:center; font-weight:700;">90%</span>
+            <button type="button" class="ui-btn ui-btn-sm" onclick="window.ajustarZoomPrevia(0.1)">+</button>
+            <button type="button" class="ui-btn ui-btn-sm" onclick="window.autoAjustarPrevia()">Ajustar</button>
+          </div>
+        </div>
+
+        <div id="area-impressao">
+          <div class="folha-a4" id="folha-a4">
+            <div class="header-top" id="out-empresa">ARTESYNAL</div>
+
+            <div class="header-grid">
+              <div class="col-esq">
+                <div class="linha-dados">
+                  <div class="col" style="flex: 2;"><span class="label-simple">Cliente</span> <span id="out-cliente"></span></div>
+                  <div class="col" style="flex: 1; background: #666; color: white; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;"><span style="margin-right: 5px;">Tel:</span> <span id="out-tel" style="font-weight: 400;"></span></div>
+                </div>
+                <div class="linha-dados">
+                  <div class="col" style="width: 100%;"><span class="label-simple">Endereço</span> <span id="out-end"></span></div>
+                </div>
+                <div class="grid-datas-pag">
+                  <div class="box-pagamento">
+                    RESTANTE
+                    <span id="out-pag" class="pag-valor">R$ 0,00</span>
+                  </div>
+                  <div class="box-data">
+                    <div class="data-header">Aprovação</div>
+                    <div class="data-valor" style="color: black;" id="out-data-aprov">00/00/00</div>
+                  </div>
+                  <div class="box-data">
+                    <div class="data-header" style="background: #ed1c24;">ENTREGA</div>
+                    <div class="data-valor" id="out-data-limite">00/00/00</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-dir">
+                <div class="box-os">
+                  <span class="os-label">OS</span>
+                  <div class="os-valor-box"><span class="os-valor" id="out-os"></span></div>
+                </div>
+
+                <div class="logistica-qr-flex">
+                  <div class="box-logistica">
+                    <div class="log-item"><div class="box-check-log" id="x-inst"></div> INSTALAÇÃO</div>
+                    <div class="log-item"><div class="box-check-log" id="x-ent"></div> ENTREGA</div>
+                    <div class="log-item"><div class="box-check-log" id="x-ret"></div> RETIRADA</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="area-status">
+              <div class="badges-wrapper">
+                <div class="badge-box bg-red"><div class="badge-letra">ENTRADA</div><div class="badge-x" id="x-entrada" style="color: #ed1c24;"></div></div>
+                <div class="badge-box bg-blue"><div class="badge-letra">FATURADO</div><div class="badge-x" id="x-faturado" style="color: #00aeef;"></div></div>
+                <div class="badge-box bg-green"><div class="badge-letra">PAGO</div><div class="badge-x" id="x-pago" style="color: #00a651;"></div></div>
+              </div>
+              <div class="maq-cartao">MÁQ. CARTÃO<div class="box-check-maq" id="x-maq"></div></div>
+            </div>
+
+            <div class="titulo-servico" id="out-servico">NOME DO SERVIÇO</div>
+
+            <div class="area-imagens" id="canvas-imagens">
+              <span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>
+            </div>
+
+            <div class="resizer" id="resizer"></div>
+
+            <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
+            <div class="box-anotacoes" id="out-desc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" id="btn-mobile-previa" class="ui-btn ui-btn-primary ui-btn-lg mobile-preview-fab" onclick="window.togglePreviaMobile()">
+      👁️ Ver Folha A4
+    </button>
+  </section>
+
+  <!-- ======================================================================
+       VIEW 2: SERVIÇOS EM ABERTO (PRODUÇÃO / IMPRESSÃO / MUBI / ARQUIVADOS)
+       ====================================================================== -->
+  <section id="view-abertos" class="os-view">
+    <div class="abertos-workspace">
+      <div class="ui-container">
+        <div class="ui-kpi-grid">
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Serviços em Aberto</span>
+            <span class="ui-kpi-value" id="kpi-abertos-total">0</span>
+          </div>
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Aguardando / Imp. Pendente</span>
+            <span class="ui-kpi-value" id="kpi-abertos-imp-pend" style="color:var(--orange);">0</span>
+          </div>
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">MUBI Pendente</span>
+            <span class="ui-kpi-value" id="kpi-abertos-mubi" style="color:var(--red);">0</span>
+          </div>
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Impressos Concluídos</span>
+            <span class="ui-kpi-value" id="kpi-abertos-impressos" style="color:var(--green);">0</span>
+          </div>
+        </div>
+
+        <div class="ui-card" style="margin-bottom: 18px;">
+          <div class="search-hero-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input id="busca-servicos-abertos" type="search" class="ui-input" placeholder="Buscar por empresa, cliente, Nº da O.S., serviço ou prazo..." />
+            </div>
+            <button type="button" class="ui-btn" id="btn-abrir-arquivados-servicos">
+              📁 Arquivados <span id="badge-abertos-arq" class="ui-badge" style="padding:1px 7px;">0</span>
+            </button>
+          </div>
+
+          <div class="lista-filters-bar">
+            <div class="ui-pills" id="abertos-filter-pills">
+              <button type="button" class="ui-pill active" data-abertos-filter="todos">Todos em Aberto</button>
+              <button type="button" class="ui-pill" data-abertos-filter="nao_impresso">Falta Imprimir</button>
+              <button type="button" class="ui-pill" data-abertos-filter="imp_pendente">Impressão Pendente (Parcial)</button>
+              <button type="button" class="ui-pill" data-abertos-filter="impresso">Impressos</button>
+              <button type="button" class="ui-pill" data-abertos-filter="mubi_pendente">MUBI Pendente</button>
+            </div>
+            <span style="font-size:12px; color:var(--text-muted);">Ao salvar ou gerar o PDF de uma nova O.S., ela entra automaticamente nesta fila.</span>
+          </div>
+        </div>
+
+        <div id="servicos-abertos-container" class="abertos-list">
+          <div class="ui-card" style="text-align:center; color:var(--text-muted);">Carregando serviços em aberto...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       VIEW 3: LISTA COMPLETA E FILTROS DE ORDENS DE SERVIÇO
+       ====================================================================== -->
+  <section id="view-lista" class="os-view">
+    <div class="lista-workspace">
+      <div class="ui-container">
+        <div class="ui-kpi-grid">
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Total de O.S.</span>
+            <span class="ui-kpi-value" id="kpi-os-total">0</span>
+          </div>
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Pendentes</span>
+            <span class="ui-kpi-value" id="kpi-os-pendente" style="color:var(--red);">0</span>
+          </div>
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Entrada / Faturadas</span>
+            <span class="ui-kpi-value" id="kpi-os-andamento" style="color:var(--blue);">0</span>
+          </div>
+          <div class="ui-kpi">
+            <span class="ui-kpi-label">Pagas / Quitadas</span>
+            <span class="ui-kpi-value" id="kpi-os-pago" style="color:var(--green);">0</span>
+          </div>
+        </div>
+
+        <div class="ui-card" style="margin-bottom: 20px;">
+          <div class="search-hero-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input id="busca-os" type="search" class="ui-input" placeholder="Buscar O.S. por Nº, empresa, cliente, serviço, telefone, endereço, data ou valor..." />
+            </div>
+            <button type="button" class="ui-btn ui-btn-sm" id="btn-limpar-busca-os" style="display:none;" onclick="window.limparBuscaOS()">✖ Limpar Busca</button>
+            <button type="button" class="ui-btn ui-btn-sm" id="btn-toggle-all-months" onclick="window.alternarTodosMeses()">Expandir Tudo</button>
+          </div>
+
+          <div class="lista-filters-bar">
+            <div class="ui-pills" id="os-filter-pills">
+              <button type="button" class="ui-pill active" data-filter="todos">Todas</button>
+              <button type="button" class="ui-pill" data-filter="pendente">Pendentes</button>
+              <button type="button" class="ui-pill" data-filter="entrada">Com Entrada</button>
+              <button type="button" class="ui-pill" data-filter="faturado">Faturadas</button>
+              <button type="button" class="ui-pill" data-filter="pago">Pagas</button>
+              <button type="button" class="ui-pill" data-filter="instalacao">Instalação</button>
+              <button type="button" class="ui-pill" data-filter="entrega">Entrega</button>
+              <button type="button" class="ui-pill" data-filter="retirada">Retirada</button>
+            </div>
+            <span id="lbl-resultado-busca-os" style="font-size:12px; font-weight:700; color:var(--text-muted);"></span>
+          </div>
+        </div>
+
+        <div id="lista-os-container">
+          <div class="ui-card" style="text-align:center; color:var(--text-muted);">Carregando ordens de serviço...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       MODAL MINI PAINEL DE MÍDIAS DE IMPRESSÃO (SERVIÇOS EM ABERTO)
+       ====================================================================== -->
+  <div class="ui-modal-backdrop" id="modal-midias-os">
+    <div class="ui-modal" style="width:min(680px, 100%);">
+      <div class="ui-modal-header">
+        <div>
+          <h3 class="ui-modal-title">🖨️ Consumo de Mídias de Impressão</h3>
+          <div id="modal-midias-sub" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></div>
+        </div>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.fecharPainelMidiasServico()">✖</button>
+      </div>
+
+      <div id="box-midias-ja-usadas" style="display:none; margin-bottom:14px; padding:11px 13px; background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md);">
+        <div class="ui-label" style="margin-bottom:6px; color:var(--blue);">Mídias já registradas anteriormente neste serviço</div>
+        <div id="lista-midias-ja-usadas" style="display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--text-secondary);"></div>
+      </div>
+
+      <div class="ui-field" style="margin-bottom:10px;">
+        <label class="ui-label" for="busca-midia-servico">Selecionar uma ou mais mídias do estoque de impressão</label>
+        <input id="busca-midia-servico" type="search" class="ui-input" placeholder="Filtrar mídia por nome ou categoria (ex: Lona, Adesivo)..." />
+      </div>
+
+      <div id="lista-midias-estoque-modal" style="display:flex; flex-direction:column; gap:8px; max-height:290px; overflow-y:auto; padding-right:2px; margin-bottom:14px;"></div>
+
+      <label class="check-chip" style="padding:12px 14px; margin-bottom:16px;">
+        <input type="checkbox" id="chk-marcar-impresso-total" checked />
+        <div>
+          <div style="font-weight:800; font-size:13px; color:var(--text-primary);">Marcar serviço como totalmente IMPRESSO</div>
+          <div style="font-size:11.5px; font-weight:500; color:var(--text-muted); margin-top:2px;">
+            Desmarque caso ainda faltem outras mídias para imprimir neste serviço (ele ficará marcado como <strong>Impressão Pendente</strong>).
+          </div>
+        </div>
+      </label>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="ui-btn" onclick="window.fecharPainelMidiasServico()">Cancelar</button>
+        <button type="button" class="ui-btn ui-btn-green" id="btn-confirmar-midias-os">💾 Confirmar Baixa e Status</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL LISTA DE SERVIÇOS FINALIZADOS / ARQUIVADOS (COM BUSCA E REATIVAR)
+       ====================================================================== -->
+  <div class="ui-modal-backdrop" id="modal-servicos-arquivados">
+    <div class="ui-modal" style="width:min(780px, 100%);">
+      <div class="ui-modal-header">
+        <div>
+          <h3 class="ui-modal-title">📁 Serviços Finalizados / Arquivados</h3>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Busque por empresa, cliente, Nº da O.S. ou serviço e reative quando precisar.</div>
+        </div>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="document.getElementById('modal-servicos-arquivados').classList.remove('open')">✖</button>
+      </div>
+
+      <div class="search-input-wrap" style="margin-bottom:14px;">
+        <span class="search-icon">🔍</span>
+        <input id="busca-servicos-arquivados" type="search" class="ui-input" placeholder="Buscar arquivados por empresa, cliente, Nº da O.S. ou nome do serviço..." />
+      </div>
+
+      <div id="lista-servicos-arquivados" style="display:flex; flex-direction:column; gap:10px; max-height:60vh; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import '../../js/core/theme.js';
+    import { showToast } from '../../js/core/theme.js';
+    import { db, ROTAS } from '../../js/core/config.js';
+    import { protegerPagina } from '../../js/core/auth.js';
+    import {
+      collection,
+      addDoc,
+      getDoc,
+      getDocs,
+      doc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      orderBy,
+      query,
+      where,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    const sessao = await protegerPagina({ paginaAtual: 'os.html' });
+    if (!sessao) throw new Error('Sem sessão');
+
+    const userMe = {
+      nome: sessao.user.displayName || sessao.acesso.nome || sessao.user.email,
+      email: (sessao.user.email || '').toLowerCase()
+    };
+    const warteEmail = 'wartesynal@gmail.com';
+
+    const EMPRESA_PADRAO_KEY = 'artesynal_os_empresa_padrao';
+    let idEdicao = null;
+    let todasOS = [];
+    let midiasImpressaoEstoque = [];
+    let filtroListaAtual = 'todos';
+    let filtroAbertosAtual = 'todos';
+    let mesesAbertos = new Set();
+    let todosExpandidos = false;
+    let zoomPrevia = 0.9;
+    let draggedImg = null;
+    let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+    // Estado do Mini Painel de Mídias de Impressão
+    let servicoAtivoMidiaId = null;
+    let selecaoMidiasModal = new Map(); // midiaId -> string (qtd digitada)
+
+    const empresaSalva = localStorage.getItem(EMPRESA_PADRAO_KEY);
+    if (empresaSalva) {
+      document.getElementById('in-empresa').value = empresaSalva;
+    }
+
+    const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+
+    // =========================================================================
+    // NAVEGAÇÃO ENTRE AS 3 ABAS (EDITOR <-> SERVIÇOS EM ABERTO <-> LISTA)
+    // =========================================================================
+    window.mudarAbaOS = (aba) => {
+      const modo = ['editor', 'abertos', 'lista'].includes(aba) ? aba : 'editor';
+      document.getElementById('tab-editor').classList.toggle('active', modo === 'editor');
+      document.getElementById('tab-abertos').classList.toggle('active', modo === 'abertos');
+      document.getElementById('tab-lista').classList.toggle('active', modo === 'lista');
+
+      document.getElementById('view-editor').classList.toggle('active', modo === 'editor');
+      document.getElementById('view-abertos').classList.toggle('active', modo === 'abertos');
+      document.getElementById('view-lista').classList.toggle('active', modo === 'lista');
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', modo);
+      if (modo !== 'editor') url.searchParams.delete('id');
+      else if (idEdicao) url.searchParams.set('id', idEdicao);
+      history.replaceState(null, '', url.toString());
+
+      if (modo === 'editor') setTimeout(() => window.aplicarZoomPrevia(), 50);
+    };
+
+    window.togglePreviaMobile = () => {
+      const wrap = document.getElementById('preview-stage-wrap');
+      const btn = document.getElementById('btn-mobile-previa');
+      const aberta = wrap.classList.toggle('mobile-open');
+      btn.innerHTML = aberta ? '✏️ Voltar ao Formulário' : '👁️ Ver Folha A4';
+      if (aberta) window.autoAjustarPrevia();
+    };
+
+    // =========================================================================
+    // CONTROLE DE ZOOM DA PRÉVIA A4 (SEM AFETAR A IMPRESSÃO)
+    // =========================================================================
+    window.aplicarZoomPrevia = () => {
+      const folha = document.getElementById('folha-a4');
+      folha.style.transform = `scale(${zoomPrevia})`;
+      folha.style.marginBottom = `${Math.round((zoomPrevia - 1) * 1120)}px`;
+      document.getElementById('lbl-zoom-previa').textContent = `${Math.round(zoomPrevia * 100)}%`;
+    };
+
+    window.ajustarZoomPrevia = (delta) => {
+      zoomPrevia = Math.min(1.4, Math.max(0.35, Number((zoomPrevia + delta).toFixed(2))));
+      window.aplicarZoomPrevia();
+    };
+
+    window.autoAjustarPrevia = () => {
+      const stage = document.getElementById('area-impressao');
+      const dispW = (stage?.clientWidth || window.innerWidth) - 36;
+      zoomPrevia = Math.min(1.05, Math.max(0.36, Number((dispW / 794).toFixed(2))));
+      window.aplicarZoomPrevia();
+    };
+
+    // =========================================================================
+    // SINCRONIZAÇÃO EM TEMPO REAL DO FORMULÁRIO -> FOLHA A4
+    // =========================================================================
+    window.up = function () {
+      const setTxt = (idOut, idIn, def) => {
+        const elIn = document.getElementById(idIn);
+        const elOut = document.getElementById(idOut);
+        if (elIn && elOut) elOut.innerText = elIn.value || def || '';
+      };
+
+      setTxt('out-empresa', 'in-empresa', 'NOME DA EMPRESA');
+      setTxt('out-cliente', 'in-cliente', '');
+      setTxt('out-tel', 'in-tel', '');
+      setTxt('out-os', 'in-os', '');
+      setTxt('out-end', 'in-end', '');
+      setTxt('out-pag', 'in-pag', 'R$ 0,00');
+      setTxt('out-data-aprov', 'in-data-aprov', '00/00/00');
+      setTxt('out-data-limite', 'in-data-limite', '00/00/00');
+      setTxt('out-servico', 'in-servico', 'NOME DO SERVIÇO');
+      setTxt('out-desc', 'in-desc', '');
+
+      const setX = (idOut, idIn) => {
+        const elIn = document.getElementById(idIn);
+        const elOut = document.getElementById(idOut);
+        if (elIn && elOut) elOut.innerText = elIn.checked ? 'X' : '';
+      };
+
+      setX('x-entrada', 'chk-entrada');
+      setX('x-faturado', 'chk-faturado');
+      setX('x-pago', 'chk-pago');
+      setX('x-inst', 'chk-inst');
+      setX('x-ent', 'chk-ent');
+      setX('x-ret', 'chk-ret');
+      setX('x-maq', 'chk-maq');
+    };
+
+    // =========================================================================
+    // MÁSCARAS DE MOEDA, DATA CURTA E TELEFONE
+    // =========================================================================
+    const formatarMoedaPorDigitos = (digitos) => {
+      const centavos = parseInt(digitos || '0', 10);
+      return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+
+    const normalizarDigitosMoeda = (valor) => (valor || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 12);
+
+    const temSaldoPositivo = (valorMoeda) => {
+      const dig = normalizarDigitosMoeda(valorMoeda);
+      return dig.length > 0 && parseInt(dig, 10) > 0;
+    };
+
+    const formatarDataCurta = (valor) => {
+      const digitos = (valor || '').replace(/\D/g, '').slice(0, 6);
+      const partes = [];
+      if (digitos.length > 0) partes.push(digitos.slice(0, 2));
+      if (digitos.length > 2) partes.push(digitos.slice(2, 4));
+      if (digitos.length > 4) partes.push(digitos.slice(4, 6));
+      return partes.join('/');
+    };
+
+    const formatarTelefone = (valor) => {
+      const digitos = (valor || '').replace(/\D/g, '').slice(0, 11);
+      if (digitos.length <= 2) return digitos ? `(${digitos}` : '';
+      const ddd = digitos.slice(0, 2);
+      const numero = digitos.slice(2);
+      if (numero.length <= 4) return `(${ddd}) ${numero}`;
+      const corte = numero.length > 8 ? 5 : 4;
+      return `(${ddd}) ${numero.slice(0, corte)}-${numero.slice(corte)}`;
+    };
+
+    const inputValorRestante = document.getElementById('in-pag');
+    let valorRestanteDigitos = normalizarDigitosMoeda(inputValorRestante.value);
+
+    const atualizarValorRestante = (digitos) => {
+      valorRestanteDigitos = normalizarDigitosMoeda(digitos);
+      inputValorRestante.value = formatarMoedaPorDigitos(valorRestanteDigitos);
+      window.up();
+    };
+
+    inputValorRestante.addEventListener('keydown', (event) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (/^\d$/.test(event.key)) {
+        event.preventDefault();
+        atualizarValorRestante(valorRestanteDigitos + event.key);
+      } else if (event.key === 'Backspace') {
+        event.preventDefault();
+        atualizarValorRestante(valorRestanteDigitos.slice(0, -1));
+      } else if (event.key === 'Delete') {
+        event.preventDefault();
+        atualizarValorRestante('');
+      }
+    });
+
+    inputValorRestante.addEventListener('paste', (event) => {
+      event.preventDefault();
+      atualizarValorRestante(event.clipboardData.getData('text'));
+    });
+
+    inputValorRestante.addEventListener('input', () => atualizarValorRestante(inputValorRestante.value));
+
+    ['in-data-aprov', 'in-data-limite'].forEach((id) => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => { el.value = formatarDataCurta(el.value); window.up(); });
+    });
+
+    const elTel = document.getElementById('in-tel');
+    elTel.addEventListener('input', () => { elTel.value = formatarTelefone(elTel.value); window.up(); });
+
+    document.getElementById('in-empresa').addEventListener('change', (e) => {
+      const v = e.target.value.trim();
+      if (v) localStorage.setItem(EMPRESA_PADRAO_KEY, v);
+    });
+
+    document.querySelectorAll('#painel-controle input, #painel-controle textarea').forEach((input) => {
+      if (input.type !== 'file' && input.type !== 'range' && input.id !== 'in-pag') {
+        input.addEventListener('input', window.up);
+        input.addEventListener('change', window.up);
+      }
+    });
+
+    // =========================================================================
+    // RESIZER DA CAIXA DE OBSERVAÇÕES NA FOLHA A4
+    // =========================================================================
+    const resizer = document.getElementById('resizer');
+    const boxAnotacoes = document.getElementById('out-desc');
+    let startYResizer = 0, startHeightBox = 80;
+
+    function initDragResizer(e) {
+      e.preventDefault();
+      startYResizer = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+      startHeightBox = parseInt(window.getComputedStyle(boxAnotacoes).height, 10) || 80;
+      document.addEventListener('mousemove', doDragResizer);
+      document.addEventListener('touchmove', doDragResizer, { passive: false });
+      document.addEventListener('mouseup', stopDragResizer);
+      document.addEventListener('touchend', stopDragResizer);
+    }
+
+    function doDragResizer(e) {
+      e.preventDefault();
+      const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+      const dy = (startYResizer - clientY) / zoomPrevia;
+      const newHeight = Math.min(400, Math.max(40, startHeightBox + dy));
+      boxAnotacoes.style.height = `${Math.round(newHeight)}px`;
+    }
+
+    function stopDragResizer() {
+      document.removeEventListener('mousemove', doDragResizer);
+      document.removeEventListener('touchmove', doDragResizer);
+      document.removeEventListener('mouseup', stopDragResizer);
+      document.removeEventListener('touchend', stopDragResizer);
+    }
+
+    resizer.addEventListener('mousedown', initDragResizer);
+    resizer.addEventListener('touchstart', initDragResizer, { passive: false });
+
+    // =========================================================================
+    // IMAGENS ARRASTÁVEIS E GERENCIADOR NO PAINEL LATERAL
+    // =========================================================================
+    const canvas = document.getElementById('canvas-imagens');
+
+    function sincronizarListaImagensPainel() {
+      const listEl = document.getElementById('img-manager-list');
+      const imgs = [...canvas.querySelectorAll('.draggable-img')];
+      const placeholder = document.getElementById('placeholder-text');
+      if (placeholder) placeholder.style.display = imgs.length ? 'none' : 'block';
+
+      listEl.innerHTML = imgs.map((img, idx) => {
+        const w = parseInt(img.style.width, 10) || 150;
+        return `
+          <div class="img-manager-item">
+            <img src="${img.src}" alt="Arte ${idx + 1}" />
+            <input type="range" min="50" max="720" value="${w}" oninput="window.redimensionarImgPorIndice(${idx}, this.value)" title="Ajustar tamanho" />
+            <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" style="padding:4px 8px;" onclick="window.removerImgPorIndice(${idx})" title="Remover imagem">✖</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.redimensionarImgPorIndice = (idx, val) => {
+      const imgs = canvas.querySelectorAll('.draggable-img');
+      if (imgs[idx]) imgs[idx].style.width = `${val}px`;
+    };
+
+    window.removerImgPorIndice = (idx) => {
+      const imgs = canvas.querySelectorAll('.draggable-img');
+      if (imgs[idx]) {
+        imgs[idx].remove();
+        sincronizarListaImagensPainel();
+      }
+    };
+
+    function selectImage(e) {
+      e.stopPropagation();
+      canvas.querySelectorAll('.draggable-img').forEach((img) => img.classList.remove('img-selected'));
+      e.target.classList.add('img-selected');
+    }
+
+    function resizeImageWheel(e) {
+      e.preventDefault();
+      const currentWidth = parseInt(this.style.width, 10) || this.offsetWidth || 150;
+      const next = e.deltaY < 0 ? Math.min(750, currentWidth + 20) : Math.max(50, currentWidth - 20);
+      this.style.width = `${next}px`;
+      sincronizarListaImagensPainel();
+    }
+
+    function startDragMouse(e) {
+      e.preventDefault();
+      draggedImg = e.target;
+      selectImage(e);
+      startX = e.clientX;
+      startY = e.clientY;
+      initialLeft = parseFloat(draggedImg.style.left) || draggedImg.offsetLeft || 0;
+      initialTop = parseFloat(draggedImg.style.top) || draggedImg.offsetTop || 0;
+      document.addEventListener('mousemove', dragMouse);
+      document.addEventListener('mouseup', stopDragMouse);
+    }
+
+    function dragMouse(e) {
+      if (!draggedImg) return;
+      draggedImg.style.left = `${Math.round(initialLeft + (e.clientX - startX) / zoomPrevia)}px`;
+      draggedImg.style.top = `${Math.round(initialTop + (e.clientY - startY) / zoomPrevia)}px`;
+    }
+
+    function stopDragMouse() {
+      draggedImg = null;
+      document.removeEventListener('mousemove', dragMouse);
+      document.removeEventListener('mouseup', stopDragMouse);
+    }
+
+    function startDragTouch(e) {
+      if (e.touches.length > 1) return;
+      e.preventDefault();
+      draggedImg = e.target;
+      selectImage(e);
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      initialLeft = parseFloat(draggedImg.style.left) || draggedImg.offsetLeft || 0;
+      initialTop = parseFloat(draggedImg.style.top) || draggedImg.offsetTop || 0;
+      document.addEventListener('touchmove', dragTouch, { passive: false });
+      document.addEventListener('touchend', stopDragTouch);
+    }
+
+    function dragTouch(e) {
+      if (!draggedImg) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      draggedImg.style.left = `${Math.round(initialLeft + (touch.clientX - startX) / zoomPrevia)}px`;
+      draggedImg.style.top = `${Math.round(initialTop + (touch.clientY - startY) / zoomPrevia)}px`;
+    }
+
+    function stopDragTouch() {
+      draggedImg = null;
+      document.removeEventListener('touchmove', dragTouch);
+      document.removeEventListener('touchend', stopDragTouch);
+    }
+
+    window.addEventosImagem = function (img) {
+      img.addEventListener('mousedown', startDragMouse);
+      img.addEventListener('click', selectImage);
+      img.addEventListener('touchstart', startDragTouch, { passive: false });
+      img.addEventListener('dblclick', (e) => {
+        e.target.remove();
+        sincronizarListaImagensPainel();
+      });
+      img.addEventListener('wheel', resizeImageWheel, { passive: false });
+    };
+
+    window.adicionarImagens = function (event) {
+      const files = event.target.files;
+      if (!files || !files.length) return;
+
+      Array.from(files).forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.classList.add('draggable-img');
+          img.style.left = `${40 + idx * 24}px`;
+          img.style.top = `${40 + idx * 24}px`;
+          img.style.width = '180px';
+          img.file = file;
+          window.addEventosImagem(img);
+          canvas.appendChild(img);
+          sincronizarListaImagensPainel();
+        };
+        reader.readAsDataURL(file);
+      });
+      event.target.value = '';
+    };
+
+    canvas.addEventListener('click', () => {
+      canvas.querySelectorAll('.draggable-img').forEach((img) => img.classList.remove('img-selected'));
+    });
+
+    function comprimirImagem(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const elem = document.createElement('canvas');
+            const scaleFactor = 800 / Math.max(img.width, img.height);
+            const w = scaleFactor < 1 ? img.width * scaleFactor : img.width;
+            const h = scaleFactor < 1 ? img.height * scaleFactor : img.height;
+            elem.width = w;
+            elem.height = h;
+            elem.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(elem.toDataURL('image/jpeg', 0.65));
+          };
+        };
+      });
+    }
+
+    // =========================================================================
+    // PERSISTÊNCIA DA O.S. E INTEGRAÇÃO AUTOMÁTICA COM SERVIÇOS EM ABERTO
+    // =========================================================================
+    function atualizarBannerModo() {
+      const banner = document.getElementById('banner-modo-edicao');
+      const txt = document.getElementById('txt-modo-os');
+      const btn = document.getElementById('btn-salvar');
+      if (idEdicao) {
+        banner.classList.add('editing');
+        const num = document.getElementById('in-os').value;
+        txt.textContent = `Editando O.S. ${num ? '#' + num : '(ID salvo)'}`;
+        btn.innerHTML = '💾 Atualizar O.S.';
+      } else {
+        banner.classList.remove('editing');
+        txt.textContent = 'Criando Nova Ordem de Serviço';
+        btn.innerHTML = '💾 Salvar O.S.';
+      }
+    }
+
+    function criarEstadoServicoAbertoInicial() {
+      return {
+        ativo: true,
+        arquivado: false,
+        impressao_status: 'nao_iniciado',
+        impresso: false,
+        midias_consumidas: [],
+        mubi_pendente: false,
+        mubi_concluido: false,
+        criado_em: new Date(),
+        finalizado_em: null
+      };
+    }
+
+    async function garantirServicoEmAbertoPorOS(osId) {
+      if (!osId) return;
+      const existente = todasOS.find((x) => x.id === osId);
+      if (existente?.servico_aberto?.ativo) return;
+      await updateDoc(doc(db, 'ordens_servico', osId), {
+        servico_aberto: criarEstadoServicoAbertoInicial(),
+        data_atualizacao: new Date()
+      });
+      showToast('O.S. adicionada em Serviços em Aberto!', 'success');
+    }
+
+    async function salvarDadosOSNoBanco({ silencioso = false, garantirAberto = true } = {}) {
+      const btn = document.getElementById('btn-salvar');
+      btn.disabled = true;
+      if (!silencioso) btn.textContent = 'Salvando...';
+
+      try {
+        const imagensParaSalvar = [];
+        const imgsElementos = canvas.querySelectorAll('.draggable-img');
+        for (const img of imgsElementos) {
+          let urlFinal = img.src;
+          if (img.file) urlFinal = await comprimirImagem(img.file);
+          imagensParaSalvar.push({
+            url: urlFinal,
+            left: img.style.left,
+            top: img.style.top,
+            width: img.style.width
+          });
+        }
+
+        const empresaVal = document.getElementById('in-empresa').value.trim();
+        if (empresaVal) localStorage.setItem(EMPRESA_PADRAO_KEY, empresaVal);
+
+        const dados = {
+          empresa: empresaVal,
+          cliente: document.getElementById('in-cliente').value.trim(),
+          telefone: document.getElementById('in-tel').value.trim(),
+          endereco: document.getElementById('in-end').value.trim(),
+          os_numero: document.getElementById('in-os').value.trim(),
+          valor_restante: document.getElementById('in-pag').value,
+          data_aprovacao: document.getElementById('in-data-aprov').value,
+          data_limite: document.getElementById('in-data-limite').value,
+          servico_titulo: document.getElementById('in-servico').value.trim(),
+          descricao: document.getElementById('in-desc').value,
+          altura_anotacoes: parseInt(window.getComputedStyle(boxAnotacoes).height, 10) || 80,
+          status: {
+            entrada: document.getElementById('chk-entrada').checked,
+            faturado: document.getElementById('chk-faturado').checked,
+            pago: document.getElementById('chk-pago').checked,
+            maquina: document.getElementById('chk-maq').checked
+          },
+          logistica: {
+            instalacao: document.getElementById('chk-inst').checked,
+            entrega: document.getElementById('chk-ent').checked,
+            retirada: document.getElementById('chk-ret').checked
+          },
+          imagens_salvas: imagensParaSalvar,
+          data_atualizacao: new Date()
+        };
+
+        if (idEdicao) {
+          const osAtual = todasOS.find((x) => x.id === idEdicao);
+          if (garantirAberto && !osAtual?.servico_aberto?.ativo) {
+            dados.servico_aberto = criarEstadoServicoAbertoInicial();
+          }
+          await updateDoc(doc(db, 'ordens_servico', idEdicao), dados);
+          if (!silencioso) showToast('Ordem de Serviço atualizada com sucesso!', 'success');
+        } else {
+          dados.data_criacao = new Date();
+          dados.servico_aberto = criarEstadoServicoAbertoInicial();
+          const docRef = await addDoc(collection(db, 'ordens_servico'), dados);
+          idEdicao = docRef.id;
+          if (!silencioso) showToast('O.S. salva e adicionada em Serviços em Aberto!', 'success');
+        }
+
+        imgsElementos.forEach((img) => { delete img.file; });
+        atualizarBannerModo();
+        return { osId: idEdicao, dados };
+      } catch (e) {
+        console.error('Erro ao salvar O.S.:', e);
+        showToast('Erro ao salvar. Verifique se há muitas imagens pesadas.', 'error');
+        return null;
+      } finally {
+        btn.disabled = false;
+        atualizarBannerModo();
+      }
+    }
+
+    document.getElementById('btn-salvar').addEventListener('click', () => salvarDadosOSNoBanco({ silencioso: false, garantirAberto: true }));
+
+    // Ao gerar o PDF da O.S., salva/atualiza a O.S. e garante o item em SERVIÇOS EM ABERTO
+    window.imprimirFolhaOS = async () => {
+      window.mudarAbaOS('editor');
+      const temConteudo =
+        document.getElementById('in-cliente').value.trim() ||
+        document.getElementById('in-servico').value.trim() ||
+        document.getElementById('in-os').value.trim() ||
+        document.getElementById('in-empresa').value.trim() ||
+        idEdicao;
+
+      if (temConteudo) {
+        await salvarDadosOSNoBanco({ silencioso: true, garantirAberto: true });
+      }
+      setTimeout(() => window.print(), 140);
+    };
+
+    window.novaOSLimpa = () => {
+      idEdicao = null;
+      const emp = localStorage.getItem(EMPRESA_PADRAO_KEY) || document.getElementById('in-empresa').value || 'ARTESYNAL';
+      document.getElementById('in-empresa').value = emp;
+      ['in-cliente', 'in-tel', 'in-end', 'in-os', 'in-data-aprov', 'in-data-limite', 'in-servico', 'in-desc'].forEach((id) => {
+        document.getElementById(id).value = '';
+      });
+      atualizarValorRestante('0');
+      ['chk-entrada', 'chk-faturado', 'chk-pago', 'chk-maq', 'chk-inst', 'chk-ent', 'chk-ret'].forEach((id) => {
+        document.getElementById(id).checked = false;
+      });
+      canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
+      boxAnotacoes.style.height = '80px';
+      sincronizarListaImagensPainel();
+      atualizarBannerModo();
+      window.up();
+      window.mudarAbaOS('editor');
+    };
+
+    window.sugerirProximoNumeroOS = () => {
+      let maior = 0;
+      todasOS.forEach((os) => {
+        const n = parseInt(String(os.os_numero || '').replace(/\D/g, ''), 10);
+        if (Number.isFinite(n) && n > maior) maior = n;
+      });
+      document.getElementById('in-os').value = String(maior + 1);
+      window.up();
+      showToast(`Número #${maior + 1} sugerido.`, 'info');
+    };
+
+    function preencherFormularioOS(data) {
+      document.getElementById('in-empresa').value = data.empresa || localStorage.getItem(EMPRESA_PADRAO_KEY) || 'ARTESYNAL';
+      document.getElementById('in-cliente').value = data.cliente || '';
+      document.getElementById('in-tel').value = formatarTelefone(data.telefone || '');
+      document.getElementById('in-end').value = data.endereco || '';
+      document.getElementById('in-os').value = data.os_numero || '';
+      atualizarValorRestante(data.valor_restante || '0');
+      document.getElementById('in-data-aprov').value = formatarDataCurta(data.data_aprovacao || '');
+      document.getElementById('in-data-limite').value = formatarDataCurta(data.data_limite || '');
+      document.getElementById('in-servico').value = data.servico_titulo || '';
+      document.getElementById('in-desc').value = data.descricao || '';
+
+      document.getElementById('chk-entrada').checked = !!data.status?.entrada;
+      document.getElementById('chk-faturado').checked = !!data.status?.faturado;
+      document.getElementById('chk-pago').checked = !!data.status?.pago;
+      document.getElementById('chk-maq').checked = !!data.status?.maquina;
+
+      document.getElementById('chk-inst').checked = !!data.logistica?.instalacao;
+      document.getElementById('chk-ent').checked = !!data.logistica?.entrega;
+      document.getElementById('chk-ret').checked = !!data.logistica?.retirada;
+
+      if (data.altura_anotacoes) {
+        boxAnotacoes.style.height = `${parseInt(data.altura_anotacoes, 10) || 80}px`;
+      } else {
+        boxAnotacoes.style.height = '80px';
+      }
+
+      canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
+      if (Array.isArray(data.imagens_salvas) && data.imagens_salvas.length > 0) {
+        data.imagens_salvas.forEach((imgData) => {
+          const img = document.createElement('img');
+          img.src = imgData.url;
+          img.classList.add('draggable-img');
+          img.style.left = imgData.left || '40px';
+          img.style.top = imgData.top || '40px';
+          img.style.width = imgData.width || '150px';
+          window.addEventosImagem(img);
+          canvas.appendChild(img);
+        });
+      }
+      sincronizarListaImagensPainel();
+      window.up();
+    }
+
+    async function carregarDadosEdicao(id, { duplicar = false, imprimir = false, registrarAberto = false } = {}) {
+      if (!id) return showToast('O.S. vinculada não encontrada.', 'error');
+      try {
+        const localMatch = todasOS.find((x) => x.id === id);
+        let data = localMatch;
+        if (!data) {
+          const snap = await getDoc(doc(db, 'ordens_servico', id));
+          if (!snap.exists()) return showToast('O.S. não encontrada no banco de dados.', 'error');
+          data = snap.data();
+        }
+
+        idEdicao = duplicar ? null : id;
+        preencherFormularioOS(data);
+        if (duplicar) {
+          document.getElementById('in-os').value = '';
+          window.up();
+          showToast('O.S. duplicada como rascunho. Defina o novo número e salve!', 'info');
+        }
+        atualizarBannerModo();
+        window.mudarAbaOS('editor');
+
+        if (registrarAberto && !duplicar) {
+          await garantirServicoEmAbertoPorOS(id);
+        }
+        if (imprimir) {
+          setTimeout(() => window.print(), 250);
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('Erro ao carregar dados da O.S.', 'error');
+      }
+    }
+
+    window.abrirOS = (id) => carregarDadosEdicao(id);
+    window.duplicarOS = (id) => carregarDadosEdicao(id, { duplicar: true });
+    window.imprimirOSDaLista = (id) => carregarDadosEdicao(id, { imprimir: true, registrarAberto: true });
+    window.imprimirOSDoServico = (osId) => carregarDadosEdicao(osId, { imprimir: true, registrarAberto: false });
+
+    // =========================================================================
+    // CHECK DE PAGO DIRETO NA LISTA DE O.S.
+    // =========================================================================
+    window.alternarPagoOS = async (id, pago) => {
+      try {
+        await updateDoc(doc(db, 'ordens_servico', id), {
+          'status.pago': !!pago,
+          data_atualizacao: new Date()
+        });
+        if (idEdicao === id) {
+          document.getElementById('chk-pago').checked = !!pago;
+          window.up();
+        }
+        showToast(pago ? 'O.S. marcada como PAGA!' : 'O.S. desmarcada de paga.', pago ? 'success' : 'info');
+      } catch (e) {
+        console.error(e);
+        showToast('Erro ao atualizar status de pagamento.', 'error');
+      }
+    };
+
+    window.enviarOSParaAbertos = async (id) => {
+      await garantirServicoEmAbertoPorOS(id);
+    };
+
+    // =========================================================================
+    // LISTA DE O.S. EM TEMPO REAL (BUSCA COMPLETA + AGRUPAMENTO MENSAL)
+    // =========================================================================
+    function extrairDataOS(os) {
+      const raw = os.data_criacao || os.data_atualizacao;
+      if (!raw) return null;
+      if (typeof raw.toDate === 'function') return raw.toDate();
+      if (typeof raw.seconds === 'number') return new Date(raw.seconds * 1000);
+      const d = new Date(raw);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    window.limparBuscaOS = () => {
+      document.getElementById('busca-os').value = '';
+      renderizarListaOS();
+    };
+
+    function renderizarListaOS() {
+      const container = document.getElementById('lista-os-container');
+      const termo = document.getElementById('busca-os').value.trim().toLowerCase();
+      document.getElementById('btn-limpar-busca-os').style.display = termo ? 'inline-flex' : 'none';
+
+      let pend = 0, and = 0, pag = 0;
+      todasOS.forEach((os) => {
+        if (os.status?.pago) pag++;
+        else if (os.status?.entrada || os.status?.faturado) and++;
+        else pend++;
+      });
+      document.getElementById('badge-total-os').textContent = String(todasOS.length);
+      document.getElementById('kpi-os-total').textContent = String(todasOS.length);
+      document.getElementById('kpi-os-pendente').textContent = String(pend);
+      document.getElementById('kpi-os-andamento').textContent = String(and);
+      document.getElementById('kpi-os-pago').textContent = String(pag);
+
+      const filtradas = todasOS.filter((os) => {
+        if (filtroListaAtual === 'pago' && !os.status?.pago) return false;
+        if (filtroListaAtual === 'pendente' && os.status?.pago) return false;
+        if (filtroListaAtual === 'entrada' && !os.status?.entrada) return false;
+        if (filtroListaAtual === 'faturado' && !os.status?.faturado) return false;
+        if (filtroListaAtual === 'instalacao' && !os.logistica?.instalacao) return false;
+        if (filtroListaAtual === 'entrega' && !os.logistica?.entrega) return false;
+        if (filtroListaAtual === 'retirada' && !os.logistica?.retirada) return false;
+
+        if (!termo) return true;
+        return [
+          os.os_numero,
+          `#${os.os_numero || ''}`,
+          os.cliente,
+          os.empresa,
+          os.servico_titulo,
+          os.telefone,
+          os.endereco,
+          os.descricao,
+          os.data_aprovacao,
+          os.data_limite,
+          os.valor_restante,
+          os.status?.pago ? 'pago' : 'pendente'
+        ].some((x) => String(x || '').toLowerCase().includes(termo));
+      });
+
+      document.getElementById('lbl-resultado-busca-os').textContent =
+        termo || filtroListaAtual !== 'todos'
+          ? `Exibindo ${filtradas.length} de ${todasOS.length} O.S.`
+          : `${todasOS.length} O.S. cadastrada(s)`;
+
+      if (!filtradas.length) {
+        container.innerHTML = '<div class="ui-card" style="text-align:center; color:var(--text-muted); padding:36px;">Nenhuma Ordem de Serviço encontrada para a busca ou filtro selecionado.</div>';
+        return;
+      }
+
+      const grupos = {};
+      filtradas.forEach((os) => {
+        const d = extrairDataOS(os);
+        let chave = '0000-00';
+        let titulo = 'Sem Data Registrada';
+        if (d) {
+          const ano = d.getFullYear();
+          const mes = String(d.getMonth() + 1).padStart(2, '0');
+          chave = `${ano}-${mes}`;
+          const nomeMes = d.toLocaleString('pt-BR', { month: 'long' });
+          titulo = `${nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1)} de ${ano}`;
+        }
+        if (!grupos[chave]) grupos[chave] = { titulo, itens: [] };
+        grupos[chave].itens.push(os);
+      });
+
+      const chavesOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
+      if (mesesAbertos.size === 0 && chavesOrdenadas.length > 0) {
+        mesesAbertos.add(chavesOrdenadas[0]);
+      }
+
+      container.innerHTML = chavesOrdenadas.map((chave) => {
+        const grupo = grupos[chave];
+        const aberto = Boolean(termo) || todosExpandidos || mesesAbertos.has(chave);
+
+        const cardsHtml = grupo.itens.map((os) => {
+          const d = extrairDataOS(os);
+          const dataFmt = d ? d.toLocaleDateString('pt-BR') : '--/--/----';
+          const isPago = !!os.status?.pago;
+          let statusCls = 'is-pendente';
+          if (isPago) statusCls = 'is-pago';
+          else if (os.status?.faturado || os.status?.entrada) statusCls = 'is-faturado';
+
+          const badges = [];
+          if (isPago) badges.push('<span class="ui-badge ui-badge-green">✓ Pago</span>');
+          else {
+            if (os.status?.entrada) badges.push('<span class="ui-badge ui-badge-brand">Entrada</span>');
+            if (os.status?.faturado) badges.push('<span class="ui-badge ui-badge-blue">Faturado</span>');
+            if (!os.status?.entrada && !os.status?.faturado) badges.push('<span class="ui-badge ui-badge-red">Pendente</span>');
+          }
+          if (os.logistica?.instalacao) badges.push('<span class="ui-badge">Instalação</span>');
+          if (os.logistica?.entrega) badges.push('<span class="ui-badge">Entrega</span>');
+          if (os.logistica?.retirada) badges.push('<span class="ui-badge">Retirada</span>');
+
+          return `
+            <article class="os-item-card ${statusCls}">
+              <div class="os-card-top">
+                <span class="os-number-tag">#${esc(os.os_numero || 'S/N')}</span>
+                <label class="os-paid-toggle ${isPago ? 'is-checked' : ''}" title="Marcar ou desmarcar pagamento desta O.S.">
+                  <input type="checkbox" ${isPago ? 'checked' : ''} onchange="window.alternarPagoOS('${os.id}', this.checked)" />
+                  <span>${isPago ? 'Pago' : 'Marcar Pago'}</span>
+                </label>
+              </div>
+              <div>
+                <div class="os-card-client">${esc(os.cliente || os.empresa || 'Cliente não informado')}</div>
+                ${os.empresa && os.cliente && os.empresa !== os.cliente ? `<div style="font-size:11.5px; color:var(--text-secondary); font-weight:600;">Empresa: ${esc(os.empresa)}</div>` : ''}
+                <div class="os-card-service">${esc(os.servico_titulo || 'Serviço sem título')}</div>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-muted); font-weight:600;">
+                Criada: ${dataFmt} ${os.data_limite ? '• Entrega: ' + esc(os.data_limite) : ''}
+              </div>
+              <div class="os-card-meta">${badges.join('')}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Restante</span>
+                <span class="os-card-price" style="${isPago ? 'color:var(--green);' : ''}">${isPago ? 'Quitado' : esc(os.valor_restante || 'R$ 0,00')}</span>
+              </div>
+              <div class="os-card-actions">
+                <button type="button" class="ui-btn ui-btn-sm ui-btn-blue" style="flex:1;" onclick="window.abrirOS('${os.id}')">✏️ Editar</button>
+                ${!os.servico_aberto?.ativo ? `<button type="button" class="ui-btn ui-btn-sm" onclick="window.enviarOSParaAbertos('${os.id}')" title="Enviar para Serviços em Aberto">⚡</button>` : ''}
+                <button type="button" class="ui-btn ui-btn-sm" onclick="window.imprimirOSDaLista('${os.id}')" title="Imprimir PDF A4 e enviar para Serviços em Aberto">🖨️</button>
+                <button type="button" class="ui-btn ui-btn-sm" onclick="window.duplicarOS('${os.id}')" title="Duplicar O.S.">📋</button>
+                <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" onclick="window.deletarOS('${os.id}', '${esc(os.os_numero || os.cliente || '')}')" title="Apagar O.S.">🗑️</button>
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        return `
+          <div class="mes-accordion">
+            <div class="mes-accordion-header" onclick="window.toggleMesOS('${chave}')">
+              <div class="mes-title">
+                <span>📅 ${esc(grupo.titulo)}</span>
+                <span class="ui-badge">${grupo.itens.length} O.S.</span>
+              </div>
+              <span style="font-weight:800; color:var(--text-muted);">${aberto ? '▼' : '▶'}</span>
+            </div>
+            <div class="os-cards-grid" style="display:${aberto ? 'grid' : 'none'};">
+              ${cardsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleMesOS = (chave) => {
+      todosExpandidos = false;
+      if (mesesAbertos.has(chave)) mesesAbertos.delete(chave);
+      else mesesAbertos.add(chave);
+      renderizarListaOS();
+    };
+
+    window.alternarTodosMeses = () => {
+      todosExpandidos = !todosExpandidos;
+      document.getElementById('btn-toggle-all-months').textContent = todosExpandidos ? 'Recolher Tudo' : 'Expandir Tudo';
+      if (!todosExpandidos) mesesAbertos.clear();
+      renderizarListaOS();
+    };
+
+    window.deletarOS = async (id, label) => {
+      if (!confirm(`Deseja APAGAR permanentemente a O.S. ${label ? '"' + label + '"' : ''}?`)) return;
+      try {
+        await deleteDoc(doc(db, 'ordens_servico', id));
+        if (idEdicao === id) window.novaOSLimpa();
+        showToast('Ordem de Serviço excluída.', 'info');
+      } catch (e) {
+        showToast('Erro ao apagar O.S.', 'error');
+      }
+    };
+
+    document.querySelectorAll('#os-filter-pills .ui-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#os-filter-pills .ui-pill').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroListaAtual = btn.dataset.filter;
+        renderizarListaOS();
+      });
+    });
+
+    document.getElementById('busca-os').addEventListener('input', renderizarListaOS);
+
+    // =========================================================================
+    // PAINEL SERVIÇOS EM ABERTO + CONSUMO DE MÍDIAS + MUBI + ARQUIVADOS
+    // (Armazenado diretamente em ordens_servico.servico_aberto — 100% compatível)
+    // =========================================================================
+    function obterListaServicos() {
+      return todasOS
+        .filter((os) => os.servico_aberto?.ativo === true)
+        .map((os) => {
+          const sa = os.servico_aberto || {};
+          return {
+            id: os.id,
+            os_id: os.id,
+            empresa: os.empresa || '',
+            cliente: os.cliente || '',
+            os_numero: os.os_numero || '',
+            servico_titulo: os.servico_titulo || '',
+            data_aprovacao: os.data_aprovacao || '',
+            data_limite: os.data_limite || '',
+            valor_restante: os.valor_restante || 'R$ 0,00',
+            pago: !!os.status?.pago,
+            impressao_status: sa.impressao_status || 'nao_iniciado',
+            impresso: !!sa.impresso,
+            midias_consumidas: Array.isArray(sa.midias_consumidas) ? sa.midias_consumidas : [],
+            mubi_pendente: !!sa.mubi_pendente,
+            mubi_concluido: !!sa.mubi_concluido,
+            arquivado: !!sa.arquivado,
+            data_criacao: sa.criado_em || os.data_criacao,
+            data_atualizacao: os.data_atualizacao
+          };
+        })
+        .sort((a, b) => extrairDataServico(b) - extrairDataServico(a));
+    }
+
+    function extrairDataServico(s) {
+      const raw = s.data_criacao || s.data_atualizacao;
+      if (!raw) return 0;
+      if (typeof raw.toMillis === 'function') return raw.toMillis();
+      if (typeof raw.seconds === 'number') return raw.seconds * 1000;
+      return new Date(raw).getTime() || 0;
+    }
+
+    function statusImpressaoDe(s) {
+      if (s.impresso || s.impressao_status === 'impresso') return 'impresso';
+      if (s.impressao_status === 'pendente' || (Array.isArray(s.midias_consumidas) && s.midias_consumidas.length > 0)) return 'pendente';
+      return 'nao_iniciado';
+    }
+
+    function isMubiPendente(s) {
+      const jaImprimiuAlgo = statusImpressaoDe(s) !== 'nao_iniciado';
+      return (Boolean(s.mubi_pendente) || jaImprimiuAlgo) && !s.mubi_concluido;
+    }
+
+    function renderizarServicosAbertos() {
+      const container = document.getElementById('servicos-abertos-container');
+      const termo = (document.getElementById('busca-servicos-abertos')?.value || '').trim().toLowerCase();
+
+      const todosServicos = obterListaServicos();
+      const ativos = todosServicos.filter((s) => !s.arquivado);
+      const arquivados = todosServicos.filter((s) => !!s.arquivado);
+
+      const qtdImpPend = ativos.filter((s) => statusImpressaoDe(s) !== 'impresso').length;
+      const qtdImpressos = ativos.filter((s) => statusImpressaoDe(s) === 'impresso').length;
+      const qtdMubi = ativos.filter((s) => isMubiPendente(s)).length;
+
+      document.getElementById('badge-total-abertos').textContent = String(ativos.length);
+      document.getElementById('badge-abertos-arq').textContent = String(arquivados.length);
+      document.getElementById('kpi-abertos-total').textContent = String(ativos.length);
+      document.getElementById('kpi-abertos-imp-pend').textContent = String(qtdImpPend);
+      document.getElementById('kpi-abertos-mubi').textContent = String(qtdMubi);
+      document.getElementById('kpi-abertos-impressos').textContent = String(qtdImpressos);
+
+      const filtrados = ativos.filter((s) => {
+        const stImp = statusImpressaoDe(s);
+        const mubiPend = isMubiPendente(s);
+        if (filtroAbertosAtual === 'nao_impresso' && stImp === 'impresso') return false;
+        if (filtroAbertosAtual === 'imp_pendente' && stImp !== 'pendente') return false;
+        if (filtroAbertosAtual === 'impresso' && stImp !== 'impresso') return false;
+        if (filtroAbertosAtual === 'mubi_pendente' && !mubiPend) return false;
+
+        if (!termo) return true;
+        return [
+          s.empresa,
+          s.cliente,
+          s.os_numero,
+          `#${s.os_numero || ''}`,
+          s.servico_titulo,
+          s.data_aprovacao,
+          s.data_limite,
+          s.valor_restante
+        ].some((x) => String(x || '').toLowerCase().includes(termo));
+      });
+
+      if (!filtrados.length) {
+        container.innerHTML = '<div class="ui-card" style="text-align:center; color:var(--text-muted); padding:36px;">Nenhum serviço em aberto encontrado neste filtro. Ao salvar ou gerar o PDF de uma nova O.S., ela aparecerá aqui automaticamente.</div>';
+        return;
+      }
+
+      container.innerHTML = filtrados.map((s) => {
+        const stImp = statusImpressaoDe(s);
+        const mubiPend = isMubiPendente(s);
+        const mubiOk = !!s.mubi_concluido;
+        const midias = Array.isArray(s.midias_consumidas) ? s.midias_consumidas : [];
+        const temAbertoFin = !s.pago && temSaldoPositivo(s.valor_restante);
+
+        const nomeEmpresaPrincipal = s.cliente
+          ? (s.empresa && s.empresa.toUpperCase() !== 'ARTESYNAL' ? `${s.empresa} • ${s.cliente}` : s.cliente)
+          : (s.empresa || 'Empresa não informada');
+
+        const resumoMidias = midias.length
+          ? midias.map((m) => `${esc(m.nome)}: ${m.qtd}${esc(m.unidade || '')}`).join(' • ')
+          : 'Nenhuma mídia lançada';
+
+        const labelBtnImp =
+          stImp === 'impresso' ? '☑️ Impresso (Concluído)' :
+          stImp === 'pendente' ? '⏳ Impressão Pendente (Parcial)' :
+          '⬜ Registrar Impressão / Mídias';
+
+        const clsCard = stImp === 'impresso' ? 'st-impresso' : stImp === 'pendente' ? 'st-pendente' : '';
+        const clsBtnImp = stImp === 'impresso' ? 'is-impresso' : stImp === 'pendente' ? 'is-pendente' : '';
+
+        return `
+          <article class="aberto-row-card ${clsCard}">
+            <div class="aberto-main-info">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="os-number-tag">OS #${esc(s.os_numero || 'S/N')}</span>
+                ${s.empresa ? `<span class="ui-badge">${esc(s.empresa)}</span>` : ''}
+                ${temAbertoFin
+                  ? `<span class="ui-badge ui-badge-red">💰 Em aberto: ${esc(s.valor_restante)}</span>`
+                  : `<span class="ui-badge ui-badge-green">✓ Sem saldo em aberto</span>`
+                }
+              </div>
+              <div class="aberto-empresa">${esc(nomeEmpresaPrincipal)}</div>
+              <div class="aberto-servico">${esc(s.servico_titulo || 'Serviço sem título')}</div>
+              <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                🖨️ Mídias: ${resumoMidias}
+              </div>
+            </div>
+
+            <div class="aberto-dates-box">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                <span style="color:var(--text-muted); font-weight:700;">Aprovação:</span>
+                <strong>${esc(s.data_aprovacao || '--/--/--')}</strong>
+              </div>
+              <div class="prazo-inline-wrap">
+                <span style="font-size:12px; color:var(--text-muted); font-weight:700;">Prazo Entrega:</span>
+                <input
+                  type="text"
+                  class="prazo-inline-input"
+                  value="${esc(s.data_limite || '')}"
+                  placeholder="DD/MM/AA"
+                  maxlength="8"
+                  inputmode="numeric"
+                  data-prazo-srv="${s.id}"
+                  title="Edite o prazo de entrega (salva automaticamente)"
+                />
+              </div>
+            </div>
+
+            <div class="aberto-checks-col">
+              <button type="button" class="srv-check-btn ${clsBtnImp}" onclick="window.abrirPainelMidiasServico('${s.id}')">
+                <span>${labelBtnImp}</span>
+              </button>
+
+              <label class="mubi-check-box ${mubiPend ? 'is-mubi-pendente' : mubiOk ? 'is-mubi-ok' : ''}">
+                <span>
+                  ${mubiPend ? '⚠️ MUBI PENDENTE' : mubiOk ? '✅ MUBI OK (Lançado)' : '⬜ MUBI (aguardando impressão)'}
+                </span>
+                <input
+                  type="checkbox"
+                  ${mubiOk ? 'checked' : ''}
+                  onchange="window.alternarMubiServico('${s.id}', this.checked)"
+                />
+              </label>
+            </div>
+
+            <div class="aberto-actions-col">
+              <button type="button" class="ui-btn ui-btn-sm ui-btn-blue" onclick="window.imprimirOSDoServico('${s.os_id}')">
+                🖨️ Abrir O.S. Impressão
+              </button>
+              <button type="button" class="ui-btn ui-btn-sm" onclick="window.abrirOS('${s.os_id}')">
+                ✏️ Ver / Editar O.S.
+              </button>
+              <button type="button" class="ui-btn ui-btn-sm ui-btn-green" onclick="window.finalizarServicoAberto('${s.id}')">
+                🏁 Finalizar
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      container.querySelectorAll('[data-prazo-srv]').forEach((inp) => {
+        inp.addEventListener('input', () => {
+          inp.value = formatarDataCurta(inp.value);
+        });
+        inp.addEventListener('change', async () => {
+          const osId = inp.dataset.prazoSrv;
+          const novoPrazo = formatarDataCurta(inp.value);
+          inp.value = novoPrazo;
+          try {
+            await updateDoc(doc(db, 'ordens_servico', osId), {
+              data_limite: novoPrazo,
+              data_atualizacao: new Date()
+            });
+            showToast('Prazo de entrega atualizado!', 'success');
+          } catch {
+            showToast('Erro ao atualizar prazo de entrega.', 'error');
+          }
+        });
+      });
+    }
+
+    function renderizarServicosArquivados() {
+      const listEl = document.getElementById('lista-servicos-arquivados');
+      if (!listEl) return;
+      const termo = (document.getElementById('busca-servicos-arquivados')?.value || '').trim().toLowerCase();
+      const arquivados = obterListaServicos()
+        .filter((s) => !!s.arquivado)
+        .filter((s) => {
+          if (!termo) return true;
+          return [
+            s.empresa,
+            s.cliente,
+            s.os_numero,
+            `#${s.os_numero || ''}`,
+            s.servico_titulo,
+            s.data_aprovacao,
+            s.data_limite
+          ].some((x) => String(x || '').toLowerCase().includes(termo));
+        });
+
+      if (!arquivados.length) {
+        listEl.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:28px;">Nenhum serviço finalizado encontrado para esta busca.</div>';
+        return;
+      }
+
+      listEl.innerHTML = arquivados.map((s) => {
+        const midias = Array.isArray(s.midias_consumidas) ? s.midias_consumidas : [];
+        const resumoMidias = midias.length
+          ? midias.map((m) => `${esc(m.nome)} (${m.qtd}${esc(m.unidade || '')})`).join(', ')
+          : 'Sem consumo registrado';
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:13px 15px; background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-md);">
+            <div style="min-width:0; flex:1;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                <span class="os-number-tag">OS #${esc(s.os_numero || 'S/N')}</span>
+                <span style="font-weight:800; font-size:14.5px;">${esc(s.cliente || s.empresa || 'Sem nome')}</span>
+                ${s.empresa && s.cliente ? `<span class="ui-badge">${esc(s.empresa)}</span>` : ''}
+                ${s.mubi_concluido ? '<span class="ui-badge ui-badge-green">MUBI OK</span>' : ''}
+              </div>
+              <div style="font-size:13px; color:var(--text-secondary); font-weight:600;">${esc(s.servico_titulo || 'Serviço')}</div>
+              <div style="font-size:11.5px; color:var(--text-muted); margin-top:3px;">
+                Aprov: ${esc(s.data_aprovacao || '--')} • Prazo: ${esc(s.data_limite || '--')} • Mídias: ${resumoMidias}
+              </div>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="ui-btn ui-btn-sm" onclick="window.imprimirOSDoServico('${s.os_id}')">🖨️ O.S.</button>
+              <button type="button" class="ui-btn ui-btn-sm ui-btn-blue" onclick="window.reativarServicoArquivado('${s.id}')">↩️ Reativar</button>
+              <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" onclick="window.excluirServicoArquivado('${s.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Mini Painel de Consumo de Mídias de Impressão
+    function renderListaMidiasNoModal() {
+      const wrap = document.getElementById('lista-midias-estoque-modal');
+      const termo = (document.getElementById('busca-midia-servico')?.value || '').trim().toLowerCase();
+
+      const lista = midiasImpressaoEstoque.filter((m) => {
+        if (!termo) return true;
+        return [m.nome, m.categoria, m.tamanho].some((x) => String(x || '').toLowerCase().includes(termo));
+      });
+
+      if (!lista.length) {
+        wrap.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:22px; border:1px dashed var(--border-subtle); border-radius:10px;">Nenhuma mídia ativa encontrada no estoque de impressão.</div>';
+        return;
+      }
+
+      wrap.innerHTML = lista.map((m) => {
+        const sel = selecaoMidiasModal.has(m.id);
+        const val = selecaoMidiasModal.get(m.id) ?? '';
+        const saldo = Number(m.qtd || 0);
+        return `
+          <div class="midia-pick-row ${sel ? 'selected' : ''}">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; min-width:0;">
+              <input type="checkbox" data-midia-chk="${m.id}" ${sel ? 'checked' : ''} style="accent-color:var(--brand); width:17px; height:17px; flex-shrink:0;" />
+              <div style="min-width:0;">
+                <div style="font-weight:800; font-size:13.5px; color:var(--text-primary);">${esc(m.nome || m.categoria)}</div>
+                <div style="font-size:11.5px; color:var(--text-muted);">
+                  ${esc(m.categoria || 'Mídia')} • Disponível: <strong style="color:var(--brand);">${saldo} ${esc(m.unidade || 'un')}</strong>
+                </div>
+              </div>
+            </label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input
+                type="number"
+                class="ui-input"
+                style="padding:7px 10px; font-weight:700;"
+                placeholder="Gastou (${esc(m.unidade || 'un')})"
+                min="0.1"
+                max="${saldo}"
+                step="0.1"
+                value="${esc(val)}"
+                data-midia-qtd="${m.id}"
+                ${sel ? '' : 'disabled'}
+              />
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      wrap.querySelectorAll('[data-midia-chk]').forEach((chk) => {
+        chk.addEventListener('change', () => {
+          const id = chk.dataset.midiaChk;
+          if (chk.checked) {
+            if (!selecaoMidiasModal.has(id)) selecaoMidiasModal.set(id, '');
+          } else {
+            selecaoMidiasModal.delete(id);
+          }
+          renderListaMidiasNoModal();
+          if (chk.checked) {
+            wrap.querySelector(`[data-midia-qtd="${id}"]`)?.focus();
+          }
+        });
+      });
+
+      wrap.querySelectorAll('[data-midia-qtd]').forEach((inp) => {
+        inp.addEventListener('input', () => {
+          selecaoMidiasModal.set(inp.dataset.midiaQtd, inp.value);
+        });
+      });
+    }
+
+    window.abrirPainelMidiasServico = (srvId) => {
+      const srv = obterListaServicos().find((x) => x.id === srvId);
+      if (!srv) return;
+      servicoAtivoMidiaId = srvId;
+      selecaoMidiasModal = new Map();
+      document.getElementById('busca-midia-servico').value = '';
+      document.getElementById('modal-midias-sub').textContent =
+        `OS #${srv.os_numero || 'S/N'} • ${srv.cliente || srv.empresa || 'Sem cliente'} — ${srv.servico_titulo || 'Serviço'}`;
+
+      const jaUsadas = Array.isArray(srv.midias_consumidas) ? srv.midias_consumidas : [];
+      const boxUsadas = document.getElementById('box-midias-ja-usadas');
+      if (jaUsadas.length) {
+        boxUsadas.style.display = 'block';
+        document.getElementById('lista-midias-ja-usadas').innerHTML = jaUsadas.map((m) =>
+          `<div>• <strong>${esc(m.nome)}</strong> — ${m.qtd} ${esc(m.unidade || '')} (${esc(m.data || '')})</div>`
+        ).join('');
+      } else {
+        boxUsadas.style.display = 'none';
+      }
+
+      document.getElementById('chk-marcar-impresso-total').checked = statusImpressaoDe(srv) !== 'pendente';
+      renderListaMidiasNoModal();
+      document.getElementById('modal-midias-os').classList.add('open');
+    };
+
+    window.fecharPainelMidiasServico = () => {
+      servicoAtivoMidiaId = null;
+      selecaoMidiasModal.clear();
+      document.getElementById('modal-midias-os').classList.remove('open');
+    };
+
+    async function verificarAlertaMidiaImpressao(midia, qtdAtual) {
+      const margem = Number(midia?.margem_alerta || 0);
+      if (margem <= 0 || qtdAtual > margem) return;
+      const qExiste = query(
+        collection(db, 'tarefas'),
+        where('destinatarioEmail', '==', warteEmail),
+        where('status', '==', 'pendente'),
+        where('origem', '==', 'estoque-impressao'),
+        where('itemId', '==', midia.id)
+      );
+      const existe = await getDocs(qExiste);
+      if (!existe.empty) return;
+
+      await addDoc(collection(db, 'tarefas'), {
+        setor: 'impressao',
+        tipo: 'Compras',
+        resumo: `Reposição de mídia: ${midia.nome || midia.categoria}`,
+        descricao: `A mídia atingiu a margem de alerta após baixa pela O.S.\nItem: ${midia.nome || midia.categoria}\nQtd atual: ${qtdAtual} ${midia.unidade}\nAlerta: ${margem}`,
+        extras: { comprarMidia: true },
+        status: 'pendente',
+        destinatarioEmail: warteEmail,
+        destinatarioNome: 'warte',
+        solicitanteEmail: userMe.email,
+        solicitanteNome: userMe.nome || 'Sistema',
+        origem: 'estoque-impressao',
+        itemId: midia.id,
+        listaId: '',
+        cardAlvo: {
+          id: midia.id,
+          setor: 'impressao',
+          label: `${midia.nome || midia.categoria} (${midia.id})`,
+          link: `${ROTAS.materiais}?setor=impressao#item-${midia.id}`
+        },
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+    }
+
+    document.getElementById('busca-midia-servico').addEventListener('input', renderListaMidiasNoModal);
+
+    document.getElementById('btn-confirmar-midias-os').addEventListener('click', async () => {
+      const srv = obterListaServicos().find((x) => x.id === servicoAtivoMidiaId);
+      if (!srv) return;
+
+      const marcarImpressoTotal = document.getElementById('chk-marcar-impresso-total').checked;
+      const itensSelecionados = [];
+
+      for (const [midiaId, qtdRaw] of selecaoMidiasModal.entries()) {
+        const midia = midiasImpressaoEstoque.find((x) => x.id === midiaId);
+        if (!midia) continue;
+        const qtdGasta = parseFloat(qtdRaw);
+        if (!Number.isFinite(qtdGasta) || qtdGasta <= 0) {
+          return showToast(`Informe quanto gastou da mídia "${midia.nome || midia.categoria}".`, 'error');
+        }
+        if (qtdGasta > Number(midia.qtd || 0)) {
+          return showToast(`O consumo de "${midia.nome}" (${qtdGasta}) excede o estoque disponível (${midia.qtd} ${midia.unidade || ''})!`, 'error');
+        }
+        itensSelecionados.push({ midia, qtdGasta });
+      }
+
+      const jaTinhaMidias = Array.isArray(srv.midias_consumidas) && srv.midias_consumidas.length > 0;
+      if (!itensSelecionados.length && !jaTinhaMidias && !marcarImpressoTotal) {
+        return showToast('Selecione ao menos uma mídia utilizada ou marque o status desejado.', 'error');
+      }
+
+      const btn = document.getElementById('btn-confirmar-midias-os');
+      btn.disabled = true;
+      btn.textContent = 'Registrando no estoque...';
+
+      try {
+        const dataStr = new Date().toLocaleDateString('pt-BR');
+        const novosConsumos = [];
+
+        for (const { midia, qtdGasta } of itensSelecionados) {
+          const novaQtd = Number((Number(midia.qtd || 0) - qtdGasta).toFixed(2));
+          const refLabel = `O.S. #${srv.os_numero || 'S/N'} - ${srv.cliente || srv.empresa || 'Serviço'}`;
+          const log = `\n[${dataStr}] 🔻 BAIXA: -${qtdGasta}${midia.unidade || ''} | Ref/O.S: ${refLabel} (${userMe.nome || 'Usuário'})`;
+
+          await updateDoc(doc(db, 'estoque', midia.id), {
+            qtd: novaQtd,
+            anotacoes: (midia.anotacoes || '') + log
+          });
+          await verificarAlertaMidiaImpressao(midia, novaQtd);
+
+          novosConsumos.push({
+            midia_id: midia.id,
+            nome: midia.nome || midia.categoria || 'Mídia',
+            categoria: midia.categoria || '',
+            qtd: qtdGasta,
+            unidade: midia.unidade || 'un',
+            data: dataStr,
+            usuario: userMe.nome || 'Usuário'
+          });
+        }
+
+        const historicoMidias = [...(Array.isArray(srv.midias_consumidas) ? srv.midias_consumidas : []), ...novosConsumos];
+        const algoImpresso = historicoMidias.length > 0 || marcarImpressoTotal;
+        const novoStatusImp = marcarImpressoTotal ? 'impresso' : 'pendente';
+
+        const updatePayload = {
+          'servico_aberto.midias_consumidas': historicoMidias,
+          'servico_aberto.impresso': marcarImpressoTotal,
+          'servico_aberto.impressao_status': novoStatusImp,
+          data_atualizacao: new Date()
+        };
+
+        // Se algo foi impresso e o MUBI ainda não foi marcado como concluído, ativa MUBI PENDENTE automaticamente
+        if (algoImpresso && !srv.mubi_concluido) {
+          updatePayload['servico_aberto.mubi_pendente'] = true;
+        }
+
+        await updateDoc(doc(db, 'ordens_servico', srv.id), updatePayload);
+        window.fecharPainelMidiasServico();
+        showToast(
+          marcarImpressoTotal
+            ? 'Baixa registrada no estoque e serviço marcado como IMPRESSO!'
+            : 'Consumo parcial registrado! Serviço marcado como Impressão Pendente.',
+          'success'
+        );
+      } catch (e) {
+        console.error(e);
+        showToast('Erro ao registrar consumo de mídia no estoque.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Confirmar Baixa e Status';
+      }
+    });
+
+    window.alternarMubiServico = async (srvId, concluido) => {
+      const srv = obterListaServicos().find((x) => x.id === srvId);
+      if (!srv) return;
+      try {
+        await updateDoc(doc(db, 'ordens_servico', srvId), {
+          'servico_aberto.mubi_concluido': !!concluido,
+          'servico_aberto.mubi_pendente': !concluido,
+          data_atualizacao: new Date()
+        });
+        showToast(concluido ? 'MUBI marcado como concluído!' : 'Marcado como MUBI PENDENTE.', concluido ? 'success' : 'info');
+      } catch {
+        showToast('Erro ao atualizar status MUBI.', 'error');
+      }
+    };
+
+    window.finalizarServicoAberto = async (srvId) => {
+      const srv = obterListaServicos().find((x) => x.id === srvId);
+      if (!srv) return;
+      if (!confirm(`Finalizar e arquivar o serviço da OS #${srv.os_numero || 'S/N'} (${srv.cliente || srv.empresa || ''})?`)) return;
+      await updateDoc(doc(db, 'ordens_servico', srvId), {
+        'servico_aberto.arquivado': true,
+        'servico_aberto.finalizado_em': new Date(),
+        data_atualizacao: new Date()
+      });
+      showToast('Serviço finalizado e enviado aos Arquivados!', 'success');
+    };
+
+    window.reativarServicoArquivado = async (srvId) => {
+      await updateDoc(doc(db, 'ordens_servico', srvId), {
+        'servico_aberto.arquivado': false,
+        'servico_aberto.finalizado_em': null,
+        data_atualizacao: new Date()
+      });
+      showToast('Serviço reativado em Serviços em Aberto!', 'success');
+    };
+
+    window.excluirServicoArquivado = async (srvId) => {
+      if (!confirm('Remover este registro dos serviços arquivados? (A O.S. original continuará salva na Lista de O.S.)')) return;
+      await updateDoc(doc(db, 'ordens_servico', srvId), {
+        'servico_aberto.ativo': false,
+        data_atualizacao: new Date()
+      });
+      showToast('Registro removido dos arquivados.', 'info');
+    };
+
+    document.getElementById('btn-abrir-arquivados-servicos').addEventListener('click', () => {
+      renderizarServicosArquivados();
+      document.getElementById('modal-servicos-arquivados').classList.add('open');
+    });
+
+    document.getElementById('busca-servicos-abertos').addEventListener('input', renderizarServicosAbertos);
+    document.getElementById('busca-servicos-arquivados').addEventListener('input', renderizarServicosArquivados);
+
+    document.querySelectorAll('#abertos-filter-pills .ui-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#abertos-filter-pills .ui-pill').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroAbertosAtual = btn.dataset.abertosFilter;
+        renderizarServicosAbertos();
+      });
+    });
+
+    // =========================================================================
+    // ASSINATURAS EM TEMPO REAL (O.S. + SERVIÇOS EM ABERTO + MÍDIAS IMPRESSÃO)
+    // =========================================================================
+    const qOS = query(collection(db, 'ordens_servico'), orderBy('data_criacao', 'desc'));
+    onSnapshot(qOS, (snap) => {
+      todasOS = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderizarListaOS();
+      renderizarServicosAbertos();
+      renderizarServicosArquivados();
+    }, (err) => {
+      console.warn('Fallback sem orderBy em ordens_servico:', err);
+      onSnapshot(collection(db, 'ordens_servico'), (snap) => {
+        todasOS = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        todasOS.sort((a, b) => (extrairDataOS(b)?.getTime() || 0) - (extrairDataOS(a)?.getTime() || 0));
+        renderizarListaOS();
+        renderizarServicosAbertos();
+        renderizarServicosArquivados();
+      });
+    });
+
+    onSnapshot(query(collection(db, 'estoque'), where('setor', '==', 'impressao')), (snap) => {
+      midiasImpressaoEstoque = [];
+      snap.forEach((d) => {
+        if (d.id !== 'TINTAS_SISTEMA') midiasImpressaoEstoque.push({ id: d.id, ...d.data() });
+      });
+      midiasImpressaoEstoque.sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'));
+      if (document.getElementById('modal-midias-os').classList.contains('open')) {
+        renderListaMidiasNoModal();
+      }
+    });
+
+    // Inicialização por parâmetros da URL (?id=... ou ?view=lista|abertos|editor)
+    const params = new URLSearchParams(window.location.search);
+    const paramId = params.get('id');
+    const paramView = params.get('view');
+
+    window.up();
+    window.autoAjustarPrevia();
+
+    if (paramId) {
+      await carregarDadosEdicao(paramId);
+    } else if (paramView === 'lista' || paramView === 'abertos') {
+      window.mudarAbaOS(paramView);
+    }
+  </script>
+</body>
+</html>
