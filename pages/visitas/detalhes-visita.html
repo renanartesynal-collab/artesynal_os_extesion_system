@@ -311,9 +311,9 @@
         <button type="button" class="ui-btn" onclick="window.desfazerUltimo()">↩ Desfazer</button>
       </div>
       <div style="display:flex; align-items:center; gap:8px; color:#e2e8f0;">
-        <button type="button" class="ui-btn ui-btn-sm" onclick="window.zoomEditor(-0.15)">−</button>
-        <span id="zoom-label" style="min-width:52px; text-align:center; font-weight:700;">100%</span>
-        <button type="button" class="ui-btn ui-btn-sm" onclick="window.zoomEditor(0.15)">+</button>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.zoomEditor(-0.2)">−</button>
+        <button type="button" class="ui-btn ui-btn-sm" id="zoom-label" onclick="window.resetZoomEditor()" title="Resetar zoom e centralizar" style="min-width:56px; justify-content:center; font-weight:700;">100%</button>
+        <button type="button" class="ui-btn ui-btn-sm" onclick="window.zoomEditor(0.2)">+</button>
       </div>
       <button type="button" class="ui-btn ui-btn-green" onclick="window.salvarEditor()">💾 Salvar Medidas na Foto</button>
     </div>
@@ -461,7 +461,9 @@
     let measureColor = '#10b981';
     let lineColor = '#ef4444';
     let zoom = 1;
+    let panX = 0, panY = 0;
     let isDrawing = false, isDragging = false, didDrag = false;
+    let isPanning = false, panStartClientX = 0, panStartClientY = 0, panOriginX = 0, panOriginY = 0;
     let startX = 0, startY = 0, currentX = 0, currentY = 0;
     let dragTarget = null, currentEditorImg = null;
     const colors = ['#10b981', '#ef4444', '#3b82f6', '#eab308', '#ffffff', '#000000'];
@@ -826,6 +828,8 @@
       $('draw-modal').style.display = 'flex';
       elementos = JSON.parse(JSON.stringify(atual.elementos || []));
       zoom = 1;
+      panX = 0;
+      panY = 0;
       applyZoom();
       window.setTool('measure');
       const img = new Image();
@@ -845,6 +849,7 @@
       document.querySelectorAll('.draw-top .draw-tool-btn').forEach((b) => b.classList.remove('active'));
       const btn = $(`btn-tool-${t}`);
       if (btn) btn.classList.add('active');
+      canvas.style.cursor = t === 'move' ? 'grab' : 'crosshair';
     };
 
     window.toggleColorPicker = (type) => {
@@ -862,17 +867,52 @@
     };
 
     window.desfazerUltimo = () => { elementos.pop(); redrawCanvas(); };
-    window.zoomEditor = (delta) => { zoom = Math.min(3, Math.max(0.35, zoom + delta)); applyZoom(); };
-    function applyZoom() { canvas.style.transform = `scale(${zoom})`; $('zoom-label').textContent = `${Math.round(zoom * 100)}%`; }
+    window.resetZoomEditor = () => {
+      zoom = 1;
+      panX = 0;
+      panY = 0;
+      applyZoom();
+    };
+    window.zoomEditor = (delta) => {
+      zoom = Math.min(4, Math.max(0.5, Number((zoom + delta).toFixed(2))));
+      if (zoom <= 1) {
+        panX = 0;
+        panY = 0;
+      }
+      applyZoom();
+    };
+    function clampPan() {
+      const wrap = $('canvas-wrapper');
+      if (!wrap) return;
+      const maxX = Math.max(wrap.clientWidth * 0.85, (canvas.offsetWidth * zoom) * 0.65);
+      const maxY = Math.max(wrap.clientHeight * 0.85, (canvas.offsetHeight * zoom) * 0.65);
+      panX = Math.min(maxX, Math.max(-maxX, panX));
+      panY = Math.min(maxY, Math.max(-maxY, panY));
+    }
+    function applyZoom() {
+      clampPan();
+      canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+      $('zoom-label').textContent = `${Math.round(zoom * 100)}%`;
+    }
+
+    function getClientPoint(e) {
+      if (e.touches?.length >= 2) {
+        return {
+          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+        };
+      }
+      if (e.touches?.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      if (e.changedTouches?.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
 
     function getPos(e) {
       const rect = canvas.getBoundingClientRect();
-      let cx = e.clientX, cy = e.clientY;
-      if (e.touches?.length) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
-      else if (e.changedTouches?.length) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+      const pt = getClientPoint(e);
       return {
-        x: (cx - rect.left) * (canvas.width / rect.width),
-        y: (cy - rect.top) * (canvas.height / rect.height)
+        x: (pt.x - rect.left) * (canvas.width / rect.width),
+        y: (pt.y - rect.top) * (canvas.height / rect.height)
       };
     }
 
@@ -950,7 +990,25 @@
       }
     }
 
+    const startPan = (e) => {
+      const pt = getClientPoint(e);
+      isPanning = true;
+      isDrawing = false;
+      isDragging = false;
+      panStartClientX = pt.x;
+      panStartClientY = pt.y;
+      panOriginX = panX;
+      panOriginY = panY;
+      canvas.style.cursor = 'grabbing';
+    };
+
     const handleDown = (e) => {
+      // Arrastar com 2 dedos no touch sempre move a imagem (pan), independente da ferramenta ativa
+      if (e.touches?.length >= 2) {
+        startPan(e);
+        return;
+      }
+
       const pos = getPos(e);
       if (['measure', 'line'].includes(editorTool)) {
         isDrawing = true;
@@ -961,7 +1019,16 @@
         if (text) { elementos.push({ type: 'text', x: pos.x, y: pos.y, text, color: lineColor }); redrawCanvas(); }
       } else if (editorTool === 'move') {
         dragTarget = findHit(pos);
-        if (dragTarget) { isDragging = true; didDrag = false; dragTarget.lastX = pos.x; dragTarget.lastY = pos.y; }
+        if (dragTarget) {
+          isDragging = true;
+          didDrag = false;
+          dragTarget.lastX = pos.x;
+          dragTarget.lastY = pos.y;
+          canvas.style.cursor = 'grabbing';
+        } else {
+          // Quando não clicou em uma medida/texto, a mãozinha arrasta a imagem livremente!
+          startPan(e);
+        }
       } else if (editorTool === 'del') {
         const hit = findHit(pos);
         if (hit) { elementos.splice(hit.i, 1); redrawCanvas(); }
@@ -969,6 +1036,14 @@
     };
 
     const handleMove = (e) => {
+      if (isPanning) {
+        const pt = getClientPoint(e);
+        panX = panOriginX + (pt.x - panStartClientX);
+        panY = panOriginY + (pt.y - panStartClientY);
+        applyZoom();
+        return;
+      }
+
       const pos = getPos(e);
       if (isDrawing) {
         currentX = pos.x; currentY = pos.y; redrawCanvas();
@@ -990,6 +1065,11 @@
     };
 
     const handleUp = () => {
+      if (isPanning) {
+        isPanning = false;
+        canvas.style.cursor = editorTool === 'move' ? 'grab' : 'crosshair';
+        return;
+      }
       if (isDrawing) {
         isDrawing = false;
         if (dist(startX, startY, currentX, currentY) > 15) {
@@ -1010,17 +1090,35 @@
         }
         isDragging = false;
         dragTarget = null;
+        canvas.style.cursor = editorTool === 'move' ? 'grab' : 'crosshair';
         redrawCanvas();
       }
     };
 
-    canvas.addEventListener('mousedown', handleDown);
-    canvas.addEventListener('mousemove', handleMove);
-    canvas.addEventListener('mouseup', handleUp);
-    canvas.addEventListener('mouseleave', handleUp);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleDown(e); }, { passive: false });
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, { passive: false });
-    canvas.addEventListener('touchend', (e) => { e.preventDefault(); handleUp(e); }, { passive: false });
+    const canvasWrapper = $('canvas-wrapper');
+    canvasWrapper.addEventListener('mousedown', (e) => {
+      if (e.target === canvas) handleDown(e);
+      else if (editorTool === 'move') startPan(e);
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (isPanning || isDrawing || isDragging) handleMove(e);
+    });
+    window.addEventListener('mouseup', () => {
+      if (isPanning || isDrawing || isDragging) handleUp();
+    });
+    canvasWrapper.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (e.target === canvas || e.touches?.length >= 2) handleDown(e);
+      else if (editorTool === 'move') startPan(e);
+    }, { passive: false });
+    canvasWrapper.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      handleMove(e);
+    }, { passive: false });
+    canvasWrapper.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleUp();
+    }, { passive: false });
 
     window.salvarEditor = async () => {
       const activeImg = imagens[indiceAtual];
