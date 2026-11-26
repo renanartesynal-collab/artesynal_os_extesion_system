@@ -1000,7 +1000,7 @@
 
             <div class="ui-field">
               <label class="ui-label" for="in-empresa">Nome da Empresa (Cabeçalho da O.S.)</label>
-              <input type="text" id="in-empresa" class="ui-input" placeholder="Ex: ARTESYNAL COMUNICAÇÃO VISUAL" value="ARTESYNAL" />
+              <input type="text" id="in-empresa" class="ui-input" placeholder="Ex: Nome da empresa do cliente" value="" />
             </div>
 
             <div class="row-2">
@@ -1117,7 +1117,7 @@
 
         <div id="area-impressao">
           <div class="folha-a4" id="folha-a4">
-            <div class="header-top" id="out-empresa">ARTESYNAL</div>
+            <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
 
             <div class="header-grid">
               <div class="col-esq">
@@ -1416,11 +1416,6 @@
     let servicoAtivoMidiaId = null;
     let selecaoMidiasModal = new Map(); // midiaId -> string (qtd digitada)
 
-    const empresaSalva = localStorage.getItem(EMPRESA_PADRAO_KEY);
-    if (empresaSalva) {
-      document.getElementById('in-empresa').value = empresaSalva;
-    }
-
     const esc = (v) => String(v ?? '').replace(/[&<>'"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 
     // =========================================================================
@@ -1536,7 +1531,14 @@
     };
 
     const formatarTelefone = (valor) => {
-      const digitos = (valor || '').replace(/\D/g, '').slice(0, 11);
+      let texto = String(valor || '').trim();
+      texto = texto.replace(/^\+?\s*55\s*(?=\(\d{2}\))/, '');
+      texto = texto.replace(/^\+\s*55[\s.-]*/, '');
+      let digitos = texto.replace(/\D/g, '');
+      if (digitos.length >= 12 && digitos.startsWith('55')) {
+        digitos = digitos.slice(2);
+      }
+      digitos = digitos.slice(0, 11);
       if (digitos.length <= 2) return digitos ? `(${digitos}` : '';
       const ddd = digitos.slice(0, 2);
       const numero = digitos.slice(2);
@@ -2042,9 +2044,7 @@
 
     window.novaOSLimpa = () => {
       idEdicao = null;
-      const emp = localStorage.getItem(EMPRESA_PADRAO_KEY) || document.getElementById('in-empresa').value || 'ARTESYNAL';
-      document.getElementById('in-empresa').value = emp;
-      ['in-cliente', 'in-tel', 'in-end', 'in-os', 'in-data-aprov', 'in-data-limite', 'in-servico', 'in-desc'].forEach((id) => {
+      ['in-empresa', 'in-cliente', 'in-tel', 'in-end', 'in-os', 'in-data-aprov', 'in-data-limite', 'in-servico', 'in-desc'].forEach((id) => {
         document.getElementById(id).value = '';
       });
       atualizarValorRestante('0');
@@ -2072,7 +2072,7 @@
     };
 
     function preencherFormularioOS(data) {
-      document.getElementById('in-empresa').value = data.empresa || localStorage.getItem(EMPRESA_PADRAO_KEY) || 'ARTESYNAL';
+      document.getElementById('in-empresa').value = data.empresa || '';
       document.getElementById('in-cliente').value = data.cliente || '';
       document.getElementById('in-tel').value = formatarTelefone(data.telefone || '');
       document.getElementById('in-end').value = data.endereco || '';

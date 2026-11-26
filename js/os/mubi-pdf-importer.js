@@ -94,8 +94,13 @@ function normalizarDataCurta(dia, mes, ano) {
 
 function normalizarTelefoneBrasil(raw) {
   if (!raw) return '';
-  let digitos = String(raw).replace(/\D/g, '');
-  // Remove DDI +55 quando presente (ex: +55 (41) 99916-2164 -> 41999162164)
+  let texto = String(raw).trim();
+  // Remove DDI +55 ou 55 antes de (DDD) (ex: +55 (41) 99916-2164 ou 55 (41) 99916-2164)
+  texto = texto.replace(/^\+?\s*55\s*(?=\(\d{2}\))/, '');
+  texto = texto.replace(/^\+\s*55[\s.-]*/, '');
+
+  let digitos = texto.replace(/\D/g, '');
+  // Remove DDI 55 sem "+" quando houver 12 ou 13 dígitos (55 + DDD + 8/9 dígitos)
   if (digitos.length >= 12 && digitos.startsWith('55')) {
     digitos = digitos.slice(2);
   }
