@@ -1,4 +1,4 @@
-const CACHE_NAME = 'artesynal-pcp-v2.6';
+const CACHE_NAME = 'artesynal-pcp-v2.8';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,13 @@ const ASSETS = [
   './assets/img/logo-artesynal.png',
   './assets/img/icon-192.png',
   './assets/img/icon-512.png',
+  './assets/img/icon-192-maskable.png',
+  './assets/img/icon-512-maskable.png',
   './js/core/config.js',
   './js/core/auth.js',
   './js/core/theme.js',
   './js/core/task-shortcut.js',
+  './js/os/mubi-pdf-importer.js',
   './js/materiais/impressao.js',
   './js/materiais/serralheria.js',
   './js/materiais/estoque.js',

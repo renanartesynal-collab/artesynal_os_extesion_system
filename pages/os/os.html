@@ -71,6 +71,89 @@
       border-color: var(--brand-border);
     }
 
+    .mubi-import-card {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding: 13px 14px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.10), rgba(59, 130, 246, 0.08));
+      border: 1.5px dashed var(--brand-border);
+      transition: all var(--transition);
+    }
+
+    .mubi-import-card.drag-over {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      transform: scale(1.01);
+    }
+
+    .mubi-import-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mubi-import-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .mubi-import-title {
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mubi-import-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .mubi-import-status {
+      display: none;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .mubi-import-status.show {
+      display: block;
+    }
+
+    .mubi-import-status.ok {
+      background: var(--green-soft);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--green);
+    }
+
+    .mubi-import-status.warn {
+      background: var(--orange-soft);
+      border-color: rgba(249, 115, 22, 0.4);
+      color: var(--orange);
+    }
+
+    .mubi-import-status.err {
+      background: var(--red-soft);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--red);
+    }
+
     .form-section {
       background: var(--bg-subtle);
       border: 1px solid var(--border-subtle);
@@ -896,6 +979,21 @@
             <button type="button" class="ui-btn ui-btn-sm" onclick="window.novaOSLimpa()" title="Limpar formulário para nova O.S.">Limpar</button>
           </div>
 
+          <!-- IMPORTAÇÃO AUTOMÁTICA DE PDF MUBI -->
+          <div class="mubi-import-card" id="mubi-import-card">
+            <input type="file" id="file-pdf-mubi" accept="application/pdf,.pdf" hidden />
+            <div class="mubi-import-top">
+              <div class="mubi-import-info">
+                <span class="mubi-import-title">📄 Auto-preencher via PDF Mubi</span>
+                <span class="mubi-import-sub">Envie ou arraste o PDF da O.S. do Mubi para preencher os dados automaticamente.</span>
+              </div>
+              <button type="button" id="btn-enviar-pdf-mubi" class="ui-btn ui-btn-sm ui-btn-primary">
+                📥 Enviar PDF Mubi
+              </button>
+            </div>
+            <div id="mubi-import-status" class="mubi-import-status"></div>
+          </div>
+
           <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
           <div class="form-section">
             <div class="form-section-title">1. Identificação e Cliente</div>
@@ -1272,6 +1370,7 @@
     import { showToast } from '../../js/core/theme.js';
     import { db, ROTAS } from '../../js/core/config.js';
     import { protegerPagina } from '../../js/core/auth.js';
+    import { extrairDadosPdfMubi } from '../../js/os/mubi-pdf-importer.js';
     import {
       collection,
       addDoc,
@@ -1484,9 +1583,119 @@
     const elTel = document.getElementById('in-tel');
     elTel.addEventListener('input', () => { elTel.value = formatarTelefone(elTel.value); window.up(); });
 
-    document.getElementById('in-empresa').addEventListener('change', (e) => {
+      document.getElementById('in-empresa').addEventListener('change', (e) => {
       const v = e.target.value.trim();
       if (v) localStorage.setItem(EMPRESA_PADRAO_KEY, v);
+    });
+
+    // =========================================================================
+    // AUTO-PREENCHIMENTO VIA PDF MUBI (8 CAMPOS MAPEADOS)
+    // =========================================================================
+    const mubiCard = document.getElementById('mubi-import-card');
+    const mubiInput = document.getElementById('file-pdf-mubi');
+    const mubiBtn = document.getElementById('btn-enviar-pdf-mubi');
+    const mubiStatus = document.getElementById('mubi-import-status');
+
+    function setStatusMubi(texto, tipo = '') {
+      if (!mubiStatus) return;
+      mubiStatus.className = 'mubi-import-status';
+      if (!texto) {
+        mubiStatus.textContent = '';
+        return;
+      }
+      mubiStatus.textContent = texto;
+      mubiStatus.classList.add('show');
+      if (tipo) mubiStatus.classList.add(tipo);
+    }
+
+    async function processarPdfMubi(file) {
+      if (!file) return;
+      const ehPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
+      if (!ehPdf) {
+        setStatusMubi('⚠️ Selecione um arquivo no formato PDF (.pdf) gerado pelo Mubi.', 'err');
+        showToast('Arquivo inválido. Envie um PDF do Mubi.', 'error');
+        return;
+      }
+
+      const txtOriginal = mubiBtn.innerHTML;
+      mubiBtn.disabled = true;
+      mubiBtn.innerHTML = '⏳ Lendo PDF...';
+      setStatusMubi(`⏳ Analisando "${file.name}"...`, '');
+
+      try {
+        const dados = await extrairDadosPdfMubi(file);
+        const mapeamento = [
+          { campo: 'in-empresa', valor: dados.empresa, nome: 'Empresa' },
+          { campo: 'in-cliente', valor: dados.cliente, nome: 'Cliente' },
+          { campo: 'in-tel', valor: dados.telefone, nome: 'Telefone' },
+          { campo: 'in-os', valor: dados.osNumero, nome: 'Nº O.S.' },
+          { campo: 'in-data-aprov', valor: dados.dataAprovacao, nome: 'Aprovação' },
+          { campo: 'in-data-limite', valor: dados.dataEntrega, nome: 'Entrega' },
+          { campo: 'in-servico', valor: dados.servico, nome: 'Serviço' },
+          { campo: 'in-desc', valor: dados.descricao, nome: 'Descrição' }
+        ];
+
+        const preenchidos = [];
+        const faltantes = [];
+
+        for (const item of mapeamento) {
+          if (item.valor) {
+            const el = document.getElementById(item.campo);
+            if (el) el.value = item.valor;
+            preenchidos.push(item.nome);
+          } else {
+            faltantes.push(item.nome);
+          }
+        }
+
+        window.up();
+
+        if (preenchidos.length === 0) {
+          setStatusMubi('⚠️ Nenhum dado reconhecido neste PDF. Verifique se é uma O.S. do Mubi com texto selecionável.', 'err');
+          showToast('Não foi possível extrair os dados do PDF.', 'error');
+        } else if (faltantes.length === 0) {
+          setStatusMubi(`✅ Todos os 8 campos preenchidos (OS #${dados.osNumero} — ${dados.empresa}). Complete os demais dados manualmente.`, 'ok');
+          showToast(`PDF Mubi importado! 8/8 campos preenchidos.`, 'success');
+        } else {
+          setStatusMubi(`✅ ${preenchidos.length}/8 campos preenchidos. Não encontrados no PDF: ${faltantes.join(', ')}.`, 'warn');
+          showToast(`PDF Mubi importado (${preenchidos.length}/8 campos).`, 'info');
+        }
+      } catch (err) {
+        console.error('Erro ao ler PDF Mubi:', err);
+        setStatusMubi('❌ Erro ao ler o PDF Mubi. Tente novamente ou verifique sua conexão.', 'err');
+        showToast('Erro ao processar PDF Mubi.', 'error');
+      } finally {
+        mubiBtn.disabled = false;
+        mubiBtn.innerHTML = txtOriginal;
+        mubiInput.value = '';
+      }
+    }
+
+    mubiBtn.addEventListener('click', () => mubiInput.click());
+    mubiInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) processarPdfMubi(file);
+    });
+
+    ['dragenter', 'dragover'].forEach((ev) => {
+      mubiCard.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        mubiCard.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((ev) => {
+      mubiCard.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        mubiCard.classList.remove('drag-over');
+      });
+    });
+
+    mubiCard.addEventListener('drop', (e) => {
+      const file = e.dataTransfer?.files?.[0];
+      if (file) processarPdfMubi(file);
     });
 
     document.querySelectorAll('#painel-controle input, #painel-controle textarea').forEach((input) => {
@@ -1845,6 +2054,7 @@
       canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
       boxAnotacoes.style.height = '80px';
       sincronizarListaImagensPainel();
+      setStatusMubi('');
       atualizarBannerModo();
       window.up();
       window.mudarAbaOS('editor');
