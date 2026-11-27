@@ -340,7 +340,9 @@
       font-family: 'Mitra LT', 'Montserrat', sans-serif;
       width: 210mm;
       min-width: 210mm;
-      min-height: 296mm;
+      height: 296mm;
+      max-height: 296mm;
+      overflow: hidden;
       background: white;
       position: relative;
       padding: 10mm;
@@ -351,6 +353,148 @@
       transform-origin: top center;
       color: #231f20;
       user-select: none;
+    }
+
+    .folha-a4.folha-oculta {
+      display: none;
+    }
+
+    /* Página extra de informações complementares (mesmo padrão visual da O.S.) */
+    .folha-extra-header {
+      background: #231f20;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .folha-extra-empresa {
+      font-weight: 900;
+      font-size: 18px;
+      text-transform: uppercase;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .folha-extra-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .folha-extra-os-pill {
+      background: white;
+      color: #231f20;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .folha-extra-subbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #f5f5f5;
+      font-size: 11px;
+      margin-bottom: 10px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .folha-extra-titulo {
+      text-align: center;
+      color: #231f20;
+      font-weight: 900;
+      font-size: 18px;
+      margin: 2px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 2px dotted #ccc;
+      padding-bottom: 6px;
+    }
+
+    .folha-extra-conteudo {
+      flex: 1 1 0;
+      min-height: 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      font-family: 'Mitra LT', 'Montserrat', sans-serif;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #fcfcfc;
+      color: #231f20;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Barra de navegação de páginas na prévia e no painel lateral */
+    .page-switcher-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .page-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-default);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .page-pill-btn:hover {
+      border-color: var(--brand);
+      color: var(--text-primary);
+    }
+
+    .page-pill-btn.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #111;
+      font-weight: 800;
+    }
+
+    .extra-page-editor-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      padding: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .extra-page-editor-card.active-page-card {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 1px var(--brand-border);
     }
 
     .folha-a4 .header-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 5px; }
@@ -394,16 +538,16 @@
 
     .folha-a4 .titulo-servico { text-align: center; color: #231f20; font-weight: 900; font-size: 22px; margin: 10px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
 
-    .folha-a4 .area-imagens { flex-grow: 1; border: 2px dashed #ccc; border-radius: 6px; position: relative; overflow: hidden; background-color: #fcfcfc; touch-action: none; min-height: 180px; }
+    .folha-a4 .area-imagens { flex: 1 1 0; border: 2px dashed #ccc; border-radius: 6px; position: relative; overflow: hidden; background-color: #fcfcfc; touch-action: none; min-height: 60px; }
     .folha-a4 .draggable-img { position: absolute; cursor: move; width: 150px; touch-action: none; }
     .folha-a4 .img-selected { border: 2px solid #00aeef; box-shadow: 0 0 10px rgba(0, 174, 239, 0.5); z-index: 100; }
     .folha-a4 .placeholder-text { font-size: 18px; font-weight: 700; color: #ddd; position: absolute; z-index: 0; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
 
-    .folha-a4 .resizer { height: 12px; background: #e0e0e0; cursor: ns-resize; border-radius: 4px; margin: 5px 0; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; }
+    .folha-a4 .resizer { height: 12px; flex-shrink: 0; background: #e0e0e0; cursor: ns-resize; border-radius: 4px; margin: 5px 0; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; }
     .folha-a4 .resizer::before { content: "••••"; color: #888; font-size: 10px; letter-spacing: 2px; line-height: 10px; }
 
-    .folha-a4 .area-desc-titulo { font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase; }
-    .folha-a4 .box-anotacoes { height: 80px; border: 1px solid #ccc; border-radius: 6px; padding: 8px; font-size: 11px; font-family: 'Mitra LT', 'Montserrat', sans-serif; white-space: pre-wrap; background: #fcfcfc; color: #231f20; overflow: hidden; box-sizing: border-box; }
+    .folha-a4 .area-desc-titulo { flex-shrink: 0; font-weight: 900; font-size: 11px; margin-bottom: 2px; color: #555; text-transform: uppercase; }
+    .folha-a4 .box-anotacoes { flex-shrink: 0; height: 80px; border: 1px solid #ccc; border-radius: 6px; padding: 8px; font-size: 11px; font-family: 'Mitra LT', 'Montserrat', sans-serif; white-space: pre-wrap; word-break: break-word; background: #fcfcfc; color: #231f20; overflow: hidden; box-sizing: border-box; }
 
     /* --- VIEW 2 & VIEW 3: WORKSPACES DE LISTAGEM --- */
     .lista-workspace,
@@ -874,7 +1018,7 @@
     /* ==========================================================================
        REGRAS DE IMPRESSÃO (@media print) — MANTÉM 100% O PDF A4 ORIGINAL
        ========================================================================== */
-    @page { size: A4; margin: 0; }
+    @page { size: A4 portrait; margin: 0; }
     @media print {
       html, body {
         background: white !important;
@@ -900,7 +1044,8 @@
       #view-editor,
       .editor-workspace,
       .preview-stage-wrap,
-      #area-impressao {
+      #area-impressao,
+      #paginas-extras-stage {
         display: block !important;
         position: static !important;
         margin: 0 !important;
@@ -910,14 +1055,27 @@
         background: white !important;
         overflow: visible !important;
       }
-      .folha-a4 {
+      .folha-a4,
+      .folha-a4.folha-oculta {
+        display: flex !important;
         box-shadow: none !important;
         padding: 10mm !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         width: 210mm !important;
-        min-height: 296mm !important;
+        min-width: 210mm !important;
+        height: 296mm !important;
+        max-height: 296mm !important;
+        overflow: hidden !important;
         transform: none !important;
         color: black !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .folha-a4.folha-ultima-impressao {
+        page-break-after: auto !important;
+        break-after: auto !important;
       }
       .folha-a4 .area-imagens { border: 1px dashed #ccc !important; }
       .folha-a4 .placeholder-text { display: none !important; }
@@ -1090,6 +1248,22 @@
               <textarea id="in-desc" class="ui-textarea" placeholder="Medidas detalhadas, acabamento, materiais, instruções de instalação..."></textarea>
             </div>
           </div>
+
+          <!-- SEÇÃO 5: PÁGINAS COMPLEMENTARES DE INFORMAÇÕES -->
+          <div class="form-section" id="secao-paginas-extras">
+            <div class="form-section-title">
+              <span>5. Páginas Complementares</span>
+              <span id="badge-qtd-paginas" class="ui-badge" style="padding:1px 7px;">1 pág.</span>
+            </div>
+
+            <div class="page-switcher-bar" id="painel-page-switcher"></div>
+
+            <div id="extra-page-editor-container"></div>
+
+            <button type="button" class="ui-btn ui-btn-sm ui-btn-primary" style="width:100%;" onclick="window.adicionarPaginaInformacoes()">
+              ➕ Adicionar página de informações
+            </button>
+          </div>
         </div>
 
         <div class="editor-footer">
@@ -1106,8 +1280,8 @@
       <div class="preview-stage-wrap" id="preview-stage-wrap">
         <div class="preview-toolbar">
           <button type="button" class="ui-btn ui-btn-sm ui-btn-primary mobile-back-form-btn" onclick="window.togglePreviaMobile()">⬅ Voltar ao Formulário</button>
-          <span class="hide-sm">Pré-visualização fiel da impressão A4 (arraste imagens ou use a roda do mouse para redimensionar)</span>
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div class="page-switcher-bar" id="preview-page-switcher"></div>
+          <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
             <button type="button" class="ui-btn ui-btn-sm" onclick="window.ajustarZoomPrevia(-0.1)">−</button>
             <span id="lbl-zoom-previa" style="min-width:46px; text-align:center; font-weight:700;">90%</span>
             <button type="button" class="ui-btn ui-btn-sm" onclick="window.ajustarZoomPrevia(0.1)">+</button>
@@ -1116,7 +1290,7 @@
         </div>
 
         <div id="area-impressao">
-          <div class="folha-a4" id="folha-a4">
+          <div class="folha-a4 folha-ultima-impressao" id="folha-a4">
             <div class="header-top" id="out-empresa">NOME DA EMPRESA</div>
 
             <div class="header-grid">
@@ -1180,6 +1354,7 @@
             <div class="area-desc-titulo">DESCRIÇÃO TÉCNICA / OBSERVAÇÕES:</div>
             <div class="box-anotacoes" id="out-desc"></div>
           </div>
+          <div id="paginas-extras-stage"></div>
         </div>
       </div>
     </div>
@@ -1411,6 +1586,8 @@
     let zoomPrevia = 0.9;
     let draggedImg = null;
     let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+    let paginasExtras = []; // [{ titulo: string, conteudo: string }]
+    let paginaAtivaIdx = 0; // 0 = Página 1 (O.S.), 1..N = Páginas de informações extras
 
     // Estado do Mini Painel de Mídias de Impressão
     let servicoAtivoMidiaId = null;
@@ -1452,9 +1629,11 @@
     // CONTROLE DE ZOOM DA PRÉVIA A4 (SEM AFETAR A IMPRESSÃO)
     // =========================================================================
     window.aplicarZoomPrevia = () => {
-      const folha = document.getElementById('folha-a4');
-      folha.style.transform = `scale(${zoomPrevia})`;
-      folha.style.marginBottom = `${Math.round((zoomPrevia - 1) * 1120)}px`;
+      const folhas = document.querySelectorAll('#area-impressao .folha-a4');
+      folhas.forEach((folha) => {
+        folha.style.transform = `scale(${zoomPrevia})`;
+        folha.style.marginBottom = `${Math.round((zoomPrevia - 1) * 1120)}px`;
+      });
       document.getElementById('lbl-zoom-previa').textContent = `${Math.round(zoomPrevia * 100)}%`;
     };
 
@@ -1504,6 +1683,176 @@
       setX('x-ent', 'chk-ent');
       setX('x-ret', 'chk-ret');
       setX('x-maq', 'chk-maq');
+
+      atualizarCabecalhosPaginasExtras();
+    };
+
+    // =========================================================================
+    // PÁGINAS COMPLEMENTARES DE INFORMAÇÕES (PÁGINA 2, 3, ...)
+    // =========================================================================
+    function obterResumoCabecalhoExtra() {
+      return {
+        empresa: document.getElementById('in-empresa')?.value.trim() || 'NOME DA EMPRESA',
+        osNum: document.getElementById('in-os')?.value.trim() || 'S/N',
+        servico: document.getElementById('in-servico')?.value.trim() || 'NOME DO SERVIÇO',
+        cliente: document.getElementById('in-cliente')?.value.trim() || '—',
+        entrega: document.getElementById('in-data-limite')?.value.trim() || '00/00/00'
+      };
+    }
+
+    function atualizarCabecalhosPaginasExtras() {
+      const stage = document.getElementById('paginas-extras-stage');
+      if (!stage) return;
+      const info = obterResumoCabecalhoExtra();
+      const totalPaginas = 1 + paginasExtras.length;
+      stage.querySelectorAll('.folha-extra').forEach((folha, idx) => {
+        const elEmp = folha.querySelector('.js-extra-empresa');
+        const elOs = folha.querySelector('.js-extra-os');
+        const elPag = folha.querySelector('.js-extra-pag-num');
+        const elSub = folha.querySelector('.js-extra-subbar');
+        if (elEmp) elEmp.textContent = info.empresa;
+        if (elOs) elOs.textContent = `OS ${info.osNum}`;
+        if (elPag) elPag.textContent = `PÁGINA ${idx + 2} DE ${totalPaginas}`;
+        if (elSub) {
+          elSub.innerHTML = `<span><strong>SERVIÇO:</strong> ${esc(info.servico)}</span><span><strong>CLIENTE:</strong> ${esc(info.cliente)} • <strong>ENTREGA:</strong> ${esc(info.entrega)}</span>`;
+        }
+      });
+    }
+
+    function renderizarPaginasExtras({ focarEditor = false } = {}) {
+      const totalPaginas = 1 + paginasExtras.length;
+      if (paginaAtivaIdx > paginasExtras.length) paginaAtivaIdx = paginasExtras.length;
+      if (paginaAtivaIdx < 0) paginaAtivaIdx = 0;
+
+      const badge = document.getElementById('badge-qtd-paginas');
+      if (badge) badge.textContent = totalPaginas === 1 ? '1 pág.' : `${totalPaginas} págs.`;
+
+      // 1. Switcher pills (tanto na prévia A4 quanto no painel lateral)
+      const montarPills = (incluirBotaoAdd) => {
+        let html = `<button type="button" class="page-pill-btn ${paginaAtivaIdx === 0 ? 'active' : ''}" onclick="window.selecionarPaginaOS(0)">📄 Pág. 1 (O.S.)</button>`;
+        paginasExtras.forEach((_, idx) => {
+          const num = idx + 2;
+          html += `<button type="button" class="page-pill-btn ${paginaAtivaIdx === idx + 1 ? 'active' : ''}" onclick="window.selecionarPaginaOS(${idx + 1})">📝 Pág. ${num}</button>`;
+        });
+        if (incluirBotaoAdd) {
+          html += `<button type="button" class="page-pill-btn" style="border-style:dashed; color:var(--brand);" onclick="window.adicionarPaginaInformacoes()" title="Adicionar página de informações">➕ Pág. Info</button>`;
+        }
+        return html;
+      };
+
+      const previewSwitcher = document.getElementById('preview-page-switcher');
+      const painelSwitcher = document.getElementById('painel-page-switcher');
+      if (previewSwitcher) previewSwitcher.innerHTML = montarPills(true);
+      if (painelSwitcher) painelSwitcher.innerHTML = montarPills(false);
+
+      // 2. Editor da página extra ativa no painel lateral
+      const editorContainer = document.getElementById('extra-page-editor-container');
+      if (editorContainer) {
+        if (paginasExtras.length === 0) {
+          editorContainer.innerHTML = `<div style="font-size:12px; color:var(--text-muted); line-height:1.4;">Precisa colocar mais texto ou observações longas? Adicione uma página extra para não estourar a folha principal.</div>`;
+        } else if (paginaAtivaIdx === 0) {
+          editorContainer.innerHTML = `<div style="font-size:12px; color:var(--text-muted); line-height:1.4;">Visualizando a <strong>Página 1 (O.S. principal)</strong>. Clique em <strong>Pág. 2</strong>${paginasExtras.length > 1 ? ' ou outra página' : ''} acima para editar o texto complementar.</div>`;
+        } else {
+          const extraIdx = paginaAtivaIdx - 1;
+          const pag = paginasExtras[extraIdx];
+          editorContainer.innerHTML = `
+            <div class="extra-page-editor-card active-page-card">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <strong style="font-size:12.5px; color:var(--brand);">📝 Editando Página ${paginaAtivaIdx + 1}</strong>
+                <button type="button" class="ui-btn ui-btn-sm ui-btn-danger" style="padding:3px 8px; font-size:11px;" onclick="window.removerPaginaInformacoes(${extraIdx})">🗑️ Remover</button>
+              </div>
+              <div class="ui-field">
+                <label class="ui-label" for="in-extra-titulo">Título da Página</label>
+                <input type="text" id="in-extra-titulo" class="ui-input" placeholder="Ex: INFORMAÇÕES COMPLEMENTARES" value="${esc(pag.titulo || '')}" />
+              </div>
+              <div class="ui-field">
+                <label class="ui-label" for="in-extra-conteudo">Texto / Informações Complementares</label>
+                <textarea id="in-extra-conteudo" class="ui-textarea" style="min-height:150px;" placeholder="Digite aqui as especificações detalhadas, lista de itens, medidas ou observações extras...">${esc(pag.conteudo || '')}</textarea>
+              </div>
+            </div>
+          `;
+
+          const inTit = document.getElementById('in-extra-titulo');
+          const inCont = document.getElementById('in-extra-conteudo');
+          inTit?.addEventListener('input', (e) => {
+            paginasExtras[extraIdx].titulo = e.target.value;
+            const outTit = document.getElementById(`out-extra-titulo-${extraIdx}`);
+            if (outTit) outTit.textContent = e.target.value.trim() || 'INFORMAÇÕES COMPLEMENTARES';
+          });
+          inCont?.addEventListener('input', (e) => {
+            paginasExtras[extraIdx].conteudo = e.target.value;
+            const outCont = document.getElementById(`out-extra-conteudo-${extraIdx}`);
+            if (outCont) outCont.textContent = e.target.value;
+          });
+
+          if (focarEditor && inCont) {
+            setTimeout(() => inCont.focus(), 40);
+          }
+        }
+      }
+
+      // 3. Folhas A4 no palco (#folha-a4 + #paginas-extras-stage)
+      const folha1 = document.getElementById('folha-a4');
+      const stage = document.getElementById('paginas-extras-stage');
+      if (folha1) {
+        folha1.classList.toggle('folha-oculta', paginaAtivaIdx !== 0);
+        folha1.classList.toggle('folha-ultima-impressao', paginasExtras.length === 0);
+      }
+
+      if (stage) {
+        const info = obterResumoCabecalhoExtra();
+        stage.innerHTML = paginasExtras.map((pag, idx) => {
+          const numPag = idx + 2;
+          const oculta = paginaAtivaIdx !== idx + 1 ? 'folha-oculta' : '';
+          const ultima = idx === paginasExtras.length - 1 ? 'folha-ultima-impressao' : '';
+          return `
+            <div class="folha-a4 folha-extra ${oculta} ${ultima}" id="folha-extra-${idx}">
+              <div class="folha-extra-header">
+                <div class="folha-extra-empresa js-extra-empresa">${esc(info.empresa)}</div>
+                <div class="folha-extra-meta">
+                  <span class="folha-extra-os-pill js-extra-os">OS ${esc(info.osNum)}</span>
+                  <span class="js-extra-pag-num">PÁGINA ${numPag} DE ${totalPaginas}</span>
+                </div>
+              </div>
+              <div class="folha-extra-subbar js-extra-subbar">
+                <span><strong>SERVIÇO:</strong> ${esc(info.servico)}</span>
+                <span><strong>CLIENTE:</strong> ${esc(info.cliente)} • <strong>ENTREGA:</strong> ${esc(info.entrega)}</span>
+              </div>
+              <div class="folha-extra-titulo" id="out-extra-titulo-${idx}">${esc((pag.titulo || '').trim() || 'INFORMAÇÕES COMPLEMENTARES')}</div>
+              <div class="folha-extra-conteudo" id="out-extra-conteudo-${idx}">${esc(pag.conteudo || '')}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.aplicarZoomPrevia();
+    }
+
+    window.selecionarPaginaOS = (idx) => {
+      paginaAtivaIdx = Math.max(0, Math.min(paginasExtras.length, Number(idx) || 0));
+      renderizarPaginasExtras();
+    };
+
+    window.adicionarPaginaInformacoes = () => {
+      const proxNum = paginasExtras.length + 2;
+      paginasExtras.push({
+        titulo: 'INFORMAÇÕES COMPLEMENTARES',
+        conteudo: ''
+      });
+      paginaAtivaIdx = paginasExtras.length;
+      renderizarPaginasExtras({ focarEditor: true });
+      document.getElementById('secao-paginas-extras')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showToast(`Página ${proxNum} adicionada!`, 'success');
+    };
+
+    window.removerPaginaInformacoes = (extraIdx) => {
+      const pag = paginasExtras[extraIdx];
+      if (!pag) return;
+      if ((pag.conteudo || '').trim() && !confirm(`Remover a Página ${extraIdx + 2} e todo o texto dela?`)) return;
+      paginasExtras.splice(extraIdx, 1);
+      paginaAtivaIdx = Math.min(paginaAtivaIdx, paginasExtras.length);
+      renderizarPaginasExtras();
+      showToast('Página complementar removida.', 'info');
     };
 
     // =========================================================================
@@ -1993,6 +2342,10 @@
             retirada: document.getElementById('chk-ret').checked
           },
           imagens_salvas: imagensParaSalvar,
+          paginas_extras: paginasExtras.map((p) => ({
+            titulo: (p.titulo || '').trim() || 'INFORMAÇÕES COMPLEMENTARES',
+            conteudo: p.conteudo || ''
+          })),
           data_atualizacao: new Date()
         };
 
@@ -2054,6 +2407,9 @@
       canvas.innerHTML = '<span class="placeholder-text" id="placeholder-text">ARRASTE AS IMAGENS</span>';
       boxAnotacoes.style.height = '80px';
       sincronizarListaImagensPainel();
+      paginasExtras = [];
+      paginaAtivaIdx = 0;
+      renderizarPaginasExtras();
       setStatusMubi('');
       atualizarBannerModo();
       window.up();
@@ -2112,6 +2468,14 @@
         });
       }
       sincronizarListaImagensPainel();
+      paginasExtras = Array.isArray(data.paginas_extras)
+        ? data.paginas_extras.map((p) => ({
+            titulo: p?.titulo || 'INFORMAÇÕES COMPLEMENTARES',
+            conteudo: p?.conteudo || ''
+          }))
+        : [];
+      paginaAtivaIdx = 0;
+      renderizarPaginasExtras();
       window.up();
     }
 
@@ -3005,6 +3369,7 @@
     const paramId = params.get('id');
     const paramView = params.get('view');
 
+    renderizarPaginasExtras();
     window.up();
     window.autoAjustarPrevia();
 
