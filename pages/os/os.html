@@ -340,12 +340,12 @@
       font-family: 'Mitra LT', 'Montserrat', sans-serif;
       width: 210mm;
       min-width: 210mm;
-      height: 296mm;
-      max-height: 296mm;
+      height: 285mm;
+      max-height: 285mm;
       overflow: hidden;
       background: white;
       position: relative;
-      padding: 10mm;
+      padding: 8mm 10mm;
       box-sizing: border-box;
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
       display: flex;
@@ -1024,11 +1024,14 @@
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
+        width: 210mm !important;
         height: auto !important;
+        min-height: 0 !important;
         overflow: visible !important;
         display: block !important;
         color: black !important;
       }
+      body > *:not(#view-editor),
       .app-topbar,
       #view-lista,
       #view-abertos,
@@ -1038,6 +1041,7 @@
       .mobile-pill-dock,
       .ui-modal-backdrop,
       #artesynal-toast-root,
+      #paginas-extras-stage:empty,
       .folha-a4 .resizer {
         display: none !important;
       }
@@ -1050,8 +1054,9 @@
         position: static !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 100% !important;
+        width: 210mm !important;
         height: auto !important;
+        min-height: 0 !important;
         background: white !important;
         overflow: visible !important;
       }
@@ -1059,12 +1064,12 @@
       .folha-a4.folha-oculta {
         display: flex !important;
         box-shadow: none !important;
-        padding: 10mm !important;
+        padding: 8mm 10mm !important;
         margin: 0 !important;
         width: 210mm !important;
         min-width: 210mm !important;
-        height: 296mm !important;
-        max-height: 296mm !important;
+        height: 285mm !important;
+        max-height: 285mm !important;
         overflow: hidden !important;
         transform: none !important;
         color: black !important;
