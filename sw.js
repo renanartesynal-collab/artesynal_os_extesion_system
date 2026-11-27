@@ -1,4 +1,4 @@
-const CACHE_NAME = 'artesynal-pcp-v2.12';
+const CACHE_NAME = 'artesynal-pcp-v2.13';
 const ASSETS = [
   './',
   './index.html',

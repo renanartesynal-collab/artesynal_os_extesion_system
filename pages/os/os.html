@@ -1024,7 +1024,7 @@
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 210mm !important;
+        width: auto !important;
         height: auto !important;
         min-height: 0 !important;
         overflow: visible !important;
@@ -1054,7 +1054,7 @@
         position: static !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 210mm !important;
+        width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
         background: white !important;
@@ -1064,23 +1064,22 @@
       .folha-a4.folha-oculta {
         display: flex !important;
         box-shadow: none !important;
-        padding: 8mm 10mm !important;
-        margin: 0 !important;
-        width: 210mm !important;
-        min-width: 210mm !important;
-        height: 285mm !important;
-        max-height: 285mm !important;
+        padding: 6mm 8mm !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 210mm !important;
+        min-width: 0 !important;
+        height: 274mm !important;
+        max-height: 274mm !important;
         overflow: hidden !important;
         transform: none !important;
         color: black !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        page-break-after: always !important;
-        break-after: page !important;
-      }
-      .folha-a4.folha-ultima-impressao {
         page-break-after: auto !important;
         break-after: auto !important;
+      }
+      .folha-a4.folha-extra {
+        page-break-before: always !important;
+        break-before: page !important;
       }
       .folha-a4 .area-imagens { border: 1px dashed #ccc !important; }
       .folha-a4 .placeholder-text { display: none !important; }
